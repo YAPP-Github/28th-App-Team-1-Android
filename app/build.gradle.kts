@@ -52,7 +52,7 @@ kotlin {
 
 dependencies {
     // Hilt
-    ksp(libs.dagger.hilt.android.compiler)
+    ksp(libs.dagger.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.dagger.hilt.android)
 
