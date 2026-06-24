@@ -316,3 +316,9 @@ obj/
 !/gradle/wrapper/gradle-wrapper.jar
 
 # End of https://www.toptal.com/developers/gitignore/api/kotlin,android,androidstudio,groovy,java,intellij
+
+
+### SDD
+specs/
+.agent/
+.agents/
