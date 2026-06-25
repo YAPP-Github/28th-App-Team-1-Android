@@ -1,13 +1,16 @@
 name: Android CI
 
+
 on:
   pull_request:
     branches:
       - develop
 
+# Only allows reading
 permissions:
   contents: read
 
+# Only keep last run for the same branch
 concurrency:
   group: android-ci-${{ github.ref }}
   cancel-in-progress: true
