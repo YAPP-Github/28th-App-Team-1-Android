@@ -80,3 +80,13 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 # Hilt
 kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 dagger-hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+
+# Convention Plugins (build-logic)
+dminus14-android-application = { id = "dminus14.android.application" }
+dminus14-android-library = { id = "dminus14.android.library" }
+dminus14-android-feature = { id = "dminus14.android.feature" }
+dminus14-android-compose = { id = "dminus14.android.compose" }
+dminus14-android-hilt = { id = "dminus14.android.hilt" }
+dminus14-android-room = { id = "dminus14.android.room" }
+dminus14-android-network = { id = "dminus14.android.network" }
+dminus14-jvm-library = { id = "dminus14.jvm.library" }
