@@ -72,3 +72,11 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 # Hilt
 kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 dagger-hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+
+# Linting and Formatting
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+
+# Gradle Convention Plugins`
+dminus14-kotlin-lint = { id = "dminus14.kotlin.lint" }
+dminus14-android-lint = { id = "dminus14.android.lint" }
