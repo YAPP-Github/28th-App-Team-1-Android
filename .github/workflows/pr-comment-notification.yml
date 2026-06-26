@@ -2,7 +2,7 @@ name: Discord Notification on PR Comment
 
 on:
   issue_comment:
-    types: [created, edited]
+    types: [ created, edited ]
   workflow_dispatch:
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
 
       - name: Set Environment Variables
         run: |
-          echo "AVATAR_URL=${{ secrets.DISCORD_AVATAR_URL }}" >> $GITHUB_ENV
+          echo "AVATAR_URL=${{ vars.DISCORD_AVATAR_URL }}" >> $GITHUB_ENV
           echo "USERNAME=망곰" >> $GITHUB_ENV
           echo "CONTENT=새로운 PR 댓글이 달렸어요!" >> $GITHUB_ENV
           echo "WEB_HOOK=${{ secrets.DISCORD_WEB_HOOK }}" >> $GITHUB_ENV
