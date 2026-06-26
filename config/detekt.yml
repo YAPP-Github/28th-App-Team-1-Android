@@ -1,0 +1,17 @@
+build:
+    maxIssues: 0
+    excludeCorrectable: true
+
+naming:
+    FunctionNaming:
+        active: true
+        ignoreAnnotated:
+            - 'Composable'
+            - 'Preview'
+
+style:
+    MagicNumber:
+        ignorePropertyDeclaration: true
+    UnusedPrivateMember:
+        ignoreAnnotated:
+            - "Preview"

@@ -8,6 +8,9 @@ plugins {
     // Hilt
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.dagger.hilt.android)
+
+    // Lint and Formatting
+    alias(libs.plugins.dminus14.android.lint)
 }
 
 android {
@@ -31,7 +34,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
