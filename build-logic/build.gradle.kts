@@ -1,7 +1,7 @@
 /**
  * build-logic 모듈 빌드 설정.
  *
- * Convention Plugin 8종을 등록하고, AGP/Kotlin/KSP Gradle Plugin 의존성을 제공한다.
+ * Convention Plugin 9종을 등록하고, AGP/Kotlin/KSP Gradle Plugin 의존성을 제공한다.
  * 루트 [settings.gradle.kts]의 includeBuild("build-logic")로 composite build에 포함된다.
  */
 plugins {
@@ -47,6 +47,10 @@ gradlePlugin {
         register("androidNetwork") {
             id = "dminus14.android.network"
             implementationClass = "com.dminus14.app.convention.AndroidNetworkConventionPlugin"
+        }
+        register("androidDataStore") {
+            id = "dminus14.android.datastore"
+            implementationClass = "com.dminus14.app.convention.AndroidDataStoreConventionPlugin"
         }
         register("jvmLibrary") {
             id = "dminus14.jvm.library"
