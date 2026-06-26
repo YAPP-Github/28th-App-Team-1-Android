@@ -1,6 +1,5 @@
 name: Android CI
 
-
 on:
   pull_request:
     branches:
@@ -46,7 +45,7 @@ jobs:
 
       # Run test, lint and build
       - name: Run unit tests, lint check and build
-        run: ./gradlew --stacktrace --continue testDebugUnitTest lintDebug assembleDebug
+        run: ./gradlew --stacktrace --continue spotlessCheck detekt testDebugUnitTest lintDebug assembleDebug
 
       # Upload lint results from all modules
       - name: Upload lint report artifact
