@@ -29,6 +29,11 @@ room = "2.7.2"
 # DataStore
 datastore = "1.2.1"
 
+# Linting and Formatting
+spotless = "8.7.0"
+detekt = "1.23.8"
+slack-compose-lint = "1.5.2"
+
 [libraries]
 # Default
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -70,10 +75,16 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 # DataStore
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 
-# build-logic compileOnly
-android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
-kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
-ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
+# build-logic
+android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
+kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+ksp-gradle-plugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
+hilt-gradle-plugin = { group = "com.google.dagger", name = "hilt-android-gradle-plugin", version.ref = "hilt" }
+
+# Linting and Formatting
+detekt-gradle-plugin = { group = "io.gitlab.arturbosch.detekt", name = "detekt-gradle-plugin", version.ref = "detekt" }
+slack-compose-lint-checks = { group = "com.slack.lint.compose", name = "compose-lint-checks", version.ref = "slack-compose-lint" }
+spotless-gradle-plugin = { group = "com.diffplug.spotless", name = "spotless-plugin-gradle", version.ref = "spotless" }
 
 [plugins]
 # Default
@@ -82,6 +93,10 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+
+# Linting and Formatting
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 
 # Hilt
 kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
@@ -97,3 +112,6 @@ dminus14-android-room = { id = "dminus14.android.room" }
 dminus14-android-network = { id = "dminus14.android.network" }
 dminus14-android-datastore = { id = "dminus14.android.datastore" }
 dminus14-jvm-library = { id = "dminus14.jvm.library" }
+# Gradle Convention Plugins`
+dminus14-kotlin-lint = { id = "dminus14.kotlin.lint" }
+dminus14-android-lint = { id = "dminus14.android.lint" }

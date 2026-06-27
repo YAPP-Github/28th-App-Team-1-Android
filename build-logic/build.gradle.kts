@@ -10,16 +10,25 @@ plugins {
 
 group = "com.dminus14.app.buildlogic"
 
-dependencies {
-    // Convention Plugin에서 ApplicationExtension 등 AGP DSL을 런타임에 참조하기 위해 implementation 사용
-    implementation(libs.android.gradlePlugin)
-    implementation(libs.kotlin.gradlePlugin)
-    implementation(libs.ksp.gradlePlugin)
-}
-
 // id → implementationClass 매핑으로 서브모듈에서 plugins { id("dminus14.android.*") } 형태로 적용
 gradlePlugin {
     plugins {
+        register("spotlessConvention") {
+            id = "dminus14.spotless"
+            implementationClass = "com.dminus14.app.convention.SpotlessConventionPlugin"
+        }
+        register("detektConvention") {
+            id = "dminus14.detekt"
+            implementationClass = "com.dminus14.app.convention.DetektConventionPlugin"
+        }
+        register("kotlinLintConvention") {
+            id = "dminus14.kotlin.lint"
+            implementationClass = "com.dminus14.app.convention.KotlinLintConventionPlugin"
+        }
+        register("androidLintConvention") {
+            id = "dminus14.android.lint"
+            implementationClass = "com.dminus14.app.convention.AndroidLintConventionPlugin"
+        }
         register("androidApplication") {
             id = "dminus14.android.application"
             implementationClass = "com.dminus14.app.convention.AndroidApplicationConventionPlugin"
@@ -57,4 +66,14 @@ gradlePlugin {
             implementationClass = "com.dminus14.app.convention.JvmLibraryConventionPlugin"
         }
     }
+}
+
+dependencies {
+    // Convention Plugin에서 ApplicationExtension 등 AGP DSL을 런타임에 참조하기 위해 implementation 사용
+    implementation(libs.android.gradle.plugin)
+    implementation(libs.kotlin.gradle.plugin)
+    implementation(libs.ksp.gradle.plugin)
+    implementation(libs.hilt.gradle.plugin)
+    implementation(libs.detekt.gradle.plugin)
+    implementation(libs.spotless.gradle.plugin)
 }

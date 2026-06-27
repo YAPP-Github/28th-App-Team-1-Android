@@ -5,6 +5,8 @@
  * Convention Plugin과 동일한 버전/의존성 alias를 사용한다.
  */
 dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+
     repositories {
         google()
         mavenCentral()
