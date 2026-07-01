@@ -109,6 +109,5 @@ dminus14-android-room = { id = "dminus14.android.room" }
 dminus14-android-network = { id = "dminus14.android.network" }
 dminus14-android-datastore = { id = "dminus14.android.datastore" }
 dminus14-jvm-library = { id = "dminus14.jvm.library" }
-# Gradle Convention Plugins`
 dminus14-kotlin-lint = { id = "dminus14.kotlin.lint" }
 dminus14-android-lint = { id = "dminus14.android.lint" }
