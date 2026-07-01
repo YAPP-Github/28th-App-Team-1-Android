@@ -1,4 +1,4 @@
 plugins {
-    id("dminus14.android.application")
-    id("dminus14.android.lint")
+    alias(libs.plugins.dminus14.android.application)
+    alias(libs.plugins.dminus14.android.lint)
 }
