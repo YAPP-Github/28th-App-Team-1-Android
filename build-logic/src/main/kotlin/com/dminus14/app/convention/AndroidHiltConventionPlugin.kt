@@ -8,17 +8,22 @@
  */
 package com.dminus14.app.convention
 
+import com.dminus14.app.extension.libs
 import com.dminus14.app.extension.pluginId
-import com.dminus14.app.extension.configureHilt
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.dependencies
 
 class AndroidHiltConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             pluginManager.apply(pluginId("kotlin-ksp"))
             pluginManager.apply(pluginId("dagger-hilt-android"))
-            configureHilt()
+
+            dependencies {
+                add("ksp", libs.findLibrary("dagger-hilt-compiler").get())
+                add("implementation", libs.findLibrary("dagger-hilt-android").get())
+            }
         }
     }
 }
