@@ -25,3 +25,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "DMinus14"
 include(":app")
+include(":feature:main:api")
