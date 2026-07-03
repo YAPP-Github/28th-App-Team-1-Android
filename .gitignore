@@ -1,193 +1,64 @@
-# Created by https://www.toptal.com/developers/gitignore/api/kotlin,android,androidstudio,groovy,java,intellij
-# Edit at https://www.toptal.com/developers/gitignore?templates=kotlin,android,androidstudio,groovy,java,intellij
+# Project-specific generated artifacts
+specs/
+.agent/
+.agents/
+.codex/
 
-### Android ###
-# Gradle files
-.gradle/
-build/
-
-# Local configuration file (sdk path, etc)
+# Local configuration and secrets
 local.properties
-
-# Log/OS Files
-*.log
-
-# Android Studio generated files and folders
-captures/
-.externalNativeBuild/
-.cxx/
-*.apk
-output.json
-
-# IntelliJ
-*.iml
-.idea/
-misc.xml
-deploymentTargetDropDown.xml
-render.experimental.xml
-
-# Keystore files
+/*/local.properties
 *.jks
 *.keystore
-
-# Google Services (e.g. APIs or Firebase)
+.signing/
 google-services.json
+GoogleService-Info.plist
 
-# Android Profiling
-*.hprof
-
-### Android Patch ###
-gen-external-apklibs
-
-# Replacement of .externalNativeBuild directories introduced
-# with Android Studio 3.5.
-
-### Groovy ###
-# .gitignore created from Groovy contributors in https://github.com/apache/groovy/blob/master/.gitignore
-
-user.gradle
+# Gradle, Kotlin, and common build outputs
+.gradle/
+.gradle
+.kotlin/
+build/
+**/build/
+!src/**/build/
 target/
 out/
+/out/
+/*/out
+/*/build/
+/*/*/build
+/*/*/production
+user.gradle
 
-*.DS_Store
-*.class
-*.swp
-*~
+# Keep the Gradle wrapper JAR even when generic JAR files are ignored.
+!/gradle/wrapper/gradle-wrapper.jar
 
-.idea
-*.ipr
-*.iws
-.shelf
+# Android build artifacts and generated files
+captures/
+.externalNativeBuild/
+.externalNativeBuild
+.cxx/
+gen/
+gen-external-apklibs
+proguard/
+.navigation/
+output.json
+*.apk
+*.ap_
+*.aab
+*.aar
+*.dex
+obj/
 
-.settings/
-.classpath
-.project
-bin/
-
-
-### Intellij ###
-# Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
-# Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
-
-# User-specific stuff
-.idea/**/workspace.xml
-.idea/**/tasks.xml
-.idea/**/usage.statistics.xml
-.idea/**/dictionaries
-.idea/**/shelf
-
-# AWS User-specific
-.idea/**/aws.xml
-
-# Generated files
-.idea/**/contentModel.xml
-
-# Sensitive or high-churn files
-.idea/**/dataSources/
-.idea/**/dataSources.ids
-.idea/**/dataSources.local.xml
-.idea/**/sqlDataSources.xml
-.idea/**/dynamic.xml
-.idea/**/uiDesigner.xml
-.idea/**/dbnavigator.xml
-
-# Gradle
-.idea/**/gradle.xml
-.idea/**/libraries
-
-# Gradle and Maven with auto-import
-# When using Gradle or Maven with auto-import, you should exclude module files,
-# since they will be recreated, and may cause churn.  Uncomment if using
-# auto-import.
-# .idea/artifacts
-# .idea/compiler.xml
-# .idea/jarRepositories.xml
-# .idea/modules.xml
-# .idea/*.iml
-# .idea/modules
-# *.iml
-# *.ipr
-
-# CMake
+# Native build outputs
 cmake-build-*/
 
-# Mongo Explorer plugin
-.idea/**/mongoSettings.xml
-
-# File-based project format
-
-# IntelliJ
-
-# mpeltonen/sbt-idea plugin
-.idea_modules/
-
-# JIRA plugin
-atlassian-ide-plugin.xml
-
-# Cursive Clojure plugin
-.idea/replstate.xml
-
-# SonarLint plugin
-.idea/sonarlint/
-
-# Crashlytics plugin (for Android Studio and IntelliJ)
-com_crashlytics_export_strings.xml
-crashlytics.properties
-crashlytics-build.properties
-fabric.properties
-
-# Editor-based Rest Client
-.idea/httpRequests
-
-# Android studio 3.1+ serialized cache file
-.idea/caches/build_file_checksums.ser
-
-### Intellij Patch ###
-# Comment Reason: https://github.com/joeblau/gitignore.io/issues/186#issuecomment-215987721
-
-# *.iml
-# modules.xml
-# .idea/misc.xml
-# *.ipr
-
-# Sonarlint plugin
-# https://plugins.jetbrains.com/plugin/7973-sonarlint
-.idea/**/sonarlint/
-
-# SonarQube Plugin
-# https://plugins.jetbrains.com/plugin/7238-sonarqube-community-plugin
-.idea/**/sonarIssues.xml
-
-# Markdown Navigator plugin
-# https://plugins.jetbrains.com/plugin/7896-markdown-navigator-enhanced
-.idea/**/markdown-navigator.xml
-.idea/**/markdown-navigator-enh.xml
-.idea/**/markdown-navigator/
-
-# Cache file creation bug
-# See https://youtrack.jetbrains.com/issue/JBR-2257
-.idea/$CACHE_FILE$
-
-# CodeStream plugin
-# https://plugins.jetbrains.com/plugin/12206-codestream
-.idea/codestream.xml
-
-# Azure Toolkit for IntelliJ plugin
-# https://plugins.jetbrains.com/plugin/8053-azure-toolkit-for-intellij
-.idea/**/azureSettings.xml
-
-### Java ###
-# Compiled class file
-
-# Log file
-
-# BlueJ files
+# Java, Groovy, and JVM artifacts
+*.class
 *.ctxt
-
-# Mobile Tools for Java (J2ME)
 .mtj.tmp/
+bin/
 
-# Package Files #
+# Package/archive artifacts
 *.jar
 *.war
 *.nar
@@ -196,129 +67,80 @@ fabric.properties
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-replay_pid*
+# Compose Multiplatform: web/WASM/JS
+node_modules/
+.node_modules/
+.kotlin-webpack/
 
-### Kotlin ###
-# Compiled class file
+# Compose Multiplatform: desktop/JVM packaging
+**/build/compose/binaries/
 
-# Log file
+# iOS, Xcode, CocoaPods, and Swift artifacts
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/xcshareddata/**
 
-# BlueJ files
+*.xcworkspace/*
+!*.xcworkspace/contents.xcworkspacedata
 
-# Mobile Tools for Java (J2ME)
+/*.gcno
+**/xcshareddata/WorkspaceSettings.xcsettings
+*.xcuserstate
+*.xcscheme
+xcuserdata/
+DerivedData/
+.xcode/
+Pods/
+.pods/
+*.podspec
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.mode1v3
+*.mode2v3
+*.perspectivev3
 
-# Package Files #
+# IDEs and editors
+.idea/
+.idea
+*.iml
+*.ipr
+*.iws
+.shelf
+.idea_modules/
+.vscode/
+.fleet/
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-
-### AndroidStudio ###
-# Covers files to be ignored for android development using Android Studio.
-
-# Built application files
-*.ap_
-*.aab
-
-# Files for the ART/Dalvik VM
-*.dex
-
-# Java class files
-
-# Generated files
-gen/
-
-# Gradle files
-.gradle
-
-# Signing files
-.signing/
-
-# Local configuration file (sdk path, etc)
-
-# Proguard folder generated by Eclipse
-proguard/
-
-# Log Files
-
-# Android Studio
-/*/build/
-/*/local.properties
-/*/out
-/*/*/build
-/*/*/production
-.navigation/
-
-# Keystore files
-
-# Google Services (e.g. APIs or Firebase)
-# google-services.json
-
-# Android Patch
-
-# External native build folder generated in Android Studio 2.2 and later
-.externalNativeBuild
-
-# NDK
-obj/
-
-# IntelliJ IDEA
-/out/
-
-# User-specific configurations
-.idea/caches/
-.idea/libraries/
-.idea/shelf/
-.idea/workspace.xml
-.idea/tasks.xml
-.idea/.name
-.idea/compiler.xml
-.idea/copyright/profiles_settings.xml
-.idea/encodings.xml
-.idea/misc.xml
-.idea/modules.xml
-.idea/scopes/scope_settings.xml
-.idea/dictionaries
-.idea/vcs.xml
-.idea/jsLibraryMappings.xml
-.idea/datasources.xml
-.idea/dataSources.ids
-.idea/sqlDataSources.xml
-.idea/dynamic.xml
-.idea/uiDesigner.xml
-.idea/assetWizardSettings.xml
-.idea/gradle.xml
-.idea/jarRepositories.xml
-.idea/navEditor.xml
-
-# Legacy Eclipse project files
+# Eclipse and legacy project metadata
+.settings/
+.classpath
+.project
 .cproject
 
-# Mobile Tools for Java (J2ME)
+# JetBrains plugin and tool-generated files
+atlassian-ide-plugin.xml
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
 
-# Package Files #
+# OS, temporary, and editor backup files
+.DS_Store
+.DS_Store?
+*.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+*.swp
+.swp
+*~
+*~.nib
 
-# virtual machine crash logs (Reference: http://www.java.com/en/download/help/error_hotspot.xml)
-
-## Plugin-specific files:
-
-# mpeltonen/sbt-idea plugin
-
-# JIRA plugin
-
-# Mongo Explorer plugin
-.idea/mongoSettings.xml
-
-# Crashlytics plugin (for Android Studio and IntelliJ)
-
-### AndroidStudio Patch ###
-
-!/gradle/wrapper/gradle-wrapper.jar
-
-# End of https://www.toptal.com/developers/gitignore/api/kotlin,android,androidstudio,groovy,java,intellij
-
-
-### SDD
-specs/
-.agent/
-.agents/
+# Logs, profiling dumps, and JVM crash reports
+*.log
+*.hprof
+hs_err_pid*
+replay_pid*
