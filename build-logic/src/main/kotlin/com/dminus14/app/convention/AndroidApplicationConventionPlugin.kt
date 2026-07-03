@@ -4,7 +4,7 @@
  * Plugin ID: `dminus14.android.application`
  * 적용 대상: `:app`
  *
- * Application + Compose + Hilt plugin을 적용하고, SDK/앱 설정 및 app 공통 의존성을 구성한다.
+ * Application + Compose + Hilt plugin을 적용하고, SDK/앱 설정 및 app 공통 의존성(Navigation3 포함)을 구성한다.
  */
 package com.dminus14.app.convention
 
@@ -35,6 +35,8 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                 add("implementation", libs.findLibrary("androidx-lifecycle-runtime-ktx").get())
                 add("implementation", libs.findLibrary("androidx-activity-compose").get())
                 add("implementation", libs.findLibrary("androidx-hilt-navigation-compose").get())
+                add("implementation", libs.findLibrary("androidx-navigation3-runtime").get())
+                add("implementation", libs.findLibrary("androidx-navigation3-ui").get())
             }
         }
     }
