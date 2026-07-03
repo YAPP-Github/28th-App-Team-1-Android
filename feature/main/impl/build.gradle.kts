@@ -7,5 +7,5 @@ android {
 }
 
 dependencies {
-    implementation(project(":feature:main:api"))
+    api(project(":feature:main:api"))
 }

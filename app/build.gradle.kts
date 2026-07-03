@@ -4,6 +4,5 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":feature:main:api"))
     implementation(project(":feature:main:impl"))
 }
