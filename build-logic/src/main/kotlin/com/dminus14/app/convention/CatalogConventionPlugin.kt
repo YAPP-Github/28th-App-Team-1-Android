@@ -1,12 +1,10 @@
 package com.dminus14.app.convention
 
 import com.dminus14.app.extension.addComposeMultiplatformLibraries
+import com.dminus14.app.extension.configureKotlinMultiplatformWasm
 import com.dminus14.app.extension.pluginId
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.plugins.ExtensionAware
-import org.jetbrains.compose.ComposeExtension
-import org.jetbrains.compose.resources.ResourcesExtension
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
@@ -25,10 +23,7 @@ class CatalogConventionPlugin : Plugin<Project> {
             pluginManager.apply(pluginId("dminus14-compose-multiplatform"))
 
             extensions.configure<KotlinMultiplatformExtension>("kotlin") {
-                wasmJs {
-                    browser()
-                    binaries.executable()
-                }
+                configureKotlinMultiplatformWasm(this)
 
                 sourceSets.named("wasmJsMain") {
                     dependencies {
@@ -36,14 +31,6 @@ class CatalogConventionPlugin : Plugin<Project> {
 
                         addComposeMultiplatformLibraries(this.project)
                     }
-                }
-            }
-
-            extensions.configure<ComposeExtension>("compose") {
-                (this as ExtensionAware).extensions.configure<ResourcesExtension>("resources") {
-                    publicResClass = false
-                    packageOfResClass = "com.dminus14.catalog.generated.resources"
-                    generateResClass = ResourcesExtension.ResourceClassGeneration.Always
                 }
             }
         }
