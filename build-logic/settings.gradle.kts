@@ -1,13 +1,12 @@
-pluginManagement {
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal()
-    }
-}
-
+/**
+ * build-logic composite build 설정.
+ *
+ * 루트 프로젝트의 [gradle/libs.versions.toml]을 version catalog로 공유하여
+ * Convention Plugin과 동일한 버전/의존성 alias를 사용한다.
+ */
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+
     repositories {
         google()
         mavenCentral()
