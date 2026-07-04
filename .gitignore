@@ -29,9 +29,6 @@ out/
 /*/*/production
 user.gradle
 
-# Keep the Gradle wrapper JAR even when generic JAR files are ignored.
-!/gradle/wrapper/gradle-wrapper.jar
-
 # Android build artifacts and generated files
 captures/
 .externalNativeBuild/
@@ -144,3 +141,6 @@ ehthumbs.db
 *.hprof
 hs_err_pid*
 replay_pid*
+
+# Keep the Gradle wrapper JAR even when generic JAR files are ignored.
+!/gradle/wrapper/gradle-wrapper.jar
