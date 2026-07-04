@@ -13,6 +13,10 @@ internal fun List<StoryGroup>.validateStories(): List<StoryGroup> {
             "Duplicated StoryGroup path: '${group.path}'."
         }
 
+        require(groupPaths.none { it != group.path && it.startsWith("${group.path}/") }) {
+            "StoryGroup path '${group.path}' conflicts with an existing group path that uses it as a directory prefix."
+        }
+
         require(group.stories.isNotEmpty()) {
             "StoryGroup '${group.path}' must contain at least one story."
         }
