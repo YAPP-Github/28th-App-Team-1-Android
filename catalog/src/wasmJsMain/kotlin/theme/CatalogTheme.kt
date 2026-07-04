@@ -9,7 +9,7 @@ internal fun CatalogTheme(
     content: @Composable () -> Unit,
 ) {
     MaterialTheme(
-        colorScheme = CatalogColorScheme(darkTheme),
+        colorScheme = getCatalogColorScheme(darkTheme),
         typography = CatalogTypography(),
         content = content,
     )
