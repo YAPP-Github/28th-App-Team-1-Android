@@ -17,7 +17,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
     @Inject
     lateinit var navigationState: AppNavigationState
 
@@ -31,9 +30,10 @@ class MainActivity : ComponentActivity() {
                         backStack = navigationState.navigator.backStack,
                         onBack = navigationState.navigator::goBack,
                         modifier = Modifier.padding(innerPadding),
-                        entryProvider = entryProvider {
-                            navigationState.entryInstallers.forEach { installer -> installer() }
-                        },
+                        entryProvider =
+                            entryProvider {
+                                navigationState.entryInstallers.forEach { installer -> installer() }
+                            },
                     )
                 }
             }

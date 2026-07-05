@@ -11,7 +11,6 @@ import dagger.hilt.android.scopes.ActivityRetainedScoped
 @Module
 @InstallIn(ActivityRetainedComponent::class)
 object NavigatorModule {
-
     @Provides
     @ActivityRetainedScoped
     fun provideNavigator(): Navigator = Navigator(startDestination = MainHome)
