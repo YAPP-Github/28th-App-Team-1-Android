@@ -27,9 +27,10 @@ implements them:
 - `:designsystem` as a Compose Multiplatform-compatible shared UI module.
 - `:catalog` as a Web/WASM-capable Kotlin Multiplatform design-system catalog.
 - Compose Multiplatform and WASM convention plugin support in `build-logic`.
-- App-owned Navigation 3 root assembly through `app`.
+- App-owned Navigation 3 root assembly through `app`. **(bootstrap implemented: `Navigator`,
+  `AppNavigationState`, `MainActivity` + `NavDisplay`)**
 - Feature-level MVI contracts, ViewModels, Screens, Content composables, route/entry contracts, and
-  global error handling.
+  global error handling. **(bootstrap implemented in `:feature:main:impl`)**
 - Sensitive-data features for resumes, interview media, STT transcripts, feedback, and reports.
 
 Future implementation does not weaken the rules in `docs/CONSTITUTION.md`. Any code that introduces
@@ -74,7 +75,10 @@ rules at the time it is added.
     - Navigation 3 사용에 따라 별도의 `:navigation` 또는 `:feature:navigator` 모듈을 추가하지 않는다.
     - 앱의 최상위 Navigation 조립은 `app` 모듈에서 담당한다.
     - 각 Feature는 자신이 제공하는 route 또는 entry를 정의하고, Hilt multibinding 등을 통해 상위 앱 계층에 제공한다.
-    - `MainActivity`와 `DMinusApp`, `NavDisplay` 같은 앱 루트 구성은 `app` 모듈에 둔다.
+    - `Navigator`, `AppNavigationState`, `EntryProviderInstaller` 같은 navigation 조립 요소는 `app` 모듈의
+      `navigation` 패키지에 둔다.
+    - `MainActivity`에서 `NavDisplay`를 조립한다. 전역 UI 이벤트 처리를 위한 앱 Root Composable(
+      예: `DMinusApp`)은 도입 시 `app` 모듈에 둔다.
 
 4. **Manifest 등록은 `app` 모듈에서 일원화한다.**
     - `Application`, `Activity` 등 Android Manifest 등록은 `app` 모듈에서 관리한다.
@@ -120,8 +124,9 @@ rules at the time it is added.
 - `AndroidManifest.xml` 일원 관리
 - `MainActivity` 관리
 - Navigation 3 기반 앱 루트 구성
-- Feature가 제공한 route/entry 수집
-- `DMinusApp`, `NavDisplay` 등 앱 최상위 Composable 관리
+- `Navigator` back stack 관리 및 `NavDisplay` 조립
+- Feature가 제공한 route/entry를 Hilt multibinding으로 수집
+- `AppNavigationState`를 통해 `Navigator`와 entry installer를 `ActivityRetainedScoped`로 제공
 - 전역 에러 이벤트 collect 및 Dialog/Toast/Snackbar 표시
 - 앱 실행에 필요한 Android 설정 관리
 
@@ -325,6 +330,103 @@ flowchart TD
 | `catalog` → `app`                  | 카탈로그가 Android 앱 런타임에 결합된다.        |
 | `catalog` → Android Framework      | Web/WASM 빌드 목적을 위반한다.             |
 
+### 4.4 Navigation 3 조립
+
+Navigation 3 조립은 별도 모듈이 아니라 `app` 모듈에서 수행한다. Feature는 route key와 entry builder만
+제공하고, 화면 전환 실행은 `app`의 `Navigator`와 UI 계층이 담당한다.
+
+#### 4.4.1 `app` 모듈 구성 요소
+
+| 구성 요소 | 위치 | 역할 |
+|---------|------|------|
+| `Navigator` | `app/.../navigation/Navigator.kt` | `SnapshotStateList` 기반 back stack 관리 (`goTo`, `goBack`) |
+| `AppNavigationState` | `app/.../navigation/AppNavigationState.kt` | `Navigator`와 feature entry installer 집합을 주입받아 `MainActivity`에 전달 |
+| `EntryProviderInstaller` | `app/.../navigation/EntryProviderInstaller.kt` | `EntryProviderScope<Any>.() -> Unit` typealias. feature entry 등록 계약 |
+| `NavigatorModule` | `app/.../navigation/di/NavigatorModule.kt` | 시작 destination route 제공 |
+| `MainActivity` | `app/.../MainActivity.kt` | `NavDisplay`, `entryProvider`, `onBack` 조립 |
+
+`Navigator`는 앱 루트 전용 stack 관리 클래스이며, 별도 Gradle 모듈(`:navigation`, `:feature:navigator`)로
+분리하지 않는다.
+
+#### 4.4.2 Feature route / entry 제공
+
+Feature는 필요 시 `api` / `impl`로 분리할 수 있다.
+
+| 모듈 | 책임 |
+|------|------|
+| `feature:{name}:api` | 다른 모듈이 참조할 route key, args 등 navigation 계약 |
+| `feature:{name}:impl` | `Screen`, `ViewModel`, entry builder, Hilt navigation module |
+
+현재 bootstrap 구현 예시는 `:feature:main:api`, `:feature:main:impl`이다.
+
+- `feature:main:api` — `MainHome` route key
+- `feature:main:impl` — `MainEntryBuilder`, `MainNavigationModule`
+
+Feature impl은 Hilt `@IntoSet`으로 entry installer를 등록한다.
+
+```kotlin
+@Module
+@InstallIn(ActivityRetainedComponent::class)
+object MainNavigationModule {
+
+    @IntoSet
+    @Provides
+    fun provideMainEntryInstaller(): EntryProviderScope<Any>.() -> Unit = {
+        mainEntryBuilder()
+    }
+}
+```
+
+entry builder는 route key와 Composable entry를 연결한다.
+
+```kotlin
+fun EntryProviderScope<Any>.mainEntryBuilder() {
+    entry<MainHome> {
+        MainScreen()
+    }
+}
+```
+
+Feature는 `app`에 의존하지 않는다. entry installer 타입은 feature에서 `EntryProviderScope<Any>.() -> Unit`으로
+제공하고, `app`은 동일한 시그니처의 `EntryProviderInstaller` typealias로 multibinding 결과를 수집한다.
+
+#### 4.4.3 앱 루트 조립 예시
+
+```kotlin
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var navigationState: AppNavigationState
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            DMinus14Theme {
+                NavDisplay(
+                    backStack = navigationState.navigator.backStack,
+                    onBack = navigationState.navigator::goBack,
+                    entryProvider = entryProvider {
+                        navigationState.entryInstallers.forEach { installer -> installer() }
+                    },
+                )
+            }
+        }
+    }
+}
+```
+
+#### 4.4.4 화면 전환 규칙
+
+| 계층 | 책임 |
+|------|------|
+| `ViewModel` | Navigation Effect 발행 |
+| `Screen` | Effect 수집 후 `Navigator.goTo()` 또는 상위 콜백 호출 |
+| `Navigator` | back stack 변경 |
+| `NavDisplay` | 현재 destination Composable 렌더링 |
+
+ViewModel이 `NavDisplay`나 `Navigator`를 직접 호출하지 않는다.
+
 ---
 
 ## 5. MVI 규칙
@@ -344,15 +446,38 @@ DMinus14는 화면 아키텍처로 MVI(Model-View-Intent)를 사용한다.
 
 ### 5.2 Feature 파일 구조
 
+단일 모듈 Feature 구조:
+
 ```text
 feature/{featureName}/
 ├── component/           # 해당 Feature 내부에서만 사용하는 Compose Component
 ├── extension/           # 해당 Feature 내부에서만 사용하는 Extension
 ├── navigation/          # 해당 Feature가 제공하는 Navigation 3 route/entry
+├── di/                  # Hilt Module (navigation entry multibinding 등)
 ├── {Name}Contract.kt    # Intent, State, Effect 정의
 ├── {Name}ViewModel.kt   # Intent 처리, State/Effect 관리
 └── {Name}Screen.kt      # Compose UI
 ```
+
+route 계약을 다른 모듈에 노출해야 하면 `api` / `impl`로 분리한다.
+
+```text
+feature/{featureName}/
+├── api/
+│   └── src/main/kotlin/.../api/
+│       └── {Feature}Route.kt        # route key, args
+└── impl/
+    └── src/main/kotlin/.../
+        ├── component/
+        ├── extension/
+        ├── navigation/              # entry builder
+        ├── di/                      # MainNavigationModule 등
+        ├── {Name}Contract.kt
+        ├── {Name}ViewModel.kt
+        └── {Name}Screen.kt
+```
+
+현재 bootstrap 예시는 `feature/main/api`, `feature/main/impl`이다.
 
 `component/`와 `extension/`은 해당 Feature 내부에서만 사용한다. 다른 Feature에서도 필요해지면 다음 기준에 따라 이동한다.
 
@@ -690,11 +815,15 @@ object GlobalErrorHandler {
 
 ### 8.5 앱 루트에서 전역 에러 처리 예시
 
-전역 에러 이벤트는 `app` 모듈의 앱 루트 Composable에서 collect한다.
+전역 에러 이벤트는 `app` 모듈의 앱 루트 Composable에서 collect한다. 현재 bootstrap 단계에서는
+`MainActivity`가 `NavDisplay`를 직접 조립하고, 아래 `DMinusApp` 예시는 전역 Dialog/Toast 처리를
+앱 Root Composable로 모을 때의 목표 구조다.
 
 ```kotlin
 @Composable
-fun DMinusApp() {
+fun DMinusApp(
+    navigationState: AppNavigationState,
+) {
     var globalDialog by remember { mutableStateOf<GlobalAppEvent?>(null) }
     val context = LocalContext.current
 
@@ -714,7 +843,13 @@ fun DMinusApp() {
 
     AppTheme {
         Box {
-            NavDisplay()
+            NavDisplay(
+                backStack = navigationState.navigator.backStack,
+                onBack = navigationState.navigator::goBack,
+                entryProvider = entryProvider {
+                    navigationState.entryInstallers.forEach { installer -> installer() }
+                },
+            )
 
             when (globalDialog) {
                 is GlobalAppEvent.ShowNetworkDialog -> {
@@ -833,12 +968,16 @@ android-project/
 ├── app/                                      # Application 진입, Manifest, Navigation 조립
 │   └── src/main/
 │       ├── AndroidManifest.xml               # Application, Activity 등 전체 Manifest 등록
-│       └── kotlin/com/dminus14/app/
-│           ├── App.kt                        # @HiltAndroidApp Application 클래스
-│           ├── MainActivity.kt               # Single Activity, Compose setContent
-│           ├── DMinusApp.kt                  # 앱 Root Composable, 전역 이벤트 처리
+│       └── java/com/dminus14/app/
+│           ├── DMinus14App.kt                # @HiltAndroidApp Application 클래스
+│           ├── MainActivity.kt               # Single Activity, NavDisplay 조립
+│           ├── ui/theme/                     # 앱 전용 Theme (bootstrap)
 │           └── navigation/
-│               └── NavDisplay.kt             # Navigation 3 기반 화면 조립
+│               ├── Navigator.kt              # back stack 관리
+│               ├── AppNavigationState.kt     # Navigator + entry installer 집합
+│               ├── EntryProviderInstaller.kt # entry 등록 typealias
+│               └── di/
+│                   └── NavigatorModule.kt    # 시작 destination 제공
 │
 ├── core/
 │   └── common/                               # 공통 유틸, MVI Base, 공통 route/key
@@ -896,13 +1035,21 @@ android-project/
 │
 └── feature/                                  # 기능 모듈. MVI 단위 화면
     └── {featureName}/
-        ├── component/                        # Feature 내부 전용 Component
-        ├── extension/                        # Feature 내부 전용 Extension
-        ├── navigation/                       # Feature route/entry 제공
-        ├── {FeatureName}Contract.kt          # Intent / State / Effect 정의
-        ├── {FeatureName}ViewModel.kt         # Intent 처리, State/Effect 관리
-        └── {FeatureName}Screen.kt            # Compose UI
+        ├── api/                              # (선택) route 계약 노출
+        │   └── src/main/kotlin/.../api/
+        │       └── {Feature}Route.kt
+        └── impl/                             # 화면, ViewModel, entry, DI
+            └── src/main/kotlin/.../
+                ├── component/                # Feature 내부 전용 Component
+                ├── extension/                # Feature 내부 전용 Extension
+                ├── navigation/               # entry builder
+                ├── di/                       # Hilt Module
+                ├── {FeatureName}Contract.kt  # Intent / State / Effect 정의
+                ├── {FeatureName}ViewModel.kt # Intent 처리, State/Effect 관리
+                └── {FeatureName}Screen.kt    # Compose UI
 ```
+
+bootstrap 단계에서는 `feature/main/api`, `feature/main/impl`만 Gradle에 포함될 수 있다.
 
 ---
 
@@ -913,7 +1060,7 @@ android-project/
 1. 변경 대상 모듈이 올바른 책임을 갖는지 확인한다.
 2. 금지 의존성이 추가되지 않는지 확인한다.
 3. 별도의 Navigation 모듈 또는 `feature:navigator` 모듈을 새로 만들지 않는다.
-4. Navigation 3 route/entry는 Feature에서 제공하고, 앱 루트에서 조립한다.
+4. Navigation 3 route/entry는 Feature에서 제공하고, `app`의 `Navigator` + `NavDisplay`에서 조립한다.
 5. Feature에서 `data` 구현체를 직접 참조하지 않는다.
 6. Domain에 Android Framework 의존성을 추가하지 않는다.
 7. `designsystem`에 Android 의존성을 추가하지 않는다.
