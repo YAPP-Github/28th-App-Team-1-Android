@@ -8,11 +8,17 @@ class Navigator(
 ) {
     val backStack: SnapshotStateList<Any> = mutableStateListOf(startDestination)
 
+    var onExit: () -> Unit = {}
+
     fun goTo(destination: Any) {
         backStack.add(destination)
     }
 
     fun goBack() {
-        backStack.removeLastOrNull()
+        if (backStack.size > 1) {
+            backStack.removeAt(backStack.lastIndex)
+        } else {
+            onExit()
+        }
     }
 }

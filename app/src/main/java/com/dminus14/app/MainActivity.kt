@@ -22,6 +22,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        navigationState.navigator.onExit = {
+            // 앱 종료 방법 PM과 상의 후 결정
+        }
+
         enableEdgeToEdge()
         setContent {
             DMinus14Theme {
