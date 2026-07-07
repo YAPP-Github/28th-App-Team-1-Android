@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.dminus14.app.navigation.AppNavigationState
 import com.dminus14.app.ui.theme.DMinus14Theme
@@ -35,6 +37,11 @@ class MainActivity : ComponentActivity() {
                         backStack = navigationState.navigator.backStack,
                         onBack = navigationState.navigator::goBack,
                         modifier = Modifier.padding(innerPadding),
+                        entryDecorators =
+                            listOf(
+                                rememberSaveableStateHolderNavEntryDecorator(),
+                                rememberViewModelStoreNavEntryDecorator(),
+                            ),
                         entryProvider =
                             entryProvider {
                                 navigationState.entryInstallers.forEach { installer -> installer() }
