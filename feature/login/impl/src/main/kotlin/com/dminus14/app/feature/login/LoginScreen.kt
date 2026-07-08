@@ -22,10 +22,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dminus14.app.feature.main.api.MainHome
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit,
+    onNavigate: (Any) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = hiltViewModel(),
 ) {
@@ -34,7 +35,7 @@ fun LoginScreen(
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                LoginEffect.NavigateToHome -> onLoginSuccess()
+                LoginEffect.NavigateToHome -> onNavigate(MainHome)
             }
         }
     }

@@ -5,9 +5,9 @@ import com.dminus14.app.feature.login.LoginScreen
 import com.dminus14.app.feature.login.api.Login
 
 fun EntryProviderScope<Any>.loginEntryBuilder(
-    onLoginSuccess: () -> Unit,
+    onNavigate: (Any) -> Unit,
 ) {
     entry<Login> {
-        LoginScreen(onLoginSuccess = onLoginSuccess)
+        LoginScreen(onNavigate = onNavigate)
     }
 }
