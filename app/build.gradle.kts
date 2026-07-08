@@ -4,5 +4,6 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":feature:login:impl"))
     implementation(project(":feature:main:impl"))
 }
