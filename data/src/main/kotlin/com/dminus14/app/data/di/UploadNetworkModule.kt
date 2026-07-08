@@ -2,6 +2,7 @@ package com.dminus14.app.data.di
 
 import com.dminus14.app.data.remote.api.FileUploadApi
 import com.dminus14.app.data.remote.config.UploadNetworkConfig
+import com.dminus14.app.data.remote.interceptor.OkHttpLoggingInterceptorFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,6 +31,7 @@ object UploadNetworkModule {
     fun provideUploadOkHttpClient(): OkHttpClient =
         OkHttpClient
             .Builder()
+            .addInterceptor(OkHttpLoggingInterceptorFactory.createForUpload())
             .connectTimeout(UploadNetworkConfig.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(UploadNetworkConfig.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .writeTimeout(UploadNetworkConfig.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)

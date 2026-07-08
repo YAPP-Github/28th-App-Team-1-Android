@@ -2,6 +2,7 @@ package com.dminus14.app.data.di
 
 import com.dminus14.app.data.remote.api.ApiInterface
 import com.dminus14.app.data.remote.config.NetworkConfig
+import com.dminus14.app.data.remote.interceptor.OkHttpLoggingInterceptorFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -26,6 +27,7 @@ object NetworkModule {
     fun provideOkHttpClient(): OkHttpClient =
         OkHttpClient
             .Builder()
+            .addInterceptor(OkHttpLoggingInterceptorFactory.create())
             .connectTimeout(NetworkConfig.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(NetworkConfig.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .writeTimeout(NetworkConfig.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
