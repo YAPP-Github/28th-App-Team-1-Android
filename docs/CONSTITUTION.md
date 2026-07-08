@@ -130,9 +130,13 @@ and global UI event rendering.
 
 `feature:*` must not depend on `app`.
 
-`feature:*` must not directly depend on another `feature:*` module.
+`feature:*` must not depend on another feature's `impl` module.
 
-Feature-to-feature navigation must be assembled through route or entry contracts at the app root.
+`feature:*` may depend on another feature's `api` module for route or entry contracts only.
+
+Feature-to-feature navigation execution must still be assembled at the app root. Cross-feature `api`
+dependencies must not be used to import screens, ViewModels, or implementation details from another
+feature.
 
 ### 6.3 `domain`
 
@@ -301,7 +305,7 @@ The following changes are prohibited without explicit user approval and constitu
 justification:
 
 - Making `feature:*` depend on `data`
-- Making `feature:*` depend on another `feature:*` module
+- Making `feature:*` depend on another feature's `impl` module
 - Making `feature:*` depend on `app`
 - Making `domain` depend on Android Framework APIs
 - Making `domain` depend on `data` or `feature:*`

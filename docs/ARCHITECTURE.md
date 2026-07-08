@@ -84,8 +84,10 @@ rules at the time it is added.
     - `Application`, `Activity` 등 Android Manifest 등록은 `app` 모듈에서 관리한다.
     - Feature 모듈이 독립적으로 Manifest 엔트리를 추가하는 방식은 피한다.
 
-5. **Feature 간 직접 의존은 금지한다.**
-    - Feature 간 화면 전환은 공통 route/entry 계약을 통해 앱 루트에서 조립한다.
+5. **Feature `impl` 간 직접 의존은 금지한다.**
+    - `feature:{name}:impl`은 다른 feature의 `impl`에 의존하지 않는다.
+    - 다른 feature의 route/entry 계약이 필요하면 해당 feature의 `api`만 의존한다.
+    - 화면 전환 실행은 `app`의 `Navigator`와 UI 계층이 담당한다.
     - 특정 Feature에서만 쓰는 UI 또는 extension은 해당 Feature 내부에 둔다.
     - 둘 이상의 Feature에서 사용되기 시작하면 성격에 따라 `designsystem` 또는 `core:common`으로 이동한다.
 
@@ -147,8 +149,9 @@ Feature 모듈의 주요 책임은 다음과 같다.
 
 Feature 모듈은 `data` 모듈에 직접 의존하지 않는다. 데이터가 필요하면 `domain`의 UseCase 또는 Repository Interface를 통해 접근한다.
 
-Feature 간 직접 참조도 금지한다. 다른 Feature로 이동해야 할 경우 구체 화면 구현체를 직접 호출하지 않고, route/entry 계약을 통해 앱 루트에서 조립되도록
-한다.
+다른 feature의 `impl`에는 의존하지 않는다. 다른 feature로 이동해야 할 route key가 필요하면 해당
+feature의 `api`만 참조한다. 구체 화면 구현체, ViewModel, entry builder 구현은 직접 호출하지 않고,
+`app` 루트에서 Navigator와 entry 조립을 통해 화면 전환을 실행한다.
 
 ### 3.3 `designsystem`
 
@@ -306,6 +309,7 @@ flowchart TD
 | `feature:*` → `domain`         | Feature가 UseCase 또는 Repository Interface에 접근한다.            |
 | `feature:*` → `designsystem`   | 화면에서 공통 UI 컴포넌트를 사용한다.                                     |
 | `feature:*` → `core:common`    | MVI Base, 공통 모델, 공통 확장 함수를 사용한다.                           |
+| `feature:*:impl` → `feature:*:api` | 다른 feature의 route/entry 계약을 참조한다.                         |
 | `data` → `domain`              | Repository Interface를 구현한다.                                |
 | `data` → `core:common`         | 공통 Result, Error 모델 등을 사용한다.                               |
 | `designsystem` → `core:common` | Android에 의존하지 않는 공통 모델, util, extension을 사용한다.             |
@@ -318,7 +322,8 @@ flowchart TD
 |------------------------------------|-----------------------------------|
 | `feature:*` → `data`               | UI 레이어가 데이터 구현체에 결합된다.            |
 | `feature:*` → `app`                | Feature가 앱 조립 계층에 역의존하게 된다.       |
-| `feature:*` ↔ `feature:*`          | Feature 간 결합이 커지고 독립성이 깨진다.       |
+| `feature:*:impl` → `feature:*:impl` | Feature 구현체 간 결합이 커지고 독립성이 깨진다. |
+| `feature:*:impl` → `feature:*:api` (route 외 목적) | 다른 feature의 화면/구현 세부사항에 결합된다. |
 | `domain` → `data`                  | 비즈니스 로직이 데이터 구현체에 결합된다.           |
 | `domain` → `feature:*`             | 비즈니스 로직이 UI에 결합된다.                |
 | `domain` → Android Framework       | 순수 Kotlin 모듈 원칙이 깨진다.             |
@@ -356,6 +361,8 @@ Feature는 필요 시 `api` / `impl`로 분리할 수 있다.
 |------|------|
 | `feature:{name}:api` | 다른 모듈이 참조할 route key, args 등 navigation 계약 |
 | `feature:{name}:impl` | `Screen`, `ViewModel`, entry builder, Hilt navigation module |
+
+`feature:{name}:impl`은 다른 feature의 `api`만 의존할 수 있다. 다른 feature의 `impl` 의존은 금지한다.
 
 현재 bootstrap 구현 예시는 `:feature:main:api`, `:feature:main:impl`이다.
 
