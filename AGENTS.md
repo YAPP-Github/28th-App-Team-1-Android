@@ -122,7 +122,8 @@ Agents must enforce these checks during implementation:
 
 - `feature:*` must not depend on `data`.
 - `feature:*` must not depend on `app`.
-- `feature:*` must not directly depend on another `feature:*` module.
+- `feature:*:impl` must not depend on another feature's `impl` module.
+- `feature:*:impl` may depend on another feature's `api` module for route or entry contracts only.
 - `domain` must not depend on Android Framework APIs.
 - `domain` must not depend on `data` or `feature:*`.
 - `data` must not depend on `feature:*` or `app`.
