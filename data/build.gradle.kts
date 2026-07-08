@@ -7,4 +7,8 @@ plugins {
 
 android {
     namespace = "com.dminus14.app.data"
+
+    buildFeatures {
+        buildConfig = true
+    }
 }
