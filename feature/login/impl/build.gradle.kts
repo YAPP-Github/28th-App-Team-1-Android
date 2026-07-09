@@ -8,5 +8,6 @@ android {
 
 dependencies {
     api(project(":feature:login:api"))
+    implementation(project(":domain"))
     implementation(project(":feature:main:api"))
 }

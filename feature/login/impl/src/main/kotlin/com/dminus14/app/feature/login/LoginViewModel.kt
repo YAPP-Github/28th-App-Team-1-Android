@@ -2,6 +2,8 @@ package com.dminus14.app.feature.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dminus14.app.domain.model.KakaoAuthException
+import com.dminus14.app.domain.usecase.LoginWithKakaoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel
@@ -13,7 +15,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class LoginViewModel @Inject constructor() : ViewModel() {
+class LoginViewModel @Inject constructor(
+    private val loginWithKakaoUseCase: LoginWithKakaoUseCase,
+) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginState())
     val state: StateFlow<LoginState> = _state.asStateFlow()
@@ -31,9 +35,36 @@ class LoginViewModel @Inject constructor() : ViewModel() {
         viewModelScope.launch {
             reduce { copy(isLoading = true, errorMessage = null) }
 
-            // TODO: Kakao SDK 연동 및 백엔드 토큰 교환
-            reduce { copy(isLoading = false) }
-            sendEffect(LoginEffect.NavigateToHome)
+            loginWithKakaoUseCase()
+                .onSuccess {
+                    reduce { copy(isLoading = false) }
+                    sendEffect(LoginEffect.NavigateToHome)
+                }
+                .onFailure { throwable ->
+                    when (throwable) {
+                        is KakaoAuthException.Cancelled -> {
+                            reduce { copy(isLoading = false) }
+                        }
+
+                        is KakaoAuthException -> {
+                            reduce {
+                                copy(
+                                    isLoading = false,
+                                    errorMessage = throwable.message,
+                                )
+                            }
+                        }
+
+                        else -> {
+                            reduce {
+                                copy(
+                                    isLoading = false,
+                                    errorMessage = throwable.message,
+                                )
+                            }
+                        }
+                    }
+                }
         }
     }
 
