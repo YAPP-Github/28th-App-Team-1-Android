@@ -32,6 +32,9 @@ datastore = "1.2.1"
 # Kakao
 kakao = "2.23.4"
 
+# DI
+javax-inject = "1"
+
 # Linting and Formatting
 spotless = "8.7.0"
 detekt = "1.23.8"
@@ -78,7 +81,11 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 
 # Kakao
-kakao-user = { group = "com.kakao.sdk", name = "v2-user", version.ref = "kakao" }
+kakao-v2-common = { group = "com.kakao.sdk", name = "v2-common", version.ref = "kakao" }
+kakao-v2-user = { group = "com.kakao.sdk", name = "v2-user", version.ref = "kakao" }
+
+# DI
+javax-inject = { group = "javax.inject", name = "javax.inject", version.ref = "javax-inject" }
 
 # build-logic
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
