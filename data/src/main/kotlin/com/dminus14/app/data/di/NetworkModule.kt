@@ -1,6 +1,7 @@
 package com.dminus14.app.data.di
 
 import com.dminus14.app.data.remote.api.ApiInterface
+import com.dminus14.app.data.remote.api.KakaoAuthApi
 import com.dminus14.app.data.remote.config.NetworkConfig
 import com.dminus14.app.data.remote.interceptor.OkHttpLoggingInterceptorFactory
 import dagger.Module
@@ -49,4 +50,8 @@ object NetworkModule {
     @Singleton
     fun provideExamplePostApi(retrofit: Retrofit): ApiInterface =
         retrofit.create(ApiInterface::class.java)
+
+    @Provides
+    @Singleton
+    fun provideKakaoAuthApi(retrofit: Retrofit): KakaoAuthApi = retrofit.create(KakaoAuthApi::class.java)
 }
