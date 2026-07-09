@@ -26,6 +26,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "DMinus14"
 include(":app")
+include(":domain")
 include(":data")
 include(":feature:main:api")
 include(":feature:main:impl")
