@@ -14,7 +14,6 @@ val localProperties =
     }
 
 val kakaoNativeAppKey = localProperties.getProperty("KAKAO_NATIVE_APP_KEY").orEmpty()
-val serverUrl = localProperties.getProperty("SERVER_URL").orEmpty()
 
 android {
     buildFeatures {
@@ -24,8 +23,6 @@ android {
     defaultConfig {
         buildConfigField("String", "KAKAO_NATIVE_APP_KEY", "\"$kakaoNativeAppKey\"")
         manifestPlaceholders["KAKAO_NATIVE_APP_KEY"] = kakaoNativeAppKey
-
-        buildConfigField("String", "SERVER_URL", "\"$serverUrl\"")
     }
 }
 
