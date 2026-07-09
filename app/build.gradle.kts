@@ -27,7 +27,8 @@ android {
 }
 
 dependencies {
-    implementation(libs.kakao.user)
+    implementation(libs.kakao.v2.common)
+    implementation(project(":data"))
     implementation(project(":feature:login:impl"))
     implementation(project(":feature:main:impl"))
 }
