@@ -219,6 +219,9 @@ A separate `:navigation` module must not be introduced.
 
 A separate `:feature:navigator` module must not be introduced.
 
+The `Navigator` back stack helper and Navigation 3 root assembly belong in the `app` module. A class named
+`Navigator` inside `app` is not a separate navigation module.
+
 The app root in `app` assembles Navigation 3 entries and routes.
 
 Feature modules define their own route or entry contracts and expose them upward.

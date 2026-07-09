@@ -7,46 +7,48 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
+import com.dminus14.app.navigation.AppNavigationState
 import com.dminus14.app.ui.theme.DMinus14Theme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var navigationState: AppNavigationState
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        navigationState.navigator.onExit = {
+            // 앱 종료 방법 PM과 상의 후 결정
+        }
+
         enableEdgeToEdge()
         setContent {
             DMinus14Theme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
+                    NavDisplay(
+                        backStack = navigationState.navigator.backStack,
+                        onBack = navigationState.navigator::goBack,
                         modifier = Modifier.padding(innerPadding),
+                        entryDecorators =
+                            listOf(
+                                rememberSaveableStateHolderNavEntryDecorator(),
+                                rememberViewModelStoreNavEntryDecorator(),
+                            ),
+                        entryProvider =
+                            entryProvider {
+                                navigationState.entryInstallers.forEach { installer -> installer() }
+                            },
                     )
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(
-    name: String,
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier,
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun GreetingPreview() {
-    DMinus14Theme {
-        Greeting("Android")
     }
 }
