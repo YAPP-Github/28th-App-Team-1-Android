@@ -9,5 +9,6 @@ class LoginWithKakaoUseCase
     constructor(
         private val authRepository: AuthRepository,
     ) {
-        suspend operator fun invoke(): Result<AuthSession> = authRepository.loginWithKakao()
+        suspend operator fun invoke(credential: String): Result<AuthSession> =
+            authRepository.loginWithKakao(credential)
     }
