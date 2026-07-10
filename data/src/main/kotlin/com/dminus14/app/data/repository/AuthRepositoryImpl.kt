@@ -24,9 +24,33 @@ constructor(
 ) : AuthRepository {
     override suspend fun loginWithKakao(credential: String): Result<AuthSession> =
         try {
-            Result.success(loginWithKakaoInternal(credential))
-        } catch (error: KakaoAuthException) {
-            Result.failure(error)
+            val response =
+                authApi.loginWithSocial(
+                    SocialLoginRequestDto(
+                        provider = PROVIDER_KAKAO,
+                        credential = credential,
+                    ),
+                )
+
+            localDataSource.setString(
+                DataStoreKeys.Auth.ACCESS_TOKEN,
+                cryptoManager.encryptToBase64(response.accessToken),
+            )
+            localDataSource.setString(
+                DataStoreKeys.Auth.REFRESH_TOKEN,
+                cryptoManager.encryptToBase64(response.refreshToken),
+            )
+
+            Result.success(
+                AuthSession(
+                    accessToken = response.accessToken,
+                    refreshToken = response.refreshToken,
+                ),
+            )
+        } catch (error: IOException) {
+            Result.failure(KakaoAuthException.Network(cause = error))
+        } catch (error: HttpException) {
+            Result.failure(SocialLoginErrorMapper.mapHttpException(error))
         }
 
     override suspend fun getAuthSession(): AuthSession? {
@@ -55,36 +79,6 @@ constructor(
     override suspend fun clearAuthSession() {
         localDataSource.remove(DataStoreKeys.Auth.ACCESS_TOKEN)
         localDataSource.remove(DataStoreKeys.Auth.REFRESH_TOKEN)
-    }
-
-    private suspend fun loginWithKakaoInternal(credential: String): AuthSession {
-        val response =
-            try {
-                authApi.loginWithSocial(
-                    SocialLoginRequestDto(
-                        provider = PROVIDER_KAKAO,
-                        credential = credential,
-                    ),
-                )
-            } catch (error: IOException) {
-                throw KakaoAuthException.Network(cause = error)
-            } catch (error: HttpException) {
-                throw SocialLoginErrorMapper.mapHttpException(error)
-            }
-
-        localDataSource.setString(
-            DataStoreKeys.Auth.ACCESS_TOKEN,
-            cryptoManager.encryptToBase64(response.accessToken),
-        )
-        localDataSource.setString(
-            DataStoreKeys.Auth.REFRESH_TOKEN,
-            cryptoManager.encryptToBase64(response.refreshToken),
-        )
-
-        return AuthSession(
-            accessToken = response.accessToken,
-            refreshToken = response.refreshToken,
-        )
     }
 
     private companion object {
