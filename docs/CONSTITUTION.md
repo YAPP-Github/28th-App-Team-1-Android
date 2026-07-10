@@ -204,7 +204,7 @@ Catalog stories must use `designsystem` components or Android-independent `Conte
 
 `core:common` must remain minimal.
 
-Only code used by more than one module may be moved to `core:common`.
+Only code currently used or planned to used by more than one module may be moved to `core:common`.
 
 `core:common` must not become a dumping ground for unrelated utilities, feature-specific models, or
 product logic.
@@ -219,7 +219,8 @@ A separate `:navigation` module must not be introduced.
 
 A separate `:feature:navigator` module must not be introduced.
 
-The `Navigator` back stack helper and Navigation 3 root assembly belong in the `app` module. A class named
+The `Navigator` back stack helper and Navigation 3 root assembly belong in the `app` module. A class
+named
 `Navigator` inside `app` is not a separate navigation module.
 
 The app root in `app` assembles Navigation 3 entries and routes.
