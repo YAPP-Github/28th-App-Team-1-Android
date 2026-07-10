@@ -12,60 +12,61 @@ import javax.inject.Singleton
 
 @Singleton
 class AuthRepositoryImpl
-    @Inject
-    constructor(
-        private val authRemoteDataSource: AuthRemoteDataSource,
-        private val localDataSource: LocalDataSource,
-        private val cryptoManager: CryptoManager,
-    ) : AuthRepository {
-        override suspend fun loginWithKakao(credential: String): Result<AuthSession> =
-            try {
-                val response = authRemoteDataSource.loginWithKakao(credential)
+@Inject
+constructor(
+    private val authRemoteDataSource: AuthRemoteDataSource,
+    private val localDataSource: LocalDataSource,
+    private val cryptoManager: CryptoManager,
+) : AuthRepository {
+    override suspend fun loginWithKakao(credential: String): Result<AuthSession> =
+        try {
+            val response = authRemoteDataSource.loginWithKakao(credential)
 
-                localDataSource.setString(
-                    DataStoreKeys.Auth.ACCESS_TOKEN,
-                    cryptoManager.encryptToBase64(response.accessToken),
-                )
-                localDataSource.setString(
-                    DataStoreKeys.Auth.REFRESH_TOKEN,
-                    cryptoManager.encryptToBase64(response.refreshToken),
-                )
+            localDataSource.setString(
+                DataStoreKeys.Auth.ACCESS_TOKEN,
+                cryptoManager.encryptToBase64(response.accessToken),
+            )
+            localDataSource.setString(
+                DataStoreKeys.Auth.REFRESH_TOKEN,
+                cryptoManager.encryptToBase64(response.refreshToken),
+            )
 
-                Result.success(
-                    AuthSession(
-                        accessToken = response.accessToken,
-                        refreshToken = response.refreshToken,
-                    ),
-                )
-            } catch (error: KakaoAuthException) {
-                Result.failure(error)
-            }
-
-        override suspend fun getAuthSession(): AuthSession? {
-            val encryptedAccessToken =
-                localDataSource.getString(DataStoreKeys.Auth.ACCESS_TOKEN) ?: return null
-            val encryptedRefreshToken =
-                localDataSource.getString(DataStoreKeys.Auth.REFRESH_TOKEN) ?: return null
-
-            return try {
+            Result.success(
                 AuthSession(
-                    accessToken = cryptoManager.decryptFromBase64(encryptedAccessToken),
-                    refreshToken = cryptoManager.decryptFromBase64(encryptedRefreshToken),
-                )
-            } catch (_: SecurityException) {
-                clearAuthSession()
-                null
-            } catch (_: IllegalStateException) {
-                clearAuthSession()
-                null
-            } catch (_: IllegalArgumentException) {
-                clearAuthSession()
-                null
-            }
+                    accessToken = response.accessToken,
+                    refreshToken = response.refreshToken,
+                ),
+            )
+        } catch (error: KakaoAuthException) {
+            Result.failure(error)
         }
 
-        override suspend fun clearAuthSession() {
-            localDataSource.remove(DataStoreKeys.Auth.ACCESS_TOKEN)
-            localDataSource.remove(DataStoreKeys.Auth.REFRESH_TOKEN)
+    override suspend fun getAuthSession(): AuthSession? {
+        val encryptedAccessToken = localDataSource.getString(DataStoreKeys.Auth.ACCESS_TOKEN)
+        val encryptedRefreshToken = localDataSource.getString(DataStoreKeys.Auth.REFRESH_TOKEN)
+        if (encryptedAccessToken == null || encryptedRefreshToken == null) return null
+        return runCatching {
+            AuthSession(
+                accessToken = cryptoManager.decryptFromBase64(encryptedAccessToken),
+                refreshToken = cryptoManager.decryptFromBase64(encryptedRefreshToken),
+            )
+        }.getOrElse { error ->
+            when (error) {
+                is SecurityException,
+                is IllegalStateException,
+                is IllegalArgumentException,
+                    -> {
+                    clearAuthSession()
+                    null
+                }
+
+                else -> throw error
+            }
         }
     }
+
+    override suspend fun clearAuthSession() {
+        localDataSource.remove(DataStoreKeys.Auth.ACCESS_TOKEN)
+        localDataSource.remove(DataStoreKeys.Auth.REFRESH_TOKEN)
+    }
+}
