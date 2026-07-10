@@ -32,5 +32,4 @@ android {
 
 dependencies {
     implementation(project(":domain"))
-    implementation(libs.kakao.v2.user)
 }
