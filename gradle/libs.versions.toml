@@ -16,7 +16,7 @@ navigation3 = "1.1.4"
 # Hilt
 ksp = "2.3.9"
 lifecycleNav3 = "2.11.0"
-hilt = "2.60"
+hilt = "2.60.1"
 hiltNavigationCompose = "1.4.0"
 
 # Network
