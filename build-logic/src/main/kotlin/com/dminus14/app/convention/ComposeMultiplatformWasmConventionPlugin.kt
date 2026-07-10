@@ -17,7 +17,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
  * 카탈로그 빌드에 필요한 의존성과 빌드 구성을 적용한다.
  */
 @OptIn(ExperimentalWasmDsl::class)
-class CatalogConventionPlugin : Plugin<Project> {
+class ComposeMultiplatformWasmConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) =
         with(target) {
             pluginManager.apply(pluginId("dminus14-compose-multiplatform"))

@@ -2,7 +2,6 @@ package com.dminus14.app.extension
 
 import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import org.gradle.api.Project
-import org.gradle.api.plugins.ExtensionAware
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.compose.ComposeExtension
 import org.jetbrains.compose.resources.ResourcesExtension
@@ -62,13 +61,13 @@ internal fun Project.configureKotlinMultiplatformWasm(
             browser()
             binaries.executable()
         }
-        
-        extensions.configure<ComposeExtension>("compose") {
-            (this as ExtensionAware).extensions.configure<ResourcesExtension>("resources") {
-                publicResClass = false
-                packageOfResClass = "com.dminus14.catalog.generated.resources"
-                generateResClass = ResourcesExtension.ResourceClassGeneration.Always
-            }
+    }
+
+    extensions.configure<ComposeExtension>("compose") {
+        extensions.configure<ResourcesExtension>("resources") {
+            publicResClass = false
+            packageOfResClass = "com.dminus14.catalog.generated.resources"
+            generateResClass = ResourcesExtension.ResourceClassGeneration.Always
         }
     }
 }

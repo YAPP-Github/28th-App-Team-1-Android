@@ -69,13 +69,15 @@ gradlePlugin {
             id = "dminus14.compose.multiplatform"
             implementationClass = "com.dminus14.app.convention.ComposeMultiplatformConventionPlugin"
         }
-        register("designSystemConvention") {
-            id = "dminus14.compose.multiplatform.designsystem"
-            implementationClass = "com.dminus14.app.convention.DesignSystemConventionPlugin"
+        register("composeMultiplatformCommonConvention") {
+            id = "dminus14.compose.multiplatform.common"
+            implementationClass =
+                "com.dminus14.app.convention.ComposeMultiplatformCommonConventionPlugin"
         }
-        register("catalogConvention") {
-            id = "dminus14.compose.multiplatform.catalog"
-            implementationClass = "com.dminus14.app.convention.CatalogConventionPlugin"
+        register("composeMultiplatformWasmConvention") {
+            id = "dminus14.compose.multiplatform.wasm"
+            implementationClass =
+                "com.dminus14.app.convention.ComposeMultiplatformWasmConventionPlugin"
         }
     }
 }

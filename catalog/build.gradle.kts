@@ -1,3 +1,3 @@
 plugins {
-    alias(libs.plugins.dminus14.compose.multiplatform.catalog)
+    alias(libs.plugins.dminus14.compose.multiplatform.wasm)
 }

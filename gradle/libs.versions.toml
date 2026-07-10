@@ -130,5 +130,5 @@ dminus14-jvm-library = { id = "dminus14.jvm.library" }
 dminus14-kotlin-lint = { id = "dminus14.kotlin.lint" }
 dminus14-android-lint = { id = "dminus14.android.lint" }
 dminus14-compose-multiplatform = { id = "dminus14.compose.multiplatform" }
-dminus14-compose-multiplatform-designsystem = { id = "dminus14.compose.multiplatform.designsystem" }
-dminus14-compose-multiplatform-catalog = { id = "dminus14.compose.multiplatform.catalog" }
+dminus14-compose-multiplatform-common = { id = "dminus14.compose.multiplatform.common" }
+dminus14-compose-multiplatform-wasm = { id = "dminus14.compose.multiplatform.wasm" }
