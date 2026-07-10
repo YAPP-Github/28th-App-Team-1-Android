@@ -1,7 +1,7 @@
 /**
  * Jetpack Compose 빌드 설정 및 의존성 헬퍼.
  *
- * buildFeatures.compose 활성화와 Compose BOM, UI/Material3, 테스트/디버그 의존성을 일괄 추가한다.
+ * buildFeatures.compose 활성화와 Compose BOM, UI/Material3, Activity Compose, 테스트/디버그 의존성을 일괄 추가한다.
  */
 package com.dminus14.app.extension
 
@@ -38,6 +38,7 @@ private fun Project.addComposeDependencies() {
         add("implementation", libs.findLibrary("androidx-compose-ui-graphics").get())
         add("implementation", libs.findLibrary("androidx-compose-ui-tooling-preview").get())
         add("implementation", libs.findLibrary("androidx-compose-material3").get())
+        add("implementation", libs.findLibrary("androidx-activity-compose").get())
         add("testImplementation", libs.findLibrary("junit").get())
         add("androidTestImplementation", libs.findLibrary("androidx-junit").get())
         add("androidTestImplementation", libs.findLibrary("androidx-espresso-core").get())
