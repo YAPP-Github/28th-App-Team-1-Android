@@ -1,4 +1,4 @@
-package com.dminus14.app.data.di
+package com.dminus14.app.data.di.remote.auth
 
 import com.dminus14.app.data.repository.AuthRepositoryImpl
 import com.dminus14.app.domain.repository.AuthRepository

@@ -1,4 +1,4 @@
-package com.dminus14.app.data.di
+package com.dminus14.app.data.di.remote.network
 
 import com.dminus14.app.data.remote.api.ApiInterface
 import com.dminus14.app.data.remote.api.AuthApi
