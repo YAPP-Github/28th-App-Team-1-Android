@@ -324,3 +324,4 @@ obj/
 specs/
 .agent/
 .agents/
+.codex/
