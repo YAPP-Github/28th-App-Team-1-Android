@@ -1,5 +1,6 @@
 package com.dminus14.app.feature.login
 
+import android.app.Activity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,14 +16,22 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dminus14.app.feature.login.kakao.KakaoLoginClient
 import com.dminus14.app.feature.main.api.MainHome
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
@@ -31,6 +40,15 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val activity = context as Activity
+    val scope = rememberCoroutineScope()
+    val kakaoLoginClient =
+        EntryPointAccessors
+            .fromApplication(
+                context.applicationContext,
+                KakaoLoginClientEntryPoint::class.java,
+            ).kakaoLoginClient()
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
@@ -42,7 +60,17 @@ fun LoginScreen(
 
     LoginContent(
         state = state,
-        onKakaoLoginClick = { viewModel.onIntent(LoginIntent.ClickKakaoLogin) },
+        onKakaoLoginClick = {
+            viewModel.onIntent(LoginIntent.ClickKakaoLogin)
+            scope.launch {
+                runCatching { kakaoLoginClient.login(activity) }
+                    .onSuccess { credential ->
+                        viewModel.onIntent(LoginIntent.KakaoLoginSucceeded(credential))
+                    }.onFailure { error ->
+                        viewModel.onIntent(LoginIntent.KakaoLoginFailed(error))
+                    }
+            }
+        },
         modifier = modifier,
     )
 }
@@ -107,6 +135,12 @@ private fun LoginContent(
 
 private val KakaoYellow = Color(0xFFFEE500)
 private val KakaoBrown = Color(0xFF191919)
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface KakaoLoginClientEntryPoint {
+    fun kakaoLoginClient(): KakaoLoginClient
+}
 
 @Preview(showBackground = true)
 @Composable

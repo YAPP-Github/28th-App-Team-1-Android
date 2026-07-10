@@ -2,6 +2,14 @@ package com.dminus14.app.feature.login
 
 sealed interface LoginIntent {
     data object ClickKakaoLogin : LoginIntent
+
+    data class KakaoLoginSucceeded(
+        val credential: String,
+    ) : LoginIntent
+
+    data class KakaoLoginFailed(
+        val error: Throwable,
+    ) : LoginIntent
 }
 
 data class LoginState(

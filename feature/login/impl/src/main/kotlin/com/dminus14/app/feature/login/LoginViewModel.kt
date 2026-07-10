@@ -15,66 +15,76 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(
-    private val loginWithKakaoUseCase: LoginWithKakaoUseCase,
-) : ViewModel() {
+class LoginViewModel
+    @Inject
+    constructor(
+        private val loginWithKakaoUseCase: LoginWithKakaoUseCase,
+    ) : ViewModel() {
+        private val _state = MutableStateFlow(LoginState())
+        val state: StateFlow<LoginState> = _state.asStateFlow()
 
-    private val _state = MutableStateFlow(LoginState())
-    val state: StateFlow<LoginState> = _state.asStateFlow()
+        private val _effect = Channel<LoginEffect>(Channel.BUFFERED)
+        val effect = _effect.receiveAsFlow()
 
-    private val _effect = Channel<LoginEffect>(Channel.BUFFERED)
-    val effect = _effect.receiveAsFlow()
-
-    fun onIntent(intent: LoginIntent) {
-        when (intent) {
-            LoginIntent.ClickKakaoLogin -> loginWithKakao()
-        }
-    }
-
-    private fun loginWithKakao() {
-        viewModelScope.launch {
-            reduce { copy(isLoading = true, errorMessage = null) }
-
-            loginWithKakaoUseCase()
-                .onSuccess {
-                    reduce { copy(isLoading = false) }
-                    sendEffect(LoginEffect.NavigateToHome)
+        fun onIntent(intent: LoginIntent) {
+            when (intent) {
+                LoginIntent.ClickKakaoLogin -> {
+                    reduce { copy(isLoading = true, errorMessage = null) }
                 }
-                .onFailure { throwable ->
-                    when (throwable) {
-                        is KakaoAuthException.Cancelled -> {
-                            reduce { copy(isLoading = false) }
-                        }
 
-                        is KakaoAuthException -> {
-                            reduce {
-                                copy(
-                                    isLoading = false,
-                                    errorMessage = throwable.message,
-                                )
-                            }
-                        }
+                is LoginIntent.KakaoLoginSucceeded -> loginWithKakao(intent.credential)
 
-                        else -> {
-                            reduce {
-                                copy(
-                                    isLoading = false,
-                                    errorMessage = throwable.message,
-                                )
-                            }
-                        }
+                is LoginIntent.KakaoLoginFailed -> handleKakaoLoginFailure(intent.error)
+            }
+        }
+
+        private fun loginWithKakao(credential: String) {
+            viewModelScope.launch {
+                reduce { copy(isLoading = true, errorMessage = null) }
+
+                loginWithKakaoUseCase(credential)
+                    .onSuccess {
+                        reduce { copy(isLoading = false) }
+                        sendEffect(LoginEffect.NavigateToHome)
+                    }.onFailure { throwable ->
+                        handleKakaoLoginFailure(throwable)
+                    }
+            }
+        }
+
+        private fun handleKakaoLoginFailure(throwable: Throwable) {
+            when (throwable) {
+                is KakaoAuthException.Cancelled -> {
+                    reduce { copy(isLoading = false) }
+                }
+
+                is KakaoAuthException -> {
+                    reduce {
+                        copy(
+                            isLoading = false,
+                            errorMessage = throwable.message,
+                        )
                     }
                 }
+
+                else -> {
+                    reduce {
+                        copy(
+                            isLoading = false,
+                            errorMessage = throwable.message,
+                        )
+                    }
+                }
+            }
+        }
+
+        private inline fun reduce(block: LoginState.() -> LoginState) {
+            _state.update(block)
+        }
+
+        private fun sendEffect(effect: LoginEffect) {
+            viewModelScope.launch {
+                _effect.send(effect)
+            }
         }
     }
-
-    private inline fun reduce(block: LoginState.() -> LoginState) {
-        _state.update(block)
-    }
-
-    private fun sendEffect(effect: LoginEffect) {
-        viewModelScope.launch {
-            _effect.send(effect)
-        }
-    }
-}
