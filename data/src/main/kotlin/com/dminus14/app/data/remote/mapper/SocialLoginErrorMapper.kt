@@ -12,25 +12,30 @@ internal object SocialLoginErrorMapper {
         val apiError = parseErrorBody(error)
 
         return when (error.code()) {
-            HTTP_BAD_REQUEST ->
+            HTTP_BAD_REQUEST -> {
                 KakaoAuthException.Client(
                     message = apiError?.message ?: "유효하지 않은 인증 정보입니다.",
                     cause = error,
                 )
+            }
 
-            HTTP_UNAUTHORIZED ->
+            HTTP_UNAUTHORIZED -> {
                 KakaoAuthException.Client(
                     message = apiError?.message ?: "소셜 로그인에 실패했습니다.",
                     cause = error,
                 )
+            }
 
-            in HTTP_SERVER_ERROR_RANGE -> KakaoAuthException.Server(cause = error)
+            in HTTP_SERVER_ERROR_RANGE -> {
+                KakaoAuthException.Server(cause = error)
+            }
 
-            else ->
+            else -> {
                 KakaoAuthException.Unknown(
                     message = apiError?.message.orEmpty(),
                     cause = error,
                 )
+            }
         }
     }
 

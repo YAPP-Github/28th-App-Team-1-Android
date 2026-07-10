@@ -1,6 +1,5 @@
 package com.dminus14.app.data.di.remote.network
 
-import com.dminus14.app.data.remote.api.ApiInterface
 import com.dminus14.app.data.remote.api.AuthApi
 import com.dminus14.app.data.remote.config.NetworkConfig
 import com.dminus14.app.data.remote.interceptor.OkHttpLoggingInterceptorFactory
@@ -45,11 +44,6 @@ object NetworkModule {
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-
-    @Provides
-    @Singleton
-    fun provideExamplePostApi(retrofit: Retrofit): ApiInterface =
-        retrofit.create(ApiInterface::class.java)
 
     @Provides
     @Singleton
