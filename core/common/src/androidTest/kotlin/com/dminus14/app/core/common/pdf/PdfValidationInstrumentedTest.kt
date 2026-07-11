@@ -14,8 +14,7 @@ import com.tom_roush.pdfbox.pdmodel.encryption.StandardProtectionPolicy
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.ByteArrayOutputStream
@@ -26,88 +25,120 @@ import java.io.FileNotFoundException
 class PdfValidationInstrumentedTest {
     /** 한 페이지로 구성된 정상 PDF가 유효한 것으로 판정되는지 확인합니다. */
     @Test
-    fun validPdf_returnsTrue() {
+    fun validPdf_returnsValid() {
         val pdf = createPdf(pageCount = 1)
 
         withPdfResolver(pdf) { contentResolver, uri ->
-            assertTrue(isValidPdf(contentResolver, uri))
+            assertEquals(PdfValidationResult.Valid, validatePdf(contentResolver, uri))
         }
     }
 
     /** 허용되는 최대 페이지 수인 30쪽 PDF가 유효한 것으로 판정되는지 확인합니다. */
     @Test
-    fun thirtyPagePdf_returnsTrue() {
+    fun thirtyPagePdf_returnsValid() {
         val pdf = createPdf(pageCount = 30)
 
         withPdfResolver(pdf) { contentResolver, uri ->
-            assertTrue(isValidPdf(contentResolver, uri))
+            assertEquals(PdfValidationResult.Valid, validatePdf(contentResolver, uri))
         }
     }
 
     /** 허용 범위를 초과한 31쪽 PDF가 유효하지 않은 것으로 판정되는지 확인합니다. */
     @Test
-    fun thirtyOnePagePdf_returnsFalse() {
+    fun thirtyOnePagePdf_returnsInvalidPageCount() {
         val pdf = createPdf(pageCount = 31)
 
         withPdfResolver(pdf) { contentResolver, uri ->
-            assertFalse(isValidPdf(contentResolver, uri))
+            assertEquals(
+                PdfValidationResult.Invalid(PdfInvalidReason.INVALID_PAGE_COUNT),
+                validatePdf(contentResolver, uri),
+            )
         }
     }
 
     /** 암호가 있어야 열 수 있는 PDF가 유효하지 않은 것으로 판정되는지 확인합니다. */
     @Test
-    fun encryptedPdfRequiringPassword_returnsFalse() {
+    fun encryptedPdfRequiringPassword_returnsPasswordRequired() {
         val pdf = createPasswordProtectedPdf()
 
         withPdfResolver(pdf) { contentResolver, uri ->
-            assertFalse(isValidPdf(contentResolver, uri))
+            assertEquals(
+                PdfValidationResult.Invalid(PdfInvalidReason.PASSWORD_REQUIRED),
+                validatePdf(contentResolver, uri),
+            )
         }
     }
 
     /** PDF 헤더만 흉내 낸 손상 데이터가 유효하지 않은 것으로 판정되는지 확인합니다. */
     @Test
-    fun malformedPdf_returnsFalse() {
+    fun malformedPdf_returnsInvalidPdfFormat() {
         val malformedPdf = "%PDF-1.7\nsynthetic-invalid-data".encodeToByteArray()
 
         withPdfResolver(malformedPdf) { contentResolver, uri ->
-            assertFalse(isValidPdf(contentResolver, uri))
+            assertEquals(
+                PdfValidationResult.Invalid(PdfInvalidReason.INVALID_PDF_FORMAT),
+                validatePdf(contentResolver, uri),
+            )
         }
     }
 
     /** 길이를 알 수 없는 파일을 거부하고 획득한 디스크립터를 닫는지 확인합니다. */
     @Test
-    fun unknownLength_returnsFalseAndClosesDescriptor() {
+    fun unknownLength_returnsUnknownFileSizeAndClosesDescriptor() {
         val contentResolver = mockk<ContentResolver>()
         val assetFileDescriptor = mockk<AssetFileDescriptor>()
         every { contentResolver.openAssetFileDescriptor(TEST_URI, "r") } returns assetFileDescriptor
         every { assetFileDescriptor.length } returns AssetFileDescriptor.UNKNOWN_LENGTH
         every { assetFileDescriptor.close() } returns Unit
 
-        assertFalse(isValidPdf(contentResolver, TEST_URI))
+        assertEquals(
+            PdfValidationResult.Invalid(PdfInvalidReason.UNKNOWN_FILE_SIZE),
+            validatePdf(contentResolver, TEST_URI),
+        )
         verify(exactly = 1) { assetFileDescriptor.close() }
     }
 
     /** 접근할 수 없는 URI를 예외로 노출하지 않고 유효하지 않은 것으로 판정하는지 확인합니다. */
     @Test
-    fun inaccessibleUri_returnsFalse() {
+    fun inaccessibleUri_returnsFileNotAccessible() {
         val contentResolver = mockk<ContentResolver>()
         every {
             contentResolver.openAssetFileDescriptor(TEST_URI, "r")
         } throws FileNotFoundException()
 
-        assertFalse(isValidPdf(contentResolver, TEST_URI))
+        assertEquals(
+            PdfValidationResult.Error(PdfValidationErrorReason.FILE_NOT_ACCESSIBLE),
+            validatePdf(contentResolver, TEST_URI),
+        )
+    }
+
+    /** 예상하지 못한 URI 접근 오류를 알 수 없는 검증 오류로 변환하는지 확인합니다. */
+    @Test
+    fun unexpectedResolverFailure_returnsUnknownError() {
+        val contentResolver = mockk<ContentResolver>()
+        every {
+            contentResolver.openAssetFileDescriptor(TEST_URI, "r")
+        } throws IllegalStateException()
+
+        assertEquals(
+            PdfValidationResult.Error(PdfValidationErrorReason.UNKNOWN_ERROR),
+            validatePdf(contentResolver, TEST_URI),
+        )
     }
 
     /** 위치 이동을 지원하지 않는 파이프 디스크립터를 유효하지 않은 것으로 판정하는지 확인합니다. */
     @Test
-    fun unseekableDescriptor_returnsFalse() {
+    fun unseekableDescriptor_returnsNotSeekable() {
         val contentResolver = mockk<ContentResolver>()
         val pipe = ParcelFileDescriptor.createPipe()
         val assetFileDescriptor = AssetFileDescriptor(pipe[0], 0L, 1L)
         every { contentResolver.openAssetFileDescriptor(TEST_URI, "r") } returns assetFileDescriptor
 
         try {
-            assertFalse(isValidPdf(contentResolver, TEST_URI))
+            assertEquals(
+                PdfValidationResult.Invalid(PdfInvalidReason.NOT_SEEKABLE),
+                validatePdf(contentResolver, TEST_URI),
+            )
         } finally {
             pipe[1].close()
         }
