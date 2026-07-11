@@ -204,7 +204,8 @@ Catalog stories must use `designsystem` components or Android-independent `Conte
 
 `core:common` must remain minimal.
 
-Only code currently used or planned to used by more than one module may be moved to `core:common`.
+Only code currently used or planned to be used by more than one module may be moved to
+`core:common`.
 
 `core:common` must not become a dumping ground for unrelated utilities, feature-specific models, or
 product logic.
