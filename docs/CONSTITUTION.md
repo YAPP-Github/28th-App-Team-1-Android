@@ -111,11 +111,8 @@ rules, or dependency rules.
 
 `app` is the Android application entry and composition root.
 
-`app` owns `Application`, app-entry Manifest registration (`MainActivity` and similar),
-app-level Navigation 3 assembly, and global UI event rendering.
-
-Feature-owned Manifest entries (SDK redirect activities, queries, intent-filters) belong in the
-owning `feature:*:impl` module.
+`app` owns `Application`, Manifest registration, `MainActivity`, app-level Navigation 3 assembly,
+and global UI event rendering.
 
 `app` may depend on `data` only for composition root and Hilt binding purposes.
 
