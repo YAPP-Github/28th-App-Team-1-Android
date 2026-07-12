@@ -11,7 +11,8 @@ import kotlinx.coroutines.runBlocking
  * OkHttp Interceptor용 동기 AccessToken 제공자.
  *
  * 평문 토큰은 프로세스 메모리에만 캐시하며, 로그에 남기지 않는다.
- * 캐시가 아직 초기화되지 않은 경우 DataStore에서 한 번 복호화해 로드한다.
+ * 캐시가 없으면 DataStore에서 복호화해 로드한다.
+ * 토큰 갱신 시에는 [set], 로그아웃 시에는 [clear]를 호출한다.
  */
 @Singleton
 class AccessTokenProvider
@@ -25,30 +26,26 @@ class AccessTokenProvider
         @Volatile
         private var cachedToken: String? = null
 
-        @Volatile
-        private var initialized: Boolean = false
-
         fun get(): String? {
-            if (initialized) return cachedToken
+            cachedToken?.let { return it }
             synchronized(lock) {
-                if (initialized) return cachedToken
-                cachedToken = runBlocking { readDecryptedAccessToken() }
-                initialized = true
-                return cachedToken
+                val token = runBlocking { readDecryptedAccessToken() }
+                if (token != null) {
+                    cachedToken = token
+                }
+                return token
             }
         }
 
         fun set(token: String) {
             synchronized(lock) {
                 cachedToken = token
-                initialized = true
             }
         }
 
         fun clear() {
             synchronized(lock) {
                 cachedToken = null
-                initialized = true
             }
         }
 
