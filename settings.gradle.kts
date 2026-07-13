@@ -89,9 +89,11 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "DMinus14"
+
 include(":app")
 include(":feature:main:api")
 include(":feature:main:impl")
 include(":core:permission")
 include(":designsystem")
 include(":catalog")
+include(":core:resources")
