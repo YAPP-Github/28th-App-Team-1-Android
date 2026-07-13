@@ -131,4 +131,5 @@ dminus14-kotlin-lint = { id = "dminus14.kotlin.lint" }
 dminus14-android-lint = { id = "dminus14.android.lint" }
 dminus14-compose-multiplatform = { id = "dminus14.compose.multiplatform" }
 dminus14-compose-multiplatform-common = { id = "dminus14.compose.multiplatform.common" }
+dminus14-compose-multiplatform-library = { id = "dminus14.compose.multiplatform.library" }
 dminus14-compose-multiplatform-wasm = { id = "dminus14.compose.multiplatform.wasm" }

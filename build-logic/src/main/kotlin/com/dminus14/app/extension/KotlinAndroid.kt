@@ -21,10 +21,10 @@ internal fun Project.configureKotlinAndroid(
 ) {
     applicationExtension.apply {
         compileSdk {
-            version = release(37)
+            version = release(AndroidSdkVersions.COMPILE)
         }
         defaultConfig {
-            minSdk = 30
+            minSdk = AndroidSdkVersions.MIN
         }
         compileOptions {
             sourceCompatibility = JavaVersion.VERSION_11
@@ -40,10 +40,10 @@ internal fun Project.configureKotlinAndroid(
 ) {
     libraryExtension.apply {
         compileSdk {
-            version = release(37)
+            version = release(AndroidSdkVersions.COMPILE)
         }
         defaultConfig {
-            minSdk = 30
+            minSdk = AndroidSdkVersions.MIN
         }
         compileOptions {
             sourceCompatibility = JavaVersion.VERSION_11

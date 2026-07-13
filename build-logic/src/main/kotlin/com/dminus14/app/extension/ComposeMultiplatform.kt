@@ -23,28 +23,31 @@ internal fun KotlinDependencyHandler.addComposeMultiplatformLibraries(project: P
     implementation(libs.findLibrary("compose-components-resources").get())
 }
 
-/** Kotlin Multiplatform에서 타겟하는 Android 환경 설정 */
+/** Kotlin Multiplatform Android Library target 설정. */
+internal fun Project.configureKotlinMultiplatformAndroidLibrary(
+    kotlinMultiplatformExtension: KotlinMultiplatformExtension,
+) {
+    kotlinMultiplatformExtension.targets
+        .withType<KotlinMultiplatformAndroidLibraryTarget>()
+        .configureEach {
+            compileSdk {
+                version = release(AndroidSdkVersions.COMPILE)
+            }
+
+            minSdk = AndroidSdkVersions.MIN
+
+            compilerOptions {
+                jvmTarget.set(JvmTarget.JVM_17)
+            }
+        }
+}
+
+/** Kotlin Multiplatform Wasm browser Library target 설정. */
 @OptIn(ExperimentalWasmDsl::class)
-internal fun Project.configureKotlinMultiplatformAndroid(
+internal fun Project.configureKotlinMultiplatformWasmBrowserLibrary(
     kotlinMultiplatformExtension: KotlinMultiplatformExtension,
 ) {
     kotlinMultiplatformExtension.apply {
-        // Android Build Settings
-        targets
-            .withType<KotlinMultiplatformAndroidLibraryTarget>()
-            .configureEach {
-                compileSdk {
-                    version = release(37)
-                }
-
-                minSdk = 30
-
-                compilerOptions {
-                    jvmTarget.set(JvmTarget.JVM_17)
-                }
-            }
-
-        // Wasm Build Settings
         wasmJs {
             browser()
         }

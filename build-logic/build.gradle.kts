@@ -74,6 +74,11 @@ gradlePlugin {
             implementationClass =
                 "com.dminus14.app.convention.ComposeMultiplatformCommonConventionPlugin"
         }
+        register("composeMultiplatformLibraryConvention") {
+            id = "dminus14.compose.multiplatform.library"
+            implementationClass =
+                "com.dminus14.app.convention.ComposeMultiplatformLibraryConventionPlugin"
+        }
         register("composeMultiplatformWasmConvention") {
             id = "dminus14.compose.multiplatform.wasm"
             implementationClass =
