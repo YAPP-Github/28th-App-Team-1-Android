@@ -17,4 +17,8 @@ val Project.libs: VersionCatalog
 /** Version Catalog에 정의된 plugin alias로 plugin ID를 조회한다.
  * @param alias catalog에 정의된 plugin name */
 internal fun Project.pluginId(alias: String): String =
-    libs.findPlugin(alias).get().get().pluginId
+    libs
+        .findPlugin(alias)
+        .get()
+        .get()
+        .pluginId

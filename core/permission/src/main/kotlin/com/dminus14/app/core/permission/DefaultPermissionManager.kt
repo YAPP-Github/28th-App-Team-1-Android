@@ -11,7 +11,7 @@ import javax.inject.Singleton
 internal class DefaultPermissionManager
     @Inject
     constructor(
-        @ApplicationContext private val context: Context,
+        @param:ApplicationContext private val context: Context,
     ) : PermissionManager {
         override fun isGranted(permission: AppPermission): Boolean =
             ContextCompat.checkSelfPermission(context, permission.manifestName) ==
