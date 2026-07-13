@@ -24,11 +24,11 @@ class AuthRepositoryImpl
 
                 localDataSource.setString(
                     DataStoreKeys.Auth.ACCESS_TOKEN,
-                    cryptoManager.encryptToBase64(response.accessToken),
+                    cryptoManager.encryptStringToBase64(response.accessToken),
                 )
                 localDataSource.setString(
                     DataStoreKeys.Auth.REFRESH_TOKEN,
-                    cryptoManager.encryptToBase64(response.refreshToken),
+                    cryptoManager.encryptStringToBase64(response.refreshToken),
                 )
 
                 Result.success(
@@ -47,8 +47,8 @@ class AuthRepositoryImpl
             if (encryptedAccessToken == null || encryptedRefreshToken == null) return null
             return runCatching {
                 AuthSession(
-                    accessToken = cryptoManager.decryptFromBase64(encryptedAccessToken),
-                    refreshToken = cryptoManager.decryptFromBase64(encryptedRefreshToken),
+                    accessToken = cryptoManager.decryptStringFromBase64(encryptedAccessToken),
+                    refreshToken = cryptoManager.decryptStringFromBase64(encryptedRefreshToken),
                 )
             }.getOrElse { error ->
                 when (error) {
