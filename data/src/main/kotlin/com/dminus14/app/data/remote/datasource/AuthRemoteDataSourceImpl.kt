@@ -3,6 +3,8 @@ package com.dminus14.app.data.remote.datasource
 import com.dminus14.app.data.remote.api.AuthApi
 import com.dminus14.app.data.remote.dto.SocialLoginRequestDto
 import com.dminus14.app.data.remote.dto.SocialLoginResponseDto
+import com.dminus14.app.data.remote.dto.TokenRefreshRequestDto
+import com.dminus14.app.data.remote.dto.TokenRefreshResponseDto
 import com.dminus14.app.data.remote.mapper.SocialLoginErrorMapper
 import com.dminus14.app.domain.model.KakaoAuthException
 import retrofit2.HttpException
@@ -29,6 +31,9 @@ class AuthRemoteDataSourceImpl
             } catch (error: HttpException) {
                 throw SocialLoginErrorMapper.mapHttpException(error)
             }
+
+        override suspend fun refreshToken(refreshToken: String): TokenRefreshResponseDto =
+            authApi.refreshToken(TokenRefreshRequestDto(refreshToken = refreshToken))
 
         private companion object {
             const val PROVIDER_KAKAO = "KAKAO"

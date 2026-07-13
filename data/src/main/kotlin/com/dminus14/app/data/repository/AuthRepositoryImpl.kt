@@ -19,17 +19,15 @@ constructor(
 ) : AuthRepository {
     override suspend fun loginWithKakao(credential: String): AuthSession {
         val response = authRemoteDataSource.loginWithKakao(credential)
-
-        localDataSource.setString(
-            DataStoreKeys.Auth.ACCESS_TOKEN,
-            cryptoManager.encryptToBase64(response.accessToken),
+        return persistAuthSession(
+            accessToken = response.accessToken,
+            refreshToken = response.refreshToken,
         )
-        localDataSource.setString(
-            DataStoreKeys.Auth.REFRESH_TOKEN,
-            cryptoManager.encryptToBase64(response.refreshToken),
-        )
+    }
 
-        return AuthSession(
+    override suspend fun refreshToken(refreshToken: String): AuthSession {
+        val response = authRemoteDataSource.refreshToken(refreshToken)
+        return persistAuthSession(
             accessToken = response.accessToken,
             refreshToken = response.refreshToken,
         )
@@ -64,5 +62,23 @@ constructor(
     override suspend fun clearAuthSession() {
         localDataSource.remove(DataStoreKeys.Auth.ACCESS_TOKEN)
         localDataSource.remove(DataStoreKeys.Auth.REFRESH_TOKEN)
+    }
+
+    private suspend fun persistAuthSession(
+        accessToken: String,
+        refreshToken: String,
+    ): AuthSession {
+        localDataSource.setString(
+            DataStoreKeys.Auth.ACCESS_TOKEN,
+            cryptoManager.encryptToBase64(accessToken),
+        )
+        localDataSource.setString(
+            DataStoreKeys.Auth.REFRESH_TOKEN,
+            cryptoManager.encryptToBase64(refreshToken),
+        )
+        return AuthSession(
+            accessToken = accessToken,
+            refreshToken = refreshToken,
+        )
     }
 }
