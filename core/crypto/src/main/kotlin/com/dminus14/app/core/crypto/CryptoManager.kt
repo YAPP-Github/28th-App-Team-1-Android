@@ -40,9 +40,6 @@ class CryptoManager
             }
         }
 
-        /** 키 생성/조회 동시성 제어용 락. */
-        private val keyLock = Any()
-
         /**
          * Android Keystore에서 AES 키를 가져오거나, 없으면 새로 생성한다.
          *
@@ -181,6 +178,12 @@ class CryptoManager
         private companion object {
             /** Android Keystore에 저장되는 AES 키의 alias. */
             private const val KEY_ALIAS = "DMINUS14_MASTER_KEY"
+
+            /**
+             * Keystore 마스터 키 생성/조회 동시성 제어용 락.
+             * alias가 프로세스 전역이므로 인스턴스가 여러 개여도 단일 락을 사용한다.
+             */
+            private val keyLock = Any()
 
             private const val ANDROID_KEYSTORE = "AndroidKeyStore"
             private const val ALGORITHM = KeyProperties.KEY_ALGORITHM_AES
