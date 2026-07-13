@@ -14,8 +14,8 @@ This document describes the approved target architecture for D-14.
 
 The repository may temporarily contain only a bootstrap subset of this architecture while the
 approved modules are being introduced. Missing target modules such as `domain`, `data`,
-`core:common`, `designsystem`, `catalog`, and `feature:*` are not documentation inconsistencies by
-themselves when they are absent from the current Gradle build.
+`core:common`, `core:resources`, `designsystem`, `catalog`, and `feature:*` are not documentation
+inconsistencies by themselves when they are absent from the current Gradle build.
 
 The current top-level `catalog/` directory, when present without a Gradle module definition, is a
 temporary directory only. Architecture decisions in this document refer to the future `:catalog`
@@ -26,6 +26,7 @@ implements them:
 
 - `:designsystem` as a Compose Multiplatform-compatible shared UI module.
 - `:catalog` as a Web/WASM-capable Kotlin Multiplatform design-system catalog.
+- `:core:resources` as an Android and Web/WASM-compatible Compose Multiplatform resource module.
 - Compose Multiplatform and WASM convention plugin support in `build-logic`.
 - App-owned Navigation 3 root assembly through `app`. **(bootstrap implemented: `Navigator`,
   `AppNavigationState`, `MainActivity` + `NavDisplay`)**
@@ -104,15 +105,16 @@ rules at the time it is added.
 
 ## 3. 모듈 책임
 
-| 모듈             | 책임                                                                           | Android 의존 |
-|----------------|------------------------------------------------------------------------------|------------|
-| `app`          | `Application`, Manifest, `MainActivity`, 앱 루트 Navigation 조립, 전역 UI 이벤트 처리    | O          |
-| `feature:*`    | 화면별 MVI 구성(`Contract`, `ViewModel`, `Screen`), Feature route/entry 제공        | O          |
-| `designsystem` | Theme, 공통 Compose UI 컴포넌트, Dialog/Snackbar 등 공통 UI. Compose Multiplatform 기반 | X          |
-| `catalog`      | 디자인 시스템 컴포넌트 카탈로그, Story 정의, Web/WASM 배포 산출물                                 | X          |
-| `domain`       | Entity, Repository Interface, UseCase, 비즈니스 규칙                               | X          |
-| `data`         | Repository 구현체, API, RemoteDataSource, Room DAO/Database, DTO, DI Module     | O          |
-| `core:common`  | MVI Base, 공통 Result/Error, Util, Extension, 공통 route/key 모델                  | 최소화        |
+| 모듈               | 책임                                                                           | Android 의존 |
+|------------------|------------------------------------------------------------------------------|------------|
+| `app`            | `Application`, Manifest, `MainActivity`, 앱 루트 Navigation 조립, 전역 UI 이벤트 처리    | O          |
+| `feature:*`      | 화면별 MVI 구성(`Contract`, `ViewModel`, `Screen`), Feature route/entry 제공        | O          |
+| `designsystem`   | Theme, 공통 Compose UI 컴포넌트, Dialog/Snackbar 등 공통 UI. Compose Multiplatform 기반 | X          |
+| `catalog`        | 디자인 시스템 컴포넌트 카탈로그, Story 정의, Web/WASM 배포 산출물                                 | X          |
+| `domain`         | Entity, Repository Interface, UseCase, 비즈니스 규칙                               | X          |
+| `data`           | Repository 구현체, API, RemoteDataSource, Room DAO/Database, DTO, DI Module     | O          |
+| `core:common`    | MVI Base, 공통 Result/Error, Util, Extension, 공통 route/key 모델                  | 최소화        |
+| `core:resources` | Android와 Web/WASM에서 공유하는 Compose Multiplatform 리소스와 공개 `Res` 접근자             | X          |
 
 ### 3.1 `app`
 
@@ -152,7 +154,7 @@ Feature 간 직접 참조도 금지한다. 다른 Feature로 이동해야 할 �
 
 ### 3.3 `designsystem`
 
-`designsystem` 모듈은 앱 전체에서 재사용되는 UI 자산을 관리한다.
+`designsystem` 모듈은 앱 전체에서 재사용되는 UI 컴포넌트와 theme primitive를 관리한다.
 
 주요 책임은 다음과 같다.
 
@@ -167,6 +169,9 @@ Feature 간 직접 참조도 금지한다. 다른 Feature로 이동해야 할 �
 
 `designsystem`은 Compose Multiplatform 모듈로 구성한다. 모든 공통 UI는 Android와 Web/WASM 카탈로그 양쪽에서 사용할 수 있어야 하므로
 Android 의존성을 포함하지 않는다.
+
+공유 font, drawable, string 등 Compose Multiplatform 리소스 원본은 `core:resources`가 소유한다.
+`designsystem`은 공개된 Compose Resources 접근자를 통해 해당 리소스를 소비하며, Android 전용 resource API를 사용하지 않는다.
 
 따라서 `designsystem`에서는 다음 사용을 금지한다.
 
@@ -203,7 +208,24 @@ Android 의존성을 포함하지 않는다.
 카탈로그의 기본 대상은 `:designsystem`의 Composable이다. Feature 화면을 카탈로그에 노출해야 할 경우에도 ViewModel, Hilt, Android
 Lifecycle에 의존하는 `Screen`이 아니라 순수 UI에 가까운 `Content` 수준의 Composable만 Story로 등록한다.
 
-### 3.5 `domain`
+Catalog 전용 UI, theme, font, favicon, Web entry resource는 `catalog`가 소유하고 `catalog` 안에서만 소비한다.
+이러한 Catalog 전용 리소스는 공용 리소스가 아니므로 `core:resources`로 이동하지 않는다.
+
+### 3.5 `core:resources`
+
+`core:resources`는 `app`, `feature:*`, `designsystem`이 공유할 Compose Multiplatform 리소스를 관리한다.
+
+주요 책임은 다음과 같다.
+
+- Android와 Web/WASM에서 함께 사용하는 font, drawable, string 등 Compose Multiplatform 리소스 소유
+- 다른 모듈에서 사용할 수 있는 공개 generated `Res`와 resource accessor 제공
+- 플랫폼 독립적인 Compose Resources 디렉터리와 패키지 관리
+
+`core:resources`는 UI 컴포넌트, theme 조립, 제품 런타임 로직을 소유하지 않는다. Android Framework
+resource API, Hilt, Android Navigation, Android Lifecycle API를 사용하지 않으며 `app` 또는 `feature:*`
+구현에 의존하지 않는다.
+
+### 3.6 `domain`
 
 `domain` 모듈은 순수 Kotlin 모듈로 유지한다. Android Framework에 의존하지 않아야 한다.
 
@@ -217,7 +239,7 @@ Lifecycle에 의존하는 `Screen`이 아니라 순수 UI에 가까운 `Content`
 
 `domain`은 `data`, `feature:*`, Android Framework에 의존하지 않는다.
 
-### 3.6 `data`
+### 3.7 `data`
 
 `data` 모듈은 실제 데이터 접근을 담당한다.
 
@@ -234,7 +256,7 @@ Lifecycle에 의존하는 `Screen`이 아니라 순수 UI에 가까운 `Content`
 
 `data`는 `domain`의 Repository Interface를 구현하며, `feature:*`에 직접 노출되지 않는다.
 
-### 3.7 `core:common`
+### 3.8 `core:common`
 
 `core:common`은 여러 모듈에서 공유하는 최소 공통 요소를 관리한다.
 
@@ -265,6 +287,7 @@ flowchart TD
     DOM["domain"]
     DATA["data"]
     CORE["core:common"]
+    RES["core:resources"]
 
     APP --> FEAT
     APP --> DATA
@@ -279,6 +302,7 @@ flowchart TD
     DATA --> CORE
 
     DS --> CORE
+    DS --> RES
 
     CAT --> DS
     CAT --> CORE
@@ -287,7 +311,7 @@ flowchart TD
     classDef infra fill:#e3f2fd,stroke:#2196f3
     classDef ui fill:#fff3e0,stroke:#fb8c00
 
-    class DOM pure
+    class DOM,RES pure
     class DATA infra
     class DS,CAT ui
 ```
@@ -297,38 +321,42 @@ flowchart TD
 
 ### 4.2 허용되는 의존성
 
-| 의존성                            | 설명                                                         |
-|--------------------------------|------------------------------------------------------------|
-| `app` → `feature:*`            | 앱 루트에서 Feature route/entry를 수집하고 Navigation 3 화면 전환을 조립한다. |
-| `app` → `data`                 | 앱 composition root에서 Hilt DI binding을 포함한다.                |
-| `app` → `designsystem`         | 앱 루트에서 Theme, 전역 Dialog, Snackbar 등을 표시한다.                 |
-| `app` → `core:common`          | 전역 이벤트, 공통 route/key, 공통 모델을 사용한다.                         |
-| `feature:*` → `domain`         | Feature가 UseCase 또는 Repository Interface에 접근한다.            |
-| `feature:*` → `designsystem`   | 화면에서 공통 UI 컴포넌트를 사용한다.                                     |
-| `feature:*` → `core:common`    | MVI Base, 공통 모델, 공통 확장 함수를 사용한다.                           |
-| `data` → `domain`              | Repository Interface를 구현한다.                                |
-| `data` → `core:common`         | 공통 Result, Error 모델 등을 사용한다.                               |
-| `designsystem` → `core:common` | Android에 의존하지 않는 공통 모델, util, extension을 사용한다.             |
-| `catalog` → `designsystem`     | 디자인 시스템 컴포넌트를 Story로 노출한다.                                 |
-| `catalog` → `core:common`      | Story 작성에 필요한 공통 모델 또는 util을 사용한다.                         |
+| 의존성                               | 설명                                                         |
+|-----------------------------------|------------------------------------------------------------|
+| `app` → `feature:*`               | 앱 루트에서 Feature route/entry를 수집하고 Navigation 3 화면 전환을 조립한다. |
+| `app` → `data`                    | 앱 composition root에서 Hilt DI binding을 포함한다.                |
+| `app` → `designsystem`            | 앱 루트에서 Theme, 전역 Dialog, Snackbar 등을 표시한다.                 |
+| `app` → `core:common`             | 전역 이벤트, 공통 route/key, 공통 모델을 사용한다.                         |
+| `app` → `core:resources`          | 앱에서 공용 Compose Multiplatform 리소스를 직접 사용한다.                 |
+| `feature:*` → `domain`            | Feature가 UseCase 또는 Repository Interface에 접근한다.            |
+| `feature:*` → `designsystem`      | 화면에서 공통 UI 컴포넌트를 사용한다.                                     |
+| `feature:*` → `core:common`       | MVI Base, 공통 모델, 공통 확장 함수를 사용한다.                           |
+| `feature:*` → `core:resources`    | Feature에서 공용 Compose Multiplatform 리소스를 직접 사용한다.           |
+| `data` → `domain`                 | Repository Interface를 구현한다.                                |
+| `data` → `core:common`            | 공통 Result, Error 모델 등을 사용한다.                               |
+| `designsystem` → `core:common`    | Android에 의존하지 않는 공통 모델, util, extension을 사용한다.             |
+| `designsystem` → `core:resources` | 공통 UI에서 공유 font, drawable, string 등 CMP 리소스를 사용한다.         |
+| `catalog` → `designsystem`        | 디자인 시스템 컴포넌트를 Story로 노출한다.                                 |
+| `catalog` → `core:common`         | Story 작성에 필요한 공통 모델 또는 util을 사용한다.                         |
 
 ### 4.3 금지되는 의존성
 
-| 금지 의존성                             | 이유                                |
-|------------------------------------|-----------------------------------|
-| `feature:*` → `data`               | UI 레이어가 데이터 구현체에 결합된다.            |
-| `feature:*` → `app`                | Feature가 앱 조립 계층에 역의존하게 된다.       |
-| `feature:*` ↔ `feature:*`          | Feature 간 결합이 커지고 독립성이 깨진다.       |
-| `domain` → `data`                  | 비즈니스 로직이 데이터 구현체에 결합된다.           |
-| `domain` → `feature:*`             | 비즈니스 로직이 UI에 결합된다.                |
-| `domain` → Android Framework       | 순수 Kotlin 모듈 원칙이 깨진다.             |
-| `data` → `feature:*`               | 데이터 레이어가 UI 정책에 결합된다.             |
-| `data` → `app`                     | 데이터 레이어가 앱 조립 계층에 결합된다.           |
-| `designsystem` → Android Framework | Web/WASM 카탈로그에서 동일 UI를 컴파일할 수 없다. |
-| `designsystem` → `feature:*`       | 공통 UI 모듈이 특정 기능 화면에 결합된다.         |
-| `designsystem` → `app`             | 공통 UI 모듈이 앱 조립 계층에 결합된다.          |
-| `catalog` → `app`                  | 카탈로그가 Android 앱 런타임에 결합된다.        |
-| `catalog` → Android Framework      | Web/WASM 빌드 목적을 위반한다.             |
+| 금지 의존성                             | 이유                                  |
+|------------------------------------|-------------------------------------|
+| `feature:*` → `data`               | UI 레이어가 데이터 구현체에 결합된다.              |
+| `feature:*` → `app`                | Feature가 앱 조립 계층에 역의존하게 된다.         |
+| `feature:*` ↔ `feature:*`          | Feature 간 결합이 커지고 독립성이 깨진다.         |
+| `domain` → `data`                  | 비즈니스 로직이 데이터 구현체에 결합된다.             |
+| `domain` → `feature:*`             | 비즈니스 로직이 UI에 결합된다.                  |
+| `domain` → Android Framework       | 순수 Kotlin 모듈 원칙이 깨진다.               |
+| `data` → `feature:*`               | 데이터 레이어가 UI 정책에 결합된다.               |
+| `data` → `app`                     | 데이터 레이어가 앱 조립 계층에 결합된다.             |
+| `designsystem` → Android Framework | Web/WASM 카탈로그에서 동일 UI를 컴파일할 수 없다.   |
+| `designsystem` → `feature:*`       | 공통 UI 모듈이 특정 기능 화면에 결합된다.           |
+| `designsystem` → `app`             | 공통 UI 모듈이 앱 조립 계층에 결합된다.            |
+| `catalog` → `app`                  | 카탈로그가 Android 앱 런타임에 결합된다.          |
+| `catalog` → Android Framework      | Web/WASM 빌드 목적을 위반한다.               |
+| `catalog` → `core:resources`       | Catalog 전용 리소스 소유권이 공용 리소스 경계와 섞인다. |
 
 ### 4.4 Navigation 3 조립
 
@@ -337,13 +365,13 @@ Navigation 3 조립은 별도 모듈이 아니라 `app` 모듈에서 수행한�
 
 #### 4.4.1 `app` 모듈 구성 요소
 
-| 구성 요소 | 위치 | 역할 |
-|---------|------|------|
-| `Navigator` | `app/.../navigation/Navigator.kt` | `SnapshotStateList` 기반 back stack 관리 (`goTo`, `goBack`) |
-| `AppNavigationState` | `app/.../navigation/AppNavigationState.kt` | `Navigator`와 feature entry installer 집합을 주입받아 `MainActivity`에 전달 |
+| 구성 요소                    | 위치                                             | 역할                                                                  |
+|--------------------------|------------------------------------------------|---------------------------------------------------------------------|
+| `Navigator`              | `app/.../navigation/Navigator.kt`              | `SnapshotStateList` 기반 back stack 관리 (`goTo`, `goBack`)             |
+| `AppNavigationState`     | `app/.../navigation/AppNavigationState.kt`     | `Navigator`와 feature entry installer 집합을 주입받아 `MainActivity`에 전달    |
 | `EntryProviderInstaller` | `app/.../navigation/EntryProviderInstaller.kt` | `EntryProviderScope<Any>.() -> Unit` typealias. feature entry 등록 계약 |
-| `NavigatorModule` | `app/.../navigation/di/NavigatorModule.kt` | 시작 destination route 제공 |
-| `MainActivity` | `app/.../MainActivity.kt` | `NavDisplay`, `entryProvider`, `onBack` 조립 |
+| `NavigatorModule`        | `app/.../navigation/di/NavigatorModule.kt`     | 시작 destination route 제공                                             |
+| `MainActivity`           | `app/.../MainActivity.kt`                      | `NavDisplay`, `entryProvider`, `onBack` 조립                          |
 
 `Navigator`는 앱 루트 전용 stack 관리 클래스이며, 별도 Gradle 모듈(`:navigation`, `:feature:navigator`)로
 분리하지 않는다.
@@ -352,9 +380,9 @@ Navigation 3 조립은 별도 모듈이 아니라 `app` 모듈에서 수행한�
 
 Feature는 필요 시 `api` / `impl`로 분리할 수 있다.
 
-| 모듈 | 책임 |
-|------|------|
-| `feature:{name}:api` | 다른 모듈이 참조할 route key, args 등 navigation 계약 |
+| 모듈                    | 책임                                                           |
+|-----------------------|--------------------------------------------------------------|
+| `feature:{name}:api`  | 다른 모듈이 참조할 route key, args 등 navigation 계약                   |
 | `feature:{name}:impl` | `Screen`, `ViewModel`, entry builder, Hilt navigation module |
 
 현재 bootstrap 구현 예시는 `:feature:main:api`, `:feature:main:impl`이다.
@@ -418,12 +446,12 @@ class MainActivity : ComponentActivity() {
 
 #### 4.4.4 화면 전환 규칙
 
-| 계층 | 책임 |
-|------|------|
-| `ViewModel` | Navigation Effect 발행 |
-| `Screen` | Effect 수집 후 `Navigator.goTo()` 또는 상위 콜백 호출 |
-| `Navigator` | back stack 변경 |
-| `NavDisplay` | 현재 destination Composable 렌더링 |
+| 계층           | 책임                                         |
+|--------------|--------------------------------------------|
+| `ViewModel`  | Navigation Effect 발행                       |
+| `Screen`     | Effect 수집 후 `Navigator.goTo()` 또는 상위 콜백 호출 |
+| `Navigator`  | back stack 변경                              |
+| `NavDisplay` | 현재 destination Composable 렌더링              |
 
 ViewModel이 `NavDisplay`나 `Navigator`를 직접 호출하지 않는다.
 
@@ -949,6 +977,7 @@ android-project/
 │       │   ├── AndroidFeatureConventionPlugin.kt       # :feature용. Library + Compose + Hilt + 공통 의존성
 │       │   ├── AndroidComposeConventionPlugin.kt       # Android Compose 설정
 │       │   ├── ComposeMultiplatformConventionPlugin.kt # :designsystem, :catalog용 CMP 설정
+│       │   ├── ComposeMultiplatformLibraryConventionPlugin.kt # Android + Wasm CMP Library 공통 설정
 │       │   ├── AndroidHiltConventionPlugin.kt          # Hilt plugin + KSP 설정
 │       │   ├── AndroidRoomConventionPlugin.kt          # Room KSP + 의존성
 │       │   ├── AndroidNetworkConventionPlugin.kt       # Retrofit, OkHttp 의존성
@@ -957,6 +986,7 @@ android-project/
 │           ├── KotlinAndroid.kt              # compileSdk, minSdk, Kotlin 옵션 공통 설정
 │           ├── Compose.kt                    # Android Compose 설정 헬퍼
 │           ├── ComposeMultiplatform.kt       # CMP, WASM target 설정 헬퍼
+│           ├── AndroidSdkVersions.kt         # compileSdk, minSdk 공통 값
 │           ├── Hilt.kt                       # Hilt 의존성 추가 헬퍼
 │           ├── Room.kt                       # Room 의존성 + KSP 설정 헬퍼
 │           ├── Network.kt                    # Retrofit, OkHttp 의존성 헬퍼
@@ -980,20 +1010,25 @@ android-project/
 │                   └── NavigatorModule.kt    # 시작 destination 제공
 │
 ├── core/
-│   └── common/                               # 공통 유틸, MVI Base, 공통 route/key
-│       └── src/main/kotlin/com/dminus14/app/core/common/
-│           ├── model/                        # 공통 모델
-│           ├── extension/                    # 공통 Extension
-│           ├── mvi/
-│           │   ├── MviContract.kt            # 공통 MVI Contract
-│           │   └── MviViewModel.kt           # State/Effect 처리 Base ViewModel
-│           ├── event/
-│           │   ├── GlobalAppEvent.kt         # 전역 UI 이벤트
-│           │   └── GlobalErrorHandler.kt     # 전역 에러 이벤트 허브
-│           ├── error/                        # 공통 Error / Exception 모델
-│           ├── util/                         # 공통 유틸 함수
-│           └── navigation/
-│               └── NavKey.kt                 # 공통 route/key 모델
+│   ├── common/                               # 공통 유틸, MVI Base, 공통 route/key
+│   │   └── src/main/kotlin/com/dminus14/app/core/common/
+│   │       ├── model/                        # 공통 모델
+│   │       ├── extension/                    # 공통 Extension
+│   │       ├── mvi/
+│   │       │   ├── MviContract.kt            # 공통 MVI Contract
+│   │       │   └── MviViewModel.kt           # State/Effect 처리 Base ViewModel
+│   │       ├── event/
+│   │       │   ├── GlobalAppEvent.kt         # 전역 UI 이벤트
+│   │       │   └── GlobalErrorHandler.kt     # 전역 에러 이벤트 허브
+│   │       ├── error/                        # 공통 Error / Exception 모델
+│   │       ├── util/                         # 공통 유틸 함수
+│   │       └── navigation/
+│   │           └── NavKey.kt                 # 공통 route/key 모델
+│   └── resources/                            # Android + Web/WASM 공용 CMP 리소스
+│       └── src/commonMain/composeResources/
+│           ├── drawable/                     # 공용 drawable
+│           ├── font/                         # 공용 font
+│           └── values/                       # 공용 string 등 value resource
 │
 ├── designsystem/                             # CMP 기반 공통 UI 컴포넌트, Theme
 │   └── src/
@@ -1070,9 +1105,11 @@ bootstrap 단계에서는 `feature/main/api`, `feature/main/impl`만 Gradle에 �
 11. Screen과 Content를 분리해 Preview 및 Catalog 활용 가능성을 확보한다.
 12. 여러 Feature에서 재사용되는 UI는 `designsystem`으로 이동한다.
 13. 여러 Feature에서 재사용되는 비-UI 코드는 `core:common`으로 이동한다.
-14. Client Error는 화면별 State 또는 Effect로 처리한다.
-15. Network/Server/Unknown Error는 `GlobalErrorHandler`를 통해 전역 이벤트로 처리한다.
-16. 앱 전체 Dialog, Toast, Snackbar 처리는 `app` 루트에서 수행한다.
+14. app, Feature, designsystem이 공유하는 CMP 리소스는 `core:resources`에 둔다.
+15. Catalog 전용 리소스는 `catalog` 내부에 유지한다.
+16. Client Error는 화면별 State 또는 Effect로 처리한다.
+17. Network/Server/Unknown Error는 `GlobalErrorHandler`를 통해 전역 이벤트로 처리한다.
+18. 앱 전체 Dialog, Toast, Snackbar 처리는 `app` 루트에서 수행한다.
 
 ---
 

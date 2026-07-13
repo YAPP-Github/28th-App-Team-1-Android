@@ -124,7 +124,7 @@ and global UI event rendering.
 
 `feature:*` owns screen-level MVI implementation and feature route or entry definitions.
 
-`feature:*` may depend on `domain`, `designsystem`, and `core:common`.
+`feature:*` may depend on `domain`, `designsystem`, `core:common`, and `core:resources`.
 
 `feature:*` must not depend on `data`.
 
@@ -208,6 +208,20 @@ Only code used by more than one module may be moved to `core:common`.
 
 `core:common` must not become a dumping ground for unrelated utilities, feature-specific models, or
 product logic.
+
+### 6.8 `core:resources`
+
+`core:resources` owns Compose Multiplatform resources shared by `app`, `feature:*`, and
+`designsystem`.
+
+`core:resources` must remain compatible with Android and Web/WASM consumers.
+
+`core:resources` must not use Android Framework resource APIs.
+
+`core:resources` must not depend on Hilt, Android Navigation, Android Lifecycle APIs, `app`, or
+`feature:*` implementations.
+
+Catalog-specific resources are owned by `catalog` and must not be moved to `core:resources`.
 
 ---
 
