@@ -123,16 +123,16 @@ class CryptoManager
          * @param plainText 암호화할 평문 문자열
          * @return `"base64(iv)|base64(ciphertext)"` 형식의 문자열
          */
-        fun encryptToBase64(plainText: String): String =
+        fun encryptStringToBase64(plainText: String): String =
             encrypt(plainText.toByteArray(Charsets.UTF_8))
 
         /**
-         * [encryptToBase64] 결과를 복호화해 UTF-8 문자열로 반환한다.
+         * [encryptStringToBase64] 결과를 복호화해 UTF-8 문자열로 반환한다.
          *
          * @param encrypted `"base64(iv)|base64(ciphertext)"` 형식의 문자열
          * @return 복호화된 평문 문자열
          */
-        fun decryptFromBase64(encrypted: String): String =
+        fun decryptStringFromBase64(encrypted: String): String =
             decrypt(encrypted).toString(Charsets.UTF_8)
 
         /**
