@@ -25,7 +25,7 @@ import java.io.FileNotFoundException
 class PdfValidationInstrumentedTest {
     /** 한 페이지로 구성된 정상 PDF가 유효한 것으로 판정되는지 확인합니다. */
     @Test
-    fun validPdf_returnsValid() {
+    fun `유효한 PDF는 유효함을 반환한다`() {
         val pdf = createPdf(pageCount = 1)
 
         withPdfResolver(pdf) { contentResolver, uri ->
@@ -35,7 +35,7 @@ class PdfValidationInstrumentedTest {
 
     /** 허용되는 최대 페이지 수인 30쪽 PDF가 유효한 것으로 판정되는지 확인합니다. */
     @Test
-    fun thirtyPagePdf_returnsValid() {
+    fun `30페이지 PDF는 유효함을 반환한다`() {
         val pdf = createPdf(pageCount = 30)
 
         withPdfResolver(pdf) { contentResolver, uri ->
@@ -45,7 +45,7 @@ class PdfValidationInstrumentedTest {
 
     /** 허용 범위를 초과한 31쪽 PDF가 유효하지 않은 것으로 판정되는지 확인합니다. */
     @Test
-    fun thirtyOnePagePdf_returnsInvalidPageCount() {
+    fun `31페이지 PDF는 유효하지 않은 페이지 수를 반환한다`() {
         val pdf = createPdf(pageCount = 31)
 
         withPdfResolver(pdf) { contentResolver, uri ->
@@ -58,7 +58,7 @@ class PdfValidationInstrumentedTest {
 
     /** 암호가 있어야 열 수 있는 PDF가 유효하지 않은 것으로 판정되는지 확인합니다. */
     @Test
-    fun encryptedPdfRequiringPassword_returnsPasswordRequired() {
+    fun `비밀번호가 필요한 암호화 PDF는 비밀번호 필요를 반환한다`() {
         val pdf = createPasswordProtectedPdf()
 
         withPdfResolver(pdf) { contentResolver, uri ->
@@ -71,7 +71,7 @@ class PdfValidationInstrumentedTest {
 
     /** PDF 헤더만 흉내 낸 손상 데이터가 유효하지 않은 것으로 판정되는지 확인합니다. */
     @Test
-    fun malformedPdf_returnsInvalidPdfFormat() {
+    fun `잘못된 형식의 PDF는 유효하지 않은 PDF 형식을 반환한다`() {
         val malformedPdf = "%PDF-1.7\nsynthetic-invalid-data".encodeToByteArray()
 
         withPdfResolver(malformedPdf) { contentResolver, uri ->
@@ -84,7 +84,7 @@ class PdfValidationInstrumentedTest {
 
     /** 길이를 알 수 없는 파일을 거부하고 획득한 디스크립터를 닫는지 확인합니다. */
     @Test
-    fun unknownLength_returnsUnknownFileSizeAndClosesDescriptor() {
+    fun `길이를 알 수 없으면 알 수 없는 파일 크기를 반환하고 디스크립터를 닫는다`() {
         val contentResolver = mockk<ContentResolver>()
         val assetFileDescriptor = mockk<AssetFileDescriptor>()
         every { contentResolver.openAssetFileDescriptor(TEST_URI, "r") } returns assetFileDescriptor
@@ -100,7 +100,7 @@ class PdfValidationInstrumentedTest {
 
     /** 접근할 수 없는 URI를 예외로 노출하지 않고 유효하지 않은 것으로 판정하는지 확인합니다. */
     @Test
-    fun inaccessibleUri_returnsFileNotAccessible() {
+    fun `접근할 수 없는 URI는 파일 접근 불가를 반환한다`() {
         val contentResolver = mockk<ContentResolver>()
         every {
             contentResolver.openAssetFileDescriptor(TEST_URI, "r")
@@ -114,7 +114,7 @@ class PdfValidationInstrumentedTest {
 
     /** 예상하지 못한 URI 접근 오류를 알 수 없는 검증 오류로 변환하는지 확인합니다. */
     @Test
-    fun unexpectedResolverFailure_returnsUnknownError() {
+    fun `예기치 않은 리졸버 실패는 알 수 없는 오류를 반환한다`() {
         val contentResolver = mockk<ContentResolver>()
         every {
             contentResolver.openAssetFileDescriptor(TEST_URI, "r")
@@ -128,7 +128,7 @@ class PdfValidationInstrumentedTest {
 
     /** 위치 이동을 지원하지 않는 파이프 디스크립터를 유효하지 않은 것으로 판정하는지 확인합니다. */
     @Test
-    fun unseekableDescriptor_returnsNotSeekable() {
+    fun `탐색할 수 없는 디스크립터는 탐색 불가를 반환한다`() {
         val contentResolver = mockk<ContentResolver>()
         val pipe = ParcelFileDescriptor.createPipe()
         val assetFileDescriptor = AssetFileDescriptor(pipe[0], 0L, 1L)

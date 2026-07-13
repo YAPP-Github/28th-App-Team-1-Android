@@ -7,7 +7,7 @@ import org.junit.Test
 class PdfValidationRulesTest {
     /** 최대 허용 크기와 최대 허용 페이지 수에 해당하는 PDF 메타데이터를 승인하는지 확인합니다. */
     @Test
-    fun validMetadata_returnsValid() {
+    fun `유효한 메타데이터는 유효함을 반환한다`() {
         assertEquals(
             PdfValidationResult.Valid,
             validatePdfMetadata(
@@ -19,7 +19,7 @@ class PdfValidationRulesTest {
 
     /** 파일 크기가 0 이하인 PDF 메타데이터를 거부하는지 확인합니다. */
     @Test
-    fun nonPositiveSize_returnsInvalidFileSize() {
+    fun `0 이하의 크기는 유효하지 않은 파일 크기를 반환한다`() {
         assertEquals(
             PdfValidationResult.Invalid(PdfInvalidReason.INVALID_FILE_SIZE),
             validatePdfMetadata(fileSize = 0L, pageCount = 1),
@@ -28,7 +28,7 @@ class PdfValidationRulesTest {
 
     /** 최대 허용 크기인 20MiB를 1바이트 초과한 PDF 메타데이터를 거부하는지 확인합니다. */
     @Test
-    fun sizeOverTwentyMebibytes_returnsInvalidFileSize() {
+    fun `20메비바이트를 초과하는 크기는 유효하지 않은 파일 크기를 반환한다`() {
         assertEquals(
             PdfValidationResult.Invalid(PdfInvalidReason.INVALID_FILE_SIZE),
             validatePdfMetadata(
@@ -40,7 +40,7 @@ class PdfValidationRulesTest {
 
     /** 파일 크기를 알 수 없는 PDF 메타데이터에 별도 결과를 반환하는지 확인합니다. */
     @Test
-    fun unknownSize_returnsUnknownFileSize() {
+    fun `알 수 없는 크기는 알 수 없는 파일 크기를 반환한다`() {
         assertEquals(
             PdfValidationResult.Invalid(PdfInvalidReason.UNKNOWN_FILE_SIZE),
             validatePdfMetadata(
@@ -52,7 +52,7 @@ class PdfValidationRulesTest {
 
     /** 페이지 수가 0인 PDF 메타데이터를 거부하는지 확인합니다. */
     @Test
-    fun zeroPages_returnsInvalidPageCount() {
+    fun `0페이지는 유효하지 않은 페이지 수를 반환한다`() {
         assertEquals(
             PdfValidationResult.Invalid(PdfInvalidReason.INVALID_PAGE_COUNT),
             validatePdfMetadata(fileSize = 1L, pageCount = 0),
@@ -61,7 +61,7 @@ class PdfValidationRulesTest {
 
     /** 최대 허용 페이지 수를 초과한 31쪽 PDF 메타데이터를 거부하는지 확인합니다. */
     @Test
-    fun thirtyOnePages_returnsInvalidPageCount() {
+    fun `31페이지는 유효하지 않은 페이지 수를 반환한다`() {
         assertEquals(
             PdfValidationResult.Invalid(PdfInvalidReason.INVALID_PAGE_COUNT),
             validatePdfMetadata(fileSize = 1L, pageCount = 31),
