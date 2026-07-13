@@ -40,9 +40,6 @@ class CryptoManager
             }
         }
 
-        /** 키 생성/조회 동시성 제어용 락. */
-        private val keyLock = Any()
-
         /**
          * Android Keystore에서 AES 키를 가져오거나, 없으면 새로 생성한다.
          *
@@ -126,16 +123,16 @@ class CryptoManager
          * @param plainText 암호화할 평문 문자열
          * @return `"base64(iv)|base64(ciphertext)"` 형식의 문자열
          */
-        fun encryptToBase64(plainText: String): String =
+        fun encryptStringToBase64(plainText: String): String =
             encrypt(plainText.toByteArray(Charsets.UTF_8))
 
         /**
-         * [encryptToBase64] 결과를 복호화해 UTF-8 문자열로 반환한다.
+         * [encryptStringToBase64] 결과를 복호화해 UTF-8 문자열로 반환한다.
          *
          * @param encrypted `"base64(iv)|base64(ciphertext)"` 형식의 문자열
          * @return 복호화된 평문 문자열
          */
-        fun decryptFromBase64(encrypted: String): String =
+        fun decryptStringFromBase64(encrypted: String): String =
             decrypt(encrypted).toString(Charsets.UTF_8)
 
         /**
@@ -181,6 +178,12 @@ class CryptoManager
         private companion object {
             /** Android Keystore에 저장되는 AES 키의 alias. */
             private const val KEY_ALIAS = "DMINUS14_MASTER_KEY"
+
+            /**
+             * Keystore 마스터 키 생성/조회 동시성 제어용 락.
+             * alias가 프로세스 전역이므로 인스턴스가 여러 개여도 단일 락을 사용한다.
+             */
+            private val keyLock = Any()
 
             private const val ANDROID_KEYSTORE = "AndroidKeyStore"
             private const val ALGORITHM = KeyProperties.KEY_ALGORITHM_AES

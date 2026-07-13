@@ -7,9 +7,3 @@ plugins {
 android {
     namespace = "com.dminus14.app.core.crypto"
 }
-
-dependencies {
-    implementation(libs.androidx.core.ktx)
-
-    testImplementation(libs.junit)
-}
