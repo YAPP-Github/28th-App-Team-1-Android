@@ -49,9 +49,6 @@ internal fun Project.configureKotlinAndroid(
             sourceCompatibility = JavaVersion.VERSION_11
             targetCompatibility = JavaVersion.VERSION_11
         }
-        lint {
-            disable.add("MissingClass")
-        }
     }
     configureKotlinJvmTarget()
 }
