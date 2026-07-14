@@ -20,6 +20,7 @@ internal fun KotlinDependencyHandler.addComposeMultiplatformLibraries(project: P
     implementation(libs.findLibrary("compose-material3").get())
     implementation(libs.findLibrary("compose-ui").get())
     implementation(libs.findLibrary("compose-components-resources").get())
+    implementation(project(":core:resources"))
 }
 
 /** Kotlin Multiplatform Android Library target 설정. */
