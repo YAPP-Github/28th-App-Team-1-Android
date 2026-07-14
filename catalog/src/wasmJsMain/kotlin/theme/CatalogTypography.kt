@@ -13,20 +13,23 @@ import org.jetbrains.compose.resources.Font
 
 @Composable
 internal fun CatalogTypography(): Typography {
-    val regularFont = Font(
-        resource = Res.font.NotoSans_Regular,
-        weight = FontWeight.Normal,
-    )
-    val boldFont = Font(
-        resource = Res.font.NotoSans_Bold,
-        weight = FontWeight.Bold,
-    )
-    val fontFamily = remember(regularFont, boldFont) {
-        FontFamily(
-            regularFont,
-            boldFont,
+    val regularFont =
+        Font(
+            resource = Res.font.NotoSans_Regular,
+            weight = FontWeight.Normal,
         )
-    }
+    val boldFont =
+        Font(
+            resource = Res.font.NotoSans_Bold,
+            weight = FontWeight.Bold,
+        )
+    val fontFamily =
+        remember(regularFont, boldFont) {
+            FontFamily(
+                regularFont,
+                boldFont,
+            )
+        }
     val typography = MaterialTheme.typography
 
     return remember(typography, fontFamily) {
