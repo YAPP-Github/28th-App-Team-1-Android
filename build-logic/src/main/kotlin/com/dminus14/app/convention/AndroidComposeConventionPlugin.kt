@@ -26,6 +26,7 @@ class AndroidComposeConventionPlugin : Plugin<Project> {
                     configureAndroidCompose(this)
                 }
             }
+
             pluginManager.withPlugin(pluginId("android-library")) {
                 extensions.configure<LibraryExtension> {
                     configureAndroidCompose(this)

@@ -65,6 +65,20 @@ gradlePlugin {
             id = "dminus14.jvm.library"
             implementationClass = "com.dminus14.app.convention.JvmLibraryConventionPlugin"
         }
+        register("composeMultiplatformConvention") {
+            id = "dminus14.compose.multiplatform"
+            implementationClass = "com.dminus14.app.convention.ComposeMultiplatformConventionPlugin"
+        }
+        register("composeMultiplatformCommonConvention") {
+            id = "dminus14.compose.multiplatform.common"
+            implementationClass =
+                "com.dminus14.app.convention.ComposeMultiplatformCommonConventionPlugin"
+        }
+        register("composeMultiplatformWasmConvention") {
+            id = "dminus14.compose.multiplatform.wasm"
+            implementationClass =
+                "com.dminus14.app.convention.ComposeMultiplatformWasmConventionPlugin"
+        }
     }
 }
 
@@ -76,4 +90,6 @@ dependencies {
     implementation(libs.hilt.gradle.plugin)
     implementation(libs.detekt.gradle.plugin)
     implementation(libs.spotless.gradle.plugin)
+    implementation(libs.kotlin.gradle.plugin.api)
+    implementation(libs.compose.gradle.plugin)
 }
