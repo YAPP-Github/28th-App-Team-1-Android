@@ -6,7 +6,6 @@ import org.gradle.kotlin.dsl.withType
 import org.jetbrains.compose.ComposeExtension
 import org.jetbrains.compose.resources.ResourcesExtension
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 
@@ -31,13 +30,13 @@ internal fun Project.configureKotlinMultiplatformAndroidLibrary(
         .withType<KotlinMultiplatformAndroidLibraryTarget>()
         .configureEach {
             compileSdk {
-                version = release(AndroidSdkVersions.COMPILE)
+                version = release(BuildConfig.ANDROID_COMPILE_SDK)
             }
 
-            minSdk = AndroidSdkVersions.MIN
+            minSdk = BuildConfig.ANDROID_MIN_SDK
 
             compilerOptions {
-                jvmTarget.set(JvmTarget.JVM_17)
+                jvmTarget.set(BuildConfig.KOTLIN_JVM_TARGET)
             }
         }
 }
