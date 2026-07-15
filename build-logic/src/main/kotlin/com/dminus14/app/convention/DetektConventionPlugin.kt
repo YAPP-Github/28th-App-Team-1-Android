@@ -1,5 +1,6 @@
 package com.dminus14.app.convention
 
+import com.dminus14.app.extension.BuildConfig
 import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.extensions.DetektExtension
 import org.gradle.api.Plugin
@@ -22,7 +23,7 @@ class DetektConventionPlugin : Plugin<Project> {
 
         tasks.withType<Detekt>().configureEach {
             // Align Detekt type resolution with the JVM target used by application code.
-            jvmTarget = "11"
+            jvmTarget = BuildConfig.JVM_VERSION.toString()
 
             // Generate machine-readable reports and a browsable HTML report for review.
             reports {

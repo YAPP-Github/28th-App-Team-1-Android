@@ -6,7 +6,6 @@ import org.gradle.kotlin.dsl.withType
 import org.jetbrains.compose.ComposeExtension
 import org.jetbrains.compose.resources.ResourcesExtension
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 
@@ -21,30 +20,34 @@ internal fun KotlinDependencyHandler.addComposeMultiplatformLibraries(project: P
     implementation(libs.findLibrary("compose-material3").get())
     implementation(libs.findLibrary("compose-ui").get())
     implementation(libs.findLibrary("compose-components-resources").get())
+    implementation(project(":core:resources"))
 }
 
-/** Kotlin Multiplatform에서 타겟하는 Android 환경 설정 */
+/** Kotlin Multiplatform Android Library target 설정. */
+internal fun Project.configureKotlinMultiplatformAndroidLibrary(
+    kotlinMultiplatformExtension: KotlinMultiplatformExtension,
+) {
+    kotlinMultiplatformExtension.targets
+        .withType<KotlinMultiplatformAndroidLibraryTarget>()
+        .configureEach {
+            compileSdk {
+                version = release(BuildConfig.ANDROID_COMPILE_SDK)
+            }
+
+            minSdk = BuildConfig.ANDROID_MIN_SDK
+
+            compilerOptions {
+                jvmTarget.set(BuildConfig.KOTLIN_JVM_TARGET)
+            }
+        }
+}
+
+/** Kotlin Multiplatform Wasm browser Library target 설정. */
 @OptIn(ExperimentalWasmDsl::class)
-internal fun Project.configureKotlinMultiplatformAndroid(
+internal fun Project.configureKotlinMultiplatformWasmBrowserLibrary(
     kotlinMultiplatformExtension: KotlinMultiplatformExtension,
 ) {
     kotlinMultiplatformExtension.apply {
-        // Android Build Settings
-        targets
-            .withType<KotlinMultiplatformAndroidLibraryTarget>()
-            .configureEach {
-                compileSdk {
-                    version = release(37)
-                }
-
-                minSdk = 30
-
-                compilerOptions {
-                    jvmTarget.set(JvmTarget.JVM_17)
-                }
-            }
-
-        // Wasm Build Settings
         wasmJs {
             browser()
         }

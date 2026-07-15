@@ -14,9 +14,9 @@ internal fun Project.configureAndroidApplication(extension: ApplicationExtension
         namespace = "com.dminus14.app"
         defaultConfig {
             applicationId = "com.dminus14.app"
-            targetSdk = 36
-            versionCode = 1
-            versionName = "1.0"
+            targetSdk = BuildConfig.ANDROID_TARGET_SDK
+            versionCode = BuildConfig.APPLICATION_VERSION_CODE
+            versionName = BuildConfig.APPLICATION_VERSION_NAME
             testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         }
         buildTypes {

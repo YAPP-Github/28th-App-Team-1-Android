@@ -34,6 +34,7 @@ private fun Project.addComposeDependencies() {
     dependencies {
         val bom = libs.findLibrary("androidx-compose-bom").get()
         add("implementation", platform(bom))
+        add("implementation", project(":core:resources"))
         add("implementation", libs.findLibrary("androidx-compose-ui").get())
         add("implementation", libs.findLibrary("androidx-compose-ui-graphics").get())
         add("implementation", libs.findLibrary("androidx-compose-ui-tooling-preview").get())
