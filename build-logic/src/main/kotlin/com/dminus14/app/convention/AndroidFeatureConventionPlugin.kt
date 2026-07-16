@@ -22,6 +22,7 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
             pluginManager.apply(pluginId("dminus14-android-hilt"))
 
             dependencies {
+                add("implementation", project(":core:common"))
                 add("implementation", libs.findLibrary("androidx-core-ktx").get())
                 add("implementation", libs.findLibrary("androidx-lifecycle-runtime-ktx").get())
                 add("implementation", libs.findLibrary("androidx-hilt-navigation-compose").get())

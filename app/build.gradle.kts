@@ -4,5 +4,10 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":core:common"))
+    implementation(project(":designsystem"))
     implementation(project(":feature:main:impl"))
+    implementation(libs.androidx.lifecycle.runtime.compose)
+
+    testImplementation(libs.kotlinx.coroutines.test)
 }
