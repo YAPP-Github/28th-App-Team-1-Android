@@ -2,3 +2,7 @@ reviews:
   path_filters:
     - "!AGENTS.md"
     - "!docs/**"
+    - "!feature/main/impl/src/**"
+    - "!designsystem/src/**"
+    - "!designsystem/src/**"
+    - "!catalog/src/**"
