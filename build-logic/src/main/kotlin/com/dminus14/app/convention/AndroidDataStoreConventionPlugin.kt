@@ -1,22 +1,22 @@
-/**
- * DataStore Convention Plugin.
- *
- * Plugin ID: `dminus14.android.datastore`
- * 적용 대상: Preferences DataStore가 필요한 모듈 (예: `:data`)
- *
- * Preferences DataStore 의존성을 추가한다.
- * Android Library plugin은 별도로 적용해야 한다.
- */
 package com.dminus14.app.convention
 
-import com.dminus14.app.extension.configureDataStore
+import com.dminus14.app.extension.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.dependencies
 
+/**
+ * 설정 저장이 필요한 모듈에 Preferences DataStore 의존성을 제공한다.
+ *
+ * Plugin ID: `dminus14.android.datastore`
+ *
+ * Android Library plugin, serializer와 실제 저장 정책은 구성하지 않는다.
+ */
 class AndroidDataStoreConventionPlugin : Plugin<Project> {
-    override fun apply(target: Project) {
+    override fun apply(target: Project) =
         with(target) {
-            configureDataStore()
+            dependencies {
+                add("implementation", libs.findLibrary("androidx-datastore-preferences").get())
+            }
         }
-    }
 }

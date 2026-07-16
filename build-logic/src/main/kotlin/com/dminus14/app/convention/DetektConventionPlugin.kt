@@ -9,30 +9,32 @@ import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.withType
 
 /**
- * Applies Detekt with the repository-wide configuration and reporting defaults.
+ * Kotlin 소스에 저장소 공통 Detekt 정적 분석과 report 정책을 적용한다.
+ *
+ * Plugin ID: `dminus14.detekt`
+ *
+ * `BuildConfig`의 JVM target을 사용하며 포맷과 Android Lint는 구성하지 않는다.
  */
 class DetektConventionPlugin : Plugin<Project> {
-    override fun apply(target: Project) = with(target) {
-        pluginManager.apply("io.gitlab.arturbosch.detekt")
+    override fun apply(target: Project) =
+        with(target) {
+            pluginManager.apply("io.gitlab.arturbosch.detekt")
 
-        // Use the root Detekt configuration so every module follows the same rule set.
-        extensions.configure<DetektExtension> {
-            buildUponDefaultConfig = true
-            config.setFrom(rootProject.layout.projectDirectory.file("config/detekt.yml"))
-        }
+            extensions.configure<DetektExtension> {
+                buildUponDefaultConfig = true
+                config.setFrom(rootProject.layout.projectDirectory.file("config/detekt.yml"))
+            }
 
-        tasks.withType<Detekt>().configureEach {
-            // Align Detekt type resolution with the JVM target used by application code.
-            jvmTarget = BuildConfig.JVM_VERSION.toString()
+            tasks.withType<Detekt>().configureEach {
+                jvmTarget = BuildConfig.JVM_VERSION.toString()
 
-            // Generate machine-readable reports and a browsable HTML report for review.
-            reports {
-                html.required.set(true)
-                xml.required.set(true)
-                txt.required.set(false)
-                sarif.required.set(false)
-                md.required.set(false)
+                reports {
+                    html.required.set(true)
+                    xml.required.set(true)
+                    txt.required.set(false)
+                    sarif.required.set(false)
+                    md.required.set(false)
+                }
             }
         }
-    }
 }

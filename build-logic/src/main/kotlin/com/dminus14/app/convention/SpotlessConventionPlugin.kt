@@ -6,25 +6,29 @@ import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
 
 /**
- * Applies the shared Spotless formatting setup for Kotlin sources and Gradle scripts.
+ * Kotlin 소스와 Gradle Kotlin DSL에 저장소 공통 Spotless 포맷 규칙을 적용한다.
+ *
+ * Plugin ID: `dminus14.spotless`
+ *
+ * 정적 분석과 Android Lint는 구성하지 않으며 [KotlinQualityConventionPlugin]이 이 플러그인을
+ * 표준 품질 bundle로 조합한다.
  */
 class SpotlessConventionPlugin : Plugin<Project> {
-    override fun apply(target: Project) = with(target) {
-        pluginManager.apply("com.diffplug.spotless")
+    override fun apply(target: Project) =
+        with(target) {
+            pluginManager.apply("com.diffplug.spotless")
 
-        extensions.configure<SpotlessExtension> {
-            // Format Kotlin source files in the current module.
-            kotlin {
-                target("**/*.kt")
-                targetExclude("**/build/**")
-                ktlint()
-            }
-            // Format Kotlin Gradle scripts with ktlint and the repository .editorconfig.
-            kotlinGradle {
-                target("**/*.gradle.kts")
-                targetExclude("**/build/**")
-                ktlint()
+            extensions.configure<SpotlessExtension> {
+                kotlin {
+                    target("**/*.kt")
+                    targetExclude("**/build/**")
+                    ktlint()
+                }
+                kotlinGradle {
+                    target("**/*.gradle.kts")
+                    targetExclude("**/build/**")
+                    ktlint()
+                }
             }
         }
-    }
 }

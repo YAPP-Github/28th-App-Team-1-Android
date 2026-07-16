@@ -8,4 +8,7 @@ android {
 
 dependencies {
     api(project(":feature:main:api"))
+
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
 }

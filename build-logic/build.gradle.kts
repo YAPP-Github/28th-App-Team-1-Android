@@ -1,14 +1,29 @@
-/**
+/*
  * build-logic 모듈 빌드 설정.
  *
- * Convention Plugin 9종을 등록하고, AGP/Kotlin/KSP Gradle Plugin 의존성을 제공한다.
+ * 책임별 Convention Plugin 24종을 등록하고 AGP/Kotlin/KSP Gradle Plugin 의존성을 제공한다.
  * 루트 [settings.gradle.kts]의 includeBuild("build-logic")로 composite build에 포함된다.
  */
 plugins {
     `kotlin-dsl`
+    alias(libs.plugins.spotless)
 }
 
 group = "com.dminus14.app.buildlogic"
+
+// build-logic는 자신이 정의하는 Convention Plugin을 적용할 수 없어 외부 Spotless를 직접 사용한다.
+spotless {
+    kotlin {
+        target("src/**/*.kt")
+        targetExclude("**/build/**")
+        ktlint()
+    }
+    kotlinGradle {
+        target("build.gradle.kts")
+        targetExclude("**/build/**")
+        ktlint()
+    }
+}
 
 // id → implementationClass 매핑으로 서브모듈에서 plugins { id("dminus14.android.*") } 형태로 적용
 gradlePlugin {
@@ -21,13 +36,22 @@ gradlePlugin {
             id = "dminus14.detekt"
             implementationClass = "com.dminus14.app.convention.DetektConventionPlugin"
         }
-        register("kotlinLintConvention") {
-            id = "dminus14.kotlin.lint"
-            implementationClass = "com.dminus14.app.convention.KotlinLintConventionPlugin"
+        register("kotlinQualityConvention") {
+            id = "dminus14.kotlin.quality"
+            implementationClass = "com.dminus14.app.convention.KotlinQualityConventionPlugin"
         }
         register("androidLintConvention") {
             id = "dminus14.android.lint"
             implementationClass = "com.dminus14.app.convention.AndroidLintConventionPlugin"
+        }
+        register("androidComposeLintConvention") {
+            id = "dminus14.android.compose.lint"
+            implementationClass =
+                "com.dminus14.app.convention.AndroidComposeLintConventionPlugin"
+        }
+        register("androidQualityConvention") {
+            id = "dminus14.android.quality"
+            implementationClass = "com.dminus14.app.convention.AndroidQualityConventionPlugin"
         }
         register("androidApplication") {
             id = "dminus14.android.application"
@@ -45,9 +69,31 @@ gradlePlugin {
             id = "dminus14.android.compose"
             implementationClass = "com.dminus14.app.convention.AndroidComposeConventionPlugin"
         }
+        register("composePreview") {
+            id = "dminus14.compose.preview"
+            implementationClass = "com.dminus14.app.convention.ComposePreviewConventionPlugin"
+        }
+        register("composeResources") {
+            id = "dminus14.compose.resources"
+            implementationClass = "com.dminus14.app.convention.ComposeResourcesConventionPlugin"
+        }
         register("androidHilt") {
             id = "dminus14.android.hilt"
             implementationClass = "com.dminus14.app.convention.AndroidHiltConventionPlugin"
+        }
+        register("androidNavigation3") {
+            id = "dminus14.android.navigation3"
+            implementationClass =
+                "com.dminus14.app.convention.AndroidNavigation3ConventionPlugin"
+        }
+        register("androidTest") {
+            id = "dminus14.android.test"
+            implementationClass = "com.dminus14.app.convention.AndroidTestConventionPlugin"
+        }
+        register("androidComposeTest") {
+            id = "dminus14.android.compose.test"
+            implementationClass =
+                "com.dminus14.app.convention.AndroidComposeTestConventionPlugin"
         }
         register("androidRoom") {
             id = "dminus14.android.room"
@@ -69,20 +115,20 @@ gradlePlugin {
             id = "dminus14.compose.multiplatform"
             implementationClass = "com.dminus14.app.convention.ComposeMultiplatformConventionPlugin"
         }
-        register("composeMultiplatformCommonConvention") {
-            id = "dminus14.compose.multiplatform.common"
+        register("composeMultiplatformUiLibraryConvention") {
+            id = "dminus14.compose.multiplatform.ui-library"
             implementationClass =
-                "com.dminus14.app.convention.ComposeMultiplatformCommonConventionPlugin"
+                "com.dminus14.app.convention.ComposeMultiplatformUiLibraryConventionPlugin"
         }
         register("composeMultiplatformLibraryConvention") {
             id = "dminus14.compose.multiplatform.library"
             implementationClass =
                 "com.dminus14.app.convention.ComposeMultiplatformLibraryConventionPlugin"
         }
-        register("composeMultiplatformWasmConvention") {
-            id = "dminus14.compose.multiplatform.wasm"
+        register("composeMultiplatformWasmApplicationConvention") {
+            id = "dminus14.compose.multiplatform.wasm-application"
             implementationClass =
-                "com.dminus14.app.convention.ComposeMultiplatformWasmConventionPlugin"
+                "com.dminus14.app.convention.ComposeMultiplatformWasmApplicationConventionPlugin"
         }
     }
 }

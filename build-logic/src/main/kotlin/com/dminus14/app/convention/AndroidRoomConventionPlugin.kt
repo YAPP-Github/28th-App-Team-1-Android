@@ -1,11 +1,3 @@
-/**
- * Room Convention Plugin.
- *
- * Plugin ID: `dminus14.android.room`
- * 적용 대상: 로컬 DB가 필요한 모듈 (예: `:data`)
- *
- * KSP plugin을 적용하고 Room runtime/ktx/compiler 의존성을 추가한다.
- */
 package com.dminus14.app.convention
 
 import com.dminus14.app.extension.libs
@@ -14,6 +6,13 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.dependencies
 
+/**
+ * 로컬 데이터베이스가 필요한 Android 모듈에 Room과 KSP 구성을 제공한다.
+ *
+ * Plugin ID: `dminus14.android.room`
+ *
+ * Room runtime/KTX/compiler와 KSP만 구성하며 database schema와 구현 코드는 소유하지 않는다.
+ */
 class AndroidRoomConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
