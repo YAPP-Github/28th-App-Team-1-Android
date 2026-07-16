@@ -1114,6 +1114,7 @@ bootstrap 단계에서는 `feature/main/api`, `feature/main/impl`만 Gradle에 �
 16. Client Error는 화면별 State 또는 Effect로 처리한다.
 17. Network/Server/Unknown Error는 `GlobalErrorHandler`를 통해 전역 이벤트로 처리한다.
 18. 앱 전체 Dialog, Toast, Snackbar 처리는 `app` 루트에서 수행한다.
+19. 테스트 스위트의 각 테스트 함수 이름은 반드시 기대 동작이 드러나는 한국어 문장으로 작성한다.
 
 ---
 
