@@ -963,6 +963,93 @@ private fun load() {
 }
 ```
 
+### 8.7 전역 Dialog 호출 규칙
+
+여러 Feature 또는 공통 에러 처리 코드에서 앱 전역 Dialog가 필요할 때는 `core:common`의
+`showGlobalDialog(...)`를 유일한 직접 진입점으로 사용한다. 호출 모듈은 Dialog의 전달 Flow, 대기 큐,
+Manager 또는 Host를 알 필요가 없다.
+
+```text
+feature:* 또는 공통 에러 처리 코드
+    → core:common의 showGlobalDialog(...)
+    → core:common의 전역 Dialog SharedFlow
+    → app의 GlobalDialogManager와 GlobalDialogHost
+    → designsystem의 DMinusDialog
+    → 호출자에게 GlobalDialogResult 반환
+```
+
+#### 호출 방법
+
+`showGlobalDialog(...)`는 사용자의 선택 또는 overflow 결과가 결정될 때까지 suspend된다. ViewModel에서
+호출한다면 기존 MVI 규칙에 따라 Intent 처리 coroutine 안에서 호출하고, 반환 결과에 따른 후속 동작을
+State 변경 또는 Effect 발행으로 연결한다.
+
+```kotlin
+import com.dminus14.app.core.common.dialog.GlobalDialogRequest
+import com.dminus14.app.core.common.dialog.GlobalDialogResult
+import com.dminus14.app.core.common.dialog.showGlobalDialog
+
+val result =
+    showGlobalDialog(
+        GlobalDialogRequest(
+            title = "작업을 종료할까요?",
+            message = "저장하지 않은 변경 사항은 사라집니다.",
+            confirmText = "종료",
+            cancelText = "취소",
+            dismissible = false,
+        ),
+    )
+
+when (result) {
+    GlobalDialogResult.Confirm -> finishWork()
+    GlobalDialogResult.Cancel,
+    GlobalDialogResult.Dismiss,
+    GlobalDialogResult.DroppedByOverflow,
+        -> Unit
+}
+```
+
+| 결과                         | 의미                                      |
+|----------------------------|-----------------------------------------|
+| `Confirm`                  | 사용자가 확인 버튼을 선택했다.                      |
+| `Cancel`                   | 사용자가 선택적 취소 버튼을 선택했다.                  |
+| `Dismiss`                  | 허용된 Back 또는 Dialog 바깥 영역 터치로 닫혔다.       |
+| `DroppedByOverflow`        | 대기 큐 overflow 정책에 따라 요청이 제거되거나 거절됐다. |
+
+호출 coroutine이 취소되면 현재 또는 대기 중인 요청도 함께 제거되며 별도의
+`GlobalDialogResult`로 변환하지 않는다.
+
+#### `dismissible` 정책
+
+- `dismissible == true`이면 Back과 Dialog 바깥 영역 터치를 허용하고 `Dismiss`를 반환한다.
+- `dismissible == false`이면 Back과 Dialog 바깥 영역 터치를 무시하며 overflow 제거 대상에서도 보호한다.
+- 확인 버튼과 선택적 취소 버튼은 명시적인 사용자 선택이므로 `dismissible` 값과 관계없이 동작한다.
+- `dismissible`은 시스템 dismiss 허용 여부와 overflow 보호 여부를 함께 나타내며 별도의 시각 속성이 아니다.
+
+#### 대기 큐와 수명
+
+- 한 번에 하나의 Dialog만 표시하고, 표시 중 요청을 제외한 대기 큐는 FIFO 최대 10건이다.
+- 큐가 가득 차면 가장 오래된 dismissible 대기 요청을 제거하고 새 요청을 추가한다.
+- 제거 가능한 요청이 없으면 새 dismissible 요청은 `DroppedByOverflow`로 완료하고, 새 non-dismissible 요청은
+  공간이 생길 때까지 backpressure를 받는다.
+- Manager는 앱 프로세스 수명으로 동작하며 Activity 재생성 또는 Host 부재 중에도 현재 요청과 대기 순서를 유지한다.
+- 프로세스 종료 후 요청, 결과 대기 및 Dialog UI는 영속 복원하지 않는다.
+
+#### 모듈별 책임과 금지 사항
+
+| 모듈             | 책임                                                                      |
+|----------------|-------------------------------------------------------------------------|
+| `feature:*`    | Dialog 필요 여부를 결정하고 `showGlobalDialog(...)`의 결과에 따라 후속 동작을 수행한다.         |
+| `core:common`  | 플랫폼 독립 요청·결과 계약, 단일 SharedFlow와 호출 함수를 제공한다.                            |
+| `app`          | 프로세스 수명 수집, FIFO·overflow·취소 처리와 앱 최상단 렌더링을 담당한다.                      |
+| `designsystem` | 상태 없는 `DMinusDialog` UI와 callback 계약만 제공한다.                                    |
+| `catalog`      | 제품 런타임 로직 없이 Dialog의 주요 시각 상태를 Story로 노출한다.                              |
+
+- 전역 Dialog 호출자가 `globalDialogEvents`, `GlobalDialogManager` 또는 `GlobalDialogHost`를 직접 참조하지 않는다.
+- 전역 Dialog를 열기 위해 `DMinusDialog`를 Feature에서 직접 렌더링하지 않는다.
+- 요청 모델에 색상, 여백, shape, typography 같은 표현 정보나 호출자 callback을 추가하지 않는다.
+- Dialog 제목과 본문을 로그, analytics 또는 crash report에 기록하지 않는다.
+
 ---
 
 ## 9. 프로젝트 구조
@@ -1115,6 +1202,7 @@ bootstrap 단계에서는 `feature/main/api`, `feature/main/impl`만 Gradle에 �
 17. Network/Server/Unknown Error는 `GlobalErrorHandler`를 통해 전역 이벤트로 처리한다.
 18. 앱 전체 Dialog, Toast, Snackbar 처리는 `app` 루트에서 수행한다.
 19. 테스트 스위트의 각 테스트 함수 이름은 반드시 기대 동작이 드러나는 한국어 문장으로 작성한다.
+20. 전역 Dialog를 추가하거나 호출할 때는 8.7의 전역 Dialog 호출 규칙을 따른다.
 
 ---
 
