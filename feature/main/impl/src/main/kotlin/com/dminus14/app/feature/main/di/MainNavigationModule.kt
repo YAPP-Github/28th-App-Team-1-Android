@@ -11,10 +11,10 @@ import dagger.multibindings.IntoSet
 @Module
 @InstallIn(ActivityRetainedComponent::class)
 object MainNavigationModule {
-
     @IntoSet
     @Provides
-    fun provideMainEntryInstaller(): EntryProviderScope<Any>.() -> Unit = {
-        mainEntryBuilder()
-    }
+    fun provideMainEntryInstaller(): EntryProviderScope<Any>.() -> Unit =
+        {
+            mainEntryBuilder()
+        }
 }
