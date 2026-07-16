@@ -50,7 +50,7 @@ rules at the time it is added.
 | 디자인 시스템 UI       | Compose Multiplatform                   |
 | Navigation       | Navigation 3                            |
 | 의존성 주입           | Hilt                                    |
-| 빌드 구성            | Gradle Convention Plugin(`build-logic`) |
+| 빌드 구성            | `build-logic`의 Convention Plugin과 `BuildConfig` |
 | 디자인 시스템 카탈로그     | Compose Multiplatform 기반 Web/WASM 카탈로그  |
 | Base Package     | `com.dminus14.app`                      |
 
@@ -100,6 +100,10 @@ rules at the time it is added.
     - `:catalog`는 React Storybook과 유사한 목적으로 사용한다.
     - `:designsystem`의 Composable을 Story 형태로 노출하고, Web/WASM으로 빌드하여 디자이너가 브라우저에서 확인할 수 있게 한다.
     - 카탈로그는 제품 앱의 런타임 기능이 아니라 디자인 시스템 검수와 커뮤니케이션을 위한 개발 보조 산출물이다.
+
+8. **공통 빌드값은 `BuildConfig`에서 일원화한다.**
+    - `build-logic/.../extension/BuildConfig.kt`에서 Android SDK, JVM, 애플리케이션 버전을 관리한다.
+    - Convention Plugin과 extension은 이 값을 사용하며, 개별 모듈에 중복 정의하지 않는다.
 
 ---
 
@@ -983,10 +987,10 @@ android-project/
 │       │   ├── AndroidNetworkConventionPlugin.kt       # Retrofit, OkHttp 의존성
 │       │   └── JvmLibraryConventionPlugin.kt           # :domain용. 순수 Kotlin JVM
 │       └── extension/
-│           ├── KotlinAndroid.kt              # compileSdk, minSdk, Kotlin 옵션 공통 설정
+│           ├── KotlinAndroid.kt              # Android SDK, JVM 공통 빌드값 적용
 │           ├── Compose.kt                    # Android Compose 설정 헬퍼
-│           ├── ComposeMultiplatform.kt       # CMP, WASM target 설정 헬퍼
-│           ├── AndroidSdkVersions.kt         # compileSdk, minSdk 공통 값
+│           ├── ComposeMultiplatform.kt       # CMP, WASM target 및 공통 빌드값 적용
+│           ├── BuildConfig.kt                # SDK, JVM, 애플리케이션 버전 공통 빌드값
 │           ├── Hilt.kt                       # Hilt 의존성 추가 헬퍼
 │           ├── Room.kt                       # Room 의존성 + KSP 설정 헬퍼
 │           ├── Network.kt                    # Retrofit, OkHttp 의존성 헬퍼
