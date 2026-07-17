@@ -16,6 +16,6 @@ object LoginNavigationModule {
     @Provides
     fun provideLoginEntryInstaller(navigator: Navigator): EntryProviderScope<Any>.() -> Unit =
         {
-            loginEntryBuilder(onNavigate = navigator::goTo)
+            loginEntryBuilder(onNavigate = navigator::replaceAll)
         }
 }
