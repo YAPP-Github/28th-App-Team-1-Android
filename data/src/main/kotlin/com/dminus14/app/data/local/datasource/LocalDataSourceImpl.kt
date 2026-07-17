@@ -19,7 +19,7 @@ class LocalDataSourceImpl
     constructor(
         @ApplicationContext private val context: Context,
     ) : LocalDataSource {
-        override suspend fun getString(key: Preferences.Key<String>): String? =
+        override suspend fun <T> get(key: Preferences.Key<T>): T? =
             context.dataStore.data
                 .map { preferences -> preferences[key] }
                 .first()

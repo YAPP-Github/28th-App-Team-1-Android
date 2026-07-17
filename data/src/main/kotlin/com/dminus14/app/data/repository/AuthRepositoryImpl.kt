@@ -47,8 +47,8 @@ class AuthRepositoryImpl
             }
 
         override suspend fun getAuthSession(): AuthSession? {
-            val encryptedAccessToken = localDataSource.getString(DataStoreKeys.Auth.ACCESS_TOKEN)
-            val encryptedRefreshToken = localDataSource.getString(DataStoreKeys.Auth.REFRESH_TOKEN)
+            val encryptedAccessToken = localDataSource.get(DataStoreKeys.Auth.ACCESS_TOKEN)
+            val encryptedRefreshToken = localDataSource.get(DataStoreKeys.Auth.REFRESH_TOKEN)
             if (encryptedAccessToken == null || encryptedRefreshToken == null) return null
             return runCatching {
                 AuthSession(
