@@ -10,19 +10,7 @@ interface LocalDataSource {
         value: String,
     )
 
-    suspend fun getInt(key: Preferences.Key<Int>): Int?
-
-    suspend fun setInt(
-        key: Preferences.Key<Int>,
-        value: Int,
-    )
-
-    suspend fun getBoolean(key: Preferences.Key<Boolean>): Boolean?
-
-    suspend fun setBoolean(
-        key: Preferences.Key<Boolean>,
-        value: Boolean,
-    )
-
     suspend fun remove(key: Preferences.Key<*>)
+
+    suspend fun editAtomically(edits: List<PreferenceEdit>)
 }

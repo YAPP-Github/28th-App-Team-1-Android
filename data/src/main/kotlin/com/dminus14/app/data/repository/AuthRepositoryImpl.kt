@@ -3,6 +3,7 @@ package com.dminus14.app.data.repository
 import com.dminus14.app.core.crypto.CryptoManager
 import com.dminus14.app.data.local.DataStoreKeys
 import com.dminus14.app.data.local.datasource.LocalDataSource
+import com.dminus14.app.data.local.datasource.PreferenceEdit
 import com.dminus14.app.data.remote.datasource.AuthRemoteDataSource
 import com.dminus14.app.domain.model.AuthSession
 import com.dminus14.app.domain.model.KakaoAuthException
@@ -22,13 +23,17 @@ class AuthRepositoryImpl
             try {
                 val response = authRemoteDataSource.loginWithKakao(credential)
 
-                localDataSource.setString(
-                    DataStoreKeys.Auth.ACCESS_TOKEN,
-                    cryptoManager.encryptStringToBase64(response.accessToken),
-                )
-                localDataSource.setString(
-                    DataStoreKeys.Auth.REFRESH_TOKEN,
-                    cryptoManager.encryptStringToBase64(response.refreshToken),
+                localDataSource.editAtomically(
+                    listOf(
+                        PreferenceEdit.Set(
+                            DataStoreKeys.Auth.ACCESS_TOKEN,
+                            cryptoManager.encryptStringToBase64(response.accessToken),
+                        ),
+                        PreferenceEdit.Set(
+                            DataStoreKeys.Auth.REFRESH_TOKEN,
+                            cryptoManager.encryptStringToBase64(response.refreshToken),
+                        ),
+                    ),
                 )
 
                 Result.success(
@@ -68,7 +73,11 @@ class AuthRepositoryImpl
         }
 
         override suspend fun clearAuthSession() {
-            localDataSource.remove(DataStoreKeys.Auth.ACCESS_TOKEN)
-            localDataSource.remove(DataStoreKeys.Auth.REFRESH_TOKEN)
+            localDataSource.editAtomically(
+                listOf(
+                    PreferenceEdit.Remove(DataStoreKeys.Auth.ACCESS_TOKEN),
+                    PreferenceEdit.Remove(DataStoreKeys.Auth.REFRESH_TOKEN),
+                ),
+            )
         }
     }
