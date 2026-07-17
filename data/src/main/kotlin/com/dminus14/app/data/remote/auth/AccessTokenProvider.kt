@@ -3,9 +3,9 @@ package com.dminus14.app.data.remote.auth
 import com.dminus14.app.core.crypto.CryptoManager
 import com.dminus14.app.data.local.DataStoreKeys
 import com.dminus14.app.data.local.datasource.LocalDataSource
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.runBlocking
 
 /**
  * OkHttp Interceptor용 동기 AccessToken 제공자.
@@ -50,7 +50,8 @@ class AccessTokenProvider
         }
 
         private suspend fun readDecryptedAccessToken(): String? {
-            val encrypted = localDataSource.getString(DataStoreKeys.Auth.ACCESS_TOKEN) ?: return null
+            val encrypted =
+                localDataSource.getString(DataStoreKeys.Auth.ACCESS_TOKEN) ?: return null
             return try {
                 cryptoManager.decryptFromBase64(encrypted)
             } catch (e: kotlin.coroutines.cancellation.CancellationException) {
