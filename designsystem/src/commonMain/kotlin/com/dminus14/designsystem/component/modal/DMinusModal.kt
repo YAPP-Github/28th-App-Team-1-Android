@@ -1,4 +1,4 @@
-package com.dminus14.designsystem.component.dialog
+package com.dminus14.designsystem.component.modal
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.DialogProperties
 
 @Composable
-fun DMinusDialog(
+fun DMinusModal(
     title: String,
     message: String,
     confirmText: String,

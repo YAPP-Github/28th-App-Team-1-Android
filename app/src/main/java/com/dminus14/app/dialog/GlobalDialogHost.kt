@@ -3,16 +3,16 @@ package com.dminus14.app.dialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.dminus14.designsystem.component.dialog.DMinusDialog
+import com.dminus14.designsystem.component.modal.DMinusModal
 
 @Composable
-fun GlobalDialogHost(manager: GlobalDialogManager) {
-    val event by manager.currentDialog.collectAsStateWithLifecycle()
+fun GlobalDialogHost(manager: GlobalModalManager) {
+    val event by manager.currentModal.collectAsStateWithLifecycle()
 
     event?.let { currentEvent ->
         val request = currentEvent.request
 
-        DMinusDialog(
+        DMinusModal(
             title = request.title,
             message = request.message,
             confirmText = request.confirmText,

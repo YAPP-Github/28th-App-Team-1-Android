@@ -1,8 +1,8 @@
 package com.dminus14.app.dialog
 
-import com.dminus14.app.core.common.dialog.GlobalDialogEvent
-import com.dminus14.app.core.common.dialog.GlobalDialogRequest
-import com.dminus14.app.core.common.dialog.GlobalDialogResult
+import com.dminus14.app.core.common.modal.GlobalModalEvent
+import com.dminus14.app.core.common.modal.GlobalModalRequest
+import com.dminus14.app.core.common.modal.GlobalModalResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
@@ -16,12 +16,12 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class GlobalDialogManagerTest {
+class GlobalModalManagerTest {
     @Test
     fun `start is idempotent and consumes an event once`() =
         runTest {
-            val events = MutableSharedFlow<GlobalDialogEvent>()
-            val manager = GlobalDialogManager(events, backgroundScope)
+            val events = MutableSharedFlow<GlobalModalEvent>()
+            val manager = GlobalModalManager(events, backgroundScope)
             manager.start()
             manager.start()
             runCurrent()
@@ -29,14 +29,14 @@ class GlobalDialogManagerTest {
 
             emit(events, event)
 
-            assertSame(event, manager.currentDialog.value)
+            assertSame(event, manager.currentModal.value)
             assertEquals(0, manager.pendingCount)
         }
 
     @Test
     fun `completed dialogs promote pending events in FIFO order`() =
         runTest {
-            val events = MutableSharedFlow<GlobalDialogEvent>()
+            val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = startedManager(events)
             val first = event("first")
             val second = event("second")
@@ -47,19 +47,19 @@ class GlobalDialogManagerTest {
 
             manager.confirm(first)
             runCurrent()
-            assertSame(second, manager.currentDialog.value)
+            assertSame(second, manager.currentModal.value)
 
             manager.cancel(second)
             runCurrent()
-            assertSame(third, manager.currentDialog.value)
-            assertEquals(GlobalDialogResult.Confirm, first.awaitResult())
-            assertEquals(GlobalDialogResult.Cancel, second.awaitResult())
+            assertSame(third, manager.currentModal.value)
+            assertEquals(GlobalModalResult.Confirm, first.awaitResult())
+            assertEquals(GlobalModalResult.Cancel, second.awaitResult())
         }
 
     @Test
     fun `overflow drops the oldest dismissible pending event`() =
         runTest {
-            val events = MutableSharedFlow<GlobalDialogEvent>()
+            val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = startedManager(events)
             val current = event("current", dismissible = false)
             emit(events, current)
@@ -74,7 +74,7 @@ class GlobalDialogManagerTest {
 
             emit(events, incoming)
 
-            assertEquals(GlobalDialogResult.DroppedByOverflow, pending[3].awaitResult())
+            assertEquals(GlobalModalResult.DroppedByOverflow, pending[3].awaitResult())
             assertEquals(10, manager.pendingCount)
             assertTrue(incoming.isActive)
         }
@@ -82,7 +82,7 @@ class GlobalDialogManagerTest {
     @Test
     fun `overflow drops a dismissible incoming event when protected queue is full`() =
         runTest {
-            val events = MutableSharedFlow<GlobalDialogEvent>()
+            val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = startedManager(events)
             emit(events, event("current", dismissible = false))
             repeat(10) { index -> emit(events, event("pending-$index", dismissible = false)) }
@@ -90,14 +90,14 @@ class GlobalDialogManagerTest {
 
             emit(events, incoming)
 
-            assertEquals(GlobalDialogResult.DroppedByOverflow, incoming.awaitResult())
+            assertEquals(GlobalModalResult.DroppedByOverflow, incoming.awaitResult())
             assertEquals(10, manager.pendingCount)
         }
 
     @Test
     fun `protected incoming event waits until full protected queue has space`() =
         runTest {
-            val events = MutableSharedFlow<GlobalDialogEvent>()
+            val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = startedManager(events)
             val current = event("current", dismissible = false)
             emit(events, current)
@@ -114,7 +114,7 @@ class GlobalDialogManagerTest {
             manager.confirm(current)
             runCurrent()
 
-            assertSame(pending.first(), manager.currentDialog.value)
+            assertSame(pending.first(), manager.currentModal.value)
             assertEquals(10, manager.pendingCount)
             assertTrue(incoming.isActive)
         }
@@ -122,7 +122,7 @@ class GlobalDialogManagerTest {
     @Test
     fun `cancelling protected event while it waits for queue space prevents enqueue`() =
         runTest {
-            val events = MutableSharedFlow<GlobalDialogEvent>()
+            val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = startedManager(events)
             val current = event("current", dismissible = false)
             emit(events, current)
@@ -138,14 +138,14 @@ class GlobalDialogManagerTest {
             runCurrent()
 
             assertFalse(incoming.isActive)
-            assertSame(firstPending, manager.currentDialog.value)
+            assertSame(firstPending, manager.currentModal.value)
             assertEquals(9, manager.pendingCount)
         }
 
     @Test
     fun `cancelling current dialog promotes next event`() =
         runTest {
-            val events = MutableSharedFlow<GlobalDialogEvent>()
+            val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = startedManager(events)
             val current = event("current")
             val next = event("next")
@@ -156,13 +156,13 @@ class GlobalDialogManagerTest {
             runCurrent()
 
             assertFalse(current.isActive)
-            assertSame(next, manager.currentDialog.value)
+            assertSame(next, manager.currentModal.value)
         }
 
     @Test
     fun `cancelling pending dialog removes it from the queue`() =
         runTest {
-            val events = MutableSharedFlow<GlobalDialogEvent>()
+            val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = startedManager(events)
             val current = event("current")
             val cancelled = event("cancelled")
@@ -176,35 +176,35 @@ class GlobalDialogManagerTest {
             manager.dismiss(current)
             runCurrent()
 
-            assertSame(next, manager.currentDialog.value)
+            assertSame(next, manager.currentModal.value)
             assertEquals(0, manager.pendingCount)
         }
 
     @Test
     fun `current dialog remains available while no host observes it`() =
         runTest {
-            val events = MutableSharedFlow<GlobalDialogEvent>()
+            val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = startedManager(events)
             val backgroundEvent = event("background")
 
             emit(events, backgroundEvent)
             runCurrent()
 
-            assertSame(backgroundEvent, manager.currentDialog.value)
+            assertSame(backgroundEvent, manager.currentModal.value)
             assertTrue(backgroundEvent.isActive)
         }
 
     private fun TestScope.startedManager(
-        events: MutableSharedFlow<GlobalDialogEvent>,
-    ): GlobalDialogManager =
-        GlobalDialogManager(events, backgroundScope).also {
+        events: MutableSharedFlow<GlobalModalEvent>,
+    ): GlobalModalManager =
+        GlobalModalManager(events, backgroundScope).also {
             it.start()
             runCurrent()
         }
 
     private fun TestScope.emit(
-        events: MutableSharedFlow<GlobalDialogEvent>,
-        event: GlobalDialogEvent,
+        events: MutableSharedFlow<GlobalModalEvent>,
+        event: GlobalModalEvent,
     ) {
         launch { events.emit(event) }
         runCurrent()
@@ -213,8 +213,8 @@ class GlobalDialogManagerTest {
     private fun event(
         title: String,
         dismissible: Boolean = true,
-    ) = GlobalDialogEvent(
-        GlobalDialogRequest(
+    ) = GlobalModalEvent(
+        GlobalModalRequest(
             title = title,
             message = "Synthetic message",
             confirmText = "Confirm",

@@ -1,6 +1,6 @@
-package com.dminus14.app.core.common.dialog
+package com.dminus14.app.core.common.modal
 
-data class GlobalDialogRequest(
+data class GlobalModalRequest(
     val title: String,
     val message: String,
     val confirmText: String,

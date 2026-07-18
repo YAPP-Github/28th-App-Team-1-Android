@@ -13,7 +13,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.dminus14.app.dialog.GlobalDialogHost
-import com.dminus14.app.dialog.GlobalDialogManager
+import com.dminus14.app.dialog.GlobalModalManager
 import com.dminus14.app.navigation.AppNavigationState
 import com.dminus14.app.ui.theme.DMinus14Theme
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
     lateinit var navigationState: AppNavigationState
 
     @Inject
-    lateinit var globalDialogManager: GlobalDialogManager
+    lateinit var globalModalManager: GlobalModalManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,7 +54,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                GlobalDialogHost(manager = globalDialogManager)
+                GlobalDialogHost(manager = globalModalManager)
             }
         }
     }

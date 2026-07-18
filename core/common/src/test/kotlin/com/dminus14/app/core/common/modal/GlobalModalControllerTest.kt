@@ -1,4 +1,4 @@
-package com.dminus14.app.core.common.dialog
+package com.dminus14.app.core.common.modal
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -13,11 +13,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class GlobalDialogControllerTest {
+class GlobalModalControllerTest {
     @Test
     fun `show suspends until event is completed and returns its result`() =
         runTest {
-            val controller = GlobalDialogController()
+            val controller = GlobalModalController()
             val receivedEvent = async { controller.events.first() }
             runCurrent()
 
@@ -25,9 +25,9 @@ class GlobalDialogControllerTest {
             runCurrent()
 
             assertTrue(result.isActive)
-            receivedEvent.await().complete(GlobalDialogResult.Confirm)
+            receivedEvent.await().complete(GlobalModalResult.Confirm)
 
-            assertEquals(GlobalDialogResult.Confirm, result.await())
+            assertEquals(GlobalModalResult.Confirm, result.await())
         }
 
     @Test
@@ -35,14 +35,14 @@ class GlobalDialogControllerTest {
         runTest {
             val supportedResults =
                 listOf(
-                    GlobalDialogResult.Confirm,
-                    GlobalDialogResult.Cancel,
-                    GlobalDialogResult.Dismiss,
-                    GlobalDialogResult.DroppedByOverflow,
+                    GlobalModalResult.Confirm,
+                    GlobalModalResult.Cancel,
+                    GlobalModalResult.Dismiss,
+                    GlobalModalResult.DroppedByOverflow,
                 )
 
             supportedResults.forEach { expected ->
-                val controller = GlobalDialogController()
+                val controller = GlobalModalController()
                 val receivedEvent = async { controller.events.first() }
                 runCurrent()
                 val result = async { controller.show(request()) }
@@ -57,7 +57,7 @@ class GlobalDialogControllerTest {
     @Test
     fun `cancelling show cancels the delivered event`() =
         runTest {
-            val controller = GlobalDialogController()
+            val controller = GlobalModalController()
             val receivedEvent = async { controller.events.first() }
             runCurrent()
             val caller = launch { controller.show(request()) }
@@ -70,7 +70,7 @@ class GlobalDialogControllerTest {
         }
 
     private fun request() =
-        GlobalDialogRequest(
+        GlobalModalRequest(
             title = "Synthetic title",
             message = "Synthetic message",
             confirmText = "Confirm",

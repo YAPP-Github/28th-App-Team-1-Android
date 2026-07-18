@@ -12,7 +12,7 @@ import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.platform.app.InstrumentationRegistry
-import com.dminus14.designsystem.component.dialog.DMinusDialog
+import com.dminus14.designsystem.component.modal.DMinusModal
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -27,7 +27,7 @@ class DMinusDialogTest {
         var cancelCount = 0
         composeRule.setContent {
             MaterialTheme {
-                DMinusDialog(
+                DMinusModal(
                     title = "Synthetic title",
                     message = "Synthetic message",
                     confirmText = "Confirm",
@@ -175,7 +175,7 @@ class DMinusDialogTest {
     ) {
         composeRule.setContent {
             MaterialTheme {
-                DMinusDialog(
+                DMinusModal(
                     title = "Synthetic title",
                     message = "Synthetic message",
                     confirmText = "Confirm",

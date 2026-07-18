@@ -1,8 +1,8 @@
 package com.dminus14.app.dialog
 
-import com.dminus14.app.core.common.dialog.GlobalDialogEvent
-import com.dminus14.app.core.common.dialog.GlobalDialogResult
-import com.dminus14.app.core.common.dialog.globalDialogEvents
+import com.dminus14.app.core.common.modal.GlobalModalEvent
+import com.dminus14.app.core.common.modal.GlobalModalResult
+import com.dminus14.app.core.common.modal.globalModalEvents
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -17,22 +17,22 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class GlobalDialogManager internal constructor(
-    private val events: Flow<GlobalDialogEvent>,
+class GlobalModalManager internal constructor(
+    private val events: Flow<GlobalModalEvent>,
     private val scope: CoroutineScope,
 ) {
     @Inject
     constructor() : this(
-        events = globalDialogEvents,
+        events = globalModalEvents,
         scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate),
     )
 
-    private val pendingEvents = ArrayDeque<GlobalDialogEvent>()
+    private val pendingEvents = ArrayDeque<GlobalModalEvent>()
     private val spaceAvailable = Channel<Unit>(capacity = Channel.CONFLATED)
     private var collectionJob: Job? = null
 
-    private val mutableCurrentDialog = MutableStateFlow<GlobalDialogEvent?>(null)
-    val currentDialog: StateFlow<GlobalDialogEvent?> = mutableCurrentDialog.asStateFlow()
+    private val mutableCurrentModal = MutableStateFlow<GlobalModalEvent?>(null)
+    val currentModal: StateFlow<GlobalModalEvent?> = mutableCurrentModal.asStateFlow()
 
     internal val pendingCount: Int
         get() = pendingEvents.size
@@ -47,33 +47,33 @@ class GlobalDialogManager internal constructor(
             }
     }
 
-    fun confirm(event: GlobalDialogEvent) {
-        resolve(event, GlobalDialogResult.Confirm)
+    fun confirm(event: GlobalModalEvent) {
+        resolve(event, GlobalModalResult.Confirm)
     }
 
-    fun cancel(event: GlobalDialogEvent) {
-        resolve(event, GlobalDialogResult.Cancel)
+    fun cancel(event: GlobalModalEvent) {
+        resolve(event, GlobalModalResult.Cancel)
     }
 
-    fun dismiss(event: GlobalDialogEvent) {
-        resolve(event, GlobalDialogResult.Dismiss)
+    fun dismiss(event: GlobalModalEvent) {
+        resolve(event, GlobalModalResult.Dismiss)
     }
 
-    private suspend fun enqueue(event: GlobalDialogEvent) {
+    private suspend fun enqueue(event: GlobalModalEvent) {
         event.invokeOnCancellation {
             scope.launch { removeCancelled(event) }
         }
 
         if (event.isActive) {
-            if (mutableCurrentDialog.value == null) {
-                mutableCurrentDialog.value = event
+            if (mutableCurrentModal.value == null) {
+                mutableCurrentModal.value = event
             } else {
                 enqueuePending(event)
             }
         }
     }
 
-    private suspend fun enqueuePending(event: GlobalDialogEvent) {
+    private suspend fun enqueuePending(event: GlobalModalEvent) {
         var handled = false
 
         while (event.isActive && !handled) {
@@ -84,7 +84,7 @@ class GlobalDialogManager internal constructor(
         }
     }
 
-    private fun tryEnqueue(event: GlobalDialogEvent): Boolean {
+    private fun tryEnqueue(event: GlobalModalEvent): Boolean {
         val dismissibleIndex =
             pendingEvents.indexOfFirst { pending -> pending.request.dismissible }
 
@@ -97,13 +97,13 @@ class GlobalDialogManager internal constructor(
             dismissibleIndex >= 0 -> {
                 pendingEvents
                     .removeAt(dismissibleIndex)
-                    .complete(GlobalDialogResult.DroppedByOverflow)
+                    .complete(GlobalModalResult.DroppedByOverflow)
                 pendingEvents.addLast(event)
                 true
             }
 
             event.request.dismissible -> {
-                event.complete(GlobalDialogResult.DroppedByOverflow)
+                event.complete(GlobalModalResult.DroppedByOverflow)
                 true
             }
 
@@ -114,21 +114,21 @@ class GlobalDialogManager internal constructor(
     }
 
     private fun resolve(
-        event: GlobalDialogEvent,
-        result: GlobalDialogResult,
+        event: GlobalModalEvent,
+        result: GlobalModalResult,
     ) {
         scope.launch {
-            if (mutableCurrentDialog.value !== event) return@launch
+            if (mutableCurrentModal.value !== event) return@launch
 
             event.complete(result)
-            mutableCurrentDialog.value = null
+            mutableCurrentModal.value = null
             promoteNext()
         }
     }
 
-    private fun removeCancelled(event: GlobalDialogEvent) {
-        if (mutableCurrentDialog.value === event) {
-            mutableCurrentDialog.value = null
+    private fun removeCancelled(event: GlobalModalEvent) {
+        if (mutableCurrentModal.value === event) {
+            mutableCurrentModal.value = null
             promoteNext()
             return
         }
@@ -147,7 +147,7 @@ class GlobalDialogManager internal constructor(
             spaceAvailable.trySend(Unit)
 
             if (next.isActive) {
-                mutableCurrentDialog.value = next
+                mutableCurrentModal.value = next
                 return
             }
         }

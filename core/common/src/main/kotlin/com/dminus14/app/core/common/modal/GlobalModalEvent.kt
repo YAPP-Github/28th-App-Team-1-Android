@@ -1,23 +1,23 @@
-package com.dminus14.app.core.common.dialog
+package com.dminus14.app.core.common.modal
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.DisposableHandle
 
-class GlobalDialogEvent(
-    val request: GlobalDialogRequest,
+class GlobalModalEvent(
+    val request: GlobalModalRequest,
 ) {
-    private val result = CompletableDeferred<GlobalDialogResult>()
+    private val result = CompletableDeferred<GlobalModalResult>()
 
     val isActive: Boolean
         get() = result.isActive
 
-    suspend fun awaitResult(): GlobalDialogResult = result.await()
+    suspend fun awaitResult(): GlobalModalResult = result.await()
 
-    fun complete(value: GlobalDialogResult): Boolean = result.complete(value)
+    fun complete(value: GlobalModalResult): Boolean = result.complete(value)
 
     fun cancel() {
-        result.cancel(CancellationException("Global dialog caller was cancelled"))
+        result.cancel(CancellationException("Global modal caller was cancelled"))
     }
 
     fun invokeOnCancellation(action: () -> Unit): DisposableHandle =
