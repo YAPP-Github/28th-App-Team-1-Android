@@ -735,6 +735,21 @@ private fun HomeContent(
 | Preview             | Preview는 ViewModel이 필요 없는 Content 기준으로 작성한다.                                   |
 | Catalog             | 카탈로그 노출이 필요한 경우 Android 의존이 없는 Content 또는 designsystem component를 Story로 등록한다. |
 
+### 7.2 Preview 지원 모듈
+
+Android와 Compose Multiplatform `commonMain`은
+`androidx.compose.ui.tooling.preview.Preview` annotation을 공통으로 사용한다.
+
+| 모듈 | Preview 대상 | Convention Plugin |
+|---|---|---|
+| `app` | 앱 Theme와 ViewModel-free 전역 UI | `dminus14.compose.preview` |
+| `feature:*:impl` | ViewModel이 없는 `Content` UI | `dminus14.android.feature`가 Preview capability를 조합 |
+| `designsystem` | `commonMain` 공통 component와 Theme | `dminus14.compose.preview` |
+
+`core:permission`의 platform launcher, `core:resources`의 resource accessor와 `catalog`의 Wasm
+실행 UI에는 Preview Convention Plugin을 적용하지 않는다. Catalog UI는 Web/WASM Story 실행으로
+검수한다.
+
 ---
 
 ## 8. 공통 에러 처리 방향
@@ -963,6 +978,43 @@ private fun load() {
 
 ## 9. 프로젝트 구조
 
+### 9.1 Convention Plugin 책임 구조
+
+Convention Plugin은 기반, capability, composite와 quality 책임을 구분한다. Leaf plugin이 실제
+Gradle DSL과 dependency를 소유하고 composite/bundle plugin은 하위 plugin을 조합만 한다.
+
+| 분류 | Plugin ID | 책임 및 적용 대상 |
+|---|---|---|
+| 기반 | `dminus14.android.application` | `:app`의 Application/SDK/JVM/배포 설정 |
+| 기반 | `dminus14.android.library` | Android Library/SDK/JVM 설정 |
+| 기반 | `dminus14.jvm.library` | 순수 Kotlin/JVM Library 설정 |
+| 기반 | `dminus14.compose.multiplatform` | Kotlin/CMP/Compose compiler plugin 기반 |
+| 기반 | `dminus14.compose.multiplatform.library` | Android+Wasm CMP Library target |
+| 기반 | `dminus14.compose.multiplatform.ui-library` | `:designsystem`의 `commonMain` UI 환경 |
+| 기반 | `dminus14.compose.multiplatform.wasm-application` | `:catalog`의 실행 가능한 Wasm UI 환경 |
+| Composite | `dminus14.android.feature` | 모든 `:feature:*:impl`의 표준 capability 조합 |
+| Capability | `dminus14.android.compose` | 일반 Android Compose 제품 UI |
+| Capability | `dminus14.compose.preview` | Android/CMP Preview annotation과 tooling |
+| Capability | `dminus14.compose.resources` | 허용된 UI 소비자의 `:core:resources` 의존성 |
+| Capability | `dminus14.android.hilt` | Hilt/KSP/runtime/compiler |
+| Capability | `dminus14.android.navigation3` | Navigation 3 Android 의존성 |
+| Capability | `dminus14.android.test` | Android 기본 단위·계측 테스트 |
+| Capability | `dminus14.android.compose.test` | Android Compose UI 테스트 |
+| Capability | `dminus14.android.room` | Room/KSP 의존성 |
+| Capability | `dminus14.android.network` | Retrofit/Gson converter 의존성 |
+| Capability | `dminus14.android.datastore` | Preferences DataStore 의존성 |
+| Quality | `dminus14.spotless` | Kotlin/Gradle Kotlin DSL 포맷 |
+| Quality | `dminus14.detekt` | Kotlin 정적 분석 |
+| Quality | `dminus14.kotlin.quality` | Spotless+Detekt 조합 |
+| Quality | `dminus14.android.lint` | Android Lint capability |
+| Quality | `dminus14.android.compose.lint` | Android Compose 전용 lint check |
+| Quality | `dminus14.android.quality` | Kotlin quality+Android Lint 검증 흐름 |
+
+`dminus14.compose.resources`는 `app`, `feature:*:impl`, `designsystem`에만 적용한다.
+`catalog`는 `core:resources`에 직접 의존하지 않고 catalog 전용 리소스를 자체 소유한다.
+
+### 9.2 목표 디렉터리 구조
+
 아래 구조는 승인된 목표 구조다. 실제 패키지명과 Feature 이름은 프로젝트 확정값에 맞춘다.
 
 ```text
@@ -972,25 +1024,44 @@ android-project/
 │   ├── build.gradle.kts                      # Plugin 등록, build-logic 의존성
 │   └── src/main/kotlin/com/dminus14/app/
 │       ├── convention/
-│       │   ├── AndroidApplicationConventionPlugin.kt   # :app용. Application + Kotlin + Hilt
-│       │   ├── AndroidLibraryConventionPlugin.kt       # Android Library 공통 설정
-│       │   ├── AndroidFeatureConventionPlugin.kt       # :feature용. Library + Compose + Hilt + 공통 의존성
-│       │   ├── AndroidComposeConventionPlugin.kt       # Android Compose 설정
-│       │   ├── ComposeMultiplatformConventionPlugin.kt # :designsystem, :catalog용 CMP 설정
-│       │   ├── ComposeMultiplatformLibraryConventionPlugin.kt # Android + Wasm CMP Library 공통 설정
-│       │   ├── AndroidHiltConventionPlugin.kt          # Hilt plugin + KSP 설정
-│       │   ├── AndroidRoomConventionPlugin.kt          # Room KSP + 의존성
-│       │   ├── AndroidNetworkConventionPlugin.kt       # Retrofit, OkHttp 의존성
-│       │   └── JvmLibraryConventionPlugin.kt           # :domain용. 순수 Kotlin JVM
+│       │   ├── base/                                    # 기반 plugin
+│       │   │   ├── AndroidApplicationConventionPlugin.kt
+│       │   │   ├── AndroidLibraryConventionPlugin.kt
+│       │   │   ├── JvmLibraryConventionPlugin.kt
+│       │   │   ├── ComposeMultiplatformConventionPlugin.kt
+│       │   │   ├── ComposeMultiplatformLibraryConventionPlugin.kt
+│       │   │   ├── ComposeMultiplatformUiLibraryConventionPlugin.kt
+│       │   │   └── ComposeMultiplatformWasmApplicationConventionPlugin.kt
+│       │   ├── capability/                              # 선택 가능한 기능 plugin
+│       │   │   ├── AndroidComposeConventionPlugin.kt
+│       │   │   ├── ComposePreviewConventionPlugin.kt
+│       │   │   ├── ComposeResourcesConventionPlugin.kt
+│       │   │   ├── AndroidHiltConventionPlugin.kt
+│       │   │   ├── AndroidNavigation3ConventionPlugin.kt
+│       │   │   ├── AndroidTestConventionPlugin.kt
+│       │   │   ├── AndroidComposeTestConventionPlugin.kt
+│       │   │   ├── AndroidRoomConventionPlugin.kt
+│       │   │   ├── AndroidNetworkConventionPlugin.kt
+│       │   │   └── AndroidDataStoreConventionPlugin.kt
+│       │   ├── composite/                               # 하위 plugin 조합
+│       │   │   └── AndroidFeatureConventionPlugin.kt
+│       │   └── quality/                                 # 품질 도구와 bundle
+│       │       ├── SpotlessConventionPlugin.kt
+│       │       ├── DetektConventionPlugin.kt
+│       │       ├── KotlinQualityConventionPlugin.kt
+│       │       ├── AndroidLintConventionPlugin.kt
+│       │       ├── AndroidComposeLintConventionPlugin.kt
+│       │       └── AndroidQualityConventionPlugin.kt
 │       └── extension/
-│           ├── KotlinAndroid.kt              # compileSdk, minSdk, Kotlin 옵션 공통 설정
-│           ├── Compose.kt                    # Android Compose 설정 헬퍼
-│           ├── ComposeMultiplatform.kt       # CMP, WASM target 설정 헬퍼
-│           ├── AndroidSdkVersions.kt         # compileSdk, minSdk 공통 값
-│           ├── Hilt.kt                       # Hilt 의존성 추가 헬퍼
-│           ├── Room.kt                       # Room 의존성 + KSP 설정 헬퍼
-│           ├── Network.kt                    # Retrofit, OkHttp 의존성 헬퍼
-│           └── ProjectExtensions.kt          # Project/LibraryExtension 확장 함수
+│           ├── BuildConfig.kt                # SDK/JVM/앱 버전 단일 기준
+│           ├── Application.kt                # :app 식별자와 배포 설정
+│           ├── KotlinAndroid.kt              # Android/JVM compiler 설정
+│           ├── KotlinMultiplatform.kt        # Android/Wasm target 설정
+│           ├── Compose.kt                    # Android Compose 제품 UI 설정
+│           ├── ComposeMultiplatform.kt       # CMP UI dependency 설정
+│           ├── ComposePreview.kt             # Android/CMP Preview 설정
+│           ├── ComposeResources.kt           # Android/CMP 공용 리소스 연결
+│           └── ProjectExtensions.kt          # Version Catalog/plugin ID 접근
 │
 ├── gradle/
 │   └── libs.versions.toml                    # Version Catalog

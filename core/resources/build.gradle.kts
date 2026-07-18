@@ -2,11 +2,13 @@ import org.jetbrains.compose.resources.ResourcesExtension
 
 plugins {
     alias(libs.plugins.dminus14.compose.multiplatform.library)
+    alias(libs.plugins.dminus14.kotlin.quality)
 }
 
 kotlin {
     android {
         namespace = "com.dminus14.app.core.resources"
+        androidResources.enable = true
     }
 
     sourceSets {

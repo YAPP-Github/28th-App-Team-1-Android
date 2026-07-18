@@ -99,6 +99,8 @@ spotless-gradle-plugin = { group = "com.diffplug.spotless", name = "spotless-plu
 compose-runtime = { group = "org.jetbrains.compose.runtime", name = "runtime", version.ref = "compose-multiplatform" }
 compose-foundation = { group = "org.jetbrains.compose.foundation", name = "foundation", version.ref = "compose-multiplatform" }
 compose-ui = { group = "org.jetbrains.compose.ui", name = "ui", version.ref = "compose-multiplatform" }
+compose-ui-tooling = { group = "org.jetbrains.compose.ui", name = "ui-tooling", version.ref = "compose-multiplatform" }
+compose-ui-tooling-preview = { group = "org.jetbrains.compose.ui", name = "ui-tooling-preview", version.ref = "compose-multiplatform" }
 compose-material3 = { group = "org.jetbrains.compose.material3", name = "material3", version.ref = "compose-material3" }
 compose-components-resources = { group = "org.jetbrains.compose.components", name = "components-resources", version.ref = "compose-multiplatform" }
 
@@ -128,14 +130,21 @@ dminus14-android-application = { id = "dminus14.android.application" }
 dminus14-android-library = { id = "dminus14.android.library" }
 dminus14-android-feature = { id = "dminus14.android.feature" }
 dminus14-android-compose = { id = "dminus14.android.compose" }
+dminus14-compose-preview = { id = "dminus14.compose.preview" }
+dminus14-compose-resources = { id = "dminus14.compose.resources" }
 dminus14-android-hilt = { id = "dminus14.android.hilt" }
+dminus14-android-navigation3 = { id = "dminus14.android.navigation3" }
+dminus14-android-test = { id = "dminus14.android.test" }
+dminus14-android-compose-test = { id = "dminus14.android.compose.test" }
 dminus14-android-room = { id = "dminus14.android.room" }
 dminus14-android-network = { id = "dminus14.android.network" }
 dminus14-android-datastore = { id = "dminus14.android.datastore" }
 dminus14-jvm-library = { id = "dminus14.jvm.library" }
-dminus14-kotlin-lint = { id = "dminus14.kotlin.lint" }
+dminus14-kotlin-quality = { id = "dminus14.kotlin.quality" }
 dminus14-android-lint = { id = "dminus14.android.lint" }
+dminus14-android-compose-lint = { id = "dminus14.android.compose.lint" }
+dminus14-android-quality = { id = "dminus14.android.quality" }
 dminus14-compose-multiplatform = { id = "dminus14.compose.multiplatform" }
-dminus14-compose-multiplatform-common = { id = "dminus14.compose.multiplatform.common" }
 dminus14-compose-multiplatform-library = { id = "dminus14.compose.multiplatform.library" }
-dminus14-compose-multiplatform-wasm = { id = "dminus14.compose.multiplatform.wasm" }
+dminus14-compose-multiplatform-ui-library = { id = "dminus14.compose.multiplatform.ui-library" }
+dminus14-compose-multiplatform-wasm-application = { id = "dminus14.compose.multiplatform.wasm-application" }

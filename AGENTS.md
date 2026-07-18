@@ -211,6 +211,30 @@ Dependencies affecting architecture boundaries, user data handling, media proces
 integration, networking, logging, analytics, or storage require explicit justification in the
 completion report.
 
+Convention Plugins must follow the repository responsibility model:
+
+- Base plugins own only platform and compiler defaults.
+- Capability plugins own one feature such as Compose, Preview, shared resources, Hilt, Navigation,
+  or testing.
+- Quality leaf plugins own one tool, while quality bundle plugins only compose leaf plugins and
+  task ordering.
+- Composite plugins must not repeat DSL configuration or dependencies owned by their child plugins.
+- `dminus14.android.feature` is the standard composite plugin for `:feature:*:impl` only.
+- All repository modules must apply the platform-appropriate Kotlin or Android quality plugin.
+
+Preview and shared-resource capability plugins have restricted targets:
+
+- Apply `dminus14.compose.preview` only to `:app`, `:feature:*:impl`, and `:designsystem`.
+- Preview functions must render ViewModel-free UI and must not require Hilt, Lifecycle, Navigation,
+  network, file access, or real user data.
+- Apply `dminus14.compose.resources` only to `:app`, `:feature:*:impl`, and `:designsystem`.
+- Do not apply Preview or shared-resource capability plugins to `:catalog` or `:core:resources`.
+- `:catalog` must keep catalog-only resources and must not depend directly on `:core:resources`.
+
+Android test conventions are separated by responsibility. Use `dminus14.android.test` for the
+general JUnit/AndroidX test stack and add `dminus14.android.compose.test` only when the module uses
+Compose UI tests.
+
 ---
 
 ## 6. User Data Rules
