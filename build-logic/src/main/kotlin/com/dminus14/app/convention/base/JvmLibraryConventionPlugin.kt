@@ -1,4 +1,4 @@
-package com.dminus14.app.convention
+package com.dminus14.app.convention.base
 
 import com.dminus14.app.extension.configureJvmLibrary
 import com.dminus14.app.extension.pluginId

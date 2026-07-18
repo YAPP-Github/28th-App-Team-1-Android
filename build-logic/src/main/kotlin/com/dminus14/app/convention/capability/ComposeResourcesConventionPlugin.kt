@@ -1,4 +1,4 @@
-package com.dminus14.app.convention
+package com.dminus14.app.convention.capability
 
 import com.dminus14.app.extension.addAndroidComposeResourcesDependency
 import com.dminus14.app.extension.addComposeMultiplatformResourcesDependency

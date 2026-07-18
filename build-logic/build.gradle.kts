@@ -30,105 +30,120 @@ gradlePlugin {
     plugins {
         register("spotlessConvention") {
             id = "dminus14.spotless"
-            implementationClass = "com.dminus14.app.convention.SpotlessConventionPlugin"
+            implementationClass = "com.dminus14.app.convention.quality.SpotlessConventionPlugin"
         }
         register("detektConvention") {
             id = "dminus14.detekt"
-            implementationClass = "com.dminus14.app.convention.DetektConventionPlugin"
+            implementationClass = "com.dminus14.app.convention.quality.DetektConventionPlugin"
         }
         register("kotlinQualityConvention") {
             id = "dminus14.kotlin.quality"
-            implementationClass = "com.dminus14.app.convention.KotlinQualityConventionPlugin"
+            implementationClass =
+                "com.dminus14.app.convention.quality.KotlinQualityConventionPlugin"
         }
         register("androidLintConvention") {
             id = "dminus14.android.lint"
-            implementationClass = "com.dminus14.app.convention.AndroidLintConventionPlugin"
+            implementationClass = "com.dminus14.app.convention.quality.AndroidLintConventionPlugin"
         }
         register("androidComposeLintConvention") {
             id = "dminus14.android.compose.lint"
             implementationClass =
-                "com.dminus14.app.convention.AndroidComposeLintConventionPlugin"
+                "com.dminus14.app.convention.quality.AndroidComposeLintConventionPlugin"
         }
         register("androidQualityConvention") {
             id = "dminus14.android.quality"
-            implementationClass = "com.dminus14.app.convention.AndroidQualityConventionPlugin"
+            implementationClass =
+                "com.dminus14.app.convention.quality.AndroidQualityConventionPlugin"
         }
         register("androidApplication") {
             id = "dminus14.android.application"
-            implementationClass = "com.dminus14.app.convention.AndroidApplicationConventionPlugin"
+            implementationClass =
+                "com.dminus14.app.convention.base.AndroidApplicationConventionPlugin"
         }
         register("androidLibrary") {
             id = "dminus14.android.library"
-            implementationClass = "com.dminus14.app.convention.AndroidLibraryConventionPlugin"
+            implementationClass =
+                "com.dminus14.app.convention.base.AndroidLibraryConventionPlugin"
         }
         register("androidFeature") {
             id = "dminus14.android.feature"
-            implementationClass = "com.dminus14.app.convention.AndroidFeatureConventionPlugin"
+            implementationClass =
+                "com.dminus14.app.convention.composite.AndroidFeatureConventionPlugin"
         }
         register("androidCompose") {
             id = "dminus14.android.compose"
-            implementationClass = "com.dminus14.app.convention.AndroidComposeConventionPlugin"
+            implementationClass =
+                "com.dminus14.app.convention.capability.AndroidComposeConventionPlugin"
         }
         register("composePreview") {
             id = "dminus14.compose.preview"
-            implementationClass = "com.dminus14.app.convention.ComposePreviewConventionPlugin"
+            implementationClass =
+                "com.dminus14.app.convention.capability.ComposePreviewConventionPlugin"
         }
         register("composeResources") {
             id = "dminus14.compose.resources"
-            implementationClass = "com.dminus14.app.convention.ComposeResourcesConventionPlugin"
+            implementationClass =
+                "com.dminus14.app.convention.capability.ComposeResourcesConventionPlugin"
         }
         register("androidHilt") {
             id = "dminus14.android.hilt"
-            implementationClass = "com.dminus14.app.convention.AndroidHiltConventionPlugin"
+            implementationClass =
+                "com.dminus14.app.convention.capability.AndroidHiltConventionPlugin"
         }
         register("androidNavigation3") {
             id = "dminus14.android.navigation3"
             implementationClass =
-                "com.dminus14.app.convention.AndroidNavigation3ConventionPlugin"
+                "com.dminus14.app.convention.capability.AndroidNavigation3ConventionPlugin"
         }
         register("androidTest") {
             id = "dminus14.android.test"
-            implementationClass = "com.dminus14.app.convention.AndroidTestConventionPlugin"
+            implementationClass =
+                "com.dminus14.app.convention.capability.AndroidTestConventionPlugin"
         }
         register("androidComposeTest") {
             id = "dminus14.android.compose.test"
             implementationClass =
-                "com.dminus14.app.convention.AndroidComposeTestConventionPlugin"
+                "com.dminus14.app.convention.capability.AndroidComposeTestConventionPlugin"
         }
         register("androidRoom") {
             id = "dminus14.android.room"
-            implementationClass = "com.dminus14.app.convention.AndroidRoomConventionPlugin"
+            implementationClass =
+                "com.dminus14.app.convention.capability.AndroidRoomConventionPlugin"
         }
         register("androidNetwork") {
             id = "dminus14.android.network"
-            implementationClass = "com.dminus14.app.convention.AndroidNetworkConventionPlugin"
+            implementationClass =
+                "com.dminus14.app.convention.capability.AndroidNetworkConventionPlugin"
         }
         register("androidDataStore") {
             id = "dminus14.android.datastore"
-            implementationClass = "com.dminus14.app.convention.AndroidDataStoreConventionPlugin"
+            implementationClass =
+                "com.dminus14.app.convention.capability.AndroidDataStoreConventionPlugin"
         }
         register("jvmLibrary") {
             id = "dminus14.jvm.library"
-            implementationClass = "com.dminus14.app.convention.JvmLibraryConventionPlugin"
+            implementationClass =
+                "com.dminus14.app.convention.base.JvmLibraryConventionPlugin"
         }
         register("composeMultiplatformConvention") {
             id = "dminus14.compose.multiplatform"
-            implementationClass = "com.dminus14.app.convention.ComposeMultiplatformConventionPlugin"
+            implementationClass =
+                "com.dminus14.app.convention.base.ComposeMultiplatformConventionPlugin"
         }
         register("composeMultiplatformUiLibraryConvention") {
             id = "dminus14.compose.multiplatform.ui-library"
             implementationClass =
-                "com.dminus14.app.convention.ComposeMultiplatformUiLibraryConventionPlugin"
+                "com.dminus14.app.convention.base.ComposeMultiplatformUiLibraryConventionPlugin"
         }
         register("composeMultiplatformLibraryConvention") {
             id = "dminus14.compose.multiplatform.library"
             implementationClass =
-                "com.dminus14.app.convention.ComposeMultiplatformLibraryConventionPlugin"
+                "com.dminus14.app.convention.base.ComposeMultiplatformLibraryConventionPlugin"
         }
         register("composeMultiplatformWasmApplicationConvention") {
             id = "dminus14.compose.multiplatform.wasm-application"
             implementationClass =
-                "com.dminus14.app.convention.ComposeMultiplatformWasmApplicationConventionPlugin"
+                "com.dminus14.app.convention.base.ComposeMultiplatformWasmApplicationConventionPlugin"
         }
     }
 }

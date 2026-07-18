@@ -1024,12 +1024,34 @@ android-project/
 │   ├── build.gradle.kts                      # Plugin 등록, build-logic 의존성
 │   └── src/main/kotlin/com/dminus14/app/
 │       ├── convention/
-│       │   ├── Android*ConventionPlugin.kt             # Android 기반/capability/test/quality
-│       │   ├── Compose*ConventionPlugin.kt             # CMP 기반/Preview/Resources
-│       │   ├── KotlinQualityConventionPlugin.kt        # Kotlin 품질 bundle
-│       │   ├── DetektConventionPlugin.kt               # Kotlin 정적 분석
-│       │   ├── SpotlessConventionPlugin.kt             # Kotlin/Gradle 포맷
-│       │   └── JvmLibraryConventionPlugin.kt           # 순수 Kotlin JVM 기반
+│       │   ├── base/                                    # 기반 plugin
+│       │   │   ├── AndroidApplicationConventionPlugin.kt
+│       │   │   ├── AndroidLibraryConventionPlugin.kt
+│       │   │   ├── JvmLibraryConventionPlugin.kt
+│       │   │   ├── ComposeMultiplatformConventionPlugin.kt
+│       │   │   ├── ComposeMultiplatformLibraryConventionPlugin.kt
+│       │   │   ├── ComposeMultiplatformUiLibraryConventionPlugin.kt
+│       │   │   └── ComposeMultiplatformWasmApplicationConventionPlugin.kt
+│       │   ├── capability/                              # 선택 가능한 기능 plugin
+│       │   │   ├── AndroidComposeConventionPlugin.kt
+│       │   │   ├── ComposePreviewConventionPlugin.kt
+│       │   │   ├── ComposeResourcesConventionPlugin.kt
+│       │   │   ├── AndroidHiltConventionPlugin.kt
+│       │   │   ├── AndroidNavigation3ConventionPlugin.kt
+│       │   │   ├── AndroidTestConventionPlugin.kt
+│       │   │   ├── AndroidComposeTestConventionPlugin.kt
+│       │   │   ├── AndroidRoomConventionPlugin.kt
+│       │   │   ├── AndroidNetworkConventionPlugin.kt
+│       │   │   └── AndroidDataStoreConventionPlugin.kt
+│       │   ├── composite/                               # 하위 plugin 조합
+│       │   │   └── AndroidFeatureConventionPlugin.kt
+│       │   └── quality/                                 # 품질 도구와 bundle
+│       │       ├── SpotlessConventionPlugin.kt
+│       │       ├── DetektConventionPlugin.kt
+│       │       ├── KotlinQualityConventionPlugin.kt
+│       │       ├── AndroidLintConventionPlugin.kt
+│       │       ├── AndroidComposeLintConventionPlugin.kt
+│       │       └── AndroidQualityConventionPlugin.kt
 │       └── extension/
 │           ├── BuildConfig.kt                # SDK/JVM/앱 버전 단일 기준
 │           ├── Application.kt                # :app 식별자와 배포 설정

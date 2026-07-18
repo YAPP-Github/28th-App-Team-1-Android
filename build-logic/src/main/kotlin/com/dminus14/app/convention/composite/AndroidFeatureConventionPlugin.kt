@@ -1,4 +1,4 @@
-package com.dminus14.app.convention
+package com.dminus14.app.convention.composite
 
 import com.dminus14.app.extension.pluginId
 import org.gradle.api.Plugin

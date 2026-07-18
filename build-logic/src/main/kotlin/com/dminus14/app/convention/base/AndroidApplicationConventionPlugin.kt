@@ -1,4 +1,4 @@
-package com.dminus14.app.convention
+package com.dminus14.app.convention.base
 
 import com.android.build.api.dsl.ApplicationExtension
 import com.dminus14.app.extension.configureAndroidApplication

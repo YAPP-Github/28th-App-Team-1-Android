@@ -1,4 +1,4 @@
-package com.dminus14.app.convention
+package com.dminus14.app.convention.base
 
 import com.android.build.api.dsl.LibraryExtension
 import com.dminus14.app.extension.configureKotlinAndroid

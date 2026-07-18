@@ -1,4 +1,4 @@
-package com.dminus14.app.convention
+package com.dminus14.app.convention.quality
 
 import com.diffplug.gradle.spotless.SpotlessExtension
 import org.gradle.api.Plugin

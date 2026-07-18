@@ -1,4 +1,4 @@
-package com.dminus14.app.convention
+package com.dminus14.app.convention.quality
 
 import com.dminus14.app.extension.libs
 import com.dminus14.app.extension.pluginId

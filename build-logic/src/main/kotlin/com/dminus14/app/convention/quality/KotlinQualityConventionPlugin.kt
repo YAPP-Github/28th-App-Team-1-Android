@@ -1,4 +1,4 @@
-package com.dminus14.app.convention
+package com.dminus14.app.convention.quality
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
