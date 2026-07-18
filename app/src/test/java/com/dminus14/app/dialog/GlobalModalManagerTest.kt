@@ -18,7 +18,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class GlobalModalManagerTest {
     @Test
-    fun `start is idempotent and consumes an event once`() =
+    fun `start를 여러 번 호출해도 이벤트를 한 번만 소비한다`() =
         runTest {
             val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = GlobalModalManager(events, backgroundScope)
@@ -34,7 +34,7 @@ class GlobalModalManagerTest {
         }
 
     @Test
-    fun `completed dialogs promote pending events in FIFO order`() =
+    fun `다이얼로그를 완료하면 대기 이벤트를 선입선출 순서로 표시한다`() =
         runTest {
             val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = startedManager(events)
@@ -57,7 +57,7 @@ class GlobalModalManagerTest {
         }
 
     @Test
-    fun `overflow drops the oldest dismissible pending event`() =
+    fun `대기열이 넘치면 닫을 수 있는 가장 오래된 대기 이벤트를 제거한다`() =
         runTest {
             val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = startedManager(events)
@@ -80,7 +80,7 @@ class GlobalModalManagerTest {
         }
 
     @Test
-    fun `overflow drops a dismissible incoming event when protected queue is full`() =
+    fun `보호된 대기열이 가득 차면 새로 들어온 닫을 수 있는 이벤트를 제거한다`() =
         runTest {
             val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = startedManager(events)
@@ -95,7 +95,7 @@ class GlobalModalManagerTest {
         }
 
     @Test
-    fun `protected incoming event waits until full protected queue has space`() =
+    fun `새로 들어온 보호 이벤트는 가득 찬 보호 대기열에 공간이 생길 때까지 기다린다`() =
         runTest {
             val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = startedManager(events)
@@ -120,7 +120,7 @@ class GlobalModalManagerTest {
         }
 
     @Test
-    fun `cancelling protected event while it waits for queue space prevents enqueue`() =
+    fun `대기열 공간을 기다리는 보호 이벤트를 취소하면 대기열에 추가하지 않는다`() =
         runTest {
             val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = startedManager(events)
@@ -143,7 +143,7 @@ class GlobalModalManagerTest {
         }
 
     @Test
-    fun `cancelling current dialog promotes next event`() =
+    fun `현재 다이얼로그를 취소하면 다음 이벤트를 표시한다`() =
         runTest {
             val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = startedManager(events)
@@ -160,7 +160,7 @@ class GlobalModalManagerTest {
         }
 
     @Test
-    fun `cancelling pending dialog removes it from the queue`() =
+    fun `대기 중인 다이얼로그를 취소하면 대기열에서 제거한다`() =
         runTest {
             val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = startedManager(events)
@@ -181,7 +181,7 @@ class GlobalModalManagerTest {
         }
 
     @Test
-    fun `current dialog remains available while no host observes it`() =
+    fun `호스트가 관찰하지 않아도 현재 다이얼로그를 유지한다`() =
         runTest {
             val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = startedManager(events)
