@@ -1,12 +1,4 @@
-/**
- * Hilt Convention Plugin.
- *
- * Plugin ID: `dminus14.android.hilt`
- * 적용 대상: DI가 필요한 Android 모듈
- *
- * KSP + Hilt Android plugin을 적용하고, compiler/runtime 의존성을 추가한다.
- */
-package com.dminus14.app.convention
+package com.dminus14.app.convention.capability
 
 import com.dminus14.app.extension.libs
 import com.dminus14.app.extension.pluginId
@@ -14,6 +6,14 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.dependencies
 
+/**
+ * DI가 필요한 Android 모듈에 Hilt와 KSP 구성을 제공한다.
+ *
+ * Plugin ID: `dminus14.android.hilt`
+ *
+ * Hilt Android plugin, KSP, Hilt runtime과 compiler만 구성한다. Navigation과 모듈별 Hilt
+ * binding은 소유하지 않는다.
+ */
 class AndroidHiltConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {

@@ -4,10 +4,10 @@ import com.android.build.api.dsl.ApplicationExtension
 import org.gradle.api.Project
 
 /**
- * Application 모듈 전용 Android 설정 헬퍼.
+ * Android Application 전용 식별자와 배포 설정을 구성한다.
  *
- * namespace, applicationId, 버전 정보, testInstrumentationRunner, release buildType 등
- * `:app`에만 필요한 설정을 중앙에서 관리한다.
+ * [AndroidApplicationConventionPlugin]이 `com.android.application` 적용 후 호출한다.
+ * SDK/JVM target, Compose, 테스트와 Android Lint 정책은 구성하지 않는다.
  */
 internal fun Project.configureAndroidApplication(extension: ApplicationExtension) {
     extension.apply {
@@ -17,7 +17,6 @@ internal fun Project.configureAndroidApplication(extension: ApplicationExtension
             targetSdk = BuildConfig.ANDROID_TARGET_SDK
             versionCode = BuildConfig.APPLICATION_VERSION_CODE
             versionName = BuildConfig.APPLICATION_VERSION_NAME
-            testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         }
         buildTypes {
             release {
@@ -27,9 +26,6 @@ internal fun Project.configureAndroidApplication(extension: ApplicationExtension
                     "proguard-rules.pro",
                 )
             }
-        }
-        lint {
-            disable.add("MissingClass")
         }
     }
 }

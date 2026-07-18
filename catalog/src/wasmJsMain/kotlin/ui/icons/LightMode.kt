@@ -17,14 +17,14 @@ internal val LightMode: ImageVector
             return lightMode!!
         }
         lightMode =
-            ImageVector.Builder(
-                name = "light_mode",
-                defaultWidth = 40.dp,
-                defaultHeight = 40.dp,
-                viewportWidth = 40f,
-                viewportHeight = 40f,
-            )
-                .apply {
+            ImageVector
+                .Builder(
+                    name = "light_mode",
+                    defaultWidth = 40.dp,
+                    defaultHeight = 40.dp,
+                    viewportWidth = 40f,
+                    viewportHeight = 40f,
+                ).apply {
                     path(
                         fill = SolidColor(Color.Black),
                         fillAlpha = 1f,
@@ -107,8 +107,7 @@ internal val LightMode: ImageVector
                         moveTo(20f, 20f)
                         close()
                     }
-                }
-                .build()
+                }.build()
         return lightMode!!
     }
 

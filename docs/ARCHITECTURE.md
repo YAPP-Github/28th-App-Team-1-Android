@@ -42,17 +42,17 @@ rules at the time it is added.
 
 ## 1. 기술 개요
 
-| 항목               | 기준                                      |
-|------------------|-----------------------------------------|
-| 아키텍처             | Clean Architecture                      |
-| UI 패턴            | MVI(Model-View-Intent)                  |
-| Android UI 프레임워크 | Jetpack Compose                         |
-| 디자인 시스템 UI       | Compose Multiplatform                   |
-| Navigation       | Navigation 3                            |
-| 의존성 주입           | Hilt                                    |
-| 빌드 구성            | `build-logic`의 Convention Plugin과 `BuildConfig` |
-| 디자인 시스템 카탈로그     | Compose Multiplatform 기반 Web/WASM 카탈로그  |
-| Base Package     | `com.dminus14.app`                      |
+| 항목                   | 기준                                              |
+| ---------------------- | ------------------------------------------------- |
+| 아키텍처               | Clean Architecture                                |
+| UI 패턴                | MVI(Model-View-Intent)                            |
+| Android UI 프레임워크  | Jetpack Compose                                   |
+| 디자인 시스템 UI       | Compose Multiplatform                             |
+| Navigation             | Navigation 3                                      |
+| 의존성 주입            | Hilt                                              |
+| 빌드 구성              | `build-logic`의 Convention Plugin과 `BuildConfig` |
+| 디자인 시스템 카탈로그 | Compose Multiplatform 기반 Web/WASM 카탈로그      |
+| Base Package           | `com.dminus14.app`                                |
 
 ---
 
@@ -109,16 +109,16 @@ rules at the time it is added.
 
 ## 3. 모듈 책임
 
-| 모듈               | 책임                                                                           | Android 의존 |
-|------------------|------------------------------------------------------------------------------|------------|
-| `app`            | `Application`, Manifest, `MainActivity`, 앱 루트 Navigation 조립, 전역 UI 이벤트 처리    | O          |
-| `feature:*`      | 화면별 MVI 구성(`Contract`, `ViewModel`, `Screen`), Feature route/entry 제공        | O          |
-| `designsystem`   | Theme, 공통 Compose UI 컴포넌트, Dialog/Snackbar 등 공통 UI. Compose Multiplatform 기반 | X          |
-| `catalog`        | 디자인 시스템 컴포넌트 카탈로그, Story 정의, Web/WASM 배포 산출물                                 | X          |
-| `domain`         | Entity, Repository Interface, UseCase, 비즈니스 규칙                               | X          |
-| `data`           | Repository 구현체, API, RemoteDataSource, Room DAO/Database, DTO, DI Module     | O          |
-| `core:common`    | MVI Base, 공통 Result/Error, Util, Extension, 공통 route/key 모델                  | 최소화        |
-| `core:resources` | Android와 Web/WASM에서 공유하는 Compose Multiplatform 리소스와 공개 `Res` 접근자             | X          |
+| 모듈             | 책임                                                                                    | Android 의존 |
+| ---------------- | --------------------------------------------------------------------------------------- | ------------ |
+| `app`            | `Application`, Manifest, `MainActivity`, 앱 루트 Navigation 조립, 전역 UI 이벤트 처리   | O            |
+| `feature:*`      | 화면별 MVI 구성(`Contract`, `ViewModel`, `Screen`), Feature route/entry 제공            | O            |
+| `designsystem`   | Theme, 공통 Compose UI 컴포넌트, Dialog/Snackbar 등 공통 UI. Compose Multiplatform 기반 | X            |
+| `catalog`        | 디자인 시스템 컴포넌트 카탈로그, Story 정의, Web/WASM 배포 산출물                       | X            |
+| `domain`         | Entity, Repository Interface, UseCase, 비즈니스 규칙                                    | X            |
+| `data`           | Repository 구현체, API, RemoteDataSource, Room DAO/Database, DTO, DI Module             | O            |
+| `core:common`    | MVI Base, 공통 Result/Error, Util, Extension, 공통 route/key 모델                       | 최소화       |
+| `core:resources` | Android와 Web/WASM에서 공유하는 Compose Multiplatform 리소스와 공개 `Res` 접근자        | X            |
 
 ### 3.1 `app`
 
@@ -325,41 +325,41 @@ flowchart TD
 
 ### 4.2 허용되는 의존성
 
-| 의존성                               | 설명                                                         |
-|-----------------------------------|------------------------------------------------------------|
+| 의존성                            | 설명                                                                          |
+| --------------------------------- | ----------------------------------------------------------------------------- |
 | `app` → `feature:*`               | 앱 루트에서 Feature route/entry를 수집하고 Navigation 3 화면 전환을 조립한다. |
-| `app` → `data`                    | 앱 composition root에서 Hilt DI binding을 포함한다.                |
-| `app` → `designsystem`            | 앱 루트에서 Theme, 전역 Dialog, Snackbar 등을 표시한다.                 |
-| `app` → `core:common`             | 전역 이벤트, 공통 route/key, 공통 모델을 사용한다.                         |
-| `app` → `core:resources`          | 앱에서 공용 Compose Multiplatform 리소스를 직접 사용한다.                 |
-| `feature:*` → `domain`            | Feature가 UseCase 또는 Repository Interface에 접근한다.            |
-| `feature:*` → `designsystem`      | 화면에서 공통 UI 컴포넌트를 사용한다.                                     |
-| `feature:*` → `core:common`       | MVI Base, 공통 모델, 공통 확장 함수를 사용한다.                           |
-| `feature:*` → `core:resources`    | Feature에서 공용 Compose Multiplatform 리소스를 직접 사용한다.           |
-| `data` → `domain`                 | Repository Interface를 구현한다.                                |
-| `data` → `core:common`            | 공통 Result, Error 모델 등을 사용한다.                               |
-| `designsystem` → `core:common`    | Android에 의존하지 않는 공통 모델, util, extension을 사용한다.             |
-| `designsystem` → `core:resources` | 공통 UI에서 공유 font, drawable, string 등 CMP 리소스를 사용한다.         |
-| `catalog` → `designsystem`        | 디자인 시스템 컴포넌트를 Story로 노출한다.                                 |
-| `catalog` → `core:common`         | Story 작성에 필요한 공통 모델 또는 util을 사용한다.                         |
+| `app` → `data`                    | 앱 composition root에서 Hilt DI binding을 포함한다.                           |
+| `app` → `designsystem`            | 앱 루트에서 Theme, 전역 Dialog, Snackbar 등을 표시한다.                       |
+| `app` → `core:common`             | 전역 이벤트, 공통 route/key, 공통 모델을 사용한다.                            |
+| `app` → `core:resources`          | 앱에서 공용 Compose Multiplatform 리소스를 직접 사용한다.                     |
+| `feature:*` → `domain`            | Feature가 UseCase 또는 Repository Interface에 접근한다.                       |
+| `feature:*` → `designsystem`      | 화면에서 공통 UI 컴포넌트를 사용한다.                                         |
+| `feature:*` → `core:common`       | MVI Base, 공통 모델, 공통 확장 함수를 사용한다.                               |
+| `feature:*` → `core:resources`    | Feature에서 공용 Compose Multiplatform 리소스를 직접 사용한다.                |
+| `data` → `domain`                 | Repository Interface를 구현한다.                                              |
+| `data` → `core:common`            | 공통 Result, Error 모델 등을 사용한다.                                        |
+| `designsystem` → `core:common`    | Android에 의존하지 않는 공통 모델, util, extension을 사용한다.                |
+| `designsystem` → `core:resources` | 공통 UI에서 공유 font, drawable, string 등 CMP 리소스를 사용한다.             |
+| `catalog` → `designsystem`        | 디자인 시스템 컴포넌트를 Story로 노출한다.                                    |
+| `catalog` → `core:common`         | Story 작성에 필요한 공통 모델 또는 util을 사용한다.                           |
 
 ### 4.3 금지되는 의존성
 
-| 금지 의존성                             | 이유                                  |
-|------------------------------------|-------------------------------------|
-| `feature:*` → `data`               | UI 레이어가 데이터 구현체에 결합된다.              |
-| `feature:*` → `app`                | Feature가 앱 조립 계층에 역의존하게 된다.         |
-| `feature:*` ↔ `feature:*`          | Feature 간 결합이 커지고 독립성이 깨진다.         |
-| `domain` → `data`                  | 비즈니스 로직이 데이터 구현체에 결합된다.             |
-| `domain` → `feature:*`             | 비즈니스 로직이 UI에 결합된다.                  |
-| `domain` → Android Framework       | 순수 Kotlin 모듈 원칙이 깨진다.               |
-| `data` → `feature:*`               | 데이터 레이어가 UI 정책에 결합된다.               |
-| `data` → `app`                     | 데이터 레이어가 앱 조립 계층에 결합된다.             |
-| `designsystem` → Android Framework | Web/WASM 카탈로그에서 동일 UI를 컴파일할 수 없다.   |
-| `designsystem` → `feature:*`       | 공통 UI 모듈이 특정 기능 화면에 결합된다.           |
-| `designsystem` → `app`             | 공통 UI 모듈이 앱 조립 계층에 결합된다.            |
-| `catalog` → `app`                  | 카탈로그가 Android 앱 런타임에 결합된다.          |
-| `catalog` → Android Framework      | Web/WASM 빌드 목적을 위반한다.               |
+| 금지 의존성                        | 이유                                                    |
+| ---------------------------------- | ------------------------------------------------------- |
+| `feature:*` → `data`               | UI 레이어가 데이터 구현체에 결합된다.                   |
+| `feature:*` → `app`                | Feature가 앱 조립 계층에 역의존하게 된다.               |
+| `feature:*` ↔ `feature:*`          | Feature 간 결합이 커지고 독립성이 깨진다.               |
+| `domain` → `data`                  | 비즈니스 로직이 데이터 구현체에 결합된다.               |
+| `domain` → `feature:*`             | 비즈니스 로직이 UI에 결합된다.                          |
+| `domain` → Android Framework       | 순수 Kotlin 모듈 원칙이 깨진다.                         |
+| `data` → `feature:*`               | 데이터 레이어가 UI 정책에 결합된다.                     |
+| `data` → `app`                     | 데이터 레이어가 앱 조립 계층에 결합된다.                |
+| `designsystem` → Android Framework | Web/WASM 카탈로그에서 동일 UI를 컴파일할 수 없다.       |
+| `designsystem` → `feature:*`       | 공통 UI 모듈이 특정 기능 화면에 결합된다.               |
+| `designsystem` → `app`             | 공통 UI 모듈이 앱 조립 계층에 결합된다.                 |
+| `catalog` → `app`                  | 카탈로그가 Android 앱 런타임에 결합된다.                |
+| `catalog` → Android Framework      | Web/WASM 빌드 목적을 위반한다.                          |
 | `catalog` → `core:resources`       | Catalog 전용 리소스 소유권이 공용 리소스 경계와 섞인다. |
 
 ### 4.4 Navigation 3 조립
@@ -369,13 +369,13 @@ Navigation 3 조립은 별도 모듈이 아니라 `app` 모듈에서 수행한�
 
 #### 4.4.1 `app` 모듈 구성 요소
 
-| 구성 요소                    | 위치                                             | 역할                                                                  |
-|--------------------------|------------------------------------------------|---------------------------------------------------------------------|
-| `Navigator`              | `app/.../navigation/Navigator.kt`              | `SnapshotStateList` 기반 back stack 관리 (`goTo`, `goBack`)             |
-| `AppNavigationState`     | `app/.../navigation/AppNavigationState.kt`     | `Navigator`와 feature entry installer 집합을 주입받아 `MainActivity`에 전달    |
-| `EntryProviderInstaller` | `app/.../navigation/EntryProviderInstaller.kt` | `EntryProviderScope<Any>.() -> Unit` typealias. feature entry 등록 계약 |
-| `NavigatorModule`        | `app/.../navigation/di/NavigatorModule.kt`     | 시작 destination route 제공                                             |
-| `MainActivity`           | `app/.../MainActivity.kt`                      | `NavDisplay`, `entryProvider`, `onBack` 조립                          |
+| 구성 요소                | 위치                                           | 역할                                                                        |
+| ------------------------ | ---------------------------------------------- | --------------------------------------------------------------------------- |
+| `Navigator`              | `app/.../navigation/Navigator.kt`              | `SnapshotStateList` 기반 back stack 관리 (`goTo`, `goBack`)                 |
+| `AppNavigationState`     | `app/.../navigation/AppNavigationState.kt`     | `Navigator`와 feature entry installer 집합을 주입받아 `MainActivity`에 전달 |
+| `EntryProviderInstaller` | `app/.../navigation/EntryProviderInstaller.kt` | `EntryProviderScope<Any>.() -> Unit` typealias. feature entry 등록 계약     |
+| `NavigatorModule`        | `app/.../navigation/di/NavigatorModule.kt`     | 시작 destination route 제공                                                 |
+| `MainActivity`           | `app/.../MainActivity.kt`                      | `NavDisplay`, `entryProvider`, `onBack` 조립                                |
 
 `Navigator`는 앱 루트 전용 stack 관리 클래스이며, 별도 Gradle 모듈(`:navigation`, `:feature:navigator`)로
 분리하지 않는다.
@@ -384,9 +384,9 @@ Navigation 3 조립은 별도 모듈이 아니라 `app` 모듈에서 수행한�
 
 Feature는 필요 시 `api` / `impl`로 분리할 수 있다.
 
-| 모듈                    | 책임                                                           |
-|-----------------------|--------------------------------------------------------------|
-| `feature:{name}:api`  | 다른 모듈이 참조할 route key, args 등 navigation 계약                   |
+| 모듈                  | 책임                                                         |
+| --------------------- | ------------------------------------------------------------ |
+| `feature:{name}:api`  | 다른 모듈이 참조할 route key, args 등 navigation 계약        |
 | `feature:{name}:impl` | `Screen`, `ViewModel`, entry builder, Hilt navigation module |
 
 현재 bootstrap 구현 예시는 `:feature:main:api`, `:feature:main:impl`이다.
@@ -450,12 +450,12 @@ class MainActivity : ComponentActivity() {
 
 #### 4.4.4 화면 전환 규칙
 
-| 계층           | 책임                                         |
-|--------------|--------------------------------------------|
-| `ViewModel`  | Navigation Effect 발행                       |
+| 계층         | 책임                                                  |
+| ------------ | ----------------------------------------------------- |
+| `ViewModel`  | Navigation Effect 발행                                |
 | `Screen`     | Effect 수집 후 `Navigator.goTo()` 또는 상위 콜백 호출 |
-| `Navigator`  | back stack 변경                              |
-| `NavDisplay` | 현재 destination Composable 렌더링              |
+| `Navigator`  | back stack 변경                                       |
+| `NavDisplay` | 현재 destination Composable 렌더링                    |
 
 ViewModel이 `NavDisplay`나 `Navigator`를 직접 호출하지 않는다.
 
@@ -467,14 +467,14 @@ DMinus14는 화면 아키텍처로 MVI(Model-View-Intent)를 사용한다.
 
 ### 5.1 구성 요소
 
-| 구성 요소       | 역할                                      | 소유 위치                      |
-|-------------|-----------------------------------------|----------------------------|
-| `Intent`    | 사용자 액션 또는 UI lifecycle 이벤트              | `Contract`                 |
-| `State`     | 화면에 표시되는 UI 상태                          | `Contract` + `ViewModel`   |
-| `Effect`    | 1회성 이벤트. 예: Navigation, Toast, Snackbar | `Contract` + `ViewModel`   |
-| `ViewModel` | Intent 처리, State 갱신, Effect 발행          | `ViewModel`                |
-| `Screen`    | State 구독, Intent 전달, Effect 수집          | `Screen`                   |
-| `Content`   | ViewModel이 없는 순수 UI 렌더링                 | `Screen` 파일 내부 또는 별도 UI 파일 |
+| 구성 요소   | 역할                                          | 소유 위치                            |
+| ----------- | --------------------------------------------- | ------------------------------------ |
+| `Intent`    | 사용자 액션 또는 UI lifecycle 이벤트          | `Contract`                           |
+| `State`     | 화면에 표시되는 UI 상태                       | `Contract` + `ViewModel`             |
+| `Effect`    | 1회성 이벤트. 예: Navigation, Toast, Snackbar | `Contract` + `ViewModel`             |
+| `ViewModel` | Intent 처리, State 갱신, Effect 발행          | `ViewModel`                          |
+| `Screen`    | State 구독, Intent 전달, Effect 수집          | `Screen`                             |
+| `Content`   | ViewModel이 없는 순수 UI 렌더링               | `Screen` 파일 내부 또는 별도 UI 파일 |
 
 ### 5.2 Feature 파일 구조
 
@@ -513,9 +513,9 @@ feature/{featureName}/
 
 `component/`와 `extension/`은 해당 Feature 내부에서만 사용한다. 다른 Feature에서도 필요해지면 다음 기준에 따라 이동한다.
 
-| 이동 대상          | 기준                                    |
-|----------------|---------------------------------------|
-| `designsystem` | 재사용 가능한 UI 컴포넌트인 경우                   |
+| 이동 대상      | 기준                                           |
+| -------------- | ---------------------------------------------- |
+| `designsystem` | 재사용 가능한 UI 컴포넌트인 경우               |
 | `core:common`  | UI와 무관한 공통 extension, util, model인 경우 |
 
 ### 5.3 Contract 작성 규칙
@@ -582,10 +582,10 @@ sealed interface HomeEffect {
 
 ### 5.4 State와 Effect 구분
 
-| 구분       | 사용 예시                                      |
-|----------|--------------------------------------------|
+| 구분     | 사용 예시                                                                |
+| -------- | ------------------------------------------------------------------------ |
 | `State`  | 로딩 표시, 리스트 데이터, 입력값, 화면에 지속적으로 표시되는 에러 메시지 |
-| `Effect` | 화면 이동, Toast, Snackbar, 일회성 Dialog 표시 요청   |
+| `Effect` | 화면 이동, Toast, Snackbar, 일회성 Dialog 표시 요청                      |
 
 판단 기준은 다음과 같다.
 
@@ -666,14 +666,14 @@ class HomeViewModel @Inject constructor(
 
 ### 6.1 ViewModel 규칙 요약
 
-| 규칙            | 설명                                                               |
-|---------------|------------------------------------------------------------------|
-| Intent 수신     | 외부에서 호출하는 이벤트 진입점은 `onIntent()` 하나로 통일한다.                        |
-| State 변경      | `_state.update { copy(...) }` 또는 `reduce { copy(...) }`로 처리한다.   |
-| Effect 발행     | `Channel` 또는 프로젝트 공통 Effect 처리 유틸을 통해 1회성으로 발행한다.                |
+| 규칙            | 설명                                                                                 |
+| --------------- | ------------------------------------------------------------------------------------ |
+| Intent 수신     | 외부에서 호출하는 이벤트 진입점은 `onIntent()` 하나로 통일한다.                      |
+| State 변경      | `_state.update { copy(...) }` 또는 `reduce { copy(...) }`로 처리한다.                |
+| Effect 발행     | `Channel` 또는 프로젝트 공통 Effect 처리 유틸을 통해 1회성으로 발행한다.             |
 | UseCase 호출    | ViewModel은 `domain`의 UseCase를 호출한다. Repository 구현체에 직접 접근하지 않는다. |
-| UI 모델 변환      | 화면 표시 전 필요한 경우 Entity/Domain Model을 UiModel로 변환한다.               |
-| Navigation 처리 | ViewModel은 Navigation 실행 자체를 수행하지 않고, Navigation Effect를 발행한다.   |
+| UI 모델 변환    | 화면 표시 전 필요한 경우 Entity/Domain Model을 UiModel로 변환한다.                   |
+| Navigation 처리 | ViewModel은 Navigation 실행 자체를 수행하지 않고, Navigation Effect를 발행한다.      |
 
 ---
 
@@ -730,14 +730,29 @@ private fun HomeContent(
 
 ### 7.1 Screen 규칙 요약
 
-| 규칙                  | 설명                                                                             |
-|---------------------|--------------------------------------------------------------------------------|
-| Screen / Content 분리 | Screen은 ViewModel 연결, Content는 UI 렌더링을 담당한다.                                   |
-| State 구독            | `collectAsStateWithLifecycle()`을 사용한다.                                         |
-| Effect 수집           | `LaunchedEffect(Unit)`에서 한 번만 collect한다.                                       |
-| 최초 로드               | 필요한 경우 `LaunchedEffect(Unit)`에서 `Load` Intent를 보낸다.                            |
-| Preview             | Preview는 ViewModel이 필요 없는 Content 기준으로 작성한다.                                   |
-| Catalog             | 카탈로그 노출이 필요한 경우 Android 의존이 없는 Content 또는 designsystem component를 Story로 등록한다. |
+| 규칙                  | 설명                                                                                                    |
+| --------------------- | ------------------------------------------------------------------------------------------------------- |
+| Screen / Content 분리 | Screen은 ViewModel 연결, Content는 UI 렌더링을 담당한다.                                                |
+| State 구독            | `collectAsStateWithLifecycle()`을 사용한다.                                                             |
+| Effect 수집           | `LaunchedEffect(Unit)`에서 한 번만 collect한다.                                                         |
+| 최초 로드             | 필요한 경우 `LaunchedEffect(Unit)`에서 `Load` Intent를 보낸다.                                          |
+| Preview               | Preview는 ViewModel이 필요 없는 Content 기준으로 작성한다.                                              |
+| Catalog               | 카탈로그 노출이 필요한 경우 Android 의존이 없는 Content 또는 designsystem component를 Story로 등록한다. |
+
+### 7.2 Preview 지원 모듈
+
+Android와 Compose Multiplatform `commonMain`은
+`androidx.compose.ui.tooling.preview.Preview` annotation을 공통으로 사용한다.
+
+| 모듈             | Preview 대상                        | Convention Plugin                                      |
+| ---------------- | ----------------------------------- | ------------------------------------------------------ |
+| `app`            | 앱 Theme와 ViewModel-free 전역 UI   | `dminus14.compose.preview`                             |
+| `feature:*:impl` | ViewModel이 없는 `Content` UI       | `dminus14.android.feature`가 Preview capability를 조합 |
+| `designsystem`   | `commonMain` 공통 component와 Theme | `dminus14.compose.preview`                             |
+
+`core:permission`의 platform launcher, `core:resources`의 resource accessor와 `catalog`의 Wasm
+실행 UI에는 Preview Convention Plugin을 적용하지 않는다. Catalog UI는 Web/WASM Story 실행으로
+검수한다.
 
 ---
 
@@ -748,31 +763,31 @@ private fun HomeContent(
 
 ### 8.1 에러 구분
 
-| 타입                   | 정의                      | 예시                                    | UI 처리                 | 처리 방식                                   |
-|----------------------|-------------------------|---------------------------------------|-----------------------|-----------------------------------------|
+| 타입                 | 정의                                 | 예시                                  | UI 처리                       | 처리 방식                                 |
+| -------------------- | ------------------------------------ | ------------------------------------- | ----------------------------- | ----------------------------------------- |
 | `NetworkUnavailable` | 인터넷 연결 없음, 타임아웃, DNS 실패 | `IOException`, `UnknownHostException` | Dialog. 재시도 / 앱 종료 버튼 | 전역 SharedFlow                           |
-| `ServerError`        | 서버 응답 오류                | HTTP 500, 502, 503                    | Dialog. 앱 종료 버튼       | 전역 SharedFlow                           |
-| `ClientError`        | 클라이언트 요청 오류             | HTTP 400, 401, 404                    | 화면별 기획에 따라 처리         | Feature `State.error` 또는 Feature Effect |
-| `Unknown`            | 분류할 수 없는 예외             | 기타 Exception                          | Toast                 | 전역 SharedFlow                           |
+| `ServerError`        | 서버 응답 오류                       | HTTP 500, 502, 503                    | Dialog. 앱 종료 버튼          | 전역 SharedFlow                           |
+| `ClientError`        | 클라이언트 요청 오류                 | HTTP 400, 401, 404                    | 화면별 기획에 따라 처리       | Feature `State.error` 또는 Feature Effect |
+| `Unknown`            | 분류할 수 없는 예외                  | 기타 Exception                        | Toast                         | 전역 SharedFlow                           |
 
 ### 8.2 State와 Global Event 판단 기준
 
-| 조건                          | 처리 방식                                  |
-|-----------------------------|----------------------------------------|
-| 화면마다 메시지나 UI가 다름            | Feature `State.error`                  |
-| 앱 전체에서 동일한 Dialog/Toast로 처리 | `GlobalAppEvent`                       |
-| 1회성 알림                      | `Effect.ShowToast` 또는 `GlobalAppEvent` |
-| 재시도, 앱 종료 등 앱 레벨 액션 필요      | `GlobalAppEvent`                       |
+| 조건                                   | 처리 방식                                |
+| -------------------------------------- | ---------------------------------------- |
+| 화면마다 메시지나 UI가 다름            | Feature `State.error`                    |
+| 앱 전체에서 동일한 Dialog/Toast로 처리 | `GlobalAppEvent`                         |
+| 1회성 알림                             | `Effect.ShowToast` 또는 `GlobalAppEvent` |
+| 재시도, 앱 종료 등 앱 레벨 액션 필요   | `GlobalAppEvent`                         |
 
 ### 8.3 레이어별 책임
 
-| 레이어           | 책임                                                                                         |
-|---------------|--------------------------------------------------------------------------------------------|
-| `core:common` | 공통 Error 모델, `GlobalAppEvent`, `GlobalErrorHandler` 정의                                     |
-| `data`        | 외부 Exception을 적절한 에러 타입으로 변환하거나 상위로 전파                                                     |
-| `domain`      | UseCase 결과를 전달한다. UI 처리는 하지 않는다.                                                           |
+| 레이어        | 책임                                                                                                        |
+| ------------- | ----------------------------------------------------------------------------------------------------------- |
+| `core:common` | 공통 Error 모델, `GlobalAppEvent`, `GlobalErrorHandler` 정의                                                |
+| `data`        | 외부 Exception을 적절한 에러 타입으로 변환하거나 상위로 전파                                                |
+| `domain`      | UseCase 결과를 전달한다. UI 처리는 하지 않는다.                                                             |
 | `feature:*`   | Client Error는 화면별 State 또는 Effect로 처리한다. Server/Unknown/Network Error는 Global Event로 전파한다. |
-| `app`         | Global Event를 collect하여 Dialog, Toast, Snackbar 등 UI로 표시한다.                                |
+| `app`         | Global Event를 collect하여 Dialog, Toast, Snackbar 등 UI로 표시한다.                                        |
 
 ### 8.4 공통 에러 모델 예시
 
@@ -839,10 +854,10 @@ object GlobalErrorHandler {
 }
 ```
 
-| 설정                        | 이유                              |
-|---------------------------|---------------------------------|
-| `object`                  | 앱 전역 단일 인스턴스로 사용 가능하다.          |
-| `extraBufferCapacity = 1` | collect 이전 이벤트 1건을 버퍼링한다.       |
+| 설정                      | 이유                                                   |
+| ------------------------- | ------------------------------------------------------ |
+| `object`                  | 앱 전역 단일 인스턴스로 사용 가능하다.                 |
+| `extraBufferCapacity = 1` | collect 이전 이벤트 1건을 버퍼링한다.                  |
 | `DROP_OLDEST`             | 연속 실패 시 오래된 이벤트보다 최신 이벤트를 우선한다. |
 
 ### 8.5 앱 루트에서 전역 에러 처리 예시
@@ -1009,12 +1024,12 @@ when (result) {
 }
 ```
 
-| 결과                         | 의미                                      |
-|----------------------------|-----------------------------------------|
-| `Confirm`                  | 사용자가 확인 버튼을 선택했다.                      |
-| `Cancel`                   | 사용자가 선택적 취소 버튼을 선택했다.                  |
-| `Dismiss`                  | 허용된 Back 또는 Dialog 바깥 영역 터치로 닫혔다.       |
-| `DroppedByOverflow`        | 대기 큐 overflow 정책에 따라 요청이 제거되거나 거절됐다. |
+| 결과                | 의미                                                     |
+| ------------------- | -------------------------------------------------------- |
+| `Confirm`           | 사용자가 확인 버튼을 선택했다.                           |
+| `Cancel`            | 사용자가 선택적 취소 버튼을 선택했다.                    |
+| `Dismiss`           | 허용된 Back 또는 Dialog 바깥 영역 터치로 닫혔다.         |
+| `DroppedByOverflow` | 대기 큐 overflow 정책에 따라 요청이 제거되거나 거절됐다. |
 
 호출 coroutine이 취소되면 현재 또는 대기 중인 요청도 함께 제거되며 별도의
 `GlobalDialogResult`로 변환하지 않는다.
@@ -1037,13 +1052,13 @@ when (result) {
 
 #### 모듈별 책임과 금지 사항
 
-| 모듈             | 책임                                                                      |
-|----------------|-------------------------------------------------------------------------|
-| `feature:*`    | Dialog 필요 여부를 결정하고 `showGlobalDialog(...)`의 결과에 따라 후속 동작을 수행한다.         |
-| `core:common`  | 플랫폼 독립 요청·결과 계약, 단일 SharedFlow와 호출 함수를 제공한다.                            |
-| `app`          | 프로세스 수명 수집, FIFO·overflow·취소 처리와 앱 최상단 렌더링을 담당한다.                      |
-| `designsystem` | 상태 없는 `DMinusDialog` UI와 callback 계약만 제공한다.                                    |
-| `catalog`      | 제품 런타임 로직 없이 Dialog의 주요 시각 상태를 Story로 노출한다.                              |
+| 모듈           | 책임                                                                                    |
+| -------------- | --------------------------------------------------------------------------------------- |
+| `feature:*`    | Dialog 필요 여부를 결정하고 `showGlobalDialog(...)`의 결과에 따라 후속 동작을 수행한다. |
+| `core:common`  | 플랫폼 독립 요청·결과 계약, 단일 SharedFlow와 호출 함수를 제공한다.                     |
+| `app`          | 프로세스 수명 수집, FIFO·overflow·취소 처리와 앱 최상단 렌더링을 담당한다.              |
+| `designsystem` | 상태 없는 `DMinusDialog` UI와 callback 계약만 제공한다.                                 |
+| `catalog`      | 제품 런타임 로직 없이 Dialog의 주요 시각 상태를 Story로 노출한다.                       |
 
 - 전역 Dialog 호출자가 `globalDialogEvents`, `GlobalDialogManager` 또는 `GlobalDialogHost`를 직접 참조하지 않는다.
 - 전역 Dialog를 열기 위해 `DMinusDialog`를 Feature에서 직접 렌더링하지 않는다.
@@ -1054,6 +1069,43 @@ when (result) {
 
 ## 9. 프로젝트 구조
 
+### 9.1 Convention Plugin 책임 구조
+
+Convention Plugin은 기반, capability, composite와 quality 책임을 구분한다. Leaf plugin이 실제
+Gradle DSL과 dependency를 소유하고 composite/bundle plugin은 하위 plugin을 조합만 한다.
+
+| 분류       | Plugin ID                                         | 책임 및 적용 대상                             |
+| ---------- | ------------------------------------------------- | --------------------------------------------- |
+| 기반       | `dminus14.android.application`                    | `:app`의 Application/SDK/JVM/배포 설정        |
+| 기반       | `dminus14.android.library`                        | Android Library/SDK/JVM 설정                  |
+| 기반       | `dminus14.jvm.library`                            | 순수 Kotlin/JVM Library 설정                  |
+| 기반       | `dminus14.compose.multiplatform`                  | Kotlin/CMP/Compose compiler plugin 기반       |
+| 기반       | `dminus14.compose.multiplatform.library`          | Android+Wasm CMP Library target               |
+| 기반       | `dminus14.compose.multiplatform.ui-library`       | `:designsystem`의 `commonMain` UI 환경        |
+| 기반       | `dminus14.compose.multiplatform.wasm-application` | `:catalog`의 실행 가능한 Wasm UI 환경         |
+| Composite  | `dminus14.android.feature`                        | 모든 `:feature:*:impl`의 표준 capability 조합 |
+| Capability | `dminus14.android.compose`                        | 일반 Android Compose 제품 UI                  |
+| Capability | `dminus14.compose.preview`                        | Android/CMP Preview annotation과 tooling      |
+| Capability | `dminus14.compose.resources`                      | 허용된 UI 소비자의 `:core:resources` 의존성   |
+| Capability | `dminus14.android.hilt`                           | Hilt/KSP/runtime/compiler                     |
+| Capability | `dminus14.android.navigation3`                    | Navigation 3 Android 의존성                   |
+| Capability | `dminus14.android.test`                           | Android 기본 단위·계측 테스트                 |
+| Capability | `dminus14.android.compose.test`                   | Android Compose UI 테스트                     |
+| Capability | `dminus14.android.room`                           | Room/KSP 의존성                               |
+| Capability | `dminus14.android.network`                        | Retrofit/Gson converter 의존성                |
+| Capability | `dminus14.android.datastore`                      | Preferences DataStore 의존성                  |
+| Quality    | `dminus14.spotless`                               | Kotlin/Gradle Kotlin DSL 포맷                 |
+| Quality    | `dminus14.detekt`                                 | Kotlin 정적 분석                              |
+| Quality    | `dminus14.kotlin.quality`                         | Spotless+Detekt 조합                          |
+| Quality    | `dminus14.android.lint`                           | Android Lint capability                       |
+| Quality    | `dminus14.android.compose.lint`                   | Android Compose 전용 lint check               |
+| Quality    | `dminus14.android.quality`                        | Kotlin quality+Android Lint 검증 흐름         |
+
+`dminus14.compose.resources`는 `app`, `feature:*:impl`, `designsystem`에만 적용한다.
+`catalog`는 `core:resources`에 직접 의존하지 않고 catalog 전용 리소스를 자체 소유한다.
+
+### 9.2 목표 디렉터리 구조
+
 아래 구조는 승인된 목표 구조다. 실제 패키지명과 Feature 이름은 프로젝트 확정값에 맞춘다.
 
 ```text
@@ -1063,25 +1115,44 @@ android-project/
 │   ├── build.gradle.kts                      # Plugin 등록, build-logic 의존성
 │   └── src/main/kotlin/com/dminus14/app/
 │       ├── convention/
-│       │   ├── AndroidApplicationConventionPlugin.kt   # :app용. Application + Kotlin + Hilt
-│       │   ├── AndroidLibraryConventionPlugin.kt       # Android Library 공통 설정
-│       │   ├── AndroidFeatureConventionPlugin.kt       # :feature용. Library + Compose + Hilt + 공통 의존성
-│       │   ├── AndroidComposeConventionPlugin.kt       # Android Compose 설정
-│       │   ├── ComposeMultiplatformConventionPlugin.kt # :designsystem, :catalog용 CMP 설정
-│       │   ├── ComposeMultiplatformLibraryConventionPlugin.kt # Android + Wasm CMP Library 공통 설정
-│       │   ├── AndroidHiltConventionPlugin.kt          # Hilt plugin + KSP 설정
-│       │   ├── AndroidRoomConventionPlugin.kt          # Room KSP + 의존성
-│       │   ├── AndroidNetworkConventionPlugin.kt       # Retrofit, OkHttp 의존성
-│       │   └── JvmLibraryConventionPlugin.kt           # :domain용. 순수 Kotlin JVM
+│       │   ├── base/                                    # 기반 plugin
+│       │   │   ├── AndroidApplicationConventionPlugin.kt
+│       │   │   ├── AndroidLibraryConventionPlugin.kt
+│       │   │   ├── JvmLibraryConventionPlugin.kt
+│       │   │   ├── ComposeMultiplatformConventionPlugin.kt
+│       │   │   ├── ComposeMultiplatformLibraryConventionPlugin.kt
+│       │   │   ├── ComposeMultiplatformUiLibraryConventionPlugin.kt
+│       │   │   └── ComposeMultiplatformWasmApplicationConventionPlugin.kt
+│       │   ├── capability/                              # 선택 가능한 기능 plugin
+│       │   │   ├── AndroidComposeConventionPlugin.kt
+│       │   │   ├── ComposePreviewConventionPlugin.kt
+│       │   │   ├── ComposeResourcesConventionPlugin.kt
+│       │   │   ├── AndroidHiltConventionPlugin.kt
+│       │   │   ├── AndroidNavigation3ConventionPlugin.kt
+│       │   │   ├── AndroidTestConventionPlugin.kt
+│       │   │   ├── AndroidComposeTestConventionPlugin.kt
+│       │   │   ├── AndroidRoomConventionPlugin.kt
+│       │   │   ├── AndroidNetworkConventionPlugin.kt
+│       │   │   └── AndroidDataStoreConventionPlugin.kt
+│       │   ├── composite/                               # 하위 plugin 조합
+│       │   │   └── AndroidFeatureConventionPlugin.kt
+│       │   └── quality/                                 # 품질 도구와 bundle
+│       │       ├── SpotlessConventionPlugin.kt
+│       │       ├── DetektConventionPlugin.kt
+│       │       ├── KotlinQualityConventionPlugin.kt
+│       │       ├── AndroidLintConventionPlugin.kt
+│       │       ├── AndroidComposeLintConventionPlugin.kt
+│       │       └── AndroidQualityConventionPlugin.kt
 │       └── extension/
-│           ├── KotlinAndroid.kt              # Android SDK, JVM 공통 빌드값 적용
-│           ├── Compose.kt                    # Android Compose 설정 헬퍼
-│           ├── ComposeMultiplatform.kt       # CMP, WASM target 및 공통 빌드값 적용
-│           ├── BuildConfig.kt                # SDK, JVM, 애플리케이션 버전 공통 빌드값
-│           ├── Hilt.kt                       # Hilt 의존성 추가 헬퍼
-│           ├── Room.kt                       # Room 의존성 + KSP 설정 헬퍼
-│           ├── Network.kt                    # Retrofit, OkHttp 의존성 헬퍼
-│           └── ProjectExtensions.kt          # Project/LibraryExtension 확장 함수
+│           ├── BuildConfig.kt                # SDK/JVM/앱 버전 단일 기준
+│           ├── Application.kt                # :app 식별자와 배포 설정
+│           ├── KotlinAndroid.kt              # Android/JVM compiler 설정
+│           ├── KotlinMultiplatform.kt        # Android/Wasm target 설정
+│           ├── Compose.kt                    # Android Compose 제품 UI 설정
+│           ├── ComposeMultiplatform.kt       # CMP UI dependency 설정
+│           ├── ComposePreview.kt             # Android/CMP Preview 설정
+│           ├── ComposeResources.kt           # Android/CMP 공용 리소스 연결
+│           └── ProjectExtensions.kt          # Version Catalog/plugin ID 접근
 │
 ├── gradle/
 │   └── libs.versions.toml                    # Version Catalog

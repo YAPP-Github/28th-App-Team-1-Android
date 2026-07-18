@@ -1,16 +1,16 @@
-package com.dminus14.app.convention
+package com.dminus14.app.convention.base
 
 import com.dminus14.app.extension.pluginId
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 /**
- * Compose Multiplatform Convention Plugin.
+ * Compose Multiplatform 모듈의 최소 plugin 기반을 구성한다.
  *
  * Plugin ID: `dminus14.compose.multiplatform`
- * 적용 대상: Compose Multiplatform 및 Kotlin Multiplatform이 필요한 모듈 (예: `:designsystem`)
  *
- * KMP와 CMP에 필요한 플러그인과 라이브러리 의존성을 추가한다.
+ * Kotlin Multiplatform, Compose compiler와 Compose Multiplatform Gradle plugin만 적용한다.
+ * target, UI 의존성, Preview와 resource 정책은 상위 composite/capability plugin이 소유한다.
  */
 class ComposeMultiplatformConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) =
