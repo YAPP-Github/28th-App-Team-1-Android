@@ -1,10 +1,12 @@
 package com.dminus14.app.convention
 
+import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import com.dminus14.app.extension.addAndroidComposePreviewDependencies
 import com.dminus14.app.extension.addComposeMultiplatformPreviewDependencies
 import com.dminus14.app.extension.pluginId
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 /**
@@ -12,7 +14,8 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
  *
  * Plugin ID: `dminus14.compose.preview`
  *
- * 적용 환경을 감지해 Android 또는 `commonMain`에 맞는 annotation/tooling 의존성을 구성한다.
+ * 적용 환경을 감지해 Android 또는 `commonMain`에 맞는 annotation/tooling 의존성을 구성하고,
+ * KMP Android Library Preview에 필요한 Android resource 처리를 활성화한다.
  * Compose 기반 plugin과 Android target 자체는 적용하지 않는다.
  */
 class ComposePreviewConventionPlugin : Plugin<Project> {
@@ -32,6 +35,11 @@ class ComposePreviewConventionPlugin : Plugin<Project> {
                 configured = true
                 val kotlinMultiplatformExtension =
                     extensions.getByType(KotlinMultiplatformExtension::class.java)
+                kotlinMultiplatformExtension.targets
+                    .withType<KotlinMultiplatformAndroidLibraryTarget>()
+                    .configureEach {
+                        androidResources.enable = true
+                    }
                 addComposeMultiplatformPreviewDependencies(kotlinMultiplatformExtension)
             }
 

@@ -8,6 +8,7 @@ plugins {
 kotlin {
     android {
         namespace = "com.dminus14.app.core.resources"
+        androidResources.enable = true
     }
 
     sourceSets {
