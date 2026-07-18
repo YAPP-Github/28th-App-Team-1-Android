@@ -21,6 +21,15 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 class ComposePreviewConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) =
         with(target) {
+            check(
+                path == ":app" ||
+                    path == ":designsystem" ||
+                    FEATURE_IMPL_PATH.matches(path),
+            ) {
+                "dminus14.compose.preview는 :app, :designsystem, :feature:*:impl 모듈에만 " +
+                    "적용할 수 있습니다. 현재 모듈: $path"
+            }
+
             var configured = false
 
             pluginManager.withPlugin(pluginId("android-application")) {
@@ -49,4 +58,8 @@ class ComposePreviewConventionPlugin : Plugin<Project> {
                 }
             }
         }
+
+    private companion object {
+        val FEATURE_IMPL_PATH = Regex("^:feature:[^:]+:impl$")
+    }
 }
