@@ -7,7 +7,7 @@ import org.gradle.api.Project
  * Android Application 전용 식별자와 배포 설정을 구성한다.
  *
  * [AndroidApplicationConventionPlugin]이 `com.android.application` 적용 후 호출한다.
- * SDK/JVM target, Compose, 테스트와 Android Lint 정책은 구성하지 않는다.
+ * Compose, 테스트와 Android Lint 정책은 구성하지 않는다.
  */
 internal fun Project.configureAndroidApplication(extension: ApplicationExtension) {
     extension.apply {
