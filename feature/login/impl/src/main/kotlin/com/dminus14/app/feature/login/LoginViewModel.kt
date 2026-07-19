@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.dminus14.app.domain.model.KakaoAuthException
 import com.dminus14.app.domain.usecase.LoginWithKakaoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel
@@ -32,9 +32,13 @@ class LoginViewModel
                     reduce { copy(isLoading = true, errorMessage = null) }
                 }
 
-                is LoginIntent.KakaoLoginSucceeded -> loginWithKakao(intent.credential)
+                is LoginIntent.KakaoLoginSucceeded -> {
+                    loginWithKakao(intent.credential)
+                }
 
-                is LoginIntent.KakaoLoginFailed -> handleKakaoLoginFailure(intent.error)
+                is LoginIntent.KakaoLoginFailed -> {
+                    handleKakaoLoginFailure(intent.error)
+                }
             }
         }
 

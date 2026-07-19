@@ -16,7 +16,8 @@ val localProperties =
         }
     }
 
-val serverUrl = localProperties.getProperty("SERVER_URL").orEmpty()
+val serverUrl = localProperties.getProperty("SERVER_URL")
+    ?: throw GradleException("SERVER_URL is required in local.properties")
 
 android {
     namespace = "com.dminus14.app.data"

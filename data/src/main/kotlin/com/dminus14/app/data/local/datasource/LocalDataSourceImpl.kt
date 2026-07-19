@@ -19,7 +19,7 @@ class LocalDataSourceImpl
     constructor(
         @ApplicationContext private val context: Context,
     ) : LocalDataSource {
-        override suspend fun getString(key: Preferences.Key<String>): String? =
+        override suspend fun <T> get(key: Preferences.Key<T>): T? =
             context.dataStore.data
                 .map { preferences -> preferences[key] }
                 .first()
@@ -33,37 +33,15 @@ class LocalDataSourceImpl
             }
         }
 
-        override suspend fun getInt(key: Preferences.Key<Int>): Int? =
-            context.dataStore.data
-                .map { preferences -> preferences[key] }
-                .first()
-
-        override suspend fun setInt(
-            key: Preferences.Key<Int>,
-            value: Int,
-        ) {
-            context.dataStore.edit { preferences ->
-                preferences[key] = value
-            }
-        }
-
-        override suspend fun getBoolean(key: Preferences.Key<Boolean>): Boolean? =
-            context.dataStore.data
-                .map { preferences -> preferences[key] }
-                .first()
-
-        override suspend fun setBoolean(
-            key: Preferences.Key<Boolean>,
-            value: Boolean,
-        ) {
-            context.dataStore.edit { preferences ->
-                preferences[key] = value
-            }
-        }
-
         override suspend fun remove(key: Preferences.Key<*>) {
             context.dataStore.edit { preferences ->
                 preferences.remove(key)
+            }
+        }
+
+        override suspend fun editAtomically(edits: List<PreferenceEdit>) {
+            context.dataStore.edit { preferences ->
+                edits.forEach { edit -> edit.applyTo(preferences) }
             }
         }
     }
