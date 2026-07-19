@@ -1031,7 +1031,7 @@ Gradle DSL과 dependency를 소유하고 composite/bundle plugin은 하위 plugi
 | Capability | `dminus14.android.test` | Android 기본 단위·계측 테스트 |
 | Capability | `dminus14.android.compose.test` | Android Compose UI 테스트 |
 | Capability | `dminus14.android.room` | Room/KSP 의존성 |
-| Capability | `dminus14.android.network` | Retrofit/Gson converter 의존성 |
+| Capability | `dminus14.android.network` | Retrofit/Gson converter/logging-interceptor 의존성 |
 | Capability | `dminus14.android.datastore` | Preferences DataStore 의존성 |
 | Quality | `dminus14.spotless` | Kotlin/Gradle Kotlin DSL 포맷 |
 | Quality | `dminus14.detekt` | Kotlin 정적 분석 |
