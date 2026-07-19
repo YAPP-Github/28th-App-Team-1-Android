@@ -109,16 +109,18 @@ rules at the time it is added.
 
 ## 3. 모듈 책임
 
-| 모듈             | 책임                                                                                    | Android 의존 |
-| ---------------- | --------------------------------------------------------------------------------------- | ------------ |
-| `app`            | `Application`, Manifest, `MainActivity`, 앱 루트 Navigation 조립, 전역 UI 이벤트 처리   | O            |
-| `feature:*`      | 화면별 MVI 구성(`Contract`, `ViewModel`, `Screen`), Feature route/entry 제공            | O            |
-| `designsystem`   | Theme, 공통 Compose UI 컴포넌트, Dialog/Snackbar 등 공통 UI. Compose Multiplatform 기반 | X            |
-| `catalog`        | 디자인 시스템 컴포넌트 카탈로그, Story 정의, Web/WASM 배포 산출물                       | X            |
-| `domain`         | Entity, Repository Interface, UseCase, 비즈니스 규칙                                    | X            |
-| `data`           | Repository 구현체, API, RemoteDataSource, Room DAO/Database, DTO, DI Module             | O            |
-| `core:common`    | MVI Base, 공통 Result/Error, Util, Extension, 공통 route/key 모델                       | 최소화       |
-| `core:resources` | Android와 Web/WASM에서 공유하는 Compose Multiplatform 리소스와 공개 `Res` 접근자        | X            |
+| 모듈                  | 책임                                                                                    | Android 의존 |
+| --------------------- | --------------------------------------------------------------------------------------- | ------------ |
+| `app`                 | `Application`, Manifest, `MainActivity`, 앱 루트 Navigation 조립, 전역 UI 이벤트 처리   | O            |
+| `feature:*`           | 화면별 MVI 구성(`Contract`, `ViewModel`, `Screen`), Feature route/entry 제공            | O            |
+| `designsystem`        | Theme, 공통 Compose UI 컴포넌트, Dialog/Snackbar 등 공통 UI. Compose Multiplatform 기반 | X            |
+| `catalog`             | 디자인 시스템 컴포넌트 카탈로그, Story 정의, Web/WASM 배포 산출물                       | X            |
+| `catalog:annotations` | Catalog Controls 생성 대상을 표시하는 플랫폼 독립 애너테이션                            | X            |
+| `catalog:processor`   | Catalog Controls 코드를 생성하는 JVM 기반 빌드 타임 KSP processor                       | X            |
+| `domain`              | Entity, Repository Interface, UseCase, 비즈니스 규칙                                    | X            |
+| `data`                | Repository 구현체, API, RemoteDataSource, Room DAO/Database, DTO, DI Module             | O            |
+| `core:common`         | MVI Base, 공통 Result/Error, Util, Extension, 공통 route/key 모델                       | 최소화       |
+| `core:resources`      | Android와 Web/WASM에서 공유하는 Compose Multiplatform 리소스와 공개 `Res` 접근자        | X            |
 
 ### 3.1 `app`
 
@@ -195,6 +197,22 @@ Android 의존성을 포함하지 않는다.
 
 특정 Feature에서만 사용하는 컴포넌트는 Feature 내부 `component/`에 둔다. 두 개 이상의 Feature에서 사용되면 `designsystem`으로 이동한다.
 
+#### Design System API와 상태 소유권
+
+`designsystem`의 재사용 Composable은 가능한 한 상태를 끌어올린 stateless API로 작성한다. Composable은 현재 렌더링에 필요한 값을 매개변수로 받고 사용자 동작은 callback으로 전달하며, 지속되는 화면 상태, 비동기 작업, 입력 검증과 비즈니스 정책은 해당 UI를 사용하는 `app` 또는 `feature:*`가 소유한다.
+
+공개 UI 매개변수는 Web/WASM에서도 표현할 수 있는 안정적이고 낮은 수준의 플랫폼 독립 타입을 우선한다. 단순한 표시·조작 값은 `String`, `Boolean`, 숫자와 enum 같은 타입으로 표현하고, `ViewModel`, `StateFlow`, `Flow`, Android Lifecycle 타입이나 호출자 소유의 mutable state container를 디자인 시스템 API로 받지 않는다. `Modifier`와 사용자 동작 callback은 Compose UI 호출 계약으로 사용할 수 있지만 디자인 시스템이 호출자의 상태 저장소를 소유하게 해서는 안 된다.
+
+낮은 수준의 타입을 우선한다는 원칙은 의미 있는 타입을 모두 문자열이나 숫자로 바꾸라는 뜻이 아니다. 유효하지 않은 조합을 막거나 하나의 UI 의미를 명확히 표현해야 하는 경우에는 플랫폼 독립 immutable value type이나 enum을 사용할 수 있다. Catalog Controls만을 위해 Props data class를 만들거나 실제 컴포넌트 API를 primitive 집합으로 강제 변경하지 않는다. Catalog는 필요한 경우 Story 어댑터에서 이러한 의미 타입을 조작 가능한 저수준 값으로 명시적으로 변환한다.
+
+컴포넌트 내부에는 외부 의미를 갖지 않는 짧은 수명의 구현 상태만 둘 수 있다. 애니메이션 진행, focus, press처럼 호출자가 관찰하거나 복원할 필요가 없는 상태가 이에 해당한다. 선택, 입력값, 열림 여부, loading, error처럼 호출자가 제어·복원하거나 Story에서 재현해야 하는 상태는 값과 callback으로 끌어올린다.
+
+#### Design System Story 동반 규칙
+
+`designsystem`에 외부에서 직접 사용하는 `public` 재사용 Composable을 추가할 때는 같은 변경 단위에서 `catalog` Story를 최소 하나 함께 작성하고 수동 Story Registry에 등록한다. 공개 매개변수, 시각 상태 또는 사용자 상호작용이 변경되면 영향을 받는 기존 Story의 초기값과 Catalog 어댑터도 같은 변경에서 갱신하여 변경 결과를 Web/WASM Catalog에서 검토할 수 있어야 한다.
+
+`private` 또는 `internal` Composable과 독립적으로 소비되지 않는 구현 세부사항은 외부 `public` 재사용 컴포넌트의 Story에서 변경 동작이 관찰 가능하면 별도 Story를 중복 작성하지 않는다. `internal` Composable은 다른 Gradle 모듈인 `catalog`에서 직접 접근할 수 없으므로 공개 컴포넌트의 Story를 통해 검토한다. Story의 예시 값은 합성 데이터만 사용하며 실제 사용자 데이터나 제품 런타임 의존성을 포함하지 않는다.
+
 ### 3.4 `catalog`
 
 `catalog`는 디자이너와의 빠른 피드백을 위해 도입한 디자인 시스템 컴포넌트 카탈로그이다. 목적은 React 진영의 Storybook과 유사하다.
@@ -214,6 +232,26 @@ Lifecycle에 의존하는 `Screen`이 아니라 순수 UI에 가까운 `Content`
 
 Catalog 전용 UI, theme, font, favicon, Web entry resource는 `catalog`가 소유하고 `catalog` 안에서만 소비한다.
 이러한 Catalog 전용 리소스는 공용 리소스가 아니므로 `core:resources`로 이동하지 않는다.
+
+#### Catalog Controls 어댑터 규칙
+
+조작 가능한 Story를 만들 때도 Story의 메타데이터, 초기 상태와 Registry 등록은 `catalog`가 직접 소유한다. 코드 생성은 Story를 자동으로 만들지 않고 Controls에 필요한 반복 코드만 생성한다.
+
+`designsystem`의 실제 Composable에는 `@CatalogControls` 같은 카탈로그 전용 애너테이션을 추가하지 않는다. `catalog`가 조작할 값만 매개변수로 받는 non-local top-level `internal` 어댑터 Composable을 작성하고, 해당 어댑터에 `@CatalogControls`를 적용한다.
+
+어댑터가 실제 Composable을 호출할 때는 다음 규칙을 따른다.
+
+- 실제 Composable은 positional argument가 아니라 named argument로 호출한다.
+- 어댑터 매개변수와 실제 Composable 매개변수가 일대일로 대응하면 같은 이름을 사용한다.
+- 이름이 다르거나 값을 변환·조합하는 경우 의도적인 매핑이 코드에서 명확히 드러나야 한다.
+- callback, `Modifier` 등 Controls로 조작하지 않을 값은 어댑터 매개변수로 노출하지 않고 본문에서 제공한다.
+- KSP는 함수 본문의 인자 매핑을 검증하지 않는다. Kotlin 컴파일러의 named argument 및 타입 검증과 코드 리뷰로 이 계약을 확인한다.
+
+`@CatalogControls` 선언은 `:catalog:annotations`, JVM 기반 KSP processor는 `:catalog:processor`가 소유한다. 두 모듈은 Catalog Controls를 위한 빌드 타임 도구 모듈이며 `designsystem`이 이들에 의존해서는 안 된다.
+
+생성된 코드는 Material UI를 직접 조립하지 않고 `:catalog` 내부 `catalog.controls.runtime` package가 제공하는 Controls, 레이아웃과 오류 UI를 호출한다. 별도의 `:catalog:runtime` 모듈은 만들지 않는다. `:catalog:processor`는 `:catalog`에 의존하지 않고 안정적인 Runtime package·함수 계약을 대상으로 호출 코드를 생성한다.
+
+`:catalog:processor`의 Kotlin 소스 생성에는 `kotlinpoet-ksp`를 사용한다. 이 의존성은 processor 전용 빌드 타임 의존성이며 제품 앱, `designsystem` 또는 Catalog Wasm 런타임 산출물에 포함하지 않는다.
 
 ### 3.5 `core:resources`
 
@@ -325,23 +363,26 @@ flowchart TD
 
 ### 4.2 허용되는 의존성
 
-| 의존성                            | 설명                                                                          |
-| --------------------------------- | ----------------------------------------------------------------------------- |
-| `app` → `feature:*`               | 앱 루트에서 Feature route/entry를 수집하고 Navigation 3 화면 전환을 조립한다. |
-| `app` → `data`                    | 앱 composition root에서 Hilt DI binding을 포함한다.                           |
-| `app` → `designsystem`            | 앱 루트에서 Theme, 전역 Dialog, Snackbar 등을 표시한다.                       |
-| `app` → `core:common`             | 전역 이벤트, 공통 route/key, 공통 모델을 사용한다.                            |
-| `app` → `core:resources`          | 앱에서 공용 Compose Multiplatform 리소스를 직접 사용한다.                     |
-| `feature:*` → `domain`            | Feature가 UseCase 또는 Repository Interface에 접근한다.                       |
-| `feature:*` → `designsystem`      | 화면에서 공통 UI 컴포넌트를 사용한다.                                         |
-| `feature:*` → `core:common`       | MVI Base, 공통 모델, 공통 확장 함수를 사용한다.                               |
-| `feature:*` → `core:resources`    | Feature에서 공용 Compose Multiplatform 리소스를 직접 사용한다.                |
-| `data` → `domain`                 | Repository Interface를 구현한다.                                              |
-| `data` → `core:common`            | 공통 Result, Error 모델 등을 사용한다.                                        |
-| `designsystem` → `core:common`    | Android에 의존하지 않는 공통 모델, util, extension을 사용한다.                |
-| `designsystem` → `core:resources` | 공통 UI에서 공유 font, drawable, string 등 CMP 리소스를 사용한다.             |
-| `catalog` → `designsystem`        | 디자인 시스템 컴포넌트를 Story로 노출한다.                                    |
-| `catalog` → `core:common`         | Story 작성에 필요한 공통 모델 또는 util을 사용한다.                           |
+| 의존성                                      | 설명                                                                          |
+| ------------------------------------------- | ----------------------------------------------------------------------------- |
+| `app` → `feature:*`                         | 앱 루트에서 Feature route/entry를 수집하고 Navigation 3 화면 전환을 조립한다. |
+| `app` → `data`                              | 앱 composition root에서 Hilt DI binding을 포함한다.                           |
+| `app` → `designsystem`                      | 앱 루트에서 Theme, 전역 Dialog, Snackbar 등을 표시한다.                       |
+| `app` → `core:common`                       | 전역 이벤트, 공통 route/key, 공통 모델을 사용한다.                            |
+| `app` → `core:resources`                    | 앱에서 공용 Compose Multiplatform 리소스를 직접 사용한다.                     |
+| `feature:*` → `domain`                      | Feature가 UseCase 또는 Repository Interface에 접근한다.                       |
+| `feature:*` → `designsystem`                | 화면에서 공통 UI 컴포넌트를 사용한다.                                         |
+| `feature:*` → `core:common`                 | MVI Base, 공통 모델, 공통 확장 함수를 사용한다.                               |
+| `feature:*` → `core:resources`              | Feature에서 공용 Compose Multiplatform 리소스를 직접 사용한다.                |
+| `data` → `domain`                           | Repository Interface를 구현한다.                                              |
+| `data` → `core:common`                      | 공통 Result, Error 모델 등을 사용한다.                                        |
+| `designsystem` → `core:common`              | Android에 의존하지 않는 공통 모델, util, extension을 사용한다.                |
+| `designsystem` → `core:resources`           | 공통 UI에서 공유 font, drawable, string 등 CMP 리소스를 사용한다.             |
+| `catalog` → `designsystem`                  | 디자인 시스템 컴포넌트를 Story로 노출한다.                                    |
+| `catalog` → `core:common`                   | Story 작성에 필요한 공통 모델 또는 util을 사용한다.                           |
+| `catalog` → `catalog:annotations`           | Catalog 어댑터에 `@CatalogControls`를 선언한다.                               |
+| `catalog` -KSP→ `catalog:processor`         | Wasm compilation에서 타입 안전한 Args와 Controls 코드를 생성한다.             |
+| `catalog:processor` → `catalog:annotations` | processor가 처리할 애너테이션 계약을 공유한다.                                |
 
 ### 4.3 금지되는 의존성
 
@@ -1074,35 +1115,42 @@ when (result) {
 Convention Plugin은 기반, capability, composite와 quality 책임을 구분한다. Leaf plugin이 실제
 Gradle DSL과 dependency를 소유하고 composite/bundle plugin은 하위 plugin을 조합만 한다.
 
-| 분류       | Plugin ID                                         | 책임 및 적용 대상                             |
-| ---------- | ------------------------------------------------- | --------------------------------------------- |
-| 기반       | `dminus14.android.application`                    | `:app`의 Application/SDK/JVM/배포 설정        |
-| 기반       | `dminus14.android.library`                        | Android Library/SDK/JVM 설정                  |
-| 기반       | `dminus14.jvm.library`                            | 순수 Kotlin/JVM Library 설정                  |
-| 기반       | `dminus14.compose.multiplatform`                  | Kotlin/CMP/Compose compiler plugin 기반       |
-| 기반       | `dminus14.compose.multiplatform.library`          | Android+Wasm CMP Library target               |
-| 기반       | `dminus14.compose.multiplatform.ui-library`       | `:designsystem`의 `commonMain` UI 환경        |
-| 기반       | `dminus14.compose.multiplatform.wasm-application` | `:catalog`의 실행 가능한 Wasm UI 환경         |
-| Composite  | `dminus14.android.feature`                        | 모든 `:feature:*:impl`의 표준 capability 조합 |
-| Capability | `dminus14.android.compose`                        | 일반 Android Compose 제품 UI                  |
-| Capability | `dminus14.compose.preview`                        | Android/CMP Preview annotation과 tooling      |
-| Capability | `dminus14.compose.resources`                      | 허용된 UI 소비자의 `:core:resources` 의존성   |
-| Capability | `dminus14.android.hilt`                           | Hilt/KSP/runtime/compiler                     |
-| Capability | `dminus14.android.navigation3`                    | Navigation 3 Android 의존성                   |
-| Capability | `dminus14.android.test`                           | Android 기본 단위·계측 테스트                 |
-| Capability | `dminus14.android.compose.test`                   | Android Compose UI 테스트                     |
-| Capability | `dminus14.android.room`                           | Room/KSP 의존성                               |
-| Capability | `dminus14.android.network`                        | Retrofit/Gson converter 의존성                |
-| Capability | `dminus14.android.datastore`                      | Preferences DataStore 의존성                  |
-| Quality    | `dminus14.spotless`                               | Kotlin/Gradle Kotlin DSL 포맷                 |
-| Quality    | `dminus14.detekt`                                 | Kotlin 정적 분석                              |
-| Quality    | `dminus14.kotlin.quality`                         | Spotless+Detekt 조합                          |
-| Quality    | `dminus14.android.lint`                           | Android Lint capability                       |
-| Quality    | `dminus14.android.compose.lint`                   | Android Compose 전용 lint check               |
-| Quality    | `dminus14.android.quality`                        | Kotlin quality+Android Lint 검증 흐름         |
+| 분류       | Plugin ID                                         | 책임 및 적용 대상                                                                 |
+| ---------- | ------------------------------------------------- | --------------------------------------------------------------------------------- |
+| 기반       | `dminus14.android.application`                    | `:app`의 Application/SDK/JVM/배포 설정                                            |
+| 기반       | `dminus14.android.library`                        | Android Library/SDK/JVM 설정                                                      |
+| 기반       | `dminus14.jvm.library`                            | 순수 Kotlin/JVM Library 설정                                                      |
+| 기반       | `dminus14.kotlin.multiplatform.library`           | Compose와 Android 없이 JVM+Wasm을 제공하는 순수 Kotlin Multiplatform Library 설정 |
+| 기반       | `dminus14.compose.multiplatform`                  | Kotlin/CMP/Compose compiler plugin 기반                                           |
+| 기반       | `dminus14.compose.multiplatform.library`          | Android+Wasm CMP Library target                                                   |
+| 기반       | `dminus14.compose.multiplatform.ui-library`       | `:designsystem`의 `commonMain` UI 환경                                            |
+| 기반       | `dminus14.compose.multiplatform.wasm-application` | `:catalog`의 실행 가능한 Wasm UI 환경                                             |
+| Composite  | `dminus14.android.feature`                        | 모든 `:feature:*:impl`의 표준 capability 조합                                     |
+| Capability | `dminus14.android.compose`                        | 일반 Android Compose 제품 UI                                                      |
+| Capability | `dminus14.compose.preview`                        | Android/CMP Preview annotation과 tooling                                          |
+| Capability | `dminus14.compose.resources`                      | 허용된 UI 소비자의 `:core:resources` 의존성                                       |
+| Capability | `dminus14.android.hilt`                           | Hilt/KSP/runtime/compiler                                                         |
+| Capability | `dminus14.android.navigation3`                    | Navigation 3 Android 의존성                                                       |
+| Capability | `dminus14.android.test`                           | Android 기본 단위·계측 테스트                                                     |
+| Capability | `dminus14.android.compose.test`                   | Android Compose UI 테스트                                                         |
+| Capability | `dminus14.android.room`                           | Room/KSP 의존성                                                                   |
+| Capability | `dminus14.android.network`                        | Retrofit/Gson converter 의존성                                                    |
+| Capability | `dminus14.android.datastore`                      | Preferences DataStore 의존성                                                      |
+| Quality    | `dminus14.spotless`                               | Kotlin/Gradle Kotlin DSL 포맷                                                     |
+| Quality    | `dminus14.detekt`                                 | Kotlin 정적 분석                                                                  |
+| Quality    | `dminus14.kotlin.quality`                         | Spotless+Detekt 조합                                                              |
+| Quality    | `dminus14.android.lint`                           | Android Lint capability                                                           |
+| Quality    | `dminus14.android.compose.lint`                   | Android Compose 전용 lint check                                                   |
+| Quality    | `dminus14.android.quality`                        | Kotlin quality+Android Lint 검증 흐름                                             |
 
 `dminus14.compose.resources`는 `app`, `feature:*:impl`, `designsystem`에만 적용한다.
 `catalog`는 `core:resources`에 직접 의존하지 않고 catalog 전용 리소스를 자체 소유한다.
+
+`dminus14.kotlin.multiplatform.library`는 Kotlin Multiplatform plugin, JVM/Wasm library target과 공통 Kotlin compiler 설정만 소유한다. Compose compiler, Compose Multiplatform, Android/KMP Android plugin과 Compose 의존성을 적용하지 않으며 `:catalog:annotations`에 사용한다.
+
+기존 `dminus14.compose.multiplatform*` plugin은 실제 Compose 환경을 구성하므로 현재 이름을 유지한다. 순수 Kotlin Multiplatform plugin을 도입한다는 이유로 이들의 Compose 책임이나 이름을 약화하지 않는다.
+
+Catalog Controls의 KSP plugin 적용, `:catalog:annotations` 의존성과 `kspWasmJs` processor 연결은 현재 `:catalog`만 사용하는 모듈 전용 구성이므로 `catalog/build.gradle.kts`가 직접 소유한다. 같은 구성이 다른 모듈에서도 반복되기 전에는 Catalog 전용 capability plugin으로 추출하지 않는다.
 
 ### 9.2 목표 디렉터리 구조
 
@@ -1119,6 +1167,7 @@ android-project/
 │       │   │   ├── AndroidApplicationConventionPlugin.kt
 │       │   │   ├── AndroidLibraryConventionPlugin.kt
 │       │   │   ├── JvmLibraryConventionPlugin.kt
+│       │   │   ├── KotlinMultiplatformLibraryConventionPlugin.kt
 │       │   │   ├── ComposeMultiplatformConventionPlugin.kt
 │       │   │   ├── ComposeMultiplatformLibraryConventionPlugin.kt
 │       │   │   ├── ComposeMultiplatformUiLibraryConventionPlugin.kt
@@ -1203,6 +1252,12 @@ android-project/
 │               └── Theme.kt                  # AppTheme Composable
 │
 ├── catalog/                                  # Storybook-like 디자인 시스템 카탈로그
+│   ├── annotations/                          # @CatalogControls 계약
+│   │   └── src/                              # 플랫폼 독립 애너테이션 선언
+│   ├── processor/                            # JVM 기반 KSP 코드 생성기
+│   │   └── src/main/
+│   │       ├── kotlin/                       # Symbol processor와 코드 생성 로직
+│   │       └── resources/META-INF/services/  # SymbolProcessorProvider 등록
 │   └── src/
 │       ├── commonMain/kotlin/com/dminus14/app/catalog/
 │       │   ├── story/                        # 공통 Story 타입 및 Story 그룹
