@@ -85,8 +85,10 @@ rules at the time it is added.
     - `Application`, `Activity` 등 Android Manifest 등록은 `app` 모듈에서 관리한다.
     - Feature 모듈이 독립적으로 Manifest 엔트리를 추가하는 방식은 피한다.
 
-5. **Feature 간 직접 의존은 금지한다.**
-    - Feature 간 화면 전환은 공통 route/entry 계약을 통해 앱 루트에서 조립한다.
+5. **Feature `impl` 간 직접 의존은 금지한다.**
+    - `feature:{name}:impl`은 다른 feature의 `impl`에 의존하지 않는다.
+    - 다른 feature의 route/entry 계약이 필요하면 해당 feature의 `api`만 의존한다.
+    - 화면 전환 실행은 `app`의 `Navigator`와 UI 계층이 담당한다.
     - 특정 Feature에서만 쓰는 UI 또는 extension은 해당 Feature 내부에 둔다.
     - 둘 이상의 Feature에서 사용되기 시작하면 성격에 따라 `designsystem` 또는 `core:common`으로 이동한다.
 
@@ -153,8 +155,9 @@ Feature 모듈의 주요 책임은 다음과 같다.
 
 Feature 모듈은 `data` 모듈에 직접 의존하지 않는다. 데이터가 필요하면 `domain`의 UseCase 또는 Repository Interface를 통해 접근한다.
 
-Feature 간 직접 참조도 금지한다. 다른 Feature로 이동해야 할 경우 구체 화면 구현체를 직접 호출하지 않고, route/entry 계약을 통해 앱 루트에서 조립되도록
-한다.
+다른 feature의 `impl`에는 의존하지 않는다. 다른 feature로 이동해야 할 route key가 필요하면 해당
+feature의 `api`만 참조한다. 구체 화면 구현체, ViewModel, entry builder 구현은 직접 호출하지 않고,
+`app` 루트에서 Navigator와 entry 조립을 통해 화면 전환을 실행한다.
 
 ### 3.3 `designsystem`
 
@@ -389,6 +392,8 @@ Feature는 필요 시 `api` / `impl`로 분리할 수 있다.
 | `feature:{name}:api`  | 다른 모듈이 참조할 route key, args 등 navigation 계약        |
 | `feature:{name}:impl` | `Screen`, `ViewModel`, entry builder, Hilt navigation module |
 
+`feature:{name}:impl`은 다른 feature의 `api`만 의존할 수 있다. 다른 feature의 `impl` 의존은 금지한다.
+
 현재 bootstrap 구현 예시는 `:feature:main:api`, `:feature:main:impl`이다.
 
 - `feature:main:api` — `MainHome` route key
@@ -592,6 +597,31 @@ sealed interface HomeEffect {
 - 화면에 계속 남아 있어야 하면 `State`
 - 한 번 소비되면 사라져야 하면 `Effect`
 - recomposition으로 반복 실행되면 안 되면 `Effect`
+
+### 5.5 Effect와 기능 책임 경계
+
+`Intent`와 `Effect`는 반드시 해당 Feature 자신의 책임과 밀접한 관련을 가져야 한다. 다른 Feature나 화면으로의 이동
+대상을 Effect 이름에 직접 노출하면, 그 Feature가 자신의 책임이 아닌 다른 Feature의 네비게이션 정책까지 알게 되어
+책임이 섞인다.
+
+```kotlin
+// 지양: 로그인 Feature가 다른 Feature(Home)로의 이동을 스스로 규정한다.
+sealed interface LoginEffect {
+    data object NavigateToHome : LoginEffect
+}
+
+// 권장: 로그인 Feature는 로그인 성공이라는 자신의 책임만 표현한다.
+sealed interface LoginEffect {
+    data object LoginSucceeded : LoginEffect
+}
+```
+
+- Effect(및 Intent) 이름은 "해당 Feature 안에서 무엇이 일어났는지"를 그 Feature의 용어로 표현한다. 이동 대상이
+  되는 다른 Feature나 화면의 이름을 Effect 이름에 담지 않는다.
+- 실제로 어디로 이동할지 결정하는 책임은 Effect를 수집하는 `Screen` 또는 `app` 계층에 있다. ViewModel과
+  `Contract`는 이동 대상을 알 필요가 없다.
+- 예외적으로 화면이 임시/초기 구현 단계이며 추후 재설계가 예정된 경우에도, 이 원칙을 최종적으로는 적용해야 한다는
+  점을 리뷰나 코드에 명시한다.
 
 ---
 
@@ -1092,7 +1122,7 @@ Gradle DSL과 dependency를 소유하고 composite/bundle plugin은 하위 plugi
 | Capability | `dminus14.android.test`                           | Android 기본 단위·계측 테스트                 |
 | Capability | `dminus14.android.compose.test`                   | Android Compose UI 테스트                     |
 | Capability | `dminus14.android.room`                           | Room/KSP 의존성                               |
-| Capability | `dminus14.android.network`                        | Retrofit/Gson converter 의존성                |
+| Capability | `dminus14.android.network`                        | Retrofit/Gson converter/logging-interceptor 의존성 |
 | Capability | `dminus14.android.datastore`                      | Preferences DataStore 의존성                  |
 | Quality    | `dminus14.spotless`                               | Kotlin/Gradle Kotlin DSL 포맷                 |
 | Quality    | `dminus14.detekt`                                 | Kotlin 정적 분석                              |

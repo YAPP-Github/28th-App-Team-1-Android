@@ -14,6 +14,11 @@ class Navigator(
         backStack.add(destination)
     }
 
+    fun replaceAll(destination: Any) {
+        backStack.clear()
+        backStack.add(destination)
+    }
+
     fun goBack() {
         if (backStack.size > 1) {
             backStack.removeAt(backStack.lastIndex)
