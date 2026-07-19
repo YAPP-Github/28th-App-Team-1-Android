@@ -31,17 +31,24 @@ class KakaoLoginClient
                 if (UserApiClient.instance.isKakaoTalkLoginAvailable(activity)) {
                     UserApiClient.instance.loginWithKakaoTalk(activity) { token, error ->
                         when {
-                            token != null -> continuation.resume(token.accessToken)
+                            token != null -> {
+                                continuation.resume(token.accessToken)
+                            }
+
                             error is ClientError && error.reason == ClientErrorCause.Cancelled -> {
                                 continuation.resumeWithException(KakaoAuthException.Cancelled)
                             }
+
                             error != null -> {
                                 UserApiClient.instance.loginWithKakaoAccount(
                                     activity,
                                     callback = callback,
                                 )
                             }
-                            else -> continuation.resumeWithException(KakaoAuthException.Unknown())
+
+                            else -> {
+                                continuation.resumeWithException(KakaoAuthException.Unknown())
+                            }
                         }
                     }
                 } else {
