@@ -5,6 +5,7 @@ import com.dminus14.app.data.remote.dto.SocialLoginRequestDto
 import com.dminus14.app.data.remote.dto.SocialLoginResponseDto
 import com.dminus14.app.data.remote.dto.TokenRefreshRequestDto
 import com.dminus14.app.data.remote.dto.TokenRefreshResponseDto
+import com.dminus14.app.data.remote.mapper.ApiErrorBodyParser
 import com.dminus14.app.data.remote.mapper.SocialLoginErrorMapper
 import com.dminus14.app.domain.model.KakaoAuthException
 import com.dminus14.app.domain.model.LoginExpiredException
@@ -37,9 +38,10 @@ class AuthRemoteDataSourceImpl
             try {
                 authApi.refreshToken(TokenRefreshRequestDto(refreshToken = refreshToken))
             } catch (error: HttpException) {
-                if (SocialLoginErrorMapper.isLoginExpired(error)) {
+                if (ApiErrorBodyParser.isLoginExpired(error)) {
                     throw LoginExpiredException(cause = error)
                 }
+                // VALIDATION_ERROR 등 그 외는 그대로 전파한다.
                 throw error
             }
 

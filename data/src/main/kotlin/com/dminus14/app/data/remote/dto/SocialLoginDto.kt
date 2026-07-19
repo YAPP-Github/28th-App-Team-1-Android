@@ -15,12 +15,3 @@ data class SocialLoginResponseDto(
     @SerializedName("refreshToken")
     val refreshToken: String,
 )
-
-data class SocialLoginErrorResponseDto(
-    @SerializedName("success")
-    val success: Boolean,
-    @SerializedName("code")
-    val code: String,
-    @SerializedName("message")
-    val message: String,
-)
