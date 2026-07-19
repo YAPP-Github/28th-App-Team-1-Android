@@ -124,7 +124,7 @@ and global UI event rendering.
 
 `feature:*` owns screen-level MVI implementation and feature route or entry definitions.
 
-`feature:*` may depend on `domain`, `designsystem`, and `core:common`.
+`feature:*` may depend on `domain`, `designsystem`, `core:common`, and `core:resources`.
 
 `feature:*` must not depend on `data`.
 
@@ -208,10 +208,25 @@ Catalog stories must use `designsystem` components or Android-independent `Conte
 
 `core:common` must remain minimal.
 
-Only code used by more than one module may be moved to `core:common`.
+Only code currently used or planned to be used by more than one module may be moved to
+`core:common`.
 
 `core:common` must not become a dumping ground for unrelated utilities, feature-specific models, or
 product logic.
+
+### 6.8 `core:resources`
+
+`core:resources` owns Compose Multiplatform resources shared by `app`, `feature:*`, and
+`designsystem`.
+
+`core:resources` must remain compatible with Android and Web/WASM consumers.
+
+`core:resources` must not use Android Framework resource APIs.
+
+`core:resources` must not depend on Hilt, Android Navigation, Android Lifecycle APIs, `app`, or
+`feature:*` implementations.
+
+Catalog-specific resources are owned by `catalog` and must not be moved to `core:resources`.
 
 ---
 
@@ -223,7 +238,8 @@ A separate `:navigation` module must not be introduced.
 
 A separate `:feature:navigator` module must not be introduced.
 
-The `Navigator` back stack helper and Navigation 3 root assembly belong in the `app` module. A class named
+The `Navigator` back stack helper and Navigation 3 root assembly belong in the `app` module. A class
+named
 `Navigator` inside `app` is not a separate navigation module.
 
 The app root in `app` assembles Navigation 3 entries and routes.

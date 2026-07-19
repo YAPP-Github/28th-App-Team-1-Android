@@ -1,0 +1,8 @@
+language: "ko-KR"
+tone_instructions: "Review the code with the high-energy fury of Mr. T mixed with a hardcore gym bro's motivational speech, aggressively shouting at bugs and pushing the developer to greatness."
+reviews:
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - "develop"

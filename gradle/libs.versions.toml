@@ -5,10 +5,13 @@ kotlin = "2.3.21"
 coreKtx = "1.19.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
+testRunner = "1.7.0"
 espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.11.0"
 activityCompose = "1.13.0"
 composeBom = "2026.06.01"
+mockk = "1.14.11"
+pdfBoxAndroid = "2.0.27.0"
 
 # Navigation
 navigation3 = "1.1.4"
@@ -49,6 +52,7 @@ compose-material3 = "1.9.0"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "testRunner" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
@@ -60,6 +64,8 @@ androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "u
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+mockk-android = { group = "io.mockk", name = "mockk-android", version.ref = "mockk" }
+pdfbox-android = { group = "com.tom-roush", name = "pdfbox-android", version.ref = "pdfBoxAndroid" }
 
 # Navigation
 androidx-navigation3-runtime = { group = "androidx.navigation3", name = "navigation3-runtime", version.ref = "navigation3" }
@@ -108,6 +114,8 @@ spotless-gradle-plugin = { group = "com.diffplug.spotless", name = "spotless-plu
 compose-runtime = { group = "org.jetbrains.compose.runtime", name = "runtime", version.ref = "compose-multiplatform" }
 compose-foundation = { group = "org.jetbrains.compose.foundation", name = "foundation", version.ref = "compose-multiplatform" }
 compose-ui = { group = "org.jetbrains.compose.ui", name = "ui", version.ref = "compose-multiplatform" }
+compose-ui-tooling = { group = "org.jetbrains.compose.ui", name = "ui-tooling", version.ref = "compose-multiplatform" }
+compose-ui-tooling-preview = { group = "org.jetbrains.compose.ui", name = "ui-tooling-preview", version.ref = "compose-multiplatform" }
 compose-material3 = { group = "org.jetbrains.compose.material3", name = "material3", version.ref = "compose-material3" }
 compose-components-resources = { group = "org.jetbrains.compose.components", name = "components-resources", version.ref = "compose-multiplatform" }
 
@@ -137,13 +145,21 @@ dminus14-android-application = { id = "dminus14.android.application" }
 dminus14-android-library = { id = "dminus14.android.library" }
 dminus14-android-feature = { id = "dminus14.android.feature" }
 dminus14-android-compose = { id = "dminus14.android.compose" }
+dminus14-compose-preview = { id = "dminus14.compose.preview" }
+dminus14-compose-resources = { id = "dminus14.compose.resources" }
 dminus14-android-hilt = { id = "dminus14.android.hilt" }
+dminus14-android-navigation3 = { id = "dminus14.android.navigation3" }
+dminus14-android-test = { id = "dminus14.android.test" }
+dminus14-android-compose-test = { id = "dminus14.android.compose.test" }
 dminus14-android-room = { id = "dminus14.android.room" }
 dminus14-android-network = { id = "dminus14.android.network" }
 dminus14-android-datastore = { id = "dminus14.android.datastore" }
 dminus14-jvm-library = { id = "dminus14.jvm.library" }
-dminus14-kotlin-lint = { id = "dminus14.kotlin.lint" }
+dminus14-kotlin-quality = { id = "dminus14.kotlin.quality" }
 dminus14-android-lint = { id = "dminus14.android.lint" }
+dminus14-android-compose-lint = { id = "dminus14.android.compose.lint" }
+dminus14-android-quality = { id = "dminus14.android.quality" }
 dminus14-compose-multiplatform = { id = "dminus14.compose.multiplatform" }
-dminus14-compose-multiplatform-common = { id = "dminus14.compose.multiplatform.common" }
-dminus14-compose-multiplatform-wasm = { id = "dminus14.compose.multiplatform.wasm" }
+dminus14-compose-multiplatform-library = { id = "dminus14.compose.multiplatform.library" }
+dminus14-compose-multiplatform-ui-library = { id = "dminus14.compose.multiplatform.ui-library" }
+dminus14-compose-multiplatform-wasm-application = { id = "dminus14.compose.multiplatform.wasm-application" }
