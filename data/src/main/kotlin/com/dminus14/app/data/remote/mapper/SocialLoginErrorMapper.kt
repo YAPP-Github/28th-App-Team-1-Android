@@ -39,6 +39,14 @@ internal object SocialLoginErrorMapper {
         }
     }
 
+    /**
+     * RefreshToken 자체가 만료되어 재로그인이 필요한 경우([CODE_LOGIN_EXPIRED])인지 판별한다.
+     *
+     * [AuthRemoteDataSource]의 refresh 응답 처리에서 사용되며, 에러 바디 파싱 로직을
+     * [mapHttpException]과 공유해 중복 파싱을 피한다.
+     */
+    fun isLoginExpired(error: HttpException): Boolean = parseErrorBody(error)?.code == CODE_LOGIN_EXPIRED
+
     private fun parseErrorBody(error: HttpException): SocialLoginErrorResponseDto? =
         runCatching {
             error.response()?.errorBody()?.string()?.let { body ->
@@ -49,4 +57,5 @@ internal object SocialLoginErrorMapper {
     private const val HTTP_BAD_REQUEST = 400
     private const val HTTP_UNAUTHORIZED = 401
     private val HTTP_SERVER_ERROR_RANGE = 500..599
+    private const val CODE_LOGIN_EXPIRED = "LOGIN_EXPIRED"
 }
