@@ -7,8 +7,8 @@ import com.dminus14.app.data.remote.dto.TokenRefreshRequestDto
 import com.dminus14.app.data.remote.dto.TokenRefreshResponseDto
 import com.dminus14.app.data.remote.mapper.ApiErrorBodyParser
 import com.dminus14.app.data.remote.mapper.SocialLoginErrorMapper
-import com.dminus14.app.domain.model.KakaoAuthException
-import com.dminus14.app.domain.model.LoginExpiredException
+import com.dminus14.app.domain.exception.LoginExpiredException
+import com.dminus14.app.domain.exception.SocialLoginException
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
@@ -29,7 +29,7 @@ class AuthRemoteDataSourceImpl
                     ),
                 )
             } catch (error: IOException) {
-                throw KakaoAuthException.Network(cause = error)
+                throw SocialLoginException.Network(cause = error)
             } catch (error: HttpException) {
                 throw SocialLoginErrorMapper.mapHttpException(error)
             }

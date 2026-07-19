@@ -2,8 +2,9 @@ package com.dminus14.app.feature.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.dminus14.app.domain.model.KakaoAuthException
+import com.dminus14.app.domain.exception.SocialLoginException
 import com.dminus14.app.domain.usecase.LoginWithKakaoUseCase
+import com.dminus14.app.feature.login.kakao.KakaoLoginException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +38,7 @@ class LoginViewModel
                 }
 
                 is LoginIntent.KakaoLoginFailed -> {
-                    handleKakaoLoginFailure(intent.error)
+                    handleLoginFailure(intent.error)
                 }
             }
         }
@@ -51,18 +52,20 @@ class LoginViewModel
                         reduce { copy(isLoading = false) }
                         sendEffect(LoginEffect.NavigateToHome)
                     }.onFailure { throwable ->
-                        handleKakaoLoginFailure(throwable)
+                        handleLoginFailure(throwable)
                     }
             }
         }
 
-        private fun handleKakaoLoginFailure(throwable: Throwable) {
+        private fun handleLoginFailure(throwable: Throwable) {
             when (throwable) {
-                is KakaoAuthException.Cancelled -> {
+                is KakaoLoginException.Cancelled -> {
                     reduce { copy(isLoading = false) }
                 }
 
-                is KakaoAuthException -> {
+                is KakaoLoginException,
+                is SocialLoginException,
+                -> {
                     reduce {
                         copy(
                             isLoading = false,

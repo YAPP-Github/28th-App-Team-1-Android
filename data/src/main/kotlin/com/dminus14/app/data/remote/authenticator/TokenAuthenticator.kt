@@ -2,7 +2,7 @@ package com.dminus14.app.data.remote.authenticator
 
 import com.dminus14.app.data.remote.mapper.ApiErrorBodyParser
 import com.dminus14.app.data.remote.mapper.ApiErrorCode
-import com.dminus14.app.domain.model.LoginExpiredException
+import com.dminus14.app.domain.exception.LoginExpiredException
 import com.dminus14.app.domain.repository.SessionRepository
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex

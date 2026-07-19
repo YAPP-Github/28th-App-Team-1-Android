@@ -1,4 +1,4 @@
-package com.dminus14.app.domain.model
+package com.dminus14.app.domain.exception
 
 /**
  * RefreshToken 자체가 만료되어 재로그인이 필요한 경우 발생하는 예외.
