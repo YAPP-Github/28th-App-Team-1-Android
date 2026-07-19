@@ -594,6 +594,31 @@ sealed interface HomeEffect {
 - 한 번 소비되면 사라져야 하면 `Effect`
 - recomposition으로 반복 실행되면 안 되면 `Effect`
 
+### 5.5 Effect와 기능 책임 경계
+
+`Intent`와 `Effect`는 반드시 해당 Feature 자신의 책임과 밀접한 관련을 가져야 한다. 다른 Feature나 화면으로의 이동
+대상을 Effect 이름에 직접 노출하면, 그 Feature가 자신의 책임이 아닌 다른 Feature의 네비게이션 정책까지 알게 되어
+책임이 섞인다.
+
+```kotlin
+// 지양: 로그인 Feature가 다른 Feature(Home)로의 이동을 스스로 규정한다.
+sealed interface LoginEffect {
+    data object NavigateToHome : LoginEffect
+}
+
+// 권장: 로그인 Feature는 로그인 성공이라는 자신의 책임만 표현한다.
+sealed interface LoginEffect {
+    data object LoginSucceeded : LoginEffect
+}
+```
+
+- Effect(및 Intent) 이름은 "해당 Feature 안에서 무엇이 일어났는지"를 그 Feature의 용어로 표현한다. 이동 대상이
+  되는 다른 Feature나 화면의 이름을 Effect 이름에 담지 않는다.
+- 실제로 어디로 이동할지 결정하는 책임은 Effect를 수집하는 `Screen` 또는 `app` 계층에 있다. ViewModel과
+  `Contract`는 이동 대상을 알 필요가 없다.
+- 예외적으로 화면이 임시/초기 구현 단계이며 추후 재설계가 예정된 경우에도, 이 원칙을 최종적으로는 적용해야 한다는
+  점을 리뷰나 코드에 명시한다.
+
 ---
 
 ## 6. ViewModel 작성 규칙
