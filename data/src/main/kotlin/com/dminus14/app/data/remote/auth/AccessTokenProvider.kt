@@ -50,10 +50,9 @@ class AccessTokenProvider
         }
 
         private suspend fun readDecryptedAccessToken(): String? {
-            val encrypted =
-                localDataSource.getString(DataStoreKeys.Auth.ACCESS_TOKEN) ?: return null
+            val encrypted = localDataSource.get(DataStoreKeys.Auth.ACCESS_TOKEN) ?: return null
             return try {
-                cryptoManager.decryptFromBase64(encrypted)
+                cryptoManager.decryptStringFromBase64(encrypted)
             } catch (e: kotlin.coroutines.cancellation.CancellationException) {
                 throw e
             } catch (_: Throwable) {
