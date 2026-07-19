@@ -63,7 +63,7 @@ object NetworkModule {
     /**
      * `AuthApi`(로그인/토큰 재발급) 전용 OkHttpClient.
      *
-     * `TokenAuthenticator`는 재발급 시 `AuthRepository` → `AuthRemoteDataSource` → `AuthApi`를
+     * `TokenAuthenticator`는 재발급 시 `SessionRepository` → `AuthRemoteDataSource` → `AuthApi`를
      * 다시 호출하므로, `AuthApi`가 [DefaultOkHttpClient]([TokenAuthenticator] 포함)를 사용하면
      * DI 순환 참조가 발생한다. 이를 피하기 위해 `TokenAuthenticator`가 붙지 않은 별도 클라이언트를 둔다.
      */

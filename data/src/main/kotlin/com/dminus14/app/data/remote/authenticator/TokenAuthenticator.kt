@@ -1,7 +1,7 @@
 package com.dminus14.app.data.remote.authenticator
 
 import com.dminus14.app.domain.model.LoginExpiredException
-import com.dminus14.app.domain.repository.AuthRepository
+import com.dminus14.app.domain.repository.SessionRepository
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -28,7 +28,7 @@ import javax.inject.Singleton
 class TokenAuthenticator
     @Inject
     constructor(
-        private val authRepository: AuthRepository,
+        private val sessionRepository: SessionRepository,
     ) : Authenticator {
         private val refreshMutex = Mutex()
 
@@ -61,7 +61,7 @@ class TokenAuthenticator
 
             return runBlocking {
                 refreshMutex.withLock {
-                    val currentSession = authRepository.getAuthSession() ?: return@withLock null
+                    val currentSession = sessionRepository.getAuthSession() ?: return@withLock null
 
                     if (currentSession.accessToken != usedAccessToken) {
                         // 다른 요청이 이미 재발급을 완료한 경우, 재발급 호출 없이 새 토큰으로만 재시도한다.
@@ -69,10 +69,10 @@ class TokenAuthenticator
                     }
 
                     val refreshedSession =
-                        runCatching { authRepository.refreshToken(currentSession.refreshToken) }
+                        runCatching { sessionRepository.refreshToken(currentSession.refreshToken) }
                             .getOrElse { error ->
                                 if (error is LoginExpiredException) {
-                                    authRepository.clearAuthSession()
+                                    sessionRepository.clearAuthSession()
                                     // TODO(session): 로그인 화면으로 이동 처리
                                     // 로그인 세션 만료를 앱 전역에 알릴 이벤트/네비게이션 연동이 필요하지만
                                     // 아직 관련 로그인 feature가 구현되어 있지 않아 주석으로 남긴다.
