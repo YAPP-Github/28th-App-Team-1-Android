@@ -16,10 +16,12 @@ import org.gradle.api.Project
 class AndroidComposeLintConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) =
         with(target) {
-            dependencies.add(
-                "lintChecks",
-                libs.findLibrary("slack.compose.lint.checks").get(),
-            )
+            pluginManager.withPlugin("com.android.base") {
+                dependencies.add(
+                    "lintChecks",
+                    libs.findLibrary("slack.compose.lint.checks").get(),
+                )
+            }
 
             afterEvaluate {
                 check(pluginManager.hasPlugin(pluginId("dminus14-android-compose"))) {

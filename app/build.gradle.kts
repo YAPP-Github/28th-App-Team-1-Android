@@ -44,8 +44,12 @@ dependencies {
     implementation(libs.kakao.v2.common)
     implementation(project(":data"))
     implementation(project(":feature:login:impl"))
+    implementation(project(":core:common"))
+    implementation(project(":designsystem"))
     implementation(project(":feature:main:impl"))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+
+    testImplementation(libs.kotlinx.coroutines.test)
 }
