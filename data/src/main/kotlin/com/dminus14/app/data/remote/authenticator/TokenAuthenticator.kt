@@ -1,5 +1,6 @@
 package com.dminus14.app.data.remote.authenticator
 
+import android.util.Log
 import com.dminus14.app.data.remote.mapper.ApiErrorBodyParser
 import com.dminus14.app.data.remote.mapper.ApiErrorCode
 import com.dminus14.app.domain.exception.LoginExpiredException
@@ -50,12 +51,21 @@ class TokenAuthenticator
         /**
          * 401이면서 재시도 한도 이내이고, 에러 코드가 재발급 대상
          * ([ApiErrorCode.TOKEN_EXPIRED] / [ApiErrorCode.INVALID_TOKEN])일 때만 재발급을 시도한다.
-         * [ApiErrorCode.LOGIN_EXPIRED]·[ApiErrorCode.SOCIAL_LOGIN_FAILED] 등 그 외 코드는 대상이 아니다.
+         * 바디 파싱에 실패한 경우에도 Bearer 토큰이 있었던 401은 재발급을 시도한다.
          */
-        private fun shouldAttemptRefresh(response: Response): Boolean =
-            response.code == HttpURLConnection.HTTP_UNAUTHORIZED &&
-                responseCount(response) < MAX_RETRY_COUNT &&
-                ApiErrorCode.requiresTokenRefresh(ApiErrorBodyParser.parse(response)?.code)
+        private fun shouldAttemptRefresh(response: Response): Boolean {
+            if (response.code != HttpURLConnection.HTTP_UNAUTHORIZED) return false
+            if (responseCount(response) >= MAX_RETRY_COUNT) return false
+
+            val errorCode = ApiErrorBodyParser.parse(response)?.code
+            if (ApiErrorCode.requiresTokenRefresh(errorCode)) return true
+
+            val hasBearer =
+                response.request
+                    .header(HEADER_AUTHORIZATION)
+                    ?.startsWith(BEARER_PREFIX) == true
+            return errorCode == null && hasBearer
+        }
 
         private fun refreshAndRetry(response: Response): Request? {
             val usedAccessToken =
@@ -68,7 +78,6 @@ class TokenAuthenticator
                     val currentSession = sessionRepository.getAuthSession() ?: return@withLock null
 
                     if (currentSession.accessToken != usedAccessToken) {
-                        // 다른 요청이 이미 재발급을 완료한 경우, 재발급 호출 없이 새 토큰으로만 재시도한다.
                         return@withLock retryWith(response, currentSession.accessToken)
                     }
 
@@ -81,11 +90,10 @@ class TokenAuthenticator
                                     // 로그인 세션 만료를 앱 전역에 알릴 이벤트/네비게이션 연동이 필요하지만
                                     // 아직 관련 로그인 feature가 구현되어 있지 않아 주석으로 남긴다.
                                 }
-                                // VALIDATION_ERROR/네트워크/서버 등 그 외 오류는 세션을 유지한 채
-                                // 이번 요청만 실패시킨다.
                                 return@withLock null
                             }
 
+                    Log.d(TAG, "refresh success, retry original request")
                     retryWith(response, refreshedSession.accessToken)
                 }
             }
@@ -111,6 +119,7 @@ class TokenAuthenticator
         }
 
         private companion object {
+            const val TAG = "TokenAuthenticator"
             const val HEADER_AUTHORIZATION = "Authorization"
             const val BEARER_PREFIX = "Bearer "
             const val MAX_RETRY_COUNT = 3
