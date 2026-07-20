@@ -32,14 +32,12 @@ internal fun parseCatalogDouble(rawValue: String): CatalogNumberParseResult<Doub
 private fun <T : Number> T?.toCatalogNumberParseResult(
     typeName: String,
 ): CatalogNumberParseResult<T> =
-    if (this == null) {
+    this?.let {
         CatalogNumberParseResult(
-            value = null,
-            errorMessage = "유효한 $typeName 값을 입력해 주세요.",
-        )
-    } else {
-        CatalogNumberParseResult(
-            value = this,
+            value = it,
             errorMessage = null,
         )
-    }
+    } ?: CatalogNumberParseResult(
+        value = null,
+        errorMessage = "유효한 $typeName 값을 입력해 주세요.",
+    )

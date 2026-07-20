@@ -97,10 +97,11 @@ internal class AdapterDeclarationValidator(
 
     private fun KSFunctionDeclaration.hasComposableAnnotation(): Boolean =
         annotations.any { annotation ->
-            annotation.annotationType
-                .resolve()
-                .declaration.qualifiedName
-                ?.asString() ==
+            annotation.shortName.asString() == "Composable" &&
+                annotation.annotationType
+                    .resolve()
+                    .declaration.qualifiedName
+                    ?.asString() ==
                 CatalogControlsNames.COMPOSABLE_ANNOTATION
         }
 
@@ -142,7 +143,13 @@ internal class AdapterDeclarationValidator(
         var valid = true
         val parameters =
             function.parameters.mapNotNull { parameter ->
-                val parameterName = parameter.name?.asString().orEmpty()
+                val parameterName = parameter.name?.asString()
+                if (parameterName.isNullOrEmpty()) {
+                    logger.error("Parameter must have a name.", parameter)
+                    valid = false
+                    return@mapNotNull null
+                }
+
                 val resolvedType = parameter.type.resolve()
                 when (val classification = parameterClassifier.classify(resolvedType)) {
                     is ParameterClassification.Supported -> {

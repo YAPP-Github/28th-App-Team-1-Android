@@ -7,7 +7,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import com.dminus14.catalog.controls.CatalogControls
 import com.dminus14.designsystem.component.modal.DMinusModal
 
@@ -29,7 +28,6 @@ internal fun DMinusModalCatalogAdapter(
             onConfirm = closeModal,
             onCancel = closeModal,
             onDismiss = closeModal,
-            modifier = Modifier,
         )
     }
 }
@@ -53,7 +51,6 @@ internal fun DMinusModalWithCancelCatalogAdapter(
             onConfirm = closeModal,
             onCancel = closeModal,
             onDismiss = closeModal,
-            modifier = Modifier,
         )
     }
 }
