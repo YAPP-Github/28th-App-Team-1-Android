@@ -1,6 +1,7 @@
 package com.dminus14.app.data.di.remote.network
 
 import com.dminus14.app.data.remote.api.AuthApi
+import com.dminus14.app.data.remote.api.JobsApi
 import com.dminus14.app.data.remote.authenticator.TokenAuthenticator
 import com.dminus14.app.data.remote.config.NetworkConfig
 import com.dminus14.app.data.remote.interceptor.InsertAuthorizationInterceptor
@@ -97,4 +98,9 @@ object NetworkModule {
     fun provideAuthApi(
         @AuthRetrofit retrofit: Retrofit,
     ): AuthApi = retrofit.create(AuthApi::class.java)
+
+    /** TODO(temp): 세션 재발급 검증용. 검증 후 삭제. */
+    @Provides
+    @Singleton
+    fun provideJobsApi(retrofit: Retrofit): JobsApi = retrofit.create(JobsApi::class.java)
 }
