@@ -16,6 +16,7 @@ import com.dminus14.app.dialog.GlobalDialogHost
 import com.dminus14.app.dialog.GlobalModalManager
 import com.dminus14.app.navigation.AppNavigationState
 import com.dminus14.app.ui.theme.DMinus14Theme
+import com.dminus14.designsystem.theme.DMinusTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -36,25 +37,27 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            DMinus14Theme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    NavDisplay(
-                        backStack = navigationState.navigator.backStack,
-                        onBack = navigationState.navigator::goBack,
-                        modifier = Modifier.padding(innerPadding),
-                        entryDecorators =
-                            listOf(
-                                rememberSaveableStateHolderNavEntryDecorator(),
-                                rememberViewModelStoreNavEntryDecorator(),
-                            ),
-                        entryProvider =
-                            entryProvider {
-                                navigationState.entryInstallers.forEach { installer -> installer() }
-                            },
-                    )
-                }
+            DMinusTheme {
+                DMinus14Theme {
+                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                        NavDisplay(
+                            backStack = navigationState.navigator.backStack,
+                            onBack = navigationState.navigator::goBack,
+                            modifier = Modifier.padding(innerPadding),
+                            entryDecorators =
+                                listOf(
+                                    rememberSaveableStateHolderNavEntryDecorator(),
+                                    rememberViewModelStoreNavEntryDecorator(),
+                                ),
+                            entryProvider =
+                                entryProvider {
+                                    navigationState.entryInstallers.forEach { installer -> installer() }
+                                },
+                        )
+                    }
 
-                GlobalDialogHost(manager = globalModalManager)
+                    GlobalDialogHost(manager = globalModalManager)
+                }
             }
         }
     }
