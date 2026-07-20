@@ -253,6 +253,12 @@ Catalog 전용 UI, theme, font, favicon, Web entry resource는 `catalog`가 소�
 
 `:catalog:processor`의 Kotlin 소스 생성에는 `kotlinpoet-ksp`를 사용한다. 이 의존성은 processor 전용 빌드 타임 의존성이며 제품 앱, `designsystem` 또는 Catalog Wasm 런타임 산출물에 포함하지 않는다.
 
+#### Catalog Controls 표시 규칙
+
+각 매개변수의 Control은 `catalog.controls.runtime`이 제공하는 공통 `CatalogControlField` 필드로 감싼다. 공통 필드는 매개변수 이름을 제목 계층으로, Kotlin 타입 이름을 본문 계층으로 표시한다. 실제 값 조작 UI는 매개변수 이름을 다시 표시하지 않고 입력 기능에만 집중한다.
+
+Controls가 구분하는 타입은 `String`, `Boolean`, `Byte`, `Short`, `Int`, `Long`, `Float`, `Double`, `Enum`이다. KSP processor는 숫자 Control을 생성할 때 정확한 숫자 타입 정보를 Runtime에 전달해야 하며, Runtime은 오류 문구나 현재 입력값으로 숫자 타입을 추론하지 않는다. 타입별 표시 이름과 설명은 Runtime의 단일 메타데이터 계약에서 관리한다. 매개변수별 설명을 위한 별도 애너테이션은 현재 계약에 포함하지 않는다.
+
 ### 3.5 `core:resources`
 
 `core:resources`는 `app`, `feature:*`, `designsystem`이 공유할 Compose Multiplatform 리소스를 관리한다.
