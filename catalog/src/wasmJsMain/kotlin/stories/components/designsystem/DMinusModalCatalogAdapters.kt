@@ -1,4 +1,4 @@
-package stories.components
+package stories.components.designsystem
 
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text

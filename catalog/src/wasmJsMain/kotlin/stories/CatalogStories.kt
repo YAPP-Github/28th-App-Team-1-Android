@@ -1,7 +1,7 @@
 package stories
 
-import stories.components.ButtonStories
-import stories.components.ModalStories
+import stories.components.designsystem.ButtonStories
+import stories.components.designsystem.ModalStories
 import type.StoryGroup
 import type.StoryTreeNode
 import util.buildStoryTree

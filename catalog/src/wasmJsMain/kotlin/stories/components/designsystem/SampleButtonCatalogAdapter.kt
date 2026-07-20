@@ -1,4 +1,4 @@
-package stories.components
+package stories.components.designsystem
 
 import androidx.compose.runtime.Composable
 import com.dminus14.catalog.controls.CatalogControls

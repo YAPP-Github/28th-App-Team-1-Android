@@ -1,4 +1,4 @@
-package stories.components
+package stories.components.designsystem
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row

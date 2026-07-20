@@ -1,4 +1,4 @@
-package stories.components
+package stories.components.designsystem
 
 import type.Story
 import type.StoryGroup
