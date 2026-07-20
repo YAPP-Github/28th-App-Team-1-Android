@@ -22,12 +22,15 @@ class AuthRemoteDataSourceImpl
     ) : AuthRemoteDataSource {
         override suspend fun loginWithKakao(credential: String): SocialLoginResponseDto =
             try {
-                authApi.loginWithSocial(
-                    SocialLoginRequestDto(
-                        provider = PROVIDER_KAKAO,
-                        credential = credential,
-                    ),
-                )
+                val response =
+                    authApi.loginWithSocial(
+                        SocialLoginRequestDto(
+                            provider = PROVIDER_KAKAO,
+                            credential = credential,
+                        ),
+                    )
+                response.data
+                    ?: throw SocialLoginException.Unknown(message = "로그인 응답에 토큰이 없습니다.")
             } catch (error: IOException) {
                 throw SocialLoginException.Network(cause = error)
             } catch (error: HttpException) {
@@ -36,7 +39,9 @@ class AuthRemoteDataSourceImpl
 
         override suspend fun refreshToken(refreshToken: String): TokenRefreshResponseDto =
             try {
-                authApi.refreshToken(TokenRefreshRequestDto(refreshToken = refreshToken))
+                val response = authApi.refreshToken(TokenRefreshRequestDto(refreshToken = refreshToken))
+                response.data
+                    ?: throw IllegalStateException("토큰 재발급 응답에 토큰이 없습니다.")
             } catch (error: HttpException) {
                 if (ApiErrorBodyParser.isLoginExpired(error)) {
                     throw LoginExpiredException(cause = error)
