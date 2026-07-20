@@ -51,6 +51,12 @@ class CatalogControlsProcessorTest {
         assertTrue(generated.contains("val byteValue: Byte"))
         assertTrue(generated.contains("val style: Style"))
         assertTrue(generated.contains("text = args.text"))
+        assertTrue(generated.contains("type = CatalogControlType.BYTE"))
+        assertTrue(generated.contains("type = CatalogControlType.SHORT"))
+        assertTrue(generated.contains("type = CatalogControlType.INT"))
+        assertTrue(generated.contains("type = CatalogControlType.LONG"))
+        assertTrue(generated.contains("type = CatalogControlType.FLOAT"))
+        assertTrue(generated.contains("type = CatalogControlType.DOUBLE"))
         assertTrue(generated.contains("parseCatalogByte(newValue)"))
         assertTrue(generated.contains("parseCatalogDouble(newValue)"))
         assertTrue(generated.contains("options = Style.entries.toList()"))
@@ -335,9 +341,19 @@ class CatalogControlsProcessorTest {
                 @Composable
                 fun CatalogBooleanControl(name: String, value: Boolean, onValueChange: (Boolean) -> Unit) = Unit
 
+                enum class CatalogControlType {
+                    BYTE,
+                    SHORT,
+                    INT,
+                    LONG,
+                    FLOAT,
+                    DOUBLE,
+                }
+
                 @Composable
                 fun CatalogNumberControl(
                     name: String,
+                    type: CatalogControlType,
                     rawValue: String,
                     errorMessage: String?,
                     onValueChange: (String) -> Unit,

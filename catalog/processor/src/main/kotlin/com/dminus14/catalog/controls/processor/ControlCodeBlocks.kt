@@ -49,6 +49,7 @@ private fun CodeBlock.Builder.addNumberControl(
     add("%M(\n", CatalogControlsNames.numberControl)
     indent()
     add("name = %S,\n", parameter.name)
+    add("type = %T.%L,\n", CatalogControlsNames.controlType, kind.type.name)
     add("rawValue = numberInput%L,\n", index)
     add("errorMessage = numberError%L,\n", index)
     add("onValueChange = { newValue ->\n")

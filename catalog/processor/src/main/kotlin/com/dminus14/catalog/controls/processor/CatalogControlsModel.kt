@@ -66,6 +66,9 @@ internal sealed interface ParameterKind {
  *
  * @property qualifiedName KSP type declaration과 비교할 Kotlin 정규 이름
  * @property parser generated Controls가 호출할 Runtime parser
+ *
+ * 각 enum entry 이름은 generated source가 참조하는 Runtime `CatalogControlType`의 숫자 entry와
+ * 동일해야 한다.
  */
 internal enum class NumericType(
     val qualifiedName: String,

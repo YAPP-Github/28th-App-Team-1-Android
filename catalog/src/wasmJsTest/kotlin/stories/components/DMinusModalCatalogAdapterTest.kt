@@ -1,4 +1,4 @@
-package stories.components
+package stories.components.designsystem
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.ExperimentalTestApi

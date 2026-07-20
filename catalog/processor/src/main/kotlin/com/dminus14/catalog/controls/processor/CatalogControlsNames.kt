@@ -18,6 +18,7 @@ internal object CatalogControlsNames {
     val remember = MemberName("androidx.compose.runtime", "remember")
     val mutableStateOf = MemberName("androidx.compose.runtime", "mutableStateOf")
 
+    val controlType = ClassName("catalog.controls.runtime", "CatalogControlType")
     val controlledStoryLayout =
         MemberName("catalog.controls.runtime", "CatalogControlledStoryLayout")
     val textControl = MemberName("catalog.controls.runtime", "CatalogTextControl")

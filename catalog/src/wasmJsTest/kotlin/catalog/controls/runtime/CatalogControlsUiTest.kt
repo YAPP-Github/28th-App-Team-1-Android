@@ -7,8 +7,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.isToggleable
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.v2.runComposeUiTest
 import kotlin.test.Test
@@ -18,6 +20,59 @@ import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
 class CatalogControlsUiTest {
+    @Test
+    fun `Control 카드가 변수명과 타입을 표시하고 물음표를 hover할 때만 설명을 표시한다`() =
+        runComposeUiTest {
+            setContent {
+                MaterialTheme {
+                    CatalogTextControl(
+                        name = "text",
+                        value = "initial",
+                        onValueChange = {},
+                    )
+                }
+            }
+
+            onNodeWithText("text").assertExists()
+            onNodeWithText("String").assertExists()
+            onNodeWithText(CatalogControlType.STRING.tooltipText).assertDoesNotExist()
+
+            onNodeWithContentDescription("String 타입 설명")
+                .performMouseInput { moveTo(center) }
+            onNodeWithText(CatalogControlType.STRING.tooltipText).assertExists()
+
+            onNodeWithContentDescription("String 타입 설명")
+                .performMouseInput { exit() }
+            onNodeWithText(CatalogControlType.STRING.tooltipText).assertDoesNotExist()
+        }
+
+    @Test
+    fun `Catalog 타입 설명이 숫자 범위와 디자이너용 의미를 제공한다`() {
+        assertEquals("String | 문자열입니다.", CatalogControlType.STRING.tooltipText)
+        assertEquals(
+            "Boolean | 참 또는 거짓으로만 표현되는 데이터입니다.",
+            CatalogControlType.BOOLEAN.tooltipText,
+        )
+        assertTrue(CatalogControlType.BYTE.tooltipText.contains("-128부터 127까지"))
+        assertTrue(CatalogControlType.SHORT.tooltipText.contains("-32,768부터 32,767까지"))
+        assertTrue(
+            CatalogControlType.INT.tooltipText.contains(
+                "-2,147,483,648부터 2,147,483,647까지",
+            ),
+        )
+        assertTrue(
+            CatalogControlType.LONG.tooltipText.contains(
+                "-9,223,372,036,854,775,808부터 9,223,372,036,854,775,807까지",
+            ),
+        )
+        assertTrue(CatalogControlType.FLOAT.tooltipText.contains("3.4028235 × 10³⁸"))
+        assertTrue(CatalogControlType.DOUBLE.tooltipText.contains("1.7976931348623157 × 10³⁰⁸"))
+        assertEquals(
+            "Enum | 여러 선택지 중 하나를 고를 수 있는 데이터입니다.",
+            CatalogControlType.ENUM.tooltipText,
+        )
+    }
+
     @Test
     fun `문자열 Control이 값을 변경한다`() =
         runComposeUiTest {
@@ -66,6 +121,7 @@ class CatalogControlsUiTest {
                 MaterialTheme {
                     CatalogNumberControl(
                         name = "count",
+                        type = CatalogControlType.INT,
                         rawValue = rawValue,
                         errorMessage = errorMessage,
                         onValueChange = { changedValue ->
