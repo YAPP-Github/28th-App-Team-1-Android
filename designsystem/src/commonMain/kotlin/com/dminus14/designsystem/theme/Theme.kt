@@ -17,9 +17,11 @@ val LocalDMinusTypography =
 
 @Composable
 fun DMinusTheme(content: @Composable () -> Unit) {
+    val typography = rememberDMinusTypography()
+
     CompositionLocalProvider(
         LocalDMinusColors provides DefaultDMinusColors,
-        LocalDMinusTypography provides DefaultDMinusTypography,
+        LocalDMinusTypography provides typography,
         content = content,
     )
 }
