@@ -104,5 +104,5 @@ private fun textStyle(
 
 internal val LocalHilitTypography =
     staticCompositionLocalOf<HilitTypography> {
-        error("HilitTypography is not provided. Wrap content with DMinusTheme.")
+        error("HilitTypography is not provided. Wrap content with HilitTheme.")
     }
