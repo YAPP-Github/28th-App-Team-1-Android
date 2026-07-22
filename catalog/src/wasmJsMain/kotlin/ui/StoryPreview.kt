@@ -11,12 +11,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.dminus14.designsystem.theme.HilitTheme
 import type.StoryLeafNode
 
 @Composable
@@ -86,7 +88,11 @@ internal fun StoryPreview(
                     ).padding(32.dp),
             contentAlignment = Alignment.Center,
         ) {
-            selectedStory.story.content()
+            HilitTheme {
+                Surface(modifier = Modifier.fillMaxWidth()) {
+                    selectedStory.story.content()
+                }
+            }
         }
     }
 }
