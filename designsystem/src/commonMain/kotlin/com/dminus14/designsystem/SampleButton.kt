@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.dminus14.designsystem.theme.HilitTheme
 
 @Composable
 fun SampleButton(
@@ -26,9 +27,11 @@ fun SampleButton(
 @Preview
 @Composable
 private fun SampleButtonPreview() {
-    SampleButton(
-        text = "D-14",
-        enabled = true,
-        onClick = {},
-    )
+    HilitTheme {
+        SampleButton(
+            text = "D-14",
+            enabled = true,
+            onClick = {},
+        )
+    }
 }
