@@ -29,6 +29,7 @@ class AccessTokenProvider
         fun get(): String? {
             cachedToken?.let { return it }
             synchronized(lock) {
+                cachedToken?.let { return it }
                 val token = runBlocking { readDecryptedAccessToken() }
                 if (token != null) {
                     cachedToken = token
