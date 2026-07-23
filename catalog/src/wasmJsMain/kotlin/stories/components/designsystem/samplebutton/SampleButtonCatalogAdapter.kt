@@ -1,4 +1,4 @@
-package stories.components.designsystem
+package stories.components.designsystem.samplebutton
 
 import androidx.compose.runtime.Composable
 import com.dminus14.catalog.controls.CatalogControls

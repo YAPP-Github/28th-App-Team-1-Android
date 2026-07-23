@@ -1,5 +1,9 @@
-package stories.components.designsystem
+package stories.components.designsystem.dminusmodal
 
+import stories.components.designsystem.DMinusModalCatalogAdapterArgs
+import stories.components.designsystem.DMinusModalCatalogAdapterControls
+import stories.components.designsystem.DMinusModalWithCancelCatalogAdapterArgs
+import stories.components.designsystem.DMinusModalWithCancelCatalogAdapterControls
 import type.Story
 import type.StoryGroup
 

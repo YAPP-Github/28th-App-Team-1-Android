@@ -1,4 +1,4 @@
-package stories.components.designsystem
+package stories.components.designsystem.dminusmodal
 
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text

@@ -1,9 +1,11 @@
-package stories.components.designsystem
+package stories.components.designsystem.samplebutton
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.unit.dp
 import com.dminus14.designsystem.SampleButton
+import stories.components.designsystem.SampleButtonCatalogAdapterArgs
+import stories.components.designsystem.SampleButtonCatalogAdapterControls
 import type.Story
 import type.StoryGroup
 
