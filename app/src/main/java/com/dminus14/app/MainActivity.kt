@@ -15,7 +15,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.dminus14.app.dialog.GlobalDialogHost
 import com.dminus14.app.dialog.GlobalModalManager
 import com.dminus14.app.navigation.AppNavigationState
-import com.dminus14.app.ui.theme.DMinus14Theme
+import com.dminus14.designsystem.theme.HilitTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            DMinus14Theme {
+            HilitTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     NavDisplay(
                         backStack = navigationState.navigator.backStack,

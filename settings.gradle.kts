@@ -23,6 +23,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://devrepo.kakao.com/nexus/content/groups/public/") }
 
         // Node.js distribution repository
         exclusiveContent {
@@ -91,8 +92,12 @@ dependencyResolutionManagement {
 rootProject.name = "DMinus14"
 
 include(":app")
+include(":domain")
+include(":data")
 include(":feature:main:api")
 include(":feature:main:impl")
+include(":feature:login:api")
+include(":feature:login:impl")
 include(":core:permission")
 include(":core:common")
 include(":designsystem")

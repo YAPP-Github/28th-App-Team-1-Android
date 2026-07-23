@@ -122,7 +122,8 @@ Agents must enforce these checks during implementation:
 
 - `feature:*` must not depend on `data`.
 - `feature:*` must not depend on `app`.
-- `feature:*` must not directly depend on another `feature:*` module.
+- `feature:*:impl` must not depend on another feature's `impl` module.
+- `feature:*:impl` may depend on another feature's `api` module for route or entry contracts only.
 - `domain` must not depend on Android Framework APIs.
 - `domain` must not depend on `data` or `feature:*`.
 - `data` must not depend on `feature:*` or `app`.
@@ -187,6 +188,20 @@ When modifying `catalog`, agents must keep it as a design system review and comm
 Lifecycle dependencies, Android Navigation, or product runtime behavior.
 
 Catalog stories must use `designsystem` components or Android-independent `Content`-level UI.
+
+When changing product colors, typography, Theme, shared fonts, or Foundation Stories, agents must
+follow the product Theme contract in `docs/ARCHITECTURE.md`.
+
+Agents must not reinterpret product tokens as Material `ColorScheme` or `Typography` roles, add a
+dark product theme, or enable Android dynamic colors unless the user explicitly requests and
+approves that design change. When a component specification does not identify which product token
+to use, agents must stop and request clarification instead of choosing a token by appearance.
+
+The app root, previews, and catalog Story content must use `HilitTheme`. The catalog shell must
+retain its catalog-only Theme and resources; only Story content is rendered inside `HilitTheme`.
+
+When product color or typography tokens change, agents must update the matching Color or Typography
+Foundation Story. If a Foundation Story is not updated, the completion report must explain why.
 
 ### 5.5 Error handling rules
 

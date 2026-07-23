@@ -1,6 +1,6 @@
 package com.dminus14.app.navigation.di
 
-import com.dminus14.app.feature.main.api.MainHome
+import com.dminus14.app.feature.login.api.Login
 import com.dminus14.app.navigation.Navigator
 import dagger.Module
 import dagger.Provides
@@ -13,5 +13,5 @@ import dagger.hilt.android.scopes.ActivityRetainedScoped
 object NavigatorModule {
     @Provides
     @ActivityRetainedScoped
-    fun provideNavigator(): Navigator = Navigator(startDestination = MainHome)
+    fun provideNavigator(): Navigator = Navigator(startDestination = Login)
 }

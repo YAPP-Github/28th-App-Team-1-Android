@@ -24,10 +24,12 @@ Kotlin Multiplatform module that will replace it.
 The following items are approved future implementation targets unless repository code already
 implements them:
 
-- `:designsystem` as a Compose Multiplatform-compatible shared UI module.
-- `:catalog` as a Web/WASM-capable Kotlin Multiplatform design-system catalog.
+- `:designsystem` as a Compose Multiplatform-compatible shared UI module. **(implemented: shared
+  components, color and typography tokens, `HilitTheme`)**
+- `:catalog` as a Web/WASM-capable Kotlin Multiplatform design-system catalog. **(implemented)**
 - `:core:resources` as an Android and Web/WASM-compatible Compose Multiplatform resource module.
-- Compose Multiplatform and WASM convention plugin support in `build-logic`.
+  **(implemented)**
+- Compose Multiplatform and WASM convention plugin support in `build-logic`. **(implemented)**
 - App-owned Navigation 3 root assembly through `app`. **(bootstrap implemented: `Navigator`,
   `AppNavigationState`, `MainActivity` + `NavDisplay`)**
 - Feature-level MVI contracts, ViewModels, Screens, Content composables, route/entry contracts, and
@@ -85,8 +87,10 @@ rules at the time it is added.
     - `Application`, `Activity` 등 Android Manifest 등록은 `app` 모듈에서 관리한다.
     - Feature 모듈이 독립적으로 Manifest 엔트리를 추가하는 방식은 피한다.
 
-5. **Feature 간 직접 의존은 금지한다.**
-    - Feature 간 화면 전환은 공통 route/entry 계약을 통해 앱 루트에서 조립한다.
+5. **Feature `impl` 간 직접 의존은 금지한다.**
+    - `feature:{name}:impl`은 다른 feature의 `impl`에 의존하지 않는다.
+    - 다른 feature의 route/entry 계약이 필요하면 해당 feature의 `api`만 의존한다.
+    - 화면 전환 실행은 `app`의 `Navigator`와 UI 계층이 담당한다.
     - 특정 Feature에서만 쓰는 UI 또는 extension은 해당 Feature 내부에 둔다.
     - 둘 이상의 Feature에서 사용되기 시작하면 성격에 따라 `designsystem` 또는 `core:common`으로 이동한다.
 
@@ -155,8 +159,9 @@ Feature 모듈의 주요 책임은 다음과 같다.
 
 Feature 모듈은 `data` 모듈에 직접 의존하지 않는다. 데이터가 필요하면 `domain`의 UseCase 또는 Repository Interface를 통해 접근한다.
 
-Feature 간 직접 참조도 금지한다. 다른 Feature로 이동해야 할 경우 구체 화면 구현체를 직접 호출하지 않고, route/entry 계약을 통해 앱 루트에서 조립되도록
-한다.
+다른 feature의 `impl`에는 의존하지 않는다. 다른 feature로 이동해야 할 route key가 필요하면 해당
+feature의 `api`만 참조한다. 구체 화면 구현체, ViewModel, entry builder 구현은 직접 호출하지 않고,
+`app` 루트에서 Navigator와 entry 조립을 통해 화면 전환을 실행한다.
 
 ### 3.3 `designsystem`
 
@@ -178,6 +183,30 @@ Android 의존성을 포함하지 않는다.
 
 공유 font, drawable, string 등 Compose Multiplatform 리소스 원본은 `core:resources`가 소유한다.
 `designsystem`은 공개된 Compose Resources 접근자를 통해 해당 리소스를 소비하며, Android 전용 resource API를 사용하지 않는다.
+
+#### 제품 Theme 계약
+
+`:designsystem`은 제품 컬러와 타이포그래피를 다음 타입과 진입점으로 제공한다.
+
+- `HilitColors`: Figma 컬러 이름과 값을 보존한 불변 컬러 토큰 집합
+- `HilitTypography`: Pretendard 기반 전체 텍스트 스타일 집합
+- `HilitTheme.colors`: `CompositionLocal`로 제공되는 컬러 토큰 접근점
+- `HilitTheme.typography`: `CompositionLocal`로 제공되는 텍스트 스타일 접근점
+- `HilitTheme { ... }`: 제품 토큰과 고정 light Material 기반 환경을 함께 제공하는 공용
+  Theme Composable
+
+제품 토큰은 Material 3의 `ColorScheme` 또는 `Typography` 의미 슬롯으로 매핑하지 않는다.
+`HilitTheme` 내부의 Material Theme는 기본 light `ColorScheme`, 기본 `Typography`, 기본
+`Shapes`만 제공하며 제품 토큰과 분리한다. 다크 제품 테마, Android 동적 색상, 임의의
+semantic color 매핑은 사용하지 않는다.
+
+호출자는 Figma 컴포넌트 명세가 지정한 토큰을 `HilitTheme.colors`와
+`HilitTheme.typography`에서 명시적으로 선택한다. Material 컴포넌트가 제품 토큰을 자동으로
+상속한다고 가정하거나 명세가 없는 컴포넌트의 토큰 용도를 임의로 결정하지 않는다.
+
+Pretendard 원본 파일은 `:core:resources`가 소유한다. `:designsystem`은 Compose Resources로
+Regular, Medium, SemiBold, Bold 파일을 하나의 `FontFamily`로 구성한다. Figma의 텍스트
+크기와 명시적 line height는 `sp`로, 비율 기반 letter spacing은 `em`으로 표현한다.
 
 따라서 `designsystem`에서는 다음 사용을 금지한다.
 
@@ -232,6 +261,13 @@ Lifecycle에 의존하는 `Screen`이 아니라 순수 UI에 가까운 `Content`
 
 Catalog 전용 UI, theme, font, favicon, Web entry resource는 `catalog`가 소유하고 `catalog` 안에서만 소비한다.
 이러한 Catalog 전용 리소스는 공용 리소스가 아니므로 `core:resources`로 이동하지 않는다.
+
+카탈로그 셸의 `CatalogTheme`, 컬러와 폰트는 카탈로그 도구 UI 전용으로 유지한다. 실제 Story
+content 영역만 `HilitTheme`으로 감싸 Android 앱과 같은 제품 토큰 및 고정 light Material
+기반 환경에서 렌더링한다. 카탈로그 셸의 다크 모드는 Story의 제품 토큰을 변경하지 않는다.
+
+제품 컬러 또는 타이포그래피 토큰이 변경되면 Color 및 Typography Foundation Story를 함께
+갱신해 전체 토큰 이름, 값과 렌더링 결과를 Web/WASM 카탈로그에서 검수할 수 있어야 한다.
 
 #### Catalog Controls 어댑터 규칙
 
@@ -438,6 +474,8 @@ Feature는 필요 시 `api` / `impl`로 분리할 수 있다.
 | `feature:{name}:api`  | 다른 모듈이 참조할 route key, args 등 navigation 계약        |
 | `feature:{name}:impl` | `Screen`, `ViewModel`, entry builder, Hilt navigation module |
 
+`feature:{name}:impl`은 다른 feature의 `api`만 의존할 수 있다. 다른 feature의 `impl` 의존은 금지한다.
+
 현재 bootstrap 구현 예시는 `:feature:main:api`, `:feature:main:impl`이다.
 
 - `feature:main:api` — `MainHome` route key
@@ -641,6 +679,31 @@ sealed interface HomeEffect {
 - 화면에 계속 남아 있어야 하면 `State`
 - 한 번 소비되면 사라져야 하면 `Effect`
 - recomposition으로 반복 실행되면 안 되면 `Effect`
+
+### 5.5 Effect와 기능 책임 경계
+
+`Intent`와 `Effect`는 반드시 해당 Feature 자신의 책임과 밀접한 관련을 가져야 한다. 다른 Feature나 화면으로의 이동
+대상을 Effect 이름에 직접 노출하면, 그 Feature가 자신의 책임이 아닌 다른 Feature의 네비게이션 정책까지 알게 되어
+책임이 섞인다.
+
+```kotlin
+// 지양: 로그인 Feature가 다른 Feature(Home)로의 이동을 스스로 규정한다.
+sealed interface LoginEffect {
+    data object NavigateToHome : LoginEffect
+}
+
+// 권장: 로그인 Feature는 로그인 성공이라는 자신의 책임만 표현한다.
+sealed interface LoginEffect {
+    data object LoginSucceeded : LoginEffect
+}
+```
+
+- Effect(및 Intent) 이름은 "해당 Feature 안에서 무엇이 일어났는지"를 그 Feature의 용어로 표현한다. 이동 대상이
+  되는 다른 Feature나 화면의 이름을 Effect 이름에 담지 않는다.
+- 실제로 어디로 이동할지 결정하는 책임은 Effect를 수집하는 `Screen` 또는 `app` 계층에 있다. ViewModel과
+  `Contract`는 이동 대상을 알 필요가 없다.
+- 예외적으로 화면이 임시/초기 구현 단계이며 추후 재설계가 예정된 경우에도, 이 원칙을 최종적으로는 적용해야 한다는
+  점을 리뷰나 코드에 명시한다.
 
 ---
 
@@ -1142,7 +1205,7 @@ Gradle DSL과 dependency를 소유하고 composite/bundle plugin은 하위 plugi
 | Capability | `dminus14.android.test`                           | Android 기본 단위·계측 테스트                                                     |
 | Capability | `dminus14.android.compose.test`                   | Android Compose UI 테스트                                                         |
 | Capability | `dminus14.android.room`                           | Room/KSP 의존성                                                                   |
-| Capability | `dminus14.android.network`                        | Retrofit/Gson converter 의존성                                                    |
+| Capability | `dminus14.android.network`                        | Retrofit/Gson converter/logging-interceptor 의존성                                |
 | Capability | `dminus14.android.datastore`                      | Preferences DataStore 의존성                                                      |
 | Quality    | `dminus14.spotless`                               | Kotlin/Gradle Kotlin DSL 포맷                                                     |
 | Quality    | `dminus14.detekt`                                 | Kotlin 정적 분석                                                                  |
@@ -1220,7 +1283,6 @@ android-project/
 │       └── java/com/dminus14/app/
 │           ├── DMinus14App.kt                # @HiltAndroidApp Application 클래스
 │           ├── MainActivity.kt               # Single Activity, NavDisplay 조립
-│           ├── ui/theme/                     # 앱 전용 Theme (bootstrap)
 │           └── navigation/
 │               ├── Navigator.kt              # back stack 관리
 │               ├── AppNavigationState.kt     # Navigator + entry installer 집합
@@ -1257,7 +1319,7 @@ android-project/
 │               ├── Color.kt                  # Color Palette
 │               ├── Typography.kt             # Font Style
 │               ├── Shape.kt                  # Corner Radius 등
-│               └── Theme.kt                  # AppTheme Composable
+│               └── Theme.kt                  # HilitTheme Composable
 │
 ├── catalog/                                  # Storybook-like 디자인 시스템 카탈로그
 │   ├── annotations/                          # @CatalogControls 계약

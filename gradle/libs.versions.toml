@@ -25,12 +25,19 @@ hiltNavigationCompose = "1.4.0"
 
 # Network
 retrofit2 = "3.0.0"
+okhttp = "4.12.0"
 
 # Room
 room = "2.7.2"
 
 # DataStore
 datastore = "1.2.1"
+
+# Kakao
+kakao = "2.23.4"
+
+# DI
+javax-inject = "1"
 
 # Linting and Formatting
 spotless = "8.8.0"
@@ -79,6 +86,7 @@ dagger-hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", ve
 # Network
 retrofit2 = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit2" }
 retrofit2-converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit2" }
+okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 
 # Room
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
@@ -87,6 +95,13 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 
 # DataStore
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
+
+# Kakao
+kakao-v2-common = { group = "com.kakao.sdk", name = "v2-common", version.ref = "kakao" }
+kakao-v2-user = { group = "com.kakao.sdk", name = "v2-user", version.ref = "kakao" }
+
+# DI
+javax-inject = { group = "javax.inject", name = "javax.inject", version.ref = "javax-inject" }
 
 # build-logic
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }

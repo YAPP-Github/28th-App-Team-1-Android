@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,6 +28,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.dminus14.designsystem.theme.HilitTheme
 import type.StoryLeafNode
 
 private val StoryPreviewPadding = 32.dp
@@ -149,6 +151,25 @@ private fun StoryPreviewHeader(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+
+        Box(
+            modifier =
+                Modifier
+                    .padding(top = 24.dp)
+                    .fillMaxWidth()
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                        shape = RoundedCornerShape(16.dp),
+                    ).padding(32.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            HilitTheme {
+                Surface(modifier = Modifier.fillMaxWidth()) {
+                    selectedStory.story.content()
+                }
+            }
         }
     }
 }
