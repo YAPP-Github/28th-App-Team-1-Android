@@ -15,12 +15,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import theme.CatalogTheme
+import theme.LocalCatalogDarkTheme
 
 @Composable
 internal fun CatalogControlledStoryLayout(
     preview: @Composable () -> Unit,
     controls: @Composable () -> Unit,
 ) {
+    val catalogDarkTheme = LocalCatalogDarkTheme.current
+
     Column(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier =
@@ -34,23 +38,25 @@ internal fun CatalogControlledStoryLayout(
             preview()
         }
 
-        HorizontalDivider()
+        CatalogTheme(darkTheme = catalogDarkTheme) {
+            HorizontalDivider()
 
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
-                    .padding(24.dp),
-        ) {
-            Text(
-                text = "Controls",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 12.dp),
-            )
-            controls()
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                        .padding(24.dp),
+            ) {
+                Text(
+                    text = "Controls",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(bottom = 12.dp),
+                )
+                controls()
+            }
         }
     }
 }

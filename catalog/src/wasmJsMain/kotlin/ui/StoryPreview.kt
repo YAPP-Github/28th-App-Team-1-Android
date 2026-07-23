@@ -13,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -102,7 +101,9 @@ private fun StoryPreviewContent(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center,
                 ) {
-                    selectedStory.story.content()
+                    HilitTheme {
+                        selectedStory.story.content()
+                    }
                 }
             }
         }
@@ -151,25 +152,6 @@ private fun StoryPreviewHeader(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-        }
-
-        Box(
-            modifier =
-                Modifier
-                    .padding(top = 24.dp)
-                    .fillMaxWidth()
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                        shape = RoundedCornerShape(16.dp),
-                    ).padding(32.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            HilitTheme {
-                Surface(modifier = Modifier.fillMaxWidth()) {
-                    selectedStory.story.content()
-                }
-            }
         }
     }
 }

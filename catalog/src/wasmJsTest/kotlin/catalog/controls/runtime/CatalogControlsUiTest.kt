@@ -1,9 +1,11 @@
 package catalog.controls.runtime
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.isToggleable
@@ -13,6 +15,9 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.v2.runComposeUiTest
+import com.dminus14.designsystem.theme.HilitTheme
+import theme.CatalogTheme
+import theme.getCatalogColorScheme
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -177,6 +182,39 @@ class CatalogControlsUiTest {
 
             onNodeWithText("초기 인자가 올바르지 않아 Preview를 표시할 수 없습니다.").assertExists()
             onNodeWithText("ratio=NaN").assertExists()
+        }
+
+    @Test
+    fun `Preview는 제품 Theme을 사용하고 Controls는 Catalog Theme을 사용한다`() =
+        runComposeUiTest {
+            var previewBackground: Color? = null
+            var controlsBackground: Color? = null
+
+            setContent {
+                CatalogTheme(darkTheme = true) {
+                    HilitTheme {
+                        CatalogControlledStoryLayout(
+                            preview = {
+                                val background = MaterialTheme.colorScheme.background
+                                SideEffect {
+                                    previewBackground = background
+                                }
+                            },
+                            controls = {
+                                val background = MaterialTheme.colorScheme.background
+                                SideEffect {
+                                    controlsBackground = background
+                                }
+                            },
+                        )
+                    }
+                }
+            }
+
+            runOnIdle {
+                assertEquals(getCatalogColorScheme(true).background, controlsBackground)
+                assertFalse(previewBackground == controlsBackground)
+            }
         }
 
     private enum class TestStyle {

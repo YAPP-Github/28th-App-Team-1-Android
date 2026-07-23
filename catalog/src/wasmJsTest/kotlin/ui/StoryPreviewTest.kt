@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -16,6 +17,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
+import com.dminus14.designsystem.theme.HilitTheme
 import type.Story
 import type.StoryGroup
 import type.StoryLeafNode
@@ -65,15 +67,45 @@ class StoryPreviewTest {
                 .assertIsDisplayed()
         }
 
-    private fun storyLeaf(id: String): StoryLeafNode {
+    @Test
+    fun `Story 콘텐츠에 제품 Theme을 제공한다`() =
+        runComposeUiTest {
+            val story =
+                storyLeaf(
+                    id = "themed story",
+                    content = {
+                        Text(
+                            text = "제품 Theme 적용",
+                            style = HilitTheme.typography.body10,
+                        )
+                    },
+                )
+
+            setContent {
+                MaterialTheme {
+                    StoryPreview(selectedStory = story)
+                }
+            }
+
+            onNodeWithText("제품 Theme 적용").assertIsDisplayed()
+        }
+
+    private fun storyLeaf(
+        id: String,
+        content: (@Composable () -> Unit)? = null,
+    ): StoryLeafNode {
         val story =
             Story(
                 id = id,
                 title = id,
             ) {
-                var count by remember { mutableStateOf(0) }
-                Button(onClick = { count += 1 }) {
-                    Text("$id:$count")
+                if (content != null) {
+                    content()
+                } else {
+                    var count by remember { mutableStateOf(0) }
+                    Button(onClick = { count += 1 }) {
+                        Text("$id:$count")
+                    }
                 }
             }
         val group =
