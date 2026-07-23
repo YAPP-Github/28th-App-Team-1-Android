@@ -24,10 +24,12 @@ Kotlin Multiplatform module that will replace it.
 The following items are approved future implementation targets unless repository code already
 implements them:
 
-- `:designsystem` as a Compose Multiplatform-compatible shared UI module.
-- `:catalog` as a Web/WASM-capable Kotlin Multiplatform design-system catalog.
+- `:designsystem` as a Compose Multiplatform-compatible shared UI module. **(implemented: shared
+  components, color and typography tokens, `HilitTheme`)**
+- `:catalog` as a Web/WASM-capable Kotlin Multiplatform design-system catalog. **(implemented)**
 - `:core:resources` as an Android and Web/WASM-compatible Compose Multiplatform resource module.
-- Compose Multiplatform and WASM convention plugin support in `build-logic`.
+  **(implemented)**
+- Compose Multiplatform and WASM convention plugin support in `build-logic`. **(implemented)**
 - App-owned Navigation 3 root assembly through `app`. **(bootstrap implemented: `Navigator`,
   `AppNavigationState`, `MainActivity` + `NavDisplay`)**
 - Feature-level MVI contracts, ViewModels, Screens, Content composables, route/entry contracts, and
@@ -180,6 +182,30 @@ Android 의존성을 포함하지 않는다.
 공유 font, drawable, string 등 Compose Multiplatform 리소스 원본은 `core:resources`가 소유한다.
 `designsystem`은 공개된 Compose Resources 접근자를 통해 해당 리소스를 소비하며, Android 전용 resource API를 사용하지 않는다.
 
+#### 제품 Theme 계약
+
+`:designsystem`은 제품 컬러와 타이포그래피를 다음 타입과 진입점으로 제공한다.
+
+- `HilitColors`: Figma 컬러 이름과 값을 보존한 불변 컬러 토큰 집합
+- `HilitTypography`: Pretendard 기반 전체 텍스트 스타일 집합
+- `HilitTheme.colors`: `CompositionLocal`로 제공되는 컬러 토큰 접근점
+- `HilitTheme.typography`: `CompositionLocal`로 제공되는 텍스트 스타일 접근점
+- `HilitTheme { ... }`: 제품 토큰과 고정 light Material 기반 환경을 함께 제공하는 공용
+  Theme Composable
+
+제품 토큰은 Material 3의 `ColorScheme` 또는 `Typography` 의미 슬롯으로 매핑하지 않는다.
+`HilitTheme` 내부의 Material Theme는 기본 light `ColorScheme`, 기본 `Typography`, 기본
+`Shapes`만 제공하며 제품 토큰과 분리한다. 다크 제품 테마, Android 동적 색상, 임의의
+semantic color 매핑은 사용하지 않는다.
+
+호출자는 Figma 컴포넌트 명세가 지정한 토큰을 `HilitTheme.colors`와
+`HilitTheme.typography`에서 명시적으로 선택한다. Material 컴포넌트가 제품 토큰을 자동으로
+상속한다고 가정하거나 명세가 없는 컴포넌트의 토큰 용도를 임의로 결정하지 않는다.
+
+Pretendard 원본 파일은 `:core:resources`가 소유한다. `:designsystem`은 Compose Resources로
+Regular, Medium, SemiBold, Bold 파일을 하나의 `FontFamily`로 구성한다. Figma의 텍스트
+크기와 명시적 line height는 `sp`로, 비율 기반 letter spacing은 `em`으로 표현한다.
+
 따라서 `designsystem`에서는 다음 사용을 금지한다.
 
 - `Context`, `Activity`, `Intent` 등 Android Framework 타입
@@ -217,6 +243,13 @@ Lifecycle에 의존하는 `Screen`이 아니라 순수 UI에 가까운 `Content`
 
 Catalog 전용 UI, theme, font, favicon, Web entry resource는 `catalog`가 소유하고 `catalog` 안에서만 소비한다.
 이러한 Catalog 전용 리소스는 공용 리소스가 아니므로 `core:resources`로 이동하지 않는다.
+
+카탈로그 셸의 `CatalogTheme`, 컬러와 폰트는 카탈로그 도구 UI 전용으로 유지한다. 실제 Story
+content 영역만 `HilitTheme`으로 감싸 Android 앱과 같은 제품 토큰 및 고정 light Material
+기반 환경에서 렌더링한다. 카탈로그 셸의 다크 모드는 Story의 제품 토큰을 변경하지 않는다.
+
+제품 컬러 또는 타이포그래피 토큰이 변경되면 Color 및 Typography Foundation Story를 함께
+갱신해 전체 토큰 이름, 값과 렌더링 결과를 Web/WASM 카탈로그에서 검수할 수 있어야 한다.
 
 ### 3.5 `core:resources`
 
@@ -1193,7 +1226,6 @@ android-project/
 │       └── java/com/dminus14/app/
 │           ├── DMinus14App.kt                # @HiltAndroidApp Application 클래스
 │           ├── MainActivity.kt               # Single Activity, NavDisplay 조립
-│           ├── ui/theme/                     # 앱 전용 Theme (bootstrap)
 │           └── navigation/
 │               ├── Navigator.kt              # back stack 관리
 │               ├── AppNavigationState.kt     # Navigator + entry installer 집합
@@ -1230,7 +1262,7 @@ android-project/
 │               ├── Color.kt                  # Color Palette
 │               ├── Typography.kt             # Font Style
 │               ├── Shape.kt                  # Corner Radius 등
-│               └── Theme.kt                  # AppTheme Composable
+│               └── Theme.kt                  # HilitTheme Composable
 │
 ├── catalog/                                  # Storybook-like 디자인 시스템 카탈로그
 │   └── src/

@@ -8,6 +8,7 @@ android {
 
 dependencies {
     api(project(":feature:login:api"))
+    implementation(project(":designsystem"))
     implementation(project(":domain"))
     implementation(project(":feature:main:api"))
     implementation(libs.kakao.v2.user)
