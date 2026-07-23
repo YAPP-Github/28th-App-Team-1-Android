@@ -176,6 +176,12 @@ state or callbacks and handled by `app` or `feature:*`.
 When modifying reusable UI, agents must consider whether a catalog story must be updated. If a story
 is not updated, the completion report must explain why.
 
+When a catalog story uses an `@CatalogControls` adapter, the adapter's generated `Args` and
+`Controls` declarations become available through the Catalog Wasm KSP compilation. Run
+`./gradlew :catalog:compileKotlinWasmJs` after adding the adapter when generated declarations must be
+available to the IDE. The adapter and story may also be authored together and resolved by the same
+compilation; a separate intermediate build is not mandatory.
+
 When modifying `catalog`, agents must keep it as a design system review and communication artifact.
 `catalog` must not include Android app runtime logic, real API calls, Hilt ViewModels, Android
 Lifecycle dependencies, Android Navigation, or product runtime behavior.

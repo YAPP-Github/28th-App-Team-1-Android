@@ -239,6 +239,8 @@ Catalog 전용 UI, theme, font, favicon, Web entry resource는 `catalog`가 소�
 
 `designsystem`의 실제 Composable에는 `@CatalogControls` 같은 카탈로그 전용 애너테이션을 추가하지 않는다. `catalog`가 조작할 값만 매개변수로 받는 non-local top-level `internal` 어댑터 Composable을 작성하고, 해당 어댑터에 `@CatalogControls`를 적용한다.
 
+Catalog Wasm compilation의 KSP 단계는 어댑터와 같은 package에 `${AdapterSimpleName}Args`와 `${AdapterSimpleName}Controls`를 생성한다. 이 선언은 컴파일 전에 소스에 존재하지 않으며, Story 메타데이터와 Registry는 생성 대상이 아니다.
+
 어댑터가 실제 Composable을 호출할 때는 다음 규칙을 따른다.
 
 - 실제 Composable은 positional argument가 아니라 named argument로 호출한다.
