@@ -10,6 +10,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.SemanticsPropertyKey
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithText
@@ -22,6 +24,9 @@ import type.Story
 import type.StoryGroup
 import type.StoryLeafNode
 import kotlin.test.Test
+import kotlin.test.assertEquals
+
+private val StoryThemeFontSize = SemanticsPropertyKey<Float>("StoryThemeFontSize")
 
 @OptIn(ExperimentalTestApi::class)
 class StoryPreviewTest {
@@ -74,20 +79,27 @@ class StoryPreviewTest {
                 storyLeaf(
                     id = "themed story",
                     content = {
+                        val bodyStyle = HilitTheme.typography.body10
                         Text(
                             text = "제품 Theme 적용",
-                            style = HilitTheme.typography.body10,
+                            modifier =
+                                Modifier.semantics {
+                                    this[StoryThemeFontSize] = bodyStyle.fontSize.value
+                                },
+                            style = bodyStyle,
                         )
                     },
                 )
 
             setContent {
-                MaterialTheme {
-                    StoryPreview(selectedStory = story)
-                }
+                StoryPreview(selectedStory = story)
             }
 
-            onNodeWithText("제품 Theme 적용").assertIsDisplayed()
+            val themedStory = onNodeWithText("제품 Theme 적용").assertIsDisplayed()
+            assertEquals(
+                expected = 12f,
+                actual = themedStory.fetchSemanticsNode().config[StoryThemeFontSize],
+            )
         }
 
     private fun storyLeaf(
