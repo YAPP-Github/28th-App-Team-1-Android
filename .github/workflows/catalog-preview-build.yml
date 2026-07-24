@@ -1,0 +1,228 @@
+name: Catalog Distribution Build
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+    types:
+      - opened
+      - synchronize
+      - reopened
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 배포 결과를 반영할 위치
+        required: true
+        type: choice
+        options:
+          - root
+          - preview
+          - delete-preview
+      source_ref:
+        description: root 또는 preview로 빌드할 Git ref나 commit SHA
+        required: false
+        type: string
+      pr_number:
+        description: Preview 대상 PR 번호(root에서는 비워 둠)
+        required: false
+        type: string
+
+# PR 코드를 실행하는 workflow에는 저장소 읽기 권한만 부여한다.
+permissions:
+  contents: read
+
+# 같은 PR 또는 root의 오래된 빌드를 취소하여 불필요한 Wasm 빌드를 줄인다.
+concurrency:
+  group: catalog-distribution-build-${{ github.event.pull_request.number || inputs.pr_number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build catalog distribution
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # 이벤트가 가리키는 develop commit, PR head 또는 수동 입력 ref를 읽기 전용으로 checkout한다.
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || inputs.source_ref || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      # Catalog 빌드가 사용하는 JDK를 기존 Android CI와 동일한 Java 21로 준비한다.
+      - name: Setup Java
+        if: github.event_name != 'workflow_dispatch' || inputs.target != 'delete-preview'
+        uses: actions/setup-java@v5
+        with:
+          java-version: "21"
+          distribution: temurin
+
+      # Gradle 캐시와 실행 환경을 기존 CI와 동일한 공식 Action으로 준비한다.
+      - name: Setup Gradle
+        if: github.event_name != 'workflow_dispatch' || inputs.target != 'delete-preview'
+        uses: gradle/actions/setup-gradle@v6
+
+      # Linux runner에서 Gradle Wrapper를 실행할 수 있도록 권한을 부여한다.
+      - name: Grant execute permission for Gradle
+        if: github.event_name != 'workflow_dispatch' || inputs.target != 'delete-preview'
+        run: chmod +x gradlew
+
+      # 게시 workflow가 출처와 반영 위치를 다시 검증할 수 있도록 최소 메타데이터를 만든다.
+      - name: Prepare distribution metadata
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_PR_NUMBER: ${{ github.event.pull_request.number }}
+          MANUAL_TARGET: ${{ inputs.target }}
+          MANUAL_PR_NUMBER: ${{ inputs.pr_number }}
+          MANUAL_SOURCE_REF: ${{ inputs.source_ref }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          package_dir="${RUNNER_TEMP}/catalog-package"
+          mkdir -p "$package_dir"
+
+          source_sha="$(git rev-parse HEAD)"
+          case "$EVENT_NAME" in
+            push)
+              target="root"
+              pr_number=""
+              ;;
+            pull_request)
+              target="preview"
+              pr_number="$EVENT_PR_NUMBER"
+              ;;
+            workflow_dispatch)
+              target="$MANUAL_TARGET"
+              pr_number="$MANUAL_PR_NUMBER"
+              ;;
+            *)
+              echo "::error::지원하지 않는 빌드 이벤트입니다: $EVENT_NAME"
+              exit 1
+              ;;
+          esac
+
+          if [[ "$target" != "root" && "$target" != "preview" && "$target" != "delete-preview" ]]; then
+            echo "::error::지원하지 않는 target입니다: $target"
+            exit 1
+          fi
+          if [[ "$target" != "root" && ! "$pr_number" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::Preview 작업에는 양의 정수 PR 번호가 필요합니다."
+            exit 1
+          fi
+          if [[ "$target" == "root" ]]; then
+            pr_number=""
+          fi
+          if [[ "$EVENT_NAME" == "workflow_dispatch" && "$target" != "delete-preview" && -z "$MANUAL_SOURCE_REF" ]]; then
+            echo "::error::root 또는 preview 수동 빌드에는 source_ref가 필요합니다."
+            exit 1
+          fi
+
+          jq -n \
+            --arg target "$target" \
+            --arg prNumber "$pr_number" \
+            --arg sourceSha "$source_sha" \
+            --arg repository "$REPOSITORY" \
+            --arg trigger "$EVENT_NAME" \
+            '{
+              target: $target,
+              prNumber: $prNumber,
+              sourceSha: $sourceSha,
+              repository: $repository,
+              trigger: $trigger
+            }' > "$package_dir/metadata.json"
+
+      # Compose/Wasm production distribution과 KSP 생성 코드를 함께 빌드한다.
+      - name: Build catalog distribution
+        if: github.event_name != 'workflow_dispatch' || inputs.target != 'delete-preview'
+        run: ./gradlew --stacktrace :catalog:wasmJsBrowserDistribution
+
+      # 배포에 필요한 정적 파일만 모으고, 하위 Preview 경로에서 깨질 자산을 게시 전에 차단한다.
+      - name: Package catalog distribution
+        if: github.event_name != 'workflow_dispatch' || inputs.target != 'delete-preview'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          distribution_dir="catalog/build/dist/wasmJs/productionExecutable"
+          package_dir="${RUNNER_TEMP}/catalog-package"
+          site_dir="$package_dir/site"
+
+          # HTML이 직접 참조하는 파일은 디렉터리 존재만으로 충분하지 않다. 빈 파일이나 누락된
+          # favicon이 배포된 뒤 404로 발견되지 않도록 패키징 단계에서 실제 파일까지 확인한다.
+          required_files=(
+            "$distribution_dir/index.html"
+            "$distribution_dir/catalog.js"
+            "$distribution_dir/favicons/site.webmanifest"
+            "$distribution_dir/favicons/apple-touch-icon.png"
+            "$distribution_dir/favicons/favicon-32x32.png"
+            "$distribution_dir/favicons/favicon-16x16.png"
+          )
+          for required_file in "${required_files[@]}"; do
+            if [[ ! -s "$required_file" ]]; then
+              echo "::error::필수 Catalog 배포 파일이 없거나 비어 있습니다: $required_file"
+              exit 1
+            fi
+          done
+
+          find "$distribution_dir" -maxdepth 1 -type f -name '*.wasm' -print -quit | grep -q .
+          test -d "$distribution_dir/composeResources"
+          test -d "$distribution_dir/favicons"
+
+          # Web manifest도 브라우저가 읽는 공개 입력이다. JSON 구조와 각 icon의 상대경로를
+          # 검증해 프로젝트 Pages 루트 밖을 가리키거나 존재하지 않는 파일을 참조하지 않게 한다.
+          manifest_file="$distribution_dir/favicons/site.webmanifest"
+          jq -e '
+            (.icons | type) == "array" and
+            (.icons | length) > 0 and
+            all(.icons[]; (.src | type) == "string" and (.src | length) > 0)
+          ' "$manifest_file" >/dev/null
+
+          mapfile -t manifest_icons < <(jq -r '.icons[].src' "$manifest_file")
+          for icon_path in "${manifest_icons[@]}"; do
+            if [[ "$icon_path" == /* || "$icon_path" == *'..'* || "$icon_path" == *\\* ]]; then
+              echo "::error::Web manifest icon은 favicons 내부 상대경로여야 합니다: $icon_path"
+              exit 1
+            fi
+            if [[ ! -s "$distribution_dir/favicons/$icon_path" ]]; then
+              echo "::error::Web manifest가 참조하는 icon이 없거나 비어 있습니다: $icon_path"
+              exit 1
+            fi
+          done
+
+          mkdir -p "$site_dir"
+          cp -R "$distribution_dir/." "$site_dir/"
+
+          # source map은 공개하지 않기로 한 배포 정책에 맞춰 파일과 JS의 참조 주석을 함께 제거한다.
+          # 참조만 남기면 브라우저 개발자 도구가 존재하지 않는 map을 요청해 불필요한 404를 만든다.
+          find "$site_dir" -type f -name '*.map' -delete
+          sed -i '/^\/\/# sourceMappingURL=.*$/d' "$site_dir/catalog.js"
+
+          # artifact는 이후 쓰기 권한을 가진 Publisher가 그대로 공개한다. PR artifact가 신뢰
+          # 경계를 넘어가기 전에 symlink와 Pages root 절대경로를 여기서 먼저 거부한다.
+          if find "$site_dir" -type l -print -quit | grep -q .; then
+            echo "::error::배포 산출물에는 symbolic link를 포함할 수 없습니다."
+            exit 1
+          fi
+          if grep -nE 'href="/|src="/|"src"[[:space:]]*:[[:space:]]*"/' \
+            "$site_dir/index.html" "$site_dir/favicons/site.webmanifest"; then
+            echo "::error::프로젝트 Pages에서 깨지는 root 절대 경로가 남아 있습니다."
+            exit 1
+          fi
+
+      # 실패한 빌드도 publisher가 PR 상태 댓글을 갱신할 수 있도록 메타데이터 artifact를 남긴다.
+      - name: Upload catalog distribution artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: catalog-distribution
+          path: ${{ runner.temp }}/catalog-package
+          if-no-files-found: error
+          retention-days: 1
