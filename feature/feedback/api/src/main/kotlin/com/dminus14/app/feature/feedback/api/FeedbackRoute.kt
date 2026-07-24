@@ -1,4 +1,4 @@
-package com.dminus14.app.feature.login.api
+package com.dminus14.app.feature.feedback.api
 
 object FeedbackOnboarding
 
