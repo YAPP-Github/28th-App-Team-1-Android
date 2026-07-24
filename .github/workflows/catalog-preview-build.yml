@@ -55,6 +55,21 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      # 저장소의 공통 CI 설정을 Gradle이 읽을 수 있도록 비밀값을 로컬 설정 파일로 복원한다.
+      # 값을 명령문에 직접 넣지 않고 환경변수로 전달해 특수문자나 여러 줄 설정도 그대로 보존한다.
+      - name: Prepare local properties
+        if: github.event_name != 'workflow_dispatch' || inputs.target != 'delete-preview'
+        shell: bash
+        env:
+          LOCAL_PROPERTIES_CI: ${{ secrets.LOCAL_PROPERTIES_CI }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$LOCAL_PROPERTIES_CI" ]]; then
+            echo "::error::저장소 비밀 LOCAL_PROPERTIES_CI가 설정되지 않았습니다."
+            exit 1
+          fi
+          printf '%s' "$LOCAL_PROPERTIES_CI" > local.properties
+
       # Catalog 빌드가 사용하는 JDK를 기존 Android CI와 동일한 Java 21로 준비한다.
       - name: Setup Java
         if: github.event_name != 'workflow_dispatch' || inputs.target != 'delete-preview'
