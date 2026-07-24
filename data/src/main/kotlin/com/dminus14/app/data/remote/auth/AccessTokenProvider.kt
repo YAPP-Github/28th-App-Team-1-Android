@@ -3,9 +3,9 @@ package com.dminus14.app.data.remote.auth
 import com.dminus14.app.core.crypto.CryptoManager
 import com.dminus14.app.data.local.DataStoreKeys
 import com.dminus14.app.data.local.datasource.LocalDataSource
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.runBlocking
 
 /**
  * OkHttp Interceptor용 동기 AccessToken 제공자.
@@ -26,17 +26,15 @@ class AccessTokenProvider
         @Volatile
         private var cachedToken: String? = null
 
-        fun get(): String? {
-            cachedToken?.let { return it }
-            synchronized(lock) {
-                cachedToken?.let { return it }
-                val token = runBlocking { readDecryptedAccessToken() }
-                if (token != null) {
-                    cachedToken = token
-                }
-                return token
+        fun get(): String? =
+            cachedToken ?: synchronized(lock) {
+                cachedToken ?: runBlocking { readDecryptedAccessToken() }
+                    .also { token ->
+                        if (token != null) {
+                            cachedToken = token
+                        }
+                    }
             }
-        }
 
         fun set(token: String) {
             synchronized(lock) {
