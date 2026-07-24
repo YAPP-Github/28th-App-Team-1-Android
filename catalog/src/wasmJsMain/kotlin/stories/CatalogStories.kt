@@ -1,7 +1,7 @@
 package stories
 
-import stories.components.ButtonStories
-import stories.components.ModalStories
+import stories.components.designsystem.dminusmodal.ModalStories
+import stories.components.designsystem.samplebutton.ButtonStories
 import stories.foundations.ColorStories
 import stories.foundations.TypographyStories
 import type.StoryGroup

@@ -38,6 +38,7 @@ internal fun CatalogSidebar(
             Modifier
                 .width(280.dp)
                 .fillMaxHeight(),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
         tonalElevation = 2.dp,
     ) {
         Column(
