@@ -66,6 +66,9 @@ object NetworkModule {
      * `TokenAuthenticator`는 재발급 시 `SessionRepository` → `AuthRemoteDataSource` → `AuthApi`를
      * 다시 호출하므로, `AuthApi`가 [DefaultOkHttpClient]([TokenAuthenticator] 포함)를 사용하면
      * DI 순환 참조가 발생한다. 이를 피하기 위해 `TokenAuthenticator`가 붙지 않은 별도 클라이언트를 둔다.
+     *
+     * 요청 바디에 `credential` / `refreshToken`이 포함되므로 debug에서도 BODY 로그를 쓰지 않고
+     * HEADERS 수준(`createForUpload`)으로 제한한다.
      */
     @Provides
     @Singleton
@@ -73,7 +76,7 @@ object NetworkModule {
     fun provideAuthOkHttpClient(): OkHttpClient =
         OkHttpClient
             .Builder()
-            .addInterceptor(OkHttpLoggingInterceptorFactory.create())
+            .addInterceptor(OkHttpLoggingInterceptorFactory.createForUpload())
             .connectTimeout(NetworkConfig.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(NetworkConfig.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .writeTimeout(NetworkConfig.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
