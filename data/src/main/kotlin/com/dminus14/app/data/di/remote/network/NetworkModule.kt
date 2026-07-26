@@ -3,6 +3,7 @@ package com.dminus14.app.data.di.remote.network
 import com.dminus14.app.data.remote.api.AuthApi
 import com.dminus14.app.data.remote.config.NetworkConfig
 import com.dminus14.app.data.remote.interceptor.InsertAuthorizationInterceptor
+import com.dminus14.app.data.remote.interceptor.InsertInstallationIdInterceptor
 import com.dminus14.app.data.remote.interceptor.OkHttpLoggingInterceptorFactory
 import dagger.Module
 import dagger.Provides
@@ -27,10 +28,12 @@ object NetworkModule {
     @DefaultOkHttpClient
     fun provideOkHttpClient(
         insertAuthorizationInterceptor: InsertAuthorizationInterceptor,
+        insertInstallationIdInterceptor: InsertInstallationIdInterceptor,
     ): OkHttpClient =
         OkHttpClient
             .Builder()
             .addInterceptor(insertAuthorizationInterceptor)
+            .addInterceptor(insertInstallationIdInterceptor)
             .addInterceptor(OkHttpLoggingInterceptorFactory.create())
             .connectTimeout(NetworkConfig.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(NetworkConfig.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)

@@ -2,6 +2,8 @@ package com.dminus14.app.data.di.local
 
 import com.dminus14.app.data.local.datasource.LocalDataSource
 import com.dminus14.app.data.local.datasource.LocalDataSourceImpl
+import com.dminus14.app.data.local.installation.InstallationIdStore
+import com.dminus14.app.data.local.installation.PreferencesInstallationIdStore
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -14,4 +16,8 @@ abstract class LocalDataSourceModule {
     @Binds
     @Singleton
     abstract fun bindLocalDataSource(impl: LocalDataSourceImpl): LocalDataSource
+
+    @Binds
+    @Singleton
+    abstract fun bindInstallationIdStore(impl: PreferencesInstallationIdStore): InstallationIdStore
 }

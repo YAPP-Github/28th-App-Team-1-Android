@@ -5,23 +5,29 @@ import okhttp3.Interceptor
 import okhttp3.logging.HttpLoggingInterceptor
 
 internal object OkHttpLoggingInterceptorFactory {
-    fun create(): Interceptor =
-        HttpLoggingInterceptor().apply {
+    fun create(
+        logger: HttpLoggingInterceptor.Logger = HttpLoggingInterceptor.Logger.DEFAULT,
+    ): Interceptor = createInterceptor(logger, HttpLoggingInterceptor.Level.BODY)
+
+    fun createForUpload(
+        logger: HttpLoggingInterceptor.Logger = HttpLoggingInterceptor.Logger.DEFAULT,
+    ): Interceptor = createInterceptor(logger, HttpLoggingInterceptor.Level.HEADERS)
+
+    private fun createInterceptor(
+        logger: HttpLoggingInterceptor.Logger,
+        debugLevel: HttpLoggingInterceptor.Level,
+    ): Interceptor =
+        HttpLoggingInterceptor(logger).apply {
+            redactHeader(HEADER_AUTHORIZATION)
+            redactHeader(HEADER_DEVICE_ID)
             level =
                 if (BuildConfig.DEBUG) {
-                    HttpLoggingInterceptor.Level.BODY
+                    debugLevel
                 } else {
                     HttpLoggingInterceptor.Level.NONE
                 }
         }
 
-    fun createForUpload(): Interceptor =
-        HttpLoggingInterceptor().apply {
-            level =
-                if (BuildConfig.DEBUG) {
-                    HttpLoggingInterceptor.Level.HEADERS
-                } else {
-                    HttpLoggingInterceptor.Level.NONE
-                }
-        }
+    private const val HEADER_AUTHORIZATION = "Authorization"
+    private const val HEADER_DEVICE_ID = "Device-Id"
 }
