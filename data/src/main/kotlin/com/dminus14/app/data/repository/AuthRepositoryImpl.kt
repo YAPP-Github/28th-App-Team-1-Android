@@ -28,13 +28,17 @@ class AuthRepositoryImpl
                 try {
                     authRemoteDataSource.loginWithKakao(credential)
                 } catch (error: IOException) {
-                    throw NetworkUnavailableException(cause = error)
+                    throw NetworkUnavailableException(
+                        errCode = ApiErrorCode.NETWORK_UNAVAILABLE,
+                        cause = error,
+                    )
                 } catch (error: HttpException) {
                     val apiError = ApiErrorBodyParser.parse(error)
                     val message = apiError?.message.orEmpty()
                     when (apiError?.code) {
                         ApiErrorCode.INVALID_CREDENTIAL -> {
                             throw InvalidCredentialException(
+                                errCode = ApiErrorCode.INVALID_CREDENTIAL,
                                 message = message.ifBlank { "유효하지 않은 인증 정보입니다." },
                                 cause = error,
                             )
@@ -42,6 +46,7 @@ class AuthRepositoryImpl
 
                         ApiErrorCode.SOCIAL_LOGIN_FAILED -> {
                             throw SocialLoginFailedException(
+                                errCode = ApiErrorCode.SOCIAL_LOGIN_FAILED,
                                 message = message.ifBlank { "소셜 로그인에 실패했습니다." },
                                 cause = error,
                             )
@@ -49,9 +54,16 @@ class AuthRepositoryImpl
 
                         else -> {
                             when (error.code()) {
-                                in HTTP_SERVER_ERROR_RANGE -> throw ServerException(cause = error)
+                                in HTTP_SERVER_ERROR_RANGE -> {
+                                    throw ServerException(
+                                        errCode = apiError?.code ?: ApiErrorCode.SERVER_ERROR,
+                                        cause = error,
+                                    )
+                                }
+
                                 else -> {
                                     throw UnknownException(
+                                        errCode = apiError?.code ?: ApiErrorCode.UNKNOWN,
                                         message = message.ifBlank { "알 수 없는 오류가 발생했습니다." },
                                         cause = error,
                                     )
@@ -61,6 +73,7 @@ class AuthRepositoryImpl
                     }
                 } catch (error: IllegalStateException) {
                     throw UnknownException(
+                        errCode = ApiErrorCode.UNKNOWN,
                         message = error.message ?: "알 수 없는 오류가 발생했습니다.",
                         cause = error,
                     )
