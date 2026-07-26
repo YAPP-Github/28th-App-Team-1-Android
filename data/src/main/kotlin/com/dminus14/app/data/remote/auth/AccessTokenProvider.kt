@@ -26,17 +26,15 @@ class AccessTokenProvider
         @Volatile
         private var cachedToken: String? = null
 
-        fun get(): String? {
-            cachedToken?.let { return it }
-            synchronized(lock) {
-                cachedToken?.let { return it }
-                val token = runBlocking { readDecryptedAccessToken() }
-                if (token != null) {
-                    cachedToken = token
-                }
-                return token
+        fun get(): String? =
+            cachedToken ?: synchronized(lock) {
+                cachedToken ?: runBlocking { readDecryptedAccessToken() }
+                    .also { token ->
+                        if (token != null) {
+                            cachedToken = token
+                        }
+                    }
             }
-        }
 
         fun set(token: String) {
             synchronized(lock) {

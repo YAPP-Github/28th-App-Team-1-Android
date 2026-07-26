@@ -184,6 +184,27 @@ Android 의존성을 포함하지 않는다.
 공유 font, drawable, string 등 Compose Multiplatform 리소스 원본은 `core:resources`가 소유한다.
 `designsystem`은 공개된 Compose Resources 접근자를 통해 해당 리소스를 소비하며, Android 전용 resource API를 사용하지 않는다.
 
+#### 공용 아이콘 추가 절차
+
+앱과 Feature에서 공용으로 사용할 아이콘은 리소스 원본, 디자인 시스템 API와 Catalog 검수 화면이
+누락되지 않도록 다음 작업을 같은 변경 단위에서 완료한다.
+
+1. 아이콘 원본은 래스터 이미지가 아니라 SVG 벡터 형식으로 준비한다.
+2. SVG 파일을
+   `core/resources/src/commonMain/composeResources/drawable/`에 추가한다. 공용 리소스 원본을
+   `designsystem`이나 `catalog`에 복사해서 중복 소유하지 않는다.
+3. `designsystem/src/commonMain/kotlin/com/dminus14/designsystem/component/icon/HilitIcon.kt`의
+   `HilitIconAsset` 열거형에 생성된 `Res.drawable` 접근자와 리소스 이름을 사용하는 항목을
+   추가한다. 앱과 Feature는 공용 아이콘을 표시할 때 이 열거형과 `HilitIcon` Composable을
+   사용한다.
+4. `catalog/src/wasmJsMain/kotlin/stories/foundations/IconStories.kt`의 전체 아이콘 Story에서 새
+   항목이 표시되는지 확인한다. 현재 Story는 `HilitIconAsset.entries`를 순회하므로 열거형 항목이
+   자동으로 포함되지만, Story의 목록 구성 방식이 변경되면 새 아이콘을 명시적으로 추가해야
+   한다. Icon Story가 `CatalogStories` Registry에 등록된 상태도 유지한다.
+
+`catalog`는 `core:resources`에 직접 의존하지 않는다. Icon Story는 리소스 접근자를 직접
+사용하지 않고 `designsystem`의 `HilitIconAsset`과 `HilitIcon`을 통해 아이콘을 렌더링한다.
+
 #### 제품 Theme 계약
 
 `:designsystem`은 제품 컬러와 타이포그래피를 다음 타입과 진입점으로 제공한다.

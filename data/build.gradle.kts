@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.dminus14.android.datastore)
     alias(libs.plugins.dminus14.android.test)
     alias(libs.plugins.dminus14.android.lint)
+    alias(libs.plugins.dminus14.android.quality)
 }
 
 val localProperties =
@@ -17,8 +18,9 @@ val localProperties =
         }
     }
 
-val serverUrl = localProperties.getProperty("SERVER_URL")
-    ?: throw GradleException("SERVER_URL is required in local.properties")
+val serverUrl =
+    localProperties.getProperty("SERVER_URL")
+        ?: throw GradleException("SERVER_URL is required in local.properties")
 
 android {
     namespace = "com.dminus14.app.data"
