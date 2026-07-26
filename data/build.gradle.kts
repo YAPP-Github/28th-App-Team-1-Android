@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.dminus14.android.hilt)
     alias(libs.plugins.dminus14.android.network)
     alias(libs.plugins.dminus14.android.datastore)
+    alias(libs.plugins.dminus14.android.test)
     alias(libs.plugins.dminus14.android.lint)
 }
 
@@ -29,9 +30,15 @@ android {
     defaultConfig {
         buildConfigField("String", "SERVER_URL", "\"$serverUrl\"")
     }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
     implementation(project(":domain"))
     implementation(project(":core:crypto"))
+
+    testImplementation(libs.okhttp.mockwebserver)
 }
