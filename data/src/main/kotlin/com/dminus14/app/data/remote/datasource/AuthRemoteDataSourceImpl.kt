@@ -22,14 +22,12 @@ class AuthRemoteDataSourceImpl
                         credential = credential,
                     ),
                 )
-            return response.data
-                ?: throw IllegalStateException("로그인 응답에 토큰이 없습니다.")
+            return response.data ?: error("로그인 응답에 토큰이 없습니다.")
         }
 
         override suspend fun refreshToken(refreshToken: String): TokenRefreshResponseDto {
             val response = authApi.refreshToken(TokenRefreshRequestDto(refreshToken = refreshToken))
-            return response.data
-                ?: throw IllegalStateException("토큰 재발급 응답에 토큰이 없습니다.")
+            return response.data ?: error("토큰 재발급 응답에 토큰이 없습니다.")
         }
 
         private companion object {

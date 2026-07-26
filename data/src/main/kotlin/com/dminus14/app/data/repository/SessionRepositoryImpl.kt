@@ -8,6 +8,7 @@ import com.dminus14.app.data.remote.auth.AccessTokenProvider
 import com.dminus14.app.data.remote.datasource.AuthRemoteDataSource
 import com.dminus14.app.data.remote.mapper.ApiErrorBodyParser
 import com.dminus14.app.data.remote.mapper.ApiErrorCode
+import com.dminus14.app.domain.exception.CustomException
 import com.dminus14.app.domain.exception.NetworkUnavailableException
 import com.dminus14.app.domain.exception.ServerException
 import com.dminus14.app.domain.exception.SessionException
@@ -58,67 +59,83 @@ class SessionRepositoryImpl
 
         override suspend fun refreshToken(refreshToken: String): AuthSession {
             val response =
-                try {
-                    authRemoteDataSource.refreshToken(refreshToken)
-                } catch (error: IOException) {
-                    throw NetworkUnavailableException(
+                runCatching { authRemoteDataSource.refreshToken(refreshToken) }
+                    .getOrElse { error -> throw mapRefreshFailure(error) }
+
+            return saveAuthSession(
+                accessToken = response.accessToken,
+                refreshToken = response.refreshToken,
+            )
+        }
+
+        private fun mapRefreshFailure(error: Throwable): Throwable =
+            when (error) {
+                is IOException -> {
+                    NetworkUnavailableException(
                         errCode = ApiErrorCode.NETWORK_UNAVAILABLE,
                         cause = error,
                     )
-                } catch (error: HttpException) {
-                    val apiError = ApiErrorBodyParser.parse(error)
-                    val message = apiError?.message.orEmpty()
-                    when (apiError?.code) {
-                        ApiErrorCode.LOGIN_EXPIRED -> {
-                            throw SessionException(
-                                errCode = ApiErrorCode.LOGIN_EXPIRED,
-                                message =
-                                    message.ifBlank {
-                                        "로그인 세션이 만료되었습니다. 다시 로그인해 주세요."
-                                    },
-                                cause = error,
-                            )
-                        }
+                }
 
-                        ApiErrorCode.VALIDATION_ERROR -> {
-                            throw ValidationException(
-                                errCode = ApiErrorCode.VALIDATION_ERROR,
-                                message = message.ifBlank { "요청 값이 올바르지 않습니다." },
-                                cause = error,
-                            )
-                        }
+                is HttpException -> {
+                    toRefreshException(error)
+                }
 
-                        else -> {
-                            when (error.code()) {
-                                in HTTP_SERVER_ERROR_RANGE -> {
-                                    throw ServerException(
-                                        errCode = apiError?.code ?: ApiErrorCode.SERVER_ERROR,
-                                        cause = error,
-                                    )
-                                }
-
-                                else -> {
-                                    throw UnknownException(
-                                        errCode = apiError?.code ?: ApiErrorCode.UNKNOWN,
-                                        message = message.ifBlank { "알 수 없는 오류가 발생했습니다." },
-                                        cause = error,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                } catch (error: IllegalStateException) {
-                    throw UnknownException(
+                is IllegalStateException -> {
+                    UnknownException(
                         errCode = ApiErrorCode.UNKNOWN,
                         message = error.message ?: "알 수 없는 오류가 발생했습니다.",
                         cause = error,
                     )
                 }
 
-            return saveAuthSession(
-                accessToken = response.accessToken,
-                refreshToken = response.refreshToken,
-            )
+                else -> {
+                    error
+                }
+            }
+
+        private fun toRefreshException(error: HttpException): CustomException {
+            val apiError = ApiErrorBodyParser.parse(error)
+            val message = apiError?.message.orEmpty()
+            return when (apiError?.code) {
+                ApiErrorCode.LOGIN_EXPIRED -> {
+                    SessionException(
+                        errCode = ApiErrorCode.LOGIN_EXPIRED,
+                        message =
+                            message.ifBlank {
+                                "로그인 세션이 만료되었습니다. 다시 로그인해 주세요."
+                            },
+                        cause = error,
+                    )
+                }
+
+                ApiErrorCode.VALIDATION_ERROR -> {
+                    ValidationException(
+                        errCode = ApiErrorCode.VALIDATION_ERROR,
+                        message = message.ifBlank { "요청 값이 올바르지 않습니다." },
+                        cause = error,
+                    )
+                }
+
+                else -> {
+                    when (error.code()) {
+                        in HTTP_SERVER_ERROR_RANGE -> {
+                            ServerException(
+                                errCode = apiError?.code ?: ApiErrorCode.SERVER_ERROR,
+                                cause = error,
+                            )
+                        }
+
+                        else -> {
+                            UnknownException(
+                                errCode = apiError?.code ?: ApiErrorCode.UNKNOWN,
+                                message = message.ifBlank { "알 수 없는 오류가 발생했습니다." },
+                                cause = error,
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         override suspend fun saveAuthSession(

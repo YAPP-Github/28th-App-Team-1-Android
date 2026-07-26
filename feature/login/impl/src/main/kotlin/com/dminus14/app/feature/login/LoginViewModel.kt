@@ -31,7 +31,9 @@ class LoginViewModel
 
         fun onIntent(intent: LoginIntent) {
             when (intent) {
-                LoginIntent.CheckSession -> checkSession()
+                LoginIntent.CheckSession -> {
+                    checkSession()
+                }
 
                 LoginIntent.ClickKakaoLogin -> {
                     reduce { copy(isLoading = true, errorMessage = null) }

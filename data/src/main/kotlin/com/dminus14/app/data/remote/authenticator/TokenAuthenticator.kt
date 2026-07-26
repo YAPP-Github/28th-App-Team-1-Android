@@ -53,13 +53,10 @@ class TokenAuthenticator
          * ([ApiErrorCode.TOKEN_EXPIRED] / [ApiErrorCode.INVALID_TOKEN])일 때만 재발급을 시도한다.
          * 파싱 실패·미인식 코드를 포함한 그 외 401은 상위 에러 처리로 넘긴다.
          */
-        private fun shouldAttemptRefresh(response: Response): Boolean {
-            if (response.code != HttpURLConnection.HTTP_UNAUTHORIZED) return false
-            if (responseCount(response) >= MAX_RETRY_COUNT) return false
-
-            val errorCode = ApiErrorBodyParser.parse(response)?.code
-            return ApiErrorCode.requiresTokenRefresh(errorCode)
-        }
+        private fun shouldAttemptRefresh(response: Response): Boolean =
+            response.code == HttpURLConnection.HTTP_UNAUTHORIZED &&
+                responseCount(response) < MAX_RETRY_COUNT &&
+                ApiErrorCode.requiresTokenRefresh(ApiErrorBodyParser.parse(response)?.code)
 
         private fun refreshAndRetry(response: Response): Request? {
             val usedAccessToken =
