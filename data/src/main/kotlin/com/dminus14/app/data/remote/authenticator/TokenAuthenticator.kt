@@ -51,20 +51,14 @@ class TokenAuthenticator
         /**
          * 401이면서 재시도 한도 이내이고, 에러 코드가 재발급 대상
          * ([ApiErrorCode.TOKEN_EXPIRED] / [ApiErrorCode.INVALID_TOKEN])일 때만 재발급을 시도한다.
-         * 바디 파싱에 실패한 경우에도 Bearer 토큰이 있었던 401은 재발급을 시도한다.
+         * 파싱 실패·미인식 코드를 포함한 그 외 401은 상위 에러 처리로 넘긴다.
          */
         private fun shouldAttemptRefresh(response: Response): Boolean {
             if (response.code != HttpURLConnection.HTTP_UNAUTHORIZED) return false
             if (responseCount(response) >= MAX_RETRY_COUNT) return false
 
             val errorCode = ApiErrorBodyParser.parse(response)?.code
-            if (ApiErrorCode.requiresTokenRefresh(errorCode)) return true
-
-            val hasBearer =
-                response.request
-                    .header(HEADER_AUTHORIZATION)
-                    ?.startsWith(BEARER_PREFIX) == true
-            return errorCode == null && hasBearer
+            return ApiErrorCode.requiresTokenRefresh(errorCode)
         }
 
         private fun refreshAndRetry(response: Response): Request? {

@@ -176,50 +176,19 @@ class TokenAuthenticatorTest {
     }
 
     @Test
-    fun `에러 코드 파싱 실패여도 Bearer가 있으면 refresh한다`() {
+    fun `에러 코드가 null이거나 파싱 실패면 Bearer가 있어도 refresh하지 않는다`() {
         val sessionRepository =
             FakeSessionRepository(
                 session = AuthSession(accessToken = OLD_ACCESS_TOKEN, refreshToken = REFRESH_TOKEN),
-                refreshedSession =
-                    AuthSession(
-                        accessToken = NEW_ACCESS_TOKEN,
-                        refreshToken = NEW_REFRESH_TOKEN,
-                    ),
             )
         val client = createClient(sessionRepository)
 
         MockWebServer().use { server ->
             server.enqueue(MockResponse().setResponseCode(401).setBody("not-json"))
-            server.enqueue(MockResponse().setResponseCode(204))
 
             client
                 .newCall(authorizedRequest(server.url("/unparseable-body").toString()))
                 .execute()
-                .use { response -> assertEquals(204, response.code) }
-
-            assertEquals(2, server.requestCount)
-            assertEquals(1, sessionRepository.refreshCount)
-        }
-    }
-
-    @Test
-    fun `에러 코드 파싱 실패이고 Bearer가 없으면 refresh하지 않는다`() {
-        val sessionRepository =
-            FakeSessionRepository(
-                session = AuthSession(accessToken = OLD_ACCESS_TOKEN, refreshToken = REFRESH_TOKEN),
-            )
-        val client = createClient(sessionRepository)
-
-        MockWebServer().use { server ->
-            server.enqueue(MockResponse().setResponseCode(401).setBody("not-json"))
-
-            client
-                .newCall(
-                    Request
-                        .Builder()
-                        .url(server.url("/no-bearer").toString())
-                        .build(),
-                ).execute()
                 .use { response -> assertEquals(401, response.code) }
 
             assertEquals(1, server.requestCount)
