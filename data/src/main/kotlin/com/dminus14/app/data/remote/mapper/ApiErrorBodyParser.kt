@@ -33,9 +33,5 @@ internal object ApiErrorBodyParser {
             }
         }.getOrNull()
 
-    /** Refresh API 401 — RefreshToken 만료/무효로 재로그인 필요. */
-    fun isLoginExpired(error: HttpException): Boolean =
-        parse(error)?.code == ApiErrorCode.LOGIN_EXPIRED
-
     private const val MAX_PEEK_BYTES = 64L * 1024
 }

@@ -2,7 +2,7 @@ package com.dminus14.app.feature.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.dminus14.app.domain.exception.SocialLoginException
+import com.dminus14.app.domain.exception.CustomException
 import com.dminus14.app.domain.usecase.GetAuthSessionUseCase
 import com.dminus14.app.domain.usecase.LoginWithKakaoUseCase
 import com.dminus14.app.feature.login.kakao.KakaoLoginException
@@ -82,7 +82,7 @@ class LoginViewModel
                 }
 
                 is KakaoLoginException,
-                is SocialLoginException,
+                is CustomException,
                 -> {
                     reduce {
                         copy(

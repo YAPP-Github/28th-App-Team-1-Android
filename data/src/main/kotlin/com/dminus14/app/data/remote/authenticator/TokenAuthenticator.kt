@@ -3,7 +3,7 @@ package com.dminus14.app.data.remote.authenticator
 import android.util.Log
 import com.dminus14.app.data.remote.mapper.ApiErrorBodyParser
 import com.dminus14.app.data.remote.mapper.ApiErrorCode
-import com.dminus14.app.domain.exception.LoginExpiredException
+import com.dminus14.app.domain.exception.SessionException
 import com.dminus14.app.domain.repository.SessionRepository
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
@@ -84,7 +84,7 @@ class TokenAuthenticator
                     val refreshedSession =
                         runCatching { sessionRepository.refreshToken(currentSession.refreshToken) }
                             .getOrElse { error ->
-                                if (error is LoginExpiredException) {
+                                if (error is SessionException) {
                                     sessionRepository.clearAuthSession()
                                     // TODO(session): 로그인 화면으로 이동 처리
                                     // 로그인 세션 만료를 앱 전역에 알릴 이벤트/네비게이션 연동이 필요하지만

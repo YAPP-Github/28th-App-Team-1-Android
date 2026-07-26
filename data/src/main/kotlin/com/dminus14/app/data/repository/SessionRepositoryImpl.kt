@@ -6,8 +6,17 @@ import com.dminus14.app.data.local.datasource.LocalDataSource
 import com.dminus14.app.data.local.datasource.PreferenceEdit
 import com.dminus14.app.data.remote.auth.AccessTokenProvider
 import com.dminus14.app.data.remote.datasource.AuthRemoteDataSource
+import com.dminus14.app.data.remote.mapper.ApiErrorBodyParser
+import com.dminus14.app.data.remote.mapper.ApiErrorCode
+import com.dminus14.app.domain.exception.NetworkUnavailableException
+import com.dminus14.app.domain.exception.ServerException
+import com.dminus14.app.domain.exception.SessionException
+import com.dminus14.app.domain.exception.UnknownException
+import com.dminus14.app.domain.exception.ValidationException
 import com.dminus14.app.domain.model.AuthSession
 import com.dminus14.app.domain.repository.SessionRepository
+import retrofit2.HttpException
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -47,7 +56,51 @@ class SessionRepositoryImpl
         }
 
         override suspend fun refreshToken(refreshToken: String): AuthSession {
-            val response = authRemoteDataSource.refreshToken(refreshToken)
+            val response =
+                try {
+                    authRemoteDataSource.refreshToken(refreshToken)
+                } catch (error: IOException) {
+                    throw NetworkUnavailableException(cause = error)
+                } catch (error: HttpException) {
+                    val apiError = ApiErrorBodyParser.parse(error)
+                    val message = apiError?.message.orEmpty()
+                    when (apiError?.code) {
+                        ApiErrorCode.LOGIN_EXPIRED -> {
+                            throw SessionException(
+                                message =
+                                    message.ifBlank {
+                                        "로그인 세션이 만료되었습니다. 다시 로그인해 주세요."
+                                    },
+                                cause = error,
+                            )
+                        }
+
+                        ApiErrorCode.VALIDATION_ERROR -> {
+                            throw ValidationException(
+                                message = message.ifBlank { "요청 값이 올바르지 않습니다." },
+                                cause = error,
+                            )
+                        }
+
+                        else -> {
+                            when (error.code()) {
+                                in HTTP_SERVER_ERROR_RANGE -> throw ServerException(cause = error)
+                                else -> {
+                                    throw UnknownException(
+                                        message = message.ifBlank { "알 수 없는 오류가 발생했습니다." },
+                                        cause = error,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                } catch (error: IllegalStateException) {
+                    throw UnknownException(
+                        message = error.message ?: "알 수 없는 오류가 발생했습니다.",
+                        cause = error,
+                    )
+                }
+
             return saveAuthSession(
                 accessToken = response.accessToken,
                 refreshToken = response.refreshToken,
@@ -85,5 +138,9 @@ class SessionRepositoryImpl
                 ),
             )
             accessTokenProvider.clear()
+        }
+
+        private companion object {
+            val HTTP_SERVER_ERROR_RANGE = 500..599
         }
     }
