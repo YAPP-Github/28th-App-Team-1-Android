@@ -1,4 +1,4 @@
-package stories.components
+package stories.components.designsystem.samplebutton
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -18,10 +18,12 @@ internal val ButtonStories =
                     title = "기본",
                     description = "기본 SampleButton 상태.",
                 ) {
-                    SampleButton(
-                        text = "샘플 버튼",
-                        enabled = true,
-                        onClick = {},
+                    SampleButtonCatalogAdapterControls(
+                        initialArgs =
+                            SampleButtonCatalogAdapterArgs(
+                                text = "샘플 버튼",
+                                enabled = true,
+                            ),
                     )
                 },
                 Story(
@@ -29,10 +31,12 @@ internal val ButtonStories =
                     title = "비활성화",
                     description = "비활성화된 SampleButton 상태.",
                 ) {
-                    SampleButton(
-                        text = "샘플 버튼",
-                        enabled = false,
-                        onClick = {},
+                    SampleButtonCatalogAdapterControls(
+                        initialArgs =
+                            SampleButtonCatalogAdapterArgs(
+                                text = "샘플 버튼",
+                                enabled = false,
+                            ),
                     )
                 },
                 Story(

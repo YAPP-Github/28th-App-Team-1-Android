@@ -177,11 +177,31 @@ state or callbacks and handled by `app` or `feature:*`.
 When modifying reusable UI, agents must consider whether a catalog story must be updated. If a story
 is not updated, the completion report must explain why.
 
+When a catalog story uses an `@CatalogControls` adapter, the adapter's generated `Args` and
+`Controls` declarations become available through the Catalog Wasm KSP compilation. Run
+`./gradlew :catalog:compileKotlinWasmJs` after adding the adapter when generated declarations must be
+available to the IDE. The adapter and story may also be authored together and resolved by the same
+compilation; a separate intermediate build is not mandatory.
+
 When modifying `catalog`, agents must keep it as a design system review and communication artifact.
 `catalog` must not include Android app runtime logic, real API calls, Hilt ViewModels, Android
 Lifecycle dependencies, Android Navigation, or product runtime behavior.
 
 Catalog stories must use `designsystem` components or Android-independent `Content`-level UI.
+
+When changing product colors, typography, Theme, shared fonts, or Foundation Stories, agents must
+follow the product Theme contract in `docs/ARCHITECTURE.md`.
+
+Agents must not reinterpret product tokens as Material `ColorScheme` or `Typography` roles, add a
+dark product theme, or enable Android dynamic colors unless the user explicitly requests and
+approves that design change. When a component specification does not identify which product token
+to use, agents must stop and request clarification instead of choosing a token by appearance.
+
+The app root, previews, and catalog Story content must use `HilitTheme`. The catalog shell must
+retain its catalog-only Theme and resources; only Story content is rendered inside `HilitTheme`.
+
+When product color or typography tokens change, agents must update the matching Color or Typography
+Foundation Story. If a Foundation Story is not updated, the completion report must explain why.
 
 ### 5.5 Error handling rules
 

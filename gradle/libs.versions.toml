@@ -47,6 +47,8 @@ slack-compose-lint = "1.5.2"
 # Compose Multiplatform
 compose-multiplatform = "1.11.1"
 compose-material3 = "1.9.0"
+kotlinpoet = "2.3.0"
+kctfork = "0.12.1"
 
 [libraries]
 # Default
@@ -105,6 +107,9 @@ javax-inject = { group = "javax.inject", name = "javax.inject", version.ref = "j
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 ksp-gradle-plugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
+ksp-symbol-processing-api = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version.ref = "ksp" }
+kotlinpoet-ksp = { group = "com.squareup", name = "kotlinpoet-ksp", version.ref = "kotlinpoet" }
+kctfork-ksp = { group = "dev.zacsweers.kctfork", name = "ksp", version.ref = "kctfork" }
 hilt-gradle-plugin = { group = "com.google.dagger", name = "hilt-android-gradle-plugin", version.ref = "hilt" }
 kotlin-gradle-plugin-api = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin-api", version.ref = "kotlin" }
 compose-gradle-plugin = { group = "org.jetbrains.compose", name = "compose-gradle-plugin", version.ref = "compose-multiplatform" }
@@ -118,6 +123,7 @@ spotless-gradle-plugin = { group = "com.diffplug.spotless", name = "spotless-plu
 compose-runtime = { group = "org.jetbrains.compose.runtime", name = "runtime", version.ref = "compose-multiplatform" }
 compose-foundation = { group = "org.jetbrains.compose.foundation", name = "foundation", version.ref = "compose-multiplatform" }
 compose-ui = { group = "org.jetbrains.compose.ui", name = "ui", version.ref = "compose-multiplatform" }
+compose-ui-test = { group = "org.jetbrains.compose.ui", name = "ui-test", version.ref = "compose-multiplatform" }
 compose-ui-tooling = { group = "org.jetbrains.compose.ui", name = "ui-tooling", version.ref = "compose-multiplatform" }
 compose-ui-tooling-preview = { group = "org.jetbrains.compose.ui", name = "ui-tooling-preview", version.ref = "compose-multiplatform" }
 compose-material3 = { group = "org.jetbrains.compose.material3", name = "material3", version.ref = "compose-material3" }
@@ -159,6 +165,7 @@ dminus14-android-room = { id = "dminus14.android.room" }
 dminus14-android-network = { id = "dminus14.android.network" }
 dminus14-android-datastore = { id = "dminus14.android.datastore" }
 dminus14-jvm-library = { id = "dminus14.jvm.library" }
+dminus14-kotlin-multiplatform-library = { id = "dminus14.kotlin.multiplatform.library" }
 dminus14-kotlin-quality = { id = "dminus14.kotlin.quality" }
 dminus14-android-lint = { id = "dminus14.android.lint" }
 dminus14-android-compose-lint = { id = "dminus14.android.compose.lint" }

@@ -27,6 +27,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dminus14.app.feature.login.kakao.KakaoLoginClient
 import com.dminus14.app.feature.main.api.MainHome
+import com.dminus14.designsystem.theme.HilitTheme
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -153,7 +154,7 @@ interface KakaoLoginClientEntryPoint {
 @Preview(showBackground = true)
 @Composable
 private fun LoginContentPreview() {
-    MaterialTheme {
+    HilitTheme {
         LoginContent(
             state = LoginState(isCheckingSession = false),
             onKakaoLoginClick = {},

@@ -45,6 +45,23 @@ internal fun Project.configureKotlinMultiplatformWasmBrowserLibrary(
 }
 
 /**
+ * Compose와 Android 없이 사용하는 Kotlin Multiplatform Library target을 구성한다.
+ *
+ * JVM 산출물에는 저장소 공통 JVM target을 적용하고 Wasm browser library 산출물을 함께
+ * 제공한다. UI dependency와 executable binary는 구성하지 않는다.
+ */
+internal fun Project.configureKotlinMultiplatformJvmAndWasmLibrary(
+    kotlinMultiplatformExtension: KotlinMultiplatformExtension,
+) {
+    kotlinMultiplatformExtension.jvm {
+        compilerOptions {
+            jvmTarget.set(BuildConfig.KOTLIN_JVM_TARGET)
+        }
+    }
+    configureKotlinMultiplatformWasmBrowserLibrary(kotlinMultiplatformExtension)
+}
+
+/**
  * Web 애플리케이션이 사용할 실행 가능한 Kotlin/Wasm browser target을 구성한다.
  *
  * [ComposeMultiplatformWasmApplicationConventionPlugin]이 호출하며 UI와 project dependency는

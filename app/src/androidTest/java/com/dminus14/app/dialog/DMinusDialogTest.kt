@@ -5,7 +5,6 @@ import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.activity.ComponentActivity
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
@@ -13,6 +12,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.platform.app.InstrumentationRegistry
 import com.dminus14.designsystem.component.modal.DMinusModal
+import com.dminus14.designsystem.theme.HilitTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -26,7 +26,7 @@ class DMinusDialogTest {
         var confirmCount = 0
         var cancelCount = 0
         composeRule.setContent {
-            MaterialTheme {
+            HilitTheme {
                 DMinusModal(
                     title = "Synthetic title",
                     message = "Synthetic message",
@@ -174,7 +174,7 @@ class DMinusDialogTest {
         onDismiss: () -> Unit,
     ) {
         composeRule.setContent {
-            MaterialTheme {
+            HilitTheme {
                 DMinusModal(
                     title = "Synthetic title",
                     message = "Synthetic message",
