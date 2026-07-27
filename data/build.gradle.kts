@@ -43,4 +43,5 @@ dependencies {
     implementation(project(":core:crypto"))
 
     testImplementation(libs.okhttp.mockwebserver)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
 }
