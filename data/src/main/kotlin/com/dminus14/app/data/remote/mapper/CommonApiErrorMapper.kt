@@ -1,0 +1,75 @@
+package com.dminus14.app.data.remote.mapper
+
+import com.dminus14.app.data.remote.dto.ApiErrorResponseDto
+import com.dminus14.app.domain.exception.CustomException
+import com.dminus14.app.domain.exception.NetworkUnavailableException
+import com.dminus14.app.domain.exception.ServerException
+import com.dminus14.app.domain.exception.UnknownException
+import retrofit2.HttpException
+import java.io.IOException
+
+/**
+ * 전송·HTTP 계층의 공통 오류를 domain [CustomException]으로 변환한다.
+ *
+ * API별 비즈니스 코드는 [mapBusiness]에서만 처리하고, 인식하지 못하면 `null`을 반환한다.
+ * 공통 정책(Network / 5xx / Unknown)은 이 객체가 담당한다.
+ */
+internal object CommonApiErrorMapper {
+    fun map(
+        error: Throwable,
+        mapBusiness: (HttpException, ApiErrorResponseDto?) -> CustomException? = { _, _ -> null },
+    ): Throwable =
+        when (error) {
+            is IOException -> {
+                NetworkUnavailableException(
+                    errCode = ApiErrorCode.NETWORK_UNAVAILABLE,
+                    cause = error,
+                )
+            }
+
+            is HttpException -> {
+                mapHttpException(error, mapBusiness)
+            }
+
+            is IllegalStateException -> {
+                UnknownException(
+                    errCode = ApiErrorCode.UNKNOWN,
+                    message = error.message ?: DEFAULT_UNKNOWN_MESSAGE,
+                    cause = error,
+                )
+            }
+
+            else -> {
+                error
+            }
+        }
+
+    private fun mapHttpException(
+        error: HttpException,
+        mapBusiness: (HttpException, ApiErrorResponseDto?) -> CustomException?,
+    ): CustomException {
+        val apiError = ApiErrorBodyParser.parse(error)
+        mapBusiness(error, apiError)?.let { return it }
+
+        val message = apiError?.message.orEmpty()
+        return when (error.code()) {
+            in HTTP_SERVER_ERROR_RANGE -> {
+                ServerException(
+                    errCode = apiError?.code ?: ApiErrorCode.SERVER_ERROR,
+                    cause = error,
+                )
+            }
+
+            else -> {
+                UnknownException(
+                    errCode = apiError?.code ?: ApiErrorCode.UNKNOWN,
+                    message = message.ifBlank { DEFAULT_UNKNOWN_MESSAGE },
+                    cause = error,
+                )
+            }
+        }
+    }
+
+    private const val DEFAULT_UNKNOWN_MESSAGE = "알 수 없는 오류가 발생했습니다."
+    private val HTTP_SERVER_ERROR_RANGE = 500..599
+}
