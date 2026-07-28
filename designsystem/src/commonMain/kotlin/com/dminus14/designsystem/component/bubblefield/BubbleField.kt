@@ -4,8 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,6 +20,15 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dminus14.designsystem.theme.HilitTheme
+
+/** 말풍선 크기 타입. */
+enum class BubleFieldType {
+    /** 텍스트에 맞춰 줄어드는 작은 말풍선 */
+    Small,
+
+    /** 최소 너비 274dp의 큰 말풍선. padding 14×12 */
+    Big,
+}
 
 /** 꼬리가 붙는 변. */
 enum class BubleFieldTailEdge {
@@ -46,18 +57,22 @@ enum class BubleFieldTailShape {
     Right,
 }
 
-private val BubleHorizontalPadding = 14.dp
-private val BubleVerticalPadding = 12.dp
+private val SmallHorizontalPadding = 14.dp
+private val SmallVerticalPadding = 12.dp
+private val BigHorizontalPadding = 14.dp
+private val BigVerticalPadding = 12.dp
+private val BigMinWidth = 274.dp
 private val BubleTailWidth = 12.dp
 private val BubleTailHeight = 8.dp
 private val BubleTailEdgePadding = 40.dp
 
 /**
- * 말풍선 필드. 꼬리의 상·하 위치, 좌·우 정렬, 삼각형 방향을 지정한다.
+ * 말풍선 필드. 크기 타입과 꼬리의 상·하 위치, 좌·우 정렬, 삼각형 방향을 지정한다.
  *
- * Figma: BubbleField (`2000:7532`)
+ * Figma: BubbleField (`2000:7532`, Big body `2000:7343`)
  *
  * @param text 말풍선 본문 문구
+ * @param type Small(콘텐츠 너비) / Big(최소 너비 274dp, padding 14×12)
  * @param tailEdge 꼬리가 붙는 변(Top/Bottom)
  * @param tailAlign 꼬리의 좌·우 위치
  * @param tailShape 직각 삼각형의 수직 변 방향(Left/Right)
@@ -66,6 +81,7 @@ private val BubleTailEdgePadding = 40.dp
 @Composable
 fun BubbleField(
     text: String,
+    type: BubleFieldType,
     tailEdge: BubleFieldTailEdge,
     tailAlign: BubleFieldTailAlign,
     tailShape: BubleFieldTailShape,
@@ -77,9 +93,29 @@ fun BubbleField(
             BubleFieldTailAlign.Left -> Alignment.Start
             BubleFieldTailAlign.Right -> Alignment.End
         }
+    val horizontalPadding =
+        when (type) {
+            BubleFieldType.Small -> SmallHorizontalPadding
+            BubleFieldType.Big -> BigHorizontalPadding
+        }
+    val verticalPadding =
+        when (type) {
+            BubleFieldType.Small -> SmallVerticalPadding
+            BubleFieldType.Big -> BigVerticalPadding
+        }
+    val sizeModifier =
+        when (type) {
+            BubleFieldType.Small -> Modifier.wrapContentWidth()
+            BubleFieldType.Big -> Modifier.widthIn(min = BigMinWidth)
+        }
+    val bodyWidthModifier =
+        when (type) {
+            BubleFieldType.Small -> Modifier.wrapContentWidth()
+            BubleFieldType.Big -> Modifier.fillMaxWidth()
+        }
 
     Column(
-        modifier = modifier.wrapContentWidth(),
+        modifier = modifier.then(sizeModifier),
         horizontalAlignment = columnAlignment,
     ) {
         if (tailEdge == BubleFieldTailEdge.Top) {
@@ -93,14 +129,14 @@ fun BubbleField(
 
         Box(
             modifier =
-                Modifier
+                bodyWidthModifier
                     .background(
                         color = backgroundColor,
                         shape = RectangleShape,
                     )
                     .padding(
-                        horizontal = BubleHorizontalPadding,
-                        vertical = BubleVerticalPadding,
+                        horizontal = horizontalPadding,
+                        vertical = verticalPadding,
                     ),
             contentAlignment = Alignment.Center,
         ) {
@@ -195,13 +231,13 @@ private fun bubleTailPath(
     }
 
 @Preview(
-    name = "BubleField",
+    name = "BubbleField Small",
     showBackground = true,
     backgroundColor = 0xFFFFFFFF,
     widthDp = 360,
 )
 @Composable
-private fun BubbleFieldPreview() {
+private fun BubbleFieldSmallPreview() {
     HilitTheme {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -212,6 +248,37 @@ private fun BubbleFieldPreview() {
                     BubleFieldTailShape.entries.forEach { shape ->
                         BubbleField(
                             text = "텍스트를 입력해주세요",
+                            type = BubleFieldType.Small,
+                            tailEdge = edge,
+                            tailAlign = align,
+                            tailShape = shape,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Preview(
+    name = "BubbleField Big",
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    widthDp = 360,
+)
+@Composable
+private fun BubbleFieldBigPreview() {
+    HilitTheme {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            BubleFieldTailEdge.entries.forEach { edge ->
+                BubleFieldTailAlign.entries.forEach { align ->
+                    BubleFieldTailShape.entries.forEach { shape ->
+                        BubbleField(
+                            text = "텍스트를 입력해주세요",
+                            type = BubleFieldType.Big,
                             tailEdge = edge,
                             tailAlign = align,
                             tailShape = shape,
