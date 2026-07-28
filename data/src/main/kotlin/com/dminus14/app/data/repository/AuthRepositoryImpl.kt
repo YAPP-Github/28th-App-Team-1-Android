@@ -1,12 +1,13 @@
 package com.dminus14.app.data.repository
 
-import com.dminus14.app.core.crypto.CryptoManager
-import com.dminus14.app.data.local.DataStoreKeys
-import com.dminus14.app.data.local.datasource.LocalDataSource
-import com.dminus14.app.data.local.datasource.PreferenceEdit
 import com.dminus14.app.data.remote.datasource.AuthRemoteDataSource
+import com.dminus14.app.data.remote.mapper.ApiErrorCode
+import com.dminus14.app.data.remote.mapper.CommonApiErrorMapper
+import com.dminus14.app.domain.exception.InvalidCredentialException
+import com.dminus14.app.domain.exception.SocialLoginFailedException
 import com.dminus14.app.domain.model.AuthSession
 import com.dminus14.app.domain.repository.AuthRepository
+import com.dminus14.app.domain.repository.SessionRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -15,63 +16,41 @@ class AuthRepositoryImpl
     @Inject
     constructor(
         private val authRemoteDataSource: AuthRemoteDataSource,
-        private val localDataSource: LocalDataSource,
-        private val cryptoManager: CryptoManager,
+        private val sessionRepository: SessionRepository,
     ) : AuthRepository {
         override suspend fun loginWithKakao(credential: String): AuthSession {
-            val response = authRemoteDataSource.loginWithKakao(credential)
+            val response =
+                runCatching { authRemoteDataSource.loginWithKakao(credential) }
+                    .getOrElse { error ->
+                        throw CommonApiErrorMapper.map(error) { httpError, apiError ->
+                            val message = apiError?.message.orEmpty()
+                            when (apiError?.code) {
+                                ApiErrorCode.INVALID_CREDENTIAL -> {
+                                    InvalidCredentialException(
+                                        errCode = ApiErrorCode.INVALID_CREDENTIAL,
+                                        message = message.ifBlank { "유효하지 않은 인증 정보입니다." },
+                                        cause = httpError,
+                                    )
+                                }
 
-            localDataSource.editAtomically(
-                listOf(
-                    PreferenceEdit.Set(
-                        DataStoreKeys.Auth.ACCESS_TOKEN,
-                        cryptoManager.encryptStringToBase64(response.accessToken),
-                    ),
-                    PreferenceEdit.Set(
-                        DataStoreKeys.Auth.REFRESH_TOKEN,
-                        cryptoManager.encryptStringToBase64(response.refreshToken),
-                    ),
-                ),
-            )
+                                ApiErrorCode.SOCIAL_LOGIN_FAILED -> {
+                                    SocialLoginFailedException(
+                                        errCode = ApiErrorCode.SOCIAL_LOGIN_FAILED,
+                                        message = message.ifBlank { "소셜 로그인에 실패했습니다." },
+                                        cause = httpError,
+                                    )
+                                }
 
-            return AuthSession(
+                                else -> {
+                                    null
+                                }
+                            }
+                        }
+                    }
+
+            return sessionRepository.saveAuthSession(
                 accessToken = response.accessToken,
                 refreshToken = response.refreshToken,
-            )
-        }
-
-        override suspend fun getAuthSession(): AuthSession? {
-            val encryptedAccessToken = localDataSource.get(DataStoreKeys.Auth.ACCESS_TOKEN)
-            val encryptedRefreshToken = localDataSource.get(DataStoreKeys.Auth.REFRESH_TOKEN)
-            if (encryptedAccessToken == null || encryptedRefreshToken == null) return null
-            return runCatching {
-                AuthSession(
-                    accessToken = cryptoManager.decryptStringFromBase64(encryptedAccessToken),
-                    refreshToken = cryptoManager.decryptStringFromBase64(encryptedRefreshToken),
-                )
-            }.getOrElse { error ->
-                when (error) {
-                    is SecurityException,
-                    is IllegalStateException,
-                    is IllegalArgumentException,
-                    -> {
-                        clearAuthSession()
-                        null
-                    }
-
-                    else -> {
-                        throw error
-                    }
-                }
-            }
-        }
-
-        override suspend fun clearAuthSession() {
-            localDataSource.editAtomically(
-                listOf(
-                    PreferenceEdit.Remove(DataStoreKeys.Auth.ACCESS_TOKEN),
-                    PreferenceEdit.Remove(DataStoreKeys.Auth.REFRESH_TOKEN),
-                ),
             )
         }
     }

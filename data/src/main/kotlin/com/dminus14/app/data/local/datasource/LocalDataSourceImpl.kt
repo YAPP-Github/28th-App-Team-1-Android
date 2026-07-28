@@ -24,6 +24,9 @@ class LocalDataSourceImpl
                 .map { preferences -> preferences[key] }
                 .first()
 
+        override suspend fun snapshot(): PreferenceSnapshot =
+            PreferenceSnapshot(context.dataStore.data.first())
+
         override suspend fun setString(
             key: Preferences.Key<String>,
             value: String,

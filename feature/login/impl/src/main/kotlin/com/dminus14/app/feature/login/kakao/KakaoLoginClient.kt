@@ -1,7 +1,6 @@
 package com.dminus14.app.feature.login.kakao
 
 import android.app.Activity
-import com.dminus14.app.domain.model.KakaoAuthException
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.AuthError
 import com.kakao.sdk.common.model.AuthErrorCause
@@ -24,7 +23,7 @@ class KakaoLoginClient
                     when {
                         error != null -> continuation.resumeWithException(mapKakaoError(error))
                         token != null -> continuation.resume(token.accessToken)
-                        else -> continuation.resumeWithException(KakaoAuthException.Unknown())
+                        else -> continuation.resumeWithException(KakaoLoginException.Unknown())
                     }
                 }
 
@@ -36,7 +35,7 @@ class KakaoLoginClient
                             }
 
                             error is ClientError && error.reason == ClientErrorCause.Cancelled -> {
-                                continuation.resumeWithException(KakaoAuthException.Cancelled)
+                                continuation.resumeWithException(KakaoLoginException.Cancelled)
                             }
 
                             error != null -> {
@@ -47,7 +46,7 @@ class KakaoLoginClient
                             }
 
                             else -> {
-                                continuation.resumeWithException(KakaoAuthException.Unknown())
+                                continuation.resumeWithException(KakaoLoginException.Unknown())
                             }
                         }
                     }
@@ -56,40 +55,40 @@ class KakaoLoginClient
                 }
             }
 
-        private fun mapKakaoError(error: Throwable): KakaoAuthException =
+        private fun mapKakaoError(error: Throwable): KakaoLoginException =
             when (error) {
                 is ClientError if error.reason == ClientErrorCause.Cancelled -> {
-                    KakaoAuthException.Cancelled
+                    KakaoLoginException.Cancelled
                 }
 
                 is AuthError if error.reason == AuthErrorCause.AccessDenied -> {
-                    KakaoAuthException.AccessDenied
+                    KakaoLoginException.AccessDenied
                 }
 
                 is AuthError if error.reason == AuthErrorCause.ServerError -> {
-                    KakaoAuthException.Server(cause = error)
+                    KakaoLoginException.Server(cause = error)
                 }
 
                 is AuthError if error.reason == AuthErrorCause.Unknown -> {
-                    KakaoAuthException.Unknown(cause = error)
+                    KakaoLoginException.Unknown(cause = error)
                 }
 
                 is AuthError -> {
-                    KakaoAuthException.Client(
+                    KakaoLoginException.Client(
                         message = error.response.errorDescription ?: "카카오 로그인에 실패했습니다.",
                         cause = error,
                     )
                 }
 
                 is ClientError -> {
-                    KakaoAuthException.Client(
+                    KakaoLoginException.Client(
                         message = error.msg.ifBlank { "카카오 로그인에 실패했습니다." },
                         cause = error,
                     )
                 }
 
                 else -> {
-                    KakaoAuthException.Unknown(
+                    KakaoLoginException.Unknown(
                         message = error.message.orEmpty(),
                         cause = error,
                     )

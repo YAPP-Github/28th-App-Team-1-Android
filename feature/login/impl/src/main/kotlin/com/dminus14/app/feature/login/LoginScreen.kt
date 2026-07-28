@@ -52,6 +52,10 @@ fun LoginScreen(
             ).kakaoLoginClient()
 
     LaunchedEffect(Unit) {
+        viewModel.onIntent(LoginIntent.CheckSession)
+    }
+
+    LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
                 LoginEffect.NavigateToHome -> onNavigate(MainHome)
@@ -86,50 +90,54 @@ private fun LoginContent(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = "D-14",
-                style = MaterialTheme.typography.headlineLarge,
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "면접 준비를 시작해 보세요",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            Spacer(modifier = Modifier.height(48.dp))
-
-            Button(
-                onClick = onKakaoLoginClick,
-                enabled = !state.isLoading,
-                modifier = Modifier.fillMaxWidth(),
-                colors =
-                    ButtonDefaults.buttonColors(
-                        containerColor = KakaoYellow,
-                        contentColor = KakaoBrown,
-                    ),
-            ) {
-                Text(text = "카카오 로그인")
-            }
-
-            state.errorMessage?.let { message ->
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-        }
-
-        if (state.isLoading) {
+        if (state.isCheckingSession) {
             CircularProgressIndicator()
+        } else {
+            Column(
+                modifier = Modifier.padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = "D-14",
+                    style = MaterialTheme.typography.headlineLarge,
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "면접 준비를 시작해 보세요",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
+                Spacer(modifier = Modifier.height(48.dp))
+
+                Button(
+                    onClick = onKakaoLoginClick,
+                    enabled = !state.isLoading,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = KakaoYellow,
+                            contentColor = KakaoBrown,
+                        ),
+                ) {
+                    Text(text = "카카오 로그인")
+                }
+
+                state.errorMessage?.let { message ->
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = message,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
+
+            if (state.isLoading) {
+                CircularProgressIndicator()
+            }
         }
     }
 }
@@ -148,7 +156,7 @@ interface KakaoLoginClientEntryPoint {
 private fun LoginContentPreview() {
     HilitTheme {
         LoginContent(
-            state = LoginState(),
+            state = LoginState(isCheckingSession = false),
             onKakaoLoginClick = {},
         )
     }

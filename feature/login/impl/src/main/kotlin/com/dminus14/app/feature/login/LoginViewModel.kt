@@ -2,8 +2,10 @@ package com.dminus14.app.feature.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.dminus14.app.domain.model.KakaoAuthException
+import com.dminus14.app.domain.exception.CustomException
+import com.dminus14.app.domain.usecase.GetAuthSessionUseCase
 import com.dminus14.app.domain.usecase.LoginWithKakaoUseCase
+import com.dminus14.app.feature.login.kakao.KakaoLoginException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +20,7 @@ import javax.inject.Inject
 class LoginViewModel
     @Inject
     constructor(
+        private val getAuthSessionUseCase: GetAuthSessionUseCase,
         private val loginWithKakaoUseCase: LoginWithKakaoUseCase,
     ) : ViewModel() {
         private val _state = MutableStateFlow(LoginState())
@@ -28,6 +31,10 @@ class LoginViewModel
 
         fun onIntent(intent: LoginIntent) {
             when (intent) {
+                LoginIntent.CheckSession -> {
+                    checkSession()
+                }
+
                 LoginIntent.ClickKakaoLogin -> {
                     reduce { copy(isLoading = true, errorMessage = null) }
                 }
@@ -37,7 +44,21 @@ class LoginViewModel
                 }
 
                 is LoginIntent.KakaoLoginFailed -> {
-                    handleKakaoLoginFailure(intent.error)
+                    handleLoginFailure(intent.error)
+                }
+            }
+        }
+
+        private fun checkSession() {
+            viewModelScope.launch {
+                reduce { copy(isCheckingSession = true, errorMessage = null) }
+
+                val session = getAuthSessionUseCase()
+                if (session != null) {
+                    reduce { copy(isCheckingSession = false) }
+                    sendEffect(LoginEffect.NavigateToHome)
+                } else {
+                    reduce { copy(isCheckingSession = false) }
                 }
             }
         }
@@ -51,18 +72,20 @@ class LoginViewModel
                         reduce { copy(isLoading = false) }
                         sendEffect(LoginEffect.NavigateToHome)
                     }.onFailure { throwable ->
-                        handleKakaoLoginFailure(throwable)
+                        handleLoginFailure(throwable)
                     }
             }
         }
 
-        private fun handleKakaoLoginFailure(throwable: Throwable) {
+        private fun handleLoginFailure(throwable: Throwable) {
             when (throwable) {
-                is KakaoAuthException.Cancelled -> {
+                is KakaoLoginException.Cancelled -> {
                     reduce { copy(isLoading = false) }
                 }
 
-                is KakaoAuthException -> {
+                is KakaoLoginException,
+                is CustomException,
+                -> {
                     reduce {
                         copy(
                             isLoading = false,

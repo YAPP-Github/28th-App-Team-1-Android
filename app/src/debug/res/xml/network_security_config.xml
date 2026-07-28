@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug 전용: 개발 서버(HTTP) 연동을 위해 cleartext를 허용한다. Release에는 적용되지 않는다. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
