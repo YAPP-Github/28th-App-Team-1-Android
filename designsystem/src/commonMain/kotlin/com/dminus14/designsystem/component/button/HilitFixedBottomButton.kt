@@ -70,7 +70,10 @@ fun HilitFixedBottomButton(
     }
 }
 
-private fun HilitButtonType.enableColor(type: HilitButtonType, colors: HilitColors): BtnColorSet =
+private fun HilitButtonType.enableColor(
+    type: HilitButtonType,
+    colors: HilitColors,
+): BtnColorSet =
     when (type) {
         HilitButtonType.Dark -> {
             BtnColorSet(
@@ -89,7 +92,10 @@ private fun HilitButtonType.enableColor(type: HilitButtonType, colors: HilitColo
         }
     }
 
-private fun HilitButtonType.disabledColor(type: HilitButtonType, colors: HilitColors): BtnColorSet =
+private fun HilitButtonType.disabledColor(
+    type: HilitButtonType,
+    colors: HilitColors,
+): BtnColorSet =
     when (type) {
         HilitButtonType.Dark -> {
             BtnColorSet(

@@ -21,14 +21,13 @@ enum class TagColorType {
     Gray,
     Green,
     Red,
-    Blue
+    Blue,
 }
 
 enum class TagType {
     Large,
-    Small
+    Small,
 }
-
 
 @Composable
 fun HilitTag(
@@ -56,10 +55,9 @@ fun HilitTag(
                 .background(
                     color = color.backgroundColor,
                     shape = RectangleShape,
-                )
-                .padding(
+                ).padding(
                     horizontal = horizontalPadding,
-                    vertical = verticalPadding
+                    vertical = verticalPadding,
                 ),
         contentAlignment = Alignment.Center,
     ) {
@@ -72,7 +70,10 @@ fun HilitTag(
 }
 
 @Composable
-private fun tagColors(type: TagColorType, colors: HilitColors): TagColorSet =
+private fun tagColors(
+    type: TagColorType,
+    colors: HilitColors,
+): TagColorSet =
     when (type) {
         TagColorType.Black -> {
             TagColorSet(
