@@ -1,6 +1,7 @@
 package stories
 
 import stories.components.designsystem.dminusmodal.ModalStories
+import stories.components.designsystem.hilitwheelpicker.HilitWheelPickerStories
 import stories.components.designsystem.samplebutton.ButtonStories
 import stories.foundations.ColorStories
 import stories.foundations.IconStories
@@ -17,6 +18,7 @@ internal val CatalogStories: List<StoryGroup> =
         TypographyStories,
         ButtonStories,
         ModalStories,
+        HilitWheelPickerStories,
     ).validateStories()
 
 internal val CatalogStoryTree: List<StoryTreeNode> = CatalogStories.buildStoryTree()
