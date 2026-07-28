@@ -1,0 +1,209 @@
+package com.dminus14.designsystem.component.bubblefield
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.dminus14.designsystem.theme.HilitTheme
+
+/** 꼬리가 붙는 변. */
+enum class BubleFieldTailEdge {
+    Top,
+    Bottom,
+}
+
+/** 꼬리의 좌·우 위치. */
+enum class BubleFieldTailAlign {
+    Left,
+    Right,
+}
+
+/** 직각 삼각형의 수직 변 방향(왼쪽/오른쪽). */
+enum class BubleFieldTailShape {
+    Left,
+    Right,
+}
+
+private val BubleHorizontalPadding = 14.dp
+private val BubleVerticalPadding = 12.dp
+private val BubleTailWidth = 12.dp
+private val BubleTailHeight = 8.dp
+private val BubleTailEdgePadding = 40.dp
+
+/**
+ * 말풍선 필드. 꼬리의 상·하 위치, 좌·우 정렬, 삼각형 방향을 지정한다.
+ *
+ * Figma: BubbleField (`2000:7532`)
+ */
+@Composable
+fun BubbleField(
+    text: String,
+    tailEdge: BubleFieldTailEdge,
+    tailAlign: BubleFieldTailAlign,
+    tailShape: BubleFieldTailShape,
+    modifier: Modifier = Modifier,
+) {
+    val backgroundColor = HilitTheme.colors.hilitBlack800
+    val columnAlignment =
+        when (tailAlign) {
+            BubleFieldTailAlign.Left -> Alignment.Start
+            BubleFieldTailAlign.Right -> Alignment.End
+        }
+
+    Column(
+        modifier = modifier.wrapContentWidth(),
+        horizontalAlignment = columnAlignment,
+    ) {
+        if (tailEdge == BubleFieldTailEdge.Top) {
+            BubleTail(
+                edge = tailEdge,
+                align = tailAlign,
+                shape = tailShape,
+                color = backgroundColor,
+            )
+        }
+
+        Box(
+            modifier =
+                Modifier
+                    .background(
+                        color = backgroundColor,
+                        shape = RectangleShape,
+                    )
+                    .padding(
+                        horizontal = BubleHorizontalPadding,
+                        vertical = BubleVerticalPadding,
+                    ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = text,
+                style = HilitTheme.typography.body5,
+                color = HilitTheme.colors.hilitWhite,
+            )
+        }
+
+        if (tailEdge == BubleFieldTailEdge.Bottom) {
+            BubleTail(
+                edge = tailEdge,
+                align = tailAlign,
+                shape = tailShape,
+                color = backgroundColor,
+            )
+        }
+    }
+}
+
+@Composable
+private fun BubleTail(
+    edge: BubleFieldTailEdge,
+    align: BubleFieldTailAlign,
+    shape: BubleFieldTailShape,
+    color: Color,
+) {
+    val edgePaddingModifier =
+        when (align) {
+            BubleFieldTailAlign.Left -> Modifier.padding(start = BubleTailEdgePadding)
+            BubleFieldTailAlign.Right -> Modifier.padding(end = BubleTailEdgePadding)
+        }
+
+    Box(
+        modifier =
+            edgePaddingModifier
+                .size(width = BubleTailWidth, height = BubleTailHeight)
+                .drawBehind {
+                    drawPath(
+                        path =
+                            bubleTailPath(
+                                edge = edge,
+                                shape = shape,
+                                width = size.width,
+                                height = size.height,
+                            ),
+                        color = color,
+                    )
+                },
+    )
+}
+
+private fun bubleTailPath(
+    edge: BubleFieldTailEdge,
+    shape: BubleFieldTailShape,
+    width: Float,
+    height: Float,
+): Path =
+    Path().apply {
+        when (edge) {
+            BubleFieldTailEdge.Bottom -> {
+                when (shape) {
+                    BubleFieldTailShape.Left -> {
+                        moveTo(0f, 0f)
+                        lineTo(width, 0f)
+                        lineTo(0f, height)
+                    }
+                    BubleFieldTailShape.Right -> {
+                        moveTo(0f, 0f)
+                        lineTo(width, 0f)
+                        lineTo(width, height)
+                    }
+                }
+            }
+            BubleFieldTailEdge.Top -> {
+                when (shape) {
+                    BubleFieldTailShape.Left -> {
+                        moveTo(0f, height)
+                        lineTo(width, height)
+                        lineTo(0f, 0f)
+                    }
+                    BubleFieldTailShape.Right -> {
+                        moveTo(0f, height)
+                        lineTo(width, height)
+                        lineTo(width, 0f)
+                    }
+                }
+            }
+        }
+        close()
+    }
+
+@Preview(
+    name = "BubleField",
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    widthDp = 360,
+)
+@Composable
+private fun BubbleFieldPreview() {
+    HilitTheme {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            BubleFieldTailEdge.entries.forEach { edge ->
+                BubleFieldTailAlign.entries.forEach { align ->
+                    BubleFieldTailShape.entries.forEach { shape ->
+                        BubbleField(
+                            text = "텍스트를 입력해주세요",
+                            tailEdge = edge,
+                            tailAlign = align,
+                            tailShape = shape,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

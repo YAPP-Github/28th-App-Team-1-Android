@@ -1,5 +1,6 @@
 package stories
 
+import stories.components.designsystem.bublefield.BubleFieldStories
 import stories.components.designsystem.dminusmodal.ModalStories
 import stories.components.designsystem.hilitjdlinkfield.HilitJDLinkFieldStories
 import stories.components.designsystem.hilitjdtextfield.HilitJDTextFieldStories
@@ -27,6 +28,7 @@ internal val CatalogStories: List<StoryGroup> =
         HilitJDTextFieldStories,
         HilitJDLinkFieldStories,
         HilitSubTextStories,
+        BubleFieldStories,
     ).validateStories()
 
 internal val CatalogStoryTree: List<StoryTreeNode> = CatalogStories.buildStoryTree()
