@@ -23,12 +23,6 @@ enum class HilitStep {
     Step5,
 }
 
-private val StepSegmentCount = HilitStep.entries.size
-private val StepSegmentHeight = 4.dp
-private val StepSegmentGap = 2.dp
-private val ProgressBarHorizontalPadding = 20.dp
-private val ProgressBarVerticalPadding = 4.dp
-
 /**
  * 온보딩 등에서 쓰는 5칸 dash progress bar.
  *
@@ -46,20 +40,16 @@ fun HilitProgressBar(
     Row(
         modifier =
             modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = ProgressBarHorizontalPadding,
-                    vertical = ProgressBarVerticalPadding,
-                ),
-        horizontalArrangement = Arrangement.spacedBy(StepSegmentGap),
+                .fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        repeat(StepSegmentCount) { index ->
+        repeat(HilitStep.entries.size) { index ->
             val isActive = index < activeCount
             Box(
                 modifier =
                     Modifier
                         .weight(1f)
-                        .height(StepSegmentHeight)
+                        .height(4.dp)
                         .background(color = if (isActive) activeColor else inactiveColor),
             )
         }
