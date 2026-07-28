@@ -26,6 +26,7 @@ import com.dminus14.app.core.resources.script
 import com.dminus14.app.core.resources.skip_left
 import com.dminus14.app.core.resources.skip_right
 import com.dminus14.app.core.resources.timer
+import com.dminus14.app.core.resources.upload
 import com.dminus14.app.core.resources.video
 import com.dminus14.app.core.resources.warning
 import org.jetbrains.compose.resources.DrawableResource
@@ -56,6 +57,7 @@ enum class HilitIconAsset(
     SkipLeft("skip_left", Res.drawable.skip_left),
     SkipRight("skip_right", Res.drawable.skip_right),
     Timer("timer", Res.drawable.timer),
+    Upload("upload", Res.drawable.upload),
     Video("video", Res.drawable.video),
     Warning("warning", Res.drawable.warning),
 }
