@@ -1,6 +1,7 @@
 package stories
 
 import stories.components.designsystem.dminusmodal.ModalStories
+import stories.components.designsystem.hilitjdlinkfield.HilitJDLinkFieldStories
 import stories.components.designsystem.hilitjdtextfield.HilitJDTextFieldStories
 import stories.components.designsystem.hilitprogressbar.HilitProgressBarStories
 import stories.components.designsystem.hilitsubtext.HilitSubTextStories
@@ -24,6 +25,7 @@ internal val CatalogStories: List<StoryGroup> =
         HilitWheelPickerStories,
         HilitProgressBarStories,
         HilitJDTextFieldStories,
+        HilitJDLinkFieldStories,
         HilitSubTextStories,
     ).validateStories()
 

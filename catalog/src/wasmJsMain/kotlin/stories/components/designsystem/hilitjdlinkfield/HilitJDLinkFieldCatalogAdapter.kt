@@ -1,0 +1,47 @@
+package stories.components.designsystem.hilitjdlinkfield
+
+import androidx.compose.foundation.background
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import com.dminus14.catalog.controls.CatalogControls
+import com.dminus14.designsystem.component.textfield.HilitJDLinkField
+import com.dminus14.designsystem.component.textfield.HilitJDLinkFieldType
+
+private val PreviewSurfaceColor = Color(0xFF4A4B50)
+
+@CatalogControls
+@Composable
+internal fun HilitJDLinkFieldCatalogAdapter(
+    value: String,
+    placeholder: String,
+    subText: String,
+    type: HilitJDLinkFieldType,
+) {
+    var text by remember(value, type) { mutableStateOf(value) }
+
+    Box(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .background(PreviewSurfaceColor)
+                .padding(16.dp),
+    ) {
+        HilitJDLinkField(
+            value = text,
+            onValueChange = { text = it },
+            type = type,
+            placeholder = placeholder,
+            subText = subText,
+            onClearClick = { text = "" },
+        )
+    }
+}
