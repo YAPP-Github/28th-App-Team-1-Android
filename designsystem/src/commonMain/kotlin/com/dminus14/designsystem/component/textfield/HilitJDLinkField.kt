@@ -41,12 +41,24 @@ import com.dminus14.designsystem.component.subtext.HilitSubText
 import com.dminus14.designsystem.component.subtext.HilitSubTextType
 import com.dminus14.designsystem.theme.HilitTheme
 
+/** JD 링크 필드의 시각·상호작용 상태. */
 enum class HilitJDLinkFieldType {
+    /** 비활성(미포커스). 전체 보더, Ready 서브텍스트 가능 */
     Ready,
+
+    /** 포커스. 하단 초록 indicator */
     Focus,
+
+    /** 입력 중. 하단 초록 indicator + 클리어 버튼 */
     Edit,
+
+    /** 분석 중. 입력 비활성, "분석 중" 라벨, 애니메이션 indicator */
     Processing,
+
+    /** 완료. 하단 초록 indicator + 클리어 + Success 서브텍스트 */
     Complete,
+
+    /** 오류. 하단 빨간 indicator + 클리어 + Error 서브텍스트 */
     Error,
 }
 
@@ -63,6 +75,16 @@ private const val DEFAULT_PLACEHOLDER = "텍스트를 입력해주세요"
 
 /**
  * JD 링크 입력 필드. 상태에 따라 하단 indicator·클리어 버튼·서브텍스트가 달라진다.
+ *
+ * Figma: text-field (`2044:1801`)
+ *
+ * @param value 현재 입력 값
+ * @param onValueChange 입력이 바뀔 때 호출된다. [HilitJDLinkFieldType.Processing]이면 입력이 비활성이다
+ * @param type 필드 상태. UI(indicator·클리어·서브텍스트)를 결정한다
+ * @param modifier 외부 레이아웃 Modifier
+ * @param placeholder 값이 비어 있을 때 표시할 placeholder
+ * @param subText Ready/Complete/Error일 때만 [HilitSubText]로 노출된다. 빈 문자열이면 숨긴다
+ * @param onClearClick Edit/Complete/Error의 클리어 버튼 클릭 콜백. null이면 클릭해도 동작하지 않는다
  */
 @Composable
 fun HilitJDLinkField(

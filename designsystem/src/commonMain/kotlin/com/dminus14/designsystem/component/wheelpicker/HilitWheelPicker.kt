@@ -49,6 +49,12 @@ private const val TRAILING_TEXT = "이다"
  * 문장형 세로 휠 피커. `내 경력은` / 선택 항목 / `이다`를 한 줄로 구성한다.
  *
  * Figma: wheel-picker (`2280:8138`)
+ *
+ * @param items 휠에 표시할 선택 항목 목록
+ * @param selectedItem 현재 선택된 항목. [items]에 없으면 첫 항목으로 스크롤한다
+ * @param onSelectedItemChange 스냅으로 선택이 바뀔 때 호출된다
+ * @param modifier 외부 레이아웃 Modifier
+ * @param label 항목을 화면에 그릴 때 쓰는 문자열 변환. 기본값은 `toString()`
  */
 @Composable
 fun <T> HilitWheelPicker(

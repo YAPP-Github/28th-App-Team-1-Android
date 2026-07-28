@@ -14,7 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dminus14.designsystem.theme.HilitTheme
 
-/** Onboarding에서만 사용할 예정이라 indicator 갯수를 확장가능하게 만들지 않음. 참고 부탁드립니다.*/
+/** Onboarding에서만 사용할 예정이라 indicator 갯수를 확장가능하게 만들지 않음. 참고 부탁드립니다. */
 enum class HilitStep {
     Step1,
     Step2,
@@ -27,6 +27,9 @@ enum class HilitStep {
  * 온보딩 등에서 쓰는 5칸 dash progress bar.
  *
  * Figma: progress bar (`2044:4743`)
+ *
+ * @param step 현재까지 활성화할 단계. [HilitStep.Step1]이면 첫 칸만 활성
+ * @param modifier 외부 레이아웃 Modifier
  */
 @Composable
 fun HilitProgressBar(

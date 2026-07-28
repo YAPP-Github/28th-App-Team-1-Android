@@ -21,9 +21,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dminus14.designsystem.theme.HilitTheme
 
+/** 서브텍스트의 아이콘·색상 타입. */
 enum class HilitSubTextType {
+    /** 정보성. gray 아이콘·텍스트 */
     Default,
+
+    /** 성공. 초록 체크·텍스트 */
     Success,
+
+    /** 오류. 빨간 경고·텍스트 */
     Error,
 }
 
@@ -34,6 +40,10 @@ private val IconTextGap = 6.dp
  * 필드 하단 등에 쓰는 서브 텍스트. 타입에 따라 아이콘·색이 달라진다.
  *
  * Figma: text-sub status=default/success/error (`2044:1655`, `2044:1657`, `2044:1656`)
+ *
+ * @param text 표시할 문구
+ * @param type 아이콘과 텍스트 색을 결정하는 타입
+ * @param modifier 외부 레이아웃 Modifier
  */
 @Composable
 fun HilitSubText(

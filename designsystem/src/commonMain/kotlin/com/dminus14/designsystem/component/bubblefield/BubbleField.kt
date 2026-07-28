@@ -21,19 +21,28 @@ import com.dminus14.designsystem.theme.HilitTheme
 
 /** 꼬리가 붙는 변. */
 enum class BubleFieldTailEdge {
+    /** 본문 위쪽에 꼬리 */
     Top,
+
+    /** 본문 아래쪽에 꼬리 */
     Bottom,
 }
 
 /** 꼬리의 좌·우 위치. */
 enum class BubleFieldTailAlign {
+    /** 본문 왼쪽(시작) 쪽에 꼬리 */
     Left,
+
+    /** 본문 오른쪽(끝) 쪽에 꼬리 */
     Right,
 }
 
 /** 직각 삼각형의 수직 변 방향(왼쪽/오른쪽). */
 enum class BubleFieldTailShape {
+    /** 수직 변이 왼쪽. 끝이 왼쪽을 가리킨다 */
     Left,
+
+    /** 수직 변이 오른쪽. 끝이 오른쪽을 가리킨다 */
     Right,
 }
 
@@ -47,6 +56,12 @@ private val BubleTailEdgePadding = 40.dp
  * 말풍선 필드. 꼬리의 상·하 위치, 좌·우 정렬, 삼각형 방향을 지정한다.
  *
  * Figma: BubbleField (`2000:7532`)
+ *
+ * @param text 말풍선 본문 문구
+ * @param tailEdge 꼬리가 붙는 변(Top/Bottom)
+ * @param tailAlign 꼬리의 좌·우 위치
+ * @param tailShape 직각 삼각형의 수직 변 방향(Left/Right)
+ * @param modifier 외부 레이아웃 Modifier
  */
 @Composable
 fun BubbleField(

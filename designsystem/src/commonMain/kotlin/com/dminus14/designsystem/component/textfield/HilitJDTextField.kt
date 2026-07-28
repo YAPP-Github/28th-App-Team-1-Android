@@ -36,6 +36,12 @@ private const val DEFAULT_PLACEHOLDER = "텍스트를 입력해주세요"
  * JD 입력용 멀티라인 텍스트 필드. 하단에 글자 수 카운터를 표시한다.
  *
  * Figma: text-field status=large (`2091:806`)
+ *
+ * @param value 현재 입력 값
+ * @param onValueChange 입력이 바뀔 때 호출된다. [maxLength]를 넘는 값은 반영되지 않는다
+ * @param modifier 외부 레이아웃 Modifier
+ * @param placeholder 값이 비어 있을 때 표시할 placeholder
+ * @param maxLength 최대 입력 글자 수. 카운터에도 사용된다
  */
 @Composable
 fun HilitJDTextField(
