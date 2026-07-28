@@ -10,6 +10,7 @@ import com.dminus14.app.core.resources.ai
 import com.dminus14.app.core.resources.cancel
 import com.dminus14.app.core.resources.check
 import com.dminus14.app.core.resources.coupon
+import com.dminus14.app.core.resources.delete
 import com.dminus14.app.core.resources.edit
 import com.dminus14.app.core.resources.expand
 import com.dminus14.app.core.resources.eye
@@ -38,6 +39,7 @@ enum class HilitIconAsset(
     Cancel("cancel", Res.drawable.cancel),
     Check("check", Res.drawable.check),
     Coupon("coupon", Res.drawable.coupon),
+    Delete("delete", Res.drawable.delete),
     Edit("edit", Res.drawable.edit),
     Eye("eye", Res.drawable.eye),
     File("file", Res.drawable.file),
