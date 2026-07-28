@@ -1,7 +1,7 @@
 package stories
 
-import stories.components.designsystem.dminusmodal.ModalStories
 import stories.components.designsystem.hilitfixedbottombutton.HilitFixedBottomButtonStories
+import stories.components.designsystem.hilitmodal.HilitModalStories
 import stories.components.designsystem.hilittag.HilitTagStories
 import stories.components.designsystem.samplebutton.ButtonStories
 import stories.foundations.ColorStories
@@ -20,7 +20,7 @@ internal val CatalogStories: List<StoryGroup> =
         ButtonStories,
         HilitFixedBottomButtonStories,
         HilitTagStories,
-        ModalStories,
+        HilitModalStories,
     ).validateStories()
 
 internal val CatalogStoryTree: List<StoryTreeNode> = CatalogStories.buildStoryTree()

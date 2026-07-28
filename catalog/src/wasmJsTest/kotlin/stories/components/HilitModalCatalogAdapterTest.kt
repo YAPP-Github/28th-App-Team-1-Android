@@ -5,17 +5,17 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
-import stories.components.designsystem.dminusmodal.DMinusModalCatalogAdapter
+import stories.components.designsystem.hilitmodal.HilitModalCatalogAdapter
 import kotlin.test.Test
 
 @OptIn(ExperimentalTestApi::class)
-class DMinusModalCatalogAdapterTest {
+class HilitModalCatalogAdapterTest {
     @Test
     fun `Controls 편집을 위해 Modal을 닫고 다시 열 수 있다`() =
         runComposeUiTest {
             setContent {
                 MaterialTheme {
-                    DMinusModalCatalogAdapter(
+                    HilitModalCatalogAdapter(
                         title = "안내",
                         message = "합성 메시지",
                         confirmText = "확인",

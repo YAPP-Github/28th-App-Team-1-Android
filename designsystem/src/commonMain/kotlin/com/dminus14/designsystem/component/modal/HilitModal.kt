@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.DialogProperties
 
 @Composable
-fun DMinusModal(
+fun HilitModal(
     title: String,
     message: String,
     confirmText: String,
