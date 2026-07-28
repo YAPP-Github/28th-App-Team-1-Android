@@ -18,7 +18,8 @@ class InsertAuthorizationInterceptor
                 if (token.isNullOrBlank()) {
                     chain.request()
                 } else {
-                    chain.request()
+                    chain
+                        .request()
                         .newBuilder()
                         .header(HEADER_AUTHORIZATION, "$BEARER_PREFIX$token")
                         .build()

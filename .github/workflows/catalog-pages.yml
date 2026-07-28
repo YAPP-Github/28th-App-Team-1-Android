@@ -1,0 +1,534 @@
+name: Catalog Pages Publisher
+
+on:
+  workflow_run:
+    workflows:
+      - Catalog Distribution Build
+    types:
+      - completed
+  pull_request_target:
+    branches:
+      - develop
+    types:
+      - closed
+
+# 실제 권한은 신뢰 경계가 다른 각 job에 필요한 최소 범위로 따로 부여한다.
+permissions: { }
+
+# snapshot 갱신부터 Pages 배포와 댓글 처리까지 한 실행이 끝난 뒤 다음 Publisher를 시작한다.
+# GitHub의 concurrency 대기 순서는 보장되지 않으므로 아래 source SHA 최신성 검증도 함께 사용한다.
+concurrency:
+  group: catalog-pages-publisher
+  cancel-in-progress: false
+
+jobs:
+  publish_snapshot:
+    name: Update catalog snapshot
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      contents: write
+      pull-requests: read
+    outputs:
+      operation: ${{ steps.context.outputs.operation }}
+      pr_number: ${{ steps.context.outputs.pr_number }}
+      source_sha: ${{ steps.context.outputs.source_sha }}
+      source_run_url: ${{ steps.context.outputs.source_run_url }}
+      build_failed: ${{ steps.context.outputs.build_failed }}
+      should_deploy: ${{ steps.snapshot.outputs.snapshot_changed }}
+      require_latest_develop: ${{ steps.context.outputs.require_latest_develop }}
+      snapshot_sha: ${{ steps.snapshot.outputs.snapshot_sha }}
+      snapshot_changed: ${{ steps.snapshot.outputs.snapshot_changed }}
+
+    steps:
+      # 다른 workflow run의 산출물과 실패 메타데이터를 현재 publisher run으로 가져온다.
+      - name: Download catalog distribution artifact
+        if: github.event_name == 'workflow_run'
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@v7
+        with:
+          name: catalog-distribution
+          path: ${{ runner.temp }}/catalog-package
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      # PR이 수정할 수 없는 develop의 publisher script와 Git 인증 설정만 checkout한다.
+      - name: Checkout trusted publisher
+        uses: actions/checkout@v7
+        with:
+          ref: develop
+          fetch-depth: 0
+          persist-credentials: true
+
+      # 이벤트와 artifact를 GitHub API 정보와 대조하여 게시 작업·PR·commit을 확정한다.
+      - name: Resolve trusted publication context
+        id: context
+        uses: actions/github-script@v9
+        env:
+          PACKAGE_DIR: ${{ runner.temp }}/catalog-package
+        with:
+          script: |
+            const fs = require("fs");
+            const path = require("path");
+
+            const { owner, repo } = context.repo;
+            const fullRepository = `${owner}/${repo}`;
+            const packageDir = process.env.PACKAGE_DIR;
+            const metadataPath = path.join(packageDir, "metadata.json");
+            const metadata = fs.existsSync(metadataPath)
+              ? JSON.parse(fs.readFileSync(metadataPath, "utf8"))
+              : null;
+
+            let operation = "skip";
+            let prNumber = "";
+            let sourceSha = "";
+            let sourceTrigger = context.eventName;
+            let buildFailed = false;
+            let requireLatestDevelop = false;
+            let sourceRunUrl = `${context.serverUrl}/${fullRepository}/actions/runs/${context.runId}`;
+
+            const requirePositivePrNumber = (value) => {
+              const normalized = String(value ?? "");
+              if (!/^[1-9][0-9]*$/.test(normalized)) {
+                throw new Error("PR 번호는 양의 정수여야 합니다.");
+              }
+              return normalized;
+            };
+
+            const getPullRequest = async (number) => {
+              const response = await github.rest.pulls.get({
+                owner,
+                repo,
+                pull_number: Number(number),
+              });
+              const pull = response.data;
+              if (pull.head.repo?.full_name !== fullRepository) {
+                throw new Error(`PR #${number}은 같은 저장소의 기능 브랜치가 아닙니다.`);
+              }
+              if (pull.base.ref !== "develop") {
+                throw new Error(`PR #${number}의 대상 브랜치가 develop이 아닙니다.`);
+              }
+              return pull;
+            };
+
+            if (context.eventName === "workflow_run") {
+              // workflow_run artifact는 PR 코드가 만든 비신뢰 입력이다. 아래에서는 artifact 값만
+              // 믿지 않고 event payload, 현재 PR/develop 상태와 모두 일치할 때만 게시한다.
+              const run = context.payload.workflow_run;
+              sourceTrigger = run.event;
+              sourceRunUrl = run.html_url;
+              buildFailed = run.conclusion !== "success";
+
+              if (run.head_repository?.full_name !== fullRepository) {
+                core.setOutput("operation", "skip");
+                core.setOutput("pr_number", "");
+                core.setOutput("source_sha", "");
+                core.setOutput("source_run_url", sourceRunUrl);
+                core.setOutput("build_failed", "false");
+                core.setOutput("should_update", "false");
+                return;
+              }
+
+              if (run.event === "push") {
+                if (run.head_branch !== "develop") {
+                  throw new Error("develop 이외의 push build는 root에 게시할 수 없습니다.");
+                }
+                const developBranch = await github.rest.repos.getBranch({
+                  owner,
+                  repo,
+                  branch: "develop",
+                });
+                if (run.head_sha !== developBranch.data.commit.sha) {
+                  core.notice("더 최신인 develop commit이 있어 오래된 root build를 건너뜁니다.");
+                  operation = "skip";
+                  buildFailed = false;
+                } else {
+                  operation = "root";
+                  sourceSha = run.head_sha;
+                  requireLatestDevelop = true;
+                }
+              } else if (run.event === "pull_request") {
+                // PR Preview는 현재 열린 같은 저장소 PR의 최신 head만 허용한다. 이전 commit의
+                // 늦은 build가 최신 Preview를 되돌리는 것을 이 비교로 차단한다.
+                let candidates = run.pull_requests ?? [];
+                if (candidates.length === 0) {
+                  const openPullRequests = await github.paginate(
+                    github.rest.pulls.list,
+                    { owner, repo, state: "open", base: "develop", per_page: 100 },
+                  );
+                  candidates = openPullRequests.filter((pull) =>
+                    pull.head.ref === run.head_branch &&
+                    pull.head.repo?.full_name === fullRepository,
+                  );
+                }
+                if (candidates.length !== 1) {
+                  core.notice("현재 head SHA에 대응하는 열린 PR 하나를 찾지 못해 오래된 build를 건너뜁니다.");
+                  operation = "skip";
+                  buildFailed = false;
+                } else {
+                  prNumber = requirePositivePrNumber(candidates[0].number);
+                  const pull = await getPullRequest(prNumber);
+                  if (metadata) {
+                    if (
+                      metadata.repository !== fullRepository ||
+                      metadata.target !== "preview" ||
+                      String(metadata.prNumber) !== prNumber ||
+                      !/^[0-9a-f]{40}$/.test(metadata.sourceSha)
+                    ) {
+                      throw new Error("PR build artifact metadata가 검증된 실행 정보와 일치하지 않습니다.");
+                    }
+                  }
+                  const candidateSourceSha = metadata?.sourceSha ?? candidates[0].head?.sha ?? pull.head.sha;
+                  if (!/^[0-9a-f]{40}$/.test(candidateSourceSha)) {
+                    throw new Error("PR build의 원본 head SHA를 확인할 수 없습니다.");
+                  }
+                  if (pull.state !== "open") {
+                    core.notice("PR이 이미 닫혀 늦게 완료된 build를 건너뜁니다.");
+                    operation = "skip";
+                    buildFailed = false;
+                  } else if (candidateSourceSha !== pull.head.sha) {
+                    core.notice("PR head가 이미 변경되어 오래된 build를 건너뜁니다.");
+                    operation = "skip";
+                    buildFailed = false;
+                  } else {
+                    operation = "preview";
+                    sourceSha = candidateSourceSha;
+                  }
+                }
+              } else if (run.event === "workflow_dispatch") {
+                // 수동 복구는 의도적인 과거 commit 재배포를 허용하되 develop 또는 대상 PR
+                // 이력에 실제로 포함된 immutable SHA인지 다시 검증한다.
+                if (run.head_branch !== "develop") {
+                  throw new Error("수동 build workflow는 develop에서 실행해야 합니다.");
+                }
+                if (!metadata) {
+                  throw new Error("수동 build의 metadata artifact가 없습니다.");
+                }
+                operation = metadata.target;
+                sourceSha = metadata.sourceSha;
+                if (operation === "preview") {
+                  prNumber = requirePositivePrNumber(metadata.prNumber);
+                  const pull = await getPullRequest(prNumber);
+                  if (pull.state !== "open") {
+                    throw new Error(`PR #${prNumber}은 현재 열려 있지 않습니다.`);
+                  }
+                  const commits = await github.paginate(
+                    github.rest.pulls.listCommits,
+                    { owner, repo, pull_number: Number(prNumber), per_page: 100 },
+                  );
+                  if (!commits.some((commit) => commit.sha === sourceSha)) {
+                    throw new Error(`commit ${sourceSha}은 PR #${prNumber} 이력에 없습니다.`);
+                  }
+                  if (pull.head.repo?.full_name !== fullRepository) {
+                    throw new Error("fork PR commit은 Preview로 게시할 수 없습니다.");
+                  }
+                } else if (operation === "delete-preview") {
+                  prNumber = requirePositivePrNumber(metadata.prNumber);
+                } else if (operation !== "root") {
+                  throw new Error(`지원하지 않는 수동 target입니다: ${operation}`);
+                }
+              } else {
+                core.notice(`게시 대상이 아닌 build 이벤트를 건너뜁니다: ${run.event}`);
+                operation = "skip";
+                buildFailed = false;
+              }
+
+              if (operation !== "skip" && !buildFailed) {
+                if (!metadata) {
+                  throw new Error("성공한 build의 metadata artifact가 없습니다.");
+                }
+                if (metadata.repository !== fullRepository) {
+                  throw new Error("artifact 저장소 정보가 현재 저장소와 일치하지 않습니다.");
+                }
+                if (metadata.target !== operation || metadata.sourceSha !== sourceSha) {
+                  throw new Error("artifact metadata가 검증된 게시 대상과 일치하지 않습니다.");
+                }
+                if (!/^[0-9a-f]{40}$/.test(sourceSha)) {
+                  throw new Error("artifact의 source SHA 형식이 올바르지 않습니다.");
+                }
+                if (operation === "preview" && String(metadata.prNumber) !== prNumber) {
+                  throw new Error("artifact의 PR 번호가 검증된 PR과 일치하지 않습니다.");
+                }
+                if (operation !== "delete-preview" && !fs.existsSync(path.join(packageDir, "site", "index.html"))) {
+                  throw new Error("성공한 build artifact에 Catalog site가 없습니다.");
+                }
+              }
+            } else if (context.eventName === "pull_request_target") {
+              // PR 종료 처리는 기본 브랜치의 신뢰된 코드만 실행한다. 실제 Preview가 없더라도
+              // Shell helper가 멱등 no-op으로 처리하므로 최초 bootstrap과 경합해도 실패하지 않는다.
+              const pull = context.payload.pull_request;
+              if (pull.head.repo?.full_name !== fullRepository) {
+                operation = "skip";
+              } else {
+                operation = "delete-preview";
+                prNumber = requirePositivePrNumber(pull.number);
+                sourceSha = pull.head.sha;
+              }
+            } else {
+              throw new Error(`지원하지 않는 publisher 이벤트입니다: ${context.eventName}`);
+            }
+
+            const shouldUpdate = operation !== "skip" && !buildFailed;
+            core.setOutput("operation", operation);
+            core.setOutput("pr_number", prNumber);
+            core.setOutput("source_sha", sourceSha);
+            core.setOutput("source_trigger", sourceTrigger);
+            core.setOutput("source_run_url", sourceRunUrl);
+            core.setOutput("build_failed", String(buildFailed));
+            core.setOutput("should_update", String(shouldUpdate));
+            core.setOutput("require_latest_develop", String(requireLatestDevelop));
+
+      # 수동 root ref가 develop 이력에 속하는지 Git commit 관계로 다시 검증한다.
+      - name: Validate manual root commit
+        if: >-
+          steps.context.outputs.should_update == 'true' &&
+          steps.context.outputs.operation == 'root' &&
+          steps.context.outputs.source_trigger == 'workflow_dispatch'
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ steps.context.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin develop
+          if ! git merge-base --is-ancestor "$SOURCE_SHA" origin/develop; then
+            echo "::error::수동 root 배포는 develop 이력의 commit만 허용합니다."
+            exit 1
+          fi
+
+      # 검증된 이벤트의 한 경로만 바꾸고 전체 gh-pages tree를 새 orphan snapshot으로 교체한다.
+      - name: Update gh-pages snapshot
+        id: snapshot
+        if: steps.context.outputs.should_update == 'true'
+        shell: bash
+        env:
+          CATALOG_OPERATION: ${{ steps.context.outputs.operation }}
+          CATALOG_SITE_DIR: ${{ runner.temp }}/catalog-package/site
+          CATALOG_PR_NUMBER: ${{ steps.context.outputs.pr_number }}
+          CATALOG_SOURCE_SHA: ${{ steps.context.outputs.source_sha }}
+          CATALOG_OUTPUT_DIR: ${{ runner.temp }}/catalog-pages-site
+          CATALOG_REQUIRE_LATEST_DEVELOP: ${{ steps.context.outputs.require_latest_develop }}
+        run: bash .github/scripts/update-catalog-pages.sh
+
+      # workflow 밖에서 gh-pages를 직접 바꾼 경우 오래된 artifact가 Pages에 게시되지 않게 한다.
+      - name: Verify published snapshot is still current
+        if: steps.snapshot.outputs.snapshot_changed == 'true'
+        shell: bash
+        env:
+          EXPECTED_SNAPSHOT_SHA: ${{ steps.snapshot.outputs.snapshot_sha }}
+        run: |
+          set -euo pipefail
+          current_snapshot_sha="$(git ls-remote --heads origin refs/heads/gh-pages | awk 'NR == 1 { print $1 }')"
+          if [[ "$current_snapshot_sha" != "$EXPECTED_SNAPSHOT_SHA" ]]; then
+            echo "::error::Pages artifact 생성 전 gh-pages snapshot이 변경됐습니다."
+            exit 1
+          fi
+
+      # 원격에 저장한 최신 집합과 같은 tree를 GitHub Pages 전용 artifact로 업로드한다.
+      - name: Upload GitHub Pages artifact
+        if: steps.snapshot.outputs.snapshot_changed == 'true'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ runner.temp }}/catalog-pages-site
+
+      # 원본 commit과 실제 원격 snapshot SHA를 run 요약에 남겨 배포 추적 기준을 제공한다.
+      - name: Write publication summary
+        if: >-
+          steps.snapshot.outputs.snapshot_changed == 'true' ||
+          (
+            steps.context.outputs.should_update == 'true' &&
+            steps.context.outputs.operation == 'delete-preview'
+          )
+        shell: bash
+        env:
+          OPERATION: ${{ steps.context.outputs.operation }}
+          PR_NUMBER: ${{ steps.context.outputs.pr_number }}
+          SOURCE_SHA: ${{ steps.context.outputs.source_sha }}
+          SNAPSHOT_SHA: ${{ steps.snapshot.outputs.snapshot_sha }}
+          SNAPSHOT_CHANGED: ${{ steps.snapshot.outputs.snapshot_changed }}
+        run: |
+          set -euo pipefail
+          repository_name="${GITHUB_REPOSITORY#*/}"
+          page_url="https://${GITHUB_REPOSITORY_OWNER,,}.github.io/${repository_name}/"
+          if [[ "$OPERATION" == "preview" ]]; then
+            page_url="${page_url}pr/${PR_NUMBER}/"
+          fi
+          {
+            echo "## Catalog publication"
+            echo
+            echo "- Operation: \`$OPERATION\`"
+            echo "- Source commit: \`$SOURCE_SHA\`"
+            echo "- gh-pages snapshot: \`$SNAPSHOT_SHA\`"
+            echo "- Snapshot changed: \`$SNAPSHOT_CHANGED\`"
+            echo "- Expected URL: $page_url"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    name: Deploy catalog pages
+    needs: publish_snapshot
+    if: needs.publish_snapshot.outputs.snapshot_changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      # publisher가 만든 전체 snapshot artifact를 현재 저장소의 단일 Pages 사이트로 배포한다.
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      # GitHub Pages가 확정한 공개 URL을 deployment run 요약에 기록한다.
+      - name: Write deployment summary
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          echo "Deployed Pages URL: $PAGE_URL" >> "$GITHUB_STEP_SUMMARY"
+
+  comment:
+    name: Update preview comment
+    needs:
+      - publish_snapshot
+      - deploy
+    if: >-
+      always() &&
+      needs.publish_snapshot.outputs.pr_number != '' &&
+      needs.publish_snapshot.outputs.operation != 'skip'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      # 하나의 marker 댓글을 찾아 성공·실패·제거 상태와 마지막 유효 URL을 갱신한다.
+      - name: Create or update preview comment
+        uses: actions/github-script@v9
+        env:
+          PR_NUMBER: ${{ needs.publish_snapshot.outputs.pr_number }}
+          OPERATION: ${{ needs.publish_snapshot.outputs.operation }}
+          SOURCE_SHA: ${{ needs.publish_snapshot.outputs.source_sha }}
+          SOURCE_RUN_URL: ${{ needs.publish_snapshot.outputs.source_run_url }}
+          BUILD_FAILED: ${{ needs.publish_snapshot.outputs.build_failed }}
+          SNAPSHOT_CHANGED: ${{ needs.publish_snapshot.outputs.snapshot_changed }}
+          PUBLISH_RESULT: ${{ needs.publish_snapshot.result }}
+          DEPLOY_RESULT: ${{ needs.deploy.result }}
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = Number(process.env.PR_NUMBER);
+            const marker = `<!-- catalog-preview:${prNumber} -->`;
+            const previewUrl = `https://${owner.toLowerCase()}.github.io/${repo}/pr/${prNumber}/`;
+            const publisherRunUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            const sourceRunUrl = process.env.SOURCE_RUN_URL || publisherRunUrl;
+
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              { owner, repo, issue_number: prNumber, per_page: 100 },
+            );
+            const matches = comments.filter((comment) =>
+              comment.user?.type === "Bot" && comment.body?.includes(marker),
+            );
+            if (matches.length > 1) {
+              core.setFailed(`Catalog Preview marker 댓글이 ${matches.length}개 발견됐습니다.`);
+              return;
+            }
+
+            const existing = matches[0];
+            const previousUrl = existing?.body?.match(/https:\/\/[^\s)]+\/pr\/[0-9]+\//)?.[0];
+            const snapshotChanged = process.env.SNAPSHOT_CHANGED === "true";
+            const deleteNoopSucceeded =
+              process.env.OPERATION === "delete-preview" &&
+              process.env.PUBLISH_RESULT === "success" &&
+              !snapshotChanged;
+            const deploySucceeded =
+              process.env.PUBLISH_RESULT === "success" &&
+              (process.env.DEPLOY_RESULT === "success" || deleteNoopSucceeded);
+            const buildFailed = process.env.BUILD_FAILED === "true";
+            const operation = process.env.OPERATION;
+            const shortSha = (process.env.SOURCE_SHA || "unknown").slice(0, 12);
+            const runUrl = buildFailed ? sourceRunUrl : publisherRunUrl;
+
+            let body;
+            if (operation === "delete-preview" && deploySucceeded) {
+              body = [
+                marker,
+                "### Catalog Preview",
+                "상태: 🗑️ Preview 제거됨",
+                `대상: PR #${prNumber}`,
+                `실행: [GitHub Actions](${runUrl})`,
+              ].join("\n\n");
+            } else if (!buildFailed && deploySucceeded) {
+              body = [
+                marker,
+                "### Catalog Preview",
+                "상태: ✅ 최신 배포 성공",
+                `Preview: ${previewUrl}`,
+                `Commit: \`${shortSha}\``,
+                `실행: [GitHub Actions](${runUrl})`,
+              ].join("\n\n");
+            } else {
+              const retained = previousUrl
+                ? `마지막 성공 Preview: ${previousUrl}`
+                : "마지막으로 성공한 Preview가 없습니다.";
+              const status = operation === "delete-preview"
+                ? "상태: ❌ Preview 제거 배포 실패"
+                : "상태: ❌ 최신 Preview 배포 실패";
+              body = [
+                marker,
+                "### Catalog Preview",
+                status,
+                retained,
+                `실패 Commit: \`${shortSha}\``,
+                `실행: [GitHub Actions](${runUrl})`,
+              ].join("\n\n");
+            }
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: prNumber,
+                body,
+              });
+            }
+
+  report_failure:
+    name: Report publication failure
+    needs:
+      - publish_snapshot
+      - deploy
+      - comment
+    if: >-
+      always() &&
+      (
+        needs.publish_snapshot.result == 'failure' ||
+        needs.publish_snapshot.outputs.build_failed == 'true' ||
+        needs.deploy.result == 'failure' ||
+        needs.comment.result == 'failure'
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      # 앞선 실패가 댓글 처리 뒤에도 workflow 성공으로 오인되지 않도록 최종 상태를 실패로 만든다.
+      - name: Fail publisher workflow
+        run: |
+          echo "Catalog build, snapshot, deployment 또는 comment 단계가 실패했습니다."
+          exit 1
