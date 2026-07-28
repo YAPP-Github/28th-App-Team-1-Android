@@ -1,5 +1,6 @@
 package stories
 
+import stories.components.designsystem.hilitbottomoutlinedtextfield.HilitBottomOutlinedTextFieldStories
 import stories.components.designsystem.hilitfixedbottombutton.HilitFixedBottomButtonStories
 import stories.components.designsystem.hilitmodal.HilitModalStories
 import stories.components.designsystem.hilittag.HilitTagStories
@@ -20,6 +21,7 @@ internal val CatalogStories: List<StoryGroup> =
         HilitFixedBottomButtonStories,
         HilitTagStories,
         HilitTextHighlightStories,
+        HilitBottomOutlinedTextFieldStories,
         HilitModalStories,
     ).validateStories()
 
