@@ -2,6 +2,7 @@ package stories
 
 import stories.components.designsystem.bublefield.BubleFieldStories
 import stories.components.designsystem.dminusmodal.ModalStories
+import stories.components.designsystem.fileuploadguide.FileUploadGuideStories
 import stories.components.designsystem.hilitjdlinkfield.HilitJDLinkFieldStories
 import stories.components.designsystem.hilitjdtextfield.HilitJDTextFieldStories
 import stories.components.designsystem.hilitprogressbar.HilitProgressBarStories
@@ -29,6 +30,7 @@ internal val CatalogStories: List<StoryGroup> =
         HilitJDLinkFieldStories,
         HilitSubTextStories,
         BubleFieldStories,
+        FileUploadGuideStories,
     ).validateStories()
 
 internal val CatalogStoryTree: List<StoryTreeNode> = CatalogStories.buildStoryTree()
