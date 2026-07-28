@@ -290,6 +290,13 @@ content 영역만 `HilitTheme`으로 감싸 Android 앱과 같은 제품 토큰 
 제품 컬러 또는 타이포그래피 토큰이 변경되면 Color 및 Typography Foundation Story를 함께
 갱신해 전체 토큰 이름, 값과 렌더링 결과를 Web/WASM 카탈로그에서 검수할 수 있어야 한다.
 
+#### Catalog Story 작성 규칙
+
+각 `StoryGroup`에는 `id = "default"`인 Story를 반드시 하나 포함한다. `default` Story는 해당
+Composable의 가장 기본적인 상태를 나타내며, 특수한 조건이나 예외 상태가 아닌 대표 초기값으로
+컴포넌트의 기본 형태와 동작을 확인할 수 있어야 한다. 추가 상태와 상호작용은 별도의 Story로
+분리하되 `default` Story를 대체해서는 안 된다.
+
 #### Catalog Controls 어댑터 규칙
 
 조작 가능한 Story를 만들 때도 Story의 메타데이터, 초기 상태와 Registry 등록은 `catalog`가 직접 소유한다. 코드 생성은 Story를 자동으로 만들지 않고 Controls에 필요한 반복 코드만 생성한다.
