@@ -13,13 +13,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.dminus14.designsystem.component.icon.HilitIcon
-import com.dminus14.designsystem.component.icon.HilitIconAsset
 import com.dminus14.designsystem.theme.HilitTheme
 
 private val FileUploadGuideShape = RectangleShape
@@ -78,10 +75,10 @@ fun FileUploadGuide(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        HilitIcon(
-            asset = HilitIconAsset.Delete,
-            contentDescription = null,
-            tint = Color.Unspecified,
+        // TODO: SVG→XML Vector 전환 후 HilitIcon(Upload)로 교체
+        FileUploadTempUploadIcon(
+            backgroundColor = HilitTheme.colors.hilitBlack800,
+            foregroundColor = HilitTheme.colors.hilitWhite,
             modifier = Modifier.size(FileUploadGuideIconSize),
         )
 
