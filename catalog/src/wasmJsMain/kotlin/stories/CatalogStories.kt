@@ -3,7 +3,6 @@ package stories
 import stories.components.designsystem.hilitfixedbottombutton.HilitFixedBottomButtonStories
 import stories.components.designsystem.hilitmodal.HilitModalStories
 import stories.components.designsystem.hilittag.HilitTagStories
-import stories.components.designsystem.samplebutton.ButtonStories
 import stories.foundations.ColorStories
 import stories.foundations.IconStories
 import stories.foundations.TypographyStories
@@ -17,7 +16,6 @@ internal val CatalogStories: List<StoryGroup> =
         ColorStories,
         IconStories,
         TypographyStories,
-        ButtonStories,
         HilitFixedBottomButtonStories,
         HilitTagStories,
         HilitModalStories,
