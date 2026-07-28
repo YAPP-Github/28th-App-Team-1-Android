@@ -15,6 +15,7 @@ import com.dminus14.app.core.resources.edit
 import com.dminus14.app.core.resources.expand
 import com.dminus14.app.core.resources.eye
 import com.dminus14.app.core.resources.file
+import com.dminus14.app.core.resources.fill_warning
 import com.dminus14.app.core.resources.hand
 import com.dminus14.app.core.resources.left
 import com.dminus14.app.core.resources.pause
@@ -43,6 +44,7 @@ enum class HilitIconAsset(
     Edit("edit", Res.drawable.edit),
     Eye("eye", Res.drawable.eye),
     File("file", Res.drawable.file),
+    FillWarning("fill_warning", Res.drawable.fill_warning),
     Expand("expand", Res.drawable.expand),
     Hand("hand", Res.drawable.hand),
     Left("left", Res.drawable.left),
