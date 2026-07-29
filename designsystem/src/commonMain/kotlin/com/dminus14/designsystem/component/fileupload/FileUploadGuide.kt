@@ -57,20 +57,17 @@ fun FileUploadGuide(
                 .background(
                     color = HilitTheme.colors.gray50,
                     shape = FileUploadGuideShape,
-                )
-                .border(
+                ).border(
                     width = FileUploadGuideBorderWidth,
                     color = HilitTheme.colors.gray100,
                     shape = FileUploadGuideShape,
-                )
-                .then(
+                ).then(
                     if (onClick != null) {
                         Modifier.clickable(onClick = onClick)
                     } else {
                         Modifier
                     },
-                )
-                .padding(
+                ).padding(
                     horizontal = FileUploadGuideHorizontalPadding,
                     vertical = FileUploadGuideVerticalPadding,
                 ),

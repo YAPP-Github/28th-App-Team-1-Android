@@ -62,10 +62,11 @@ private val PdfUploadBorderWidth = 1.5.dp
 private val PdfUploadReadyMinHeight = 64.dp
 private val PdfUploadDashOn = 6.dp
 private val PdfUploadDashOff = 4.dp
+
 /** Figma processing 인디케이터 너비 (`2280:10276`, 54/335) */
 private val PdfUploadIndeterminateSegmentWidth = 54.dp
-private const val PdfUploadReadyDefaultText = "아직 첨부된 포트폴리오가 없어요"
-private const val PdfUploadIndeterminateAnimDurationMs = 1_200
+private const val PDF_UPLOAD_READY_DEFAULT_TEXT = "아직 첨부된 포트폴리오가 없어요"
+private const val PDF_UPLOAD_INDETERMINATE_ANIM_DURATION_MS = 1_200
 
 /**
  * PDF 업로드 상태 표시 영역.
@@ -114,21 +115,19 @@ private fun PdfUploadReady(modifier: Modifier = Modifier) {
                 .background(
                     color = HilitTheme.colors.hilitWhite,
                     shape = PdfUploadShape,
-                )
-                .dashedBorder(
+                ).dashedBorder(
                     width = PdfUploadBorderWidth,
                     color = borderColor,
                     dashOn = PdfUploadDashOn,
                     dashOff = PdfUploadDashOff,
-                )
-                .padding(
+                ).padding(
                     horizontal = PdfUploadHorizontalPadding,
                     vertical = PdfUploadVerticalPadding,
                 ),
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = PdfUploadReadyDefaultText,
+            text = PDF_UPLOAD_READY_DEFAULT_TEXT,
             style = HilitTheme.typography.body6,
             color = HilitTheme.colors.gray300,
         )
@@ -163,8 +162,7 @@ private fun PdfUploadFilled(
                 .background(
                     color = HilitTheme.colors.hilitWhite,
                     shape = PdfUploadShape,
-                )
-                .border(
+                ).border(
                     width = PdfUploadBorderWidth,
                     color = HilitTheme.colors.gray100,
                     shape = PdfUploadShape,
@@ -279,7 +277,7 @@ private fun PdfUploadProgress(isCompleted: Boolean) {
             infiniteRepeatable(
                 animation =
                     tween(
-                        durationMillis = PdfUploadIndeterminateAnimDurationMs,
+                        durationMillis = PDF_UPLOAD_INDETERMINATE_ANIM_DURATION_MS,
                         easing = FastOutSlowInEasing,
                     ),
                 repeatMode = RepeatMode.Reverse,

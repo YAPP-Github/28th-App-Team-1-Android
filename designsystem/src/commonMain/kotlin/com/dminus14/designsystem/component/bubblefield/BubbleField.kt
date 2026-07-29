@@ -133,8 +133,7 @@ fun BubbleField(
                     .background(
                         color = backgroundColor,
                         shape = RectangleShape,
-                    )
-                    .padding(
+                    ).padding(
                         horizontal = horizontalPadding,
                         vertical = verticalPadding,
                     ),
@@ -205,6 +204,7 @@ private fun bubleTailPath(
                         lineTo(width, 0f)
                         lineTo(0f, height)
                     }
+
                     BubleFieldTailShape.Right -> {
                         moveTo(0f, 0f)
                         lineTo(width, 0f)
@@ -212,6 +212,7 @@ private fun bubleTailPath(
                     }
                 }
             }
+
             BubleFieldTailEdge.Top -> {
                 when (shape) {
                     BubleFieldTailShape.Left -> {
@@ -219,6 +220,7 @@ private fun bubleTailPath(
                         lineTo(width, height)
                         lineTo(0f, 0f)
                     }
+
                     BubleFieldTailShape.Right -> {
                         moveTo(0f, height)
                         lineTo(width, height)

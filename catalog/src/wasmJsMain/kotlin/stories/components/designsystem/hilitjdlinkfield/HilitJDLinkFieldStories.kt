@@ -58,6 +58,7 @@ internal val HilitJDLinkFieldStories =
                                         HilitJDLinkFieldType.Complete,
                                         HilitJDLinkFieldType.Error,
                                         -> "https://company.com/jobs/123"
+
                                         else -> ""
                                     },
                                 onValueChange = {},

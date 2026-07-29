@@ -108,7 +108,7 @@ fun HilitJDLinkField(
                 type == HilitJDLinkFieldType.Ready ||
                     type == HilitJDLinkFieldType.Complete ||
                     type == HilitJDLinkFieldType.Error
-                )
+            )
 
     val surfaceColor =
         if (type == HilitJDLinkFieldType.Processing) {
@@ -237,7 +237,7 @@ private fun LinkFieldIndicator(
         HilitJDLinkFieldType.Focus,
         HilitJDLinkFieldType.Edit,
         HilitJDLinkFieldType.Complete,
-            -> {
+        -> {
             Box(
                 modifier = modifier.background(HilitTheme.colors.hilitGreen500),
             )
@@ -323,7 +323,7 @@ private fun HilitJDLinkFieldPreview() {
                             HilitJDLinkFieldType.Processing,
                             HilitJDLinkFieldType.Complete,
                             HilitJDLinkFieldType.Error,
-                                -> "https://company.com/jobs/123"
+                            -> "https://company.com/jobs/123"
 
                             else -> ""
                         },
