@@ -55,7 +55,7 @@ internal fun CatalogSidebar(
             )
 
             Text(
-                text = "for D-14",
+                text = "for Hilit",
             )
 
             Spacer(modifier = Modifier.height(16.dp))
