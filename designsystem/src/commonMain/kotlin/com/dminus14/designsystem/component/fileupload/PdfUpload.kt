@@ -57,6 +57,10 @@ private val PdfUploadTextSpacing = 4.dp
 private val PdfUploadIconSize = 36.dp
 private val PdfUploadFileIconSize = 20.dp
 private val PdfUploadCloseSize = 16.dp
+private val PdfUploadCloseSpacing = 8.dp
+private val PdfUploadButtonIconSize = 16.dp
+private val PdfUploadButtonPadding = 8.dp
+private val PdfUploadButtonSpacing = 8.dp
 private val PdfUploadProgressHeight = 4.dp
 private val PdfUploadBorderWidth = 1.5.dp
 private val PdfUploadReadyMinHeight = 64.dp
@@ -66,17 +70,20 @@ private val PdfUploadDashOff = 4.dp
 /** Figma processing 인디케이터 너비 (`2280:10276`, 54/335) */
 private val PdfUploadIndeterminateSegmentWidth = 54.dp
 private const val PDF_UPLOAD_READY_DEFAULT_TEXT = "아직 첨부된 포트폴리오가 없어요"
+private const val PDF_UPLOAD_BUTTON_DEFAULT_TEXT = "버튼"
 private const val PDF_UPLOAD_INDETERMINATE_ANIM_DURATION_MS = 1_200
 
 /**
  * PDF 업로드 상태 표시 영역.
  *
- * Figma: FileUpload status=empty / processing / completed (`2750:18454`)
+ * Figma: FileUpload status=empty / processing / completed (`443:9714`)
  *
  * @param type Ready(미첨부) / Processing / Completed
  * @param modifier 외부 레이아웃 Modifier
  * @param fileName Processing·Completed에서 표시할 파일명
  * @param onCloseClick 닫기(제거) 클릭. null이면 닫기 아이콘을 표시하지 않는다
+ * @param buttonText Completed 우측 mini 버튼 문구
+ * @param onButtonClick Completed 우측 mini 버튼 클릭. null이면 버튼을 표시하지 않는다
  */
 @Composable
 fun PdfUpload(
@@ -84,6 +91,8 @@ fun PdfUpload(
     modifier: Modifier = Modifier,
     fileName: String = "",
     onCloseClick: (() -> Unit)? = null,
+    buttonText: String = PDF_UPLOAD_BUTTON_DEFAULT_TEXT,
+    onButtonClick: (() -> Unit)? = null,
 ) {
     when (type) {
         PdfUploadType.Ready -> {
@@ -97,6 +106,8 @@ fun PdfUpload(
                 fileName = fileName,
                 type = type,
                 onCloseClick = onCloseClick,
+                buttonText = buttonText,
+                onButtonClick = onButtonClick,
                 modifier = modifier,
             )
         }
@@ -139,6 +150,8 @@ private fun PdfUploadFilled(
     fileName: String,
     type: PdfUploadType,
     onCloseClick: (() -> Unit)?,
+    buttonText: String,
+    onButtonClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val isCompleted = type == PdfUploadType.Completed
@@ -181,53 +194,105 @@ private fun PdfUploadFilled(
         ) {
             PdfFileBadge()
 
-            Column(
+            // Figma: text + cancel 그룹 (gap 8, items-start)
+            Row(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(PdfUploadTextSpacing),
+                horizontalArrangement = Arrangement.spacedBy(PdfUploadCloseSpacing),
+                verticalAlignment = Alignment.Top,
             ) {
-                Text(
-                    text = fileName,
-                    style = HilitTheme.typography.body2,
-                    color = HilitTheme.colors.gray700,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(PdfUploadTextSpacing),
+                ) {
                     Text(
-                        text = statusText,
-                        style = HilitTheme.typography.body9,
-                        color = statusColor,
+                        text = fileName,
+                        style = HilitTheme.typography.body2,
+                        color = HilitTheme.colors.gray700,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            text = statusText,
+                            style = HilitTheme.typography.body9,
+                            color = statusColor,
+                        )
+                        HilitIcon(
+                            asset = HilitIconAsset.Info,
+                            contentDescription = null,
+                            tint = HilitTheme.colors.gray200,
+                            modifier =
+                                Modifier
+                                    .size(PdfUploadCloseSize),
+                        )
+                    }
+                }
+
+                if (onCloseClick != null) {
                     HilitIcon(
-                        asset = HilitIconAsset.Info,
+                        asset = HilitIconAsset.Delete,
                         contentDescription = null,
-                        tint = HilitTheme.colors.gray200,
+                        tint = Color.Unspecified,
                         modifier =
                             Modifier
-                                .size(PdfUploadCloseSize),
+                                .size(PdfUploadCloseSize)
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = null,
+                                    onClick = onCloseClick,
+                                ),
                     )
                 }
             }
 
-            if (onCloseClick != null) {
-                HilitIcon(
-                    asset = HilitIconAsset.Delete,
-                    contentDescription = null,
-                    tint = Color.Unspecified,
-                    modifier =
-                        Modifier
-                            .size(PdfUploadCloseSize)
-                            .clickable(
-                                indication = null,
-                                interactionSource = null,
-                                onClick = onCloseClick,
-                            ),
-                )
-            }
+            onButtonClick
+                ?.takeIf { isCompleted }
+                ?.let { onClick ->
+                    PdfUploadActionButton(
+                        text = buttonText,
+                        onClick = onClick,
+                    )
+                }
         }
 
         PdfUploadProgress(isCompleted = isCompleted)
+    }
+}
+
+/** Figma: button-mini (`3052:13145`) — Video 16px + body5, gray100 배경, padding 8 */
+@Composable
+private fun PdfUploadActionButton(
+    text: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier =
+            Modifier
+                .background(
+                    color = HilitTheme.colors.gray100,
+                    shape = PdfUploadShape,
+                ).clickable(
+                    indication = null,
+                    interactionSource = null,
+                    onClick = onClick,
+                ).padding(PdfUploadButtonPadding),
+        horizontalArrangement = Arrangement.spacedBy(PdfUploadButtonSpacing),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        HilitIcon(
+            asset = HilitIconAsset.Video,
+            contentDescription = null,
+            tint = HilitTheme.colors.hilitBlack800,
+            modifier = Modifier.size(PdfUploadButtonIconSize),
+        )
+        Text(
+            text = text,
+            style = HilitTheme.typography.body5,
+            color = HilitTheme.colors.hilitBlack800,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
@@ -359,6 +424,7 @@ private fun PdfUploadPreview() {
                 type = PdfUploadType.Completed,
                 fileName = "홍길동 자기소개서_SK프롬티어 기업....pdf",
                 onCloseClick = {},
+                onButtonClick = {},
             )
         }
     }

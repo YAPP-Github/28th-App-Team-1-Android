@@ -29,6 +29,7 @@ internal val PdfUploadStories =
                             PdfUploadCatalogAdapterArgs(
                                 type = PdfUploadType.Processing,
                                 fileName = "{파일명}.pdf",
+                                buttonText = "버튼",
                             ),
                     )
                 },
@@ -54,6 +55,7 @@ internal val PdfUploadStories =
                             type = PdfUploadType.Completed,
                             fileName = "{파일명}.pdf",
                             onCloseClick = {},
+                            onButtonClick = {},
                         )
                     }
                 },

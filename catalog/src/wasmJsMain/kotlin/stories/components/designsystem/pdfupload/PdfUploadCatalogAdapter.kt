@@ -10,10 +10,13 @@ import com.dminus14.designsystem.component.fileupload.PdfUploadType
 internal fun PdfUploadCatalogAdapter(
     type: PdfUploadType,
     fileName: String,
+    buttonText: String,
 ) {
     PdfUpload(
         type = type,
         fileName = fileName,
         onCloseClick = {},
+        buttonText = buttonText,
+        onButtonClick = {},
     )
 }
