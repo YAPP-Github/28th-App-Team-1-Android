@@ -9,7 +9,8 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel
     @Inject
-    constructor() : MviViewModel<HomeIntent, HomeState, HomeEffect>(HomeState()) {
+    constructor() :
+    MviViewModel<HomeIntent, HomeState, HomeEffect>(HomeState()) {
         override fun onIntent(intent: HomeIntent) {
             when (intent) {
                 HomeIntent.Load -> load()

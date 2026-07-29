@@ -42,9 +42,7 @@ fun SplashScreen(
 }
 
 @Composable
-private fun SplashContent(
-    modifier: Modifier = Modifier,
-) {
+private fun SplashContent(modifier: Modifier = Modifier) {
     Box(
         modifier =
             modifier

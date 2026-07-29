@@ -7,7 +7,8 @@ import javax.inject.Inject
 @HiltViewModel
 class TermViewModel
     @Inject
-    constructor() : MviViewModel<TermIntent, TermState, TermEffect>(TermState()) {
+    constructor() :
+    MviViewModel<TermIntent, TermState, TermEffect>(TermState()) {
         override fun onIntent(intent: TermIntent) {
             when (intent) {
                 TermIntent.Load -> {
