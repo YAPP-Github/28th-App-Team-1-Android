@@ -1,6 +1,5 @@
 package com.dminus14.designsystem.component.subtext
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,14 +10,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.dminus14.designsystem.component.icon.HilitIcon
+import com.dminus14.designsystem.component.icon.HilitIconAsset
 import com.dminus14.designsystem.theme.HilitTheme
 
 /** 서브텍스트의 아이콘·색상 타입. */
@@ -78,109 +75,19 @@ fun HilitSubText(
 @Composable
 private fun SubTextIcon(type: HilitSubTextType) {
     val colors = HilitTheme.colors
-    when (type) {
-        HilitSubTextType.Default -> {
-            DefaultInfoIcon(
-                color = colors.gray200,
-                modifier = Modifier.size(IconSize),
-            )
+    val (asset, tint) =
+        when (type) {
+            HilitSubTextType.Default -> HilitIconAsset.Info to colors.gray200
+            HilitSubTextType.Success -> HilitIconAsset.Success to colors.hilitGreen600
+            HilitSubTextType.Error -> HilitIconAsset.FillWarning to Color.Unspecified
         }
 
-        HilitSubTextType.Success -> {
-            SuccessIcon(
-                backgroundColor = colors.hilitGreen600,
-                checkColor = colors.hilitWhite,
-                modifier = Modifier.size(IconSize),
-            )
-        }
-
-        HilitSubTextType.Error -> {
-            ErrorIcon(
-                backgroundColor = colors.error500,
-                markColor = colors.hilitWhite,
-                modifier = Modifier.size(IconSize),
-            )
-        }
-    }
-}
-
-@Composable
-private fun DefaultInfoIcon(
-    color: Color,
-    modifier: Modifier = Modifier,
-) {
-    Canvas(modifier = modifier) {
-        val strokeWidth = size.minDimension * (2f / 16f)
-        drawCircle(
-            color = color,
-            radius = (size.minDimension - strokeWidth) / 2f,
-            style = Stroke(width = strokeWidth),
-        )
-        val barWidth = size.width * (2f / 16f)
-        val barHeight = size.height * (7f / 16f)
-        drawRect(
-            color = color,
-            topLeft = Offset(x = size.width * (7f / 16f), y = size.height * (6f / 16f)),
-            size = Size(width = barWidth, height = barHeight),
-        )
-        drawRect(
-            color = color,
-            topLeft = Offset(x = size.width * (7f / 16f), y = size.height * (3f / 16f)),
-            size = Size(width = barWidth, height = barWidth),
-        )
-    }
-}
-
-@Composable
-private fun SuccessIcon(
-    backgroundColor: Color,
-    checkColor: Color,
-    modifier: Modifier = Modifier,
-) {
-    Canvas(modifier = modifier) {
-        drawCircle(color = backgroundColor)
-        val strokeWidth = size.minDimension * 0.12f
-        val start = Offset(x = size.width * 0.22f, y = size.height * 0.52f)
-        val mid = Offset(x = size.width * 0.42f, y = size.height * 0.7f)
-        val end = Offset(x = size.width * 0.78f, y = size.height * 0.32f)
-        drawLine(
-            color = checkColor,
-            start = start,
-            end = mid,
-            strokeWidth = strokeWidth,
-            cap = StrokeCap.Round,
-        )
-        drawLine(
-            color = checkColor,
-            start = mid,
-            end = end,
-            strokeWidth = strokeWidth,
-            cap = StrokeCap.Round,
-        )
-    }
-}
-
-@Composable
-private fun ErrorIcon(
-    backgroundColor: Color,
-    markColor: Color,
-    modifier: Modifier = Modifier,
-) {
-    Canvas(modifier = modifier) {
-        drawCircle(color = backgroundColor)
-        val barWidth = size.width * (2f / 16f)
-        val barHeight = size.height * (7f / 16f)
-        drawRect(
-            color = markColor,
-            topLeft = Offset(x = size.width * (7f / 16f), y = size.height * (3f / 16f)),
-            size = Size(width = barWidth, height = barHeight),
-        )
-        drawRect(
-            color = markColor,
-            topLeft = Offset(x = size.width * (7f / 16f), y = size.height * (11f / 16f)),
-            size = Size(width = barWidth, height = barWidth),
-        )
-    }
+    HilitIcon(
+        asset = asset,
+        contentDescription = null,
+        tint = tint,
+        modifier = Modifier.size(IconSize),
+    )
 }
 
 @Preview(
