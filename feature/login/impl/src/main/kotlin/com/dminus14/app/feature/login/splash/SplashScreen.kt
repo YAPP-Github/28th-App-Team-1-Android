@@ -1,19 +1,24 @@
 package com.dminus14.app.feature.login.splash
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dminus14.app.core.resources.Res
+import com.dminus14.app.core.resources.hiiii_logo
 import com.dminus14.app.feature.login.api.Term
 import com.dminus14.designsystem.theme.HilitTheme
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun SplashScreen(
@@ -21,8 +26,6 @@ fun SplashScreen(
     modifier: Modifier = Modifier,
     viewModel: SplashViewModel = hiltViewModel(),
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-
     LaunchedEffect(Unit) {
         viewModel.onIntent(SplashIntent.Load)
     }
@@ -35,33 +38,44 @@ fun SplashScreen(
         }
     }
 
-    SplashContent(
-        state = state,
-        modifier = modifier,
-    )
+    SplashContent(modifier = modifier)
 }
 
 @Composable
 private fun SplashContent(
-    state: SplashState,
     modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier = modifier.fillMaxSize(),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(HilitTheme.colors.hilitWhite),
         contentAlignment = Alignment.Center,
     ) {
-        if (state.isLoading) {
-            CircularProgressIndicator()
-        } else {
-            Text(text = "Splash")
-        }
+        Image(
+            painter = painterResource(Res.drawable.hiiii_logo),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier =
+                Modifier
+                    .offset(y = (-50).dp)
+                    .size(
+                        width = 171.dp,
+                        height = 72.dp,
+                    ),
+        )
     }
 }
 
-@Preview(showBackground = true)
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    widthDp = 375,
+    heightDp = 812,
+)
 @Composable
 private fun SplashContentPreview() {
     HilitTheme {
-        SplashContent(state = SplashState(isLoading = false))
+        SplashContent()
     }
 }
