@@ -35,7 +35,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.dminus14.app.core.resources.Res
 import com.dminus14.app.core.resources.delete
-import com.dminus14.app.core.resources.file
+import com.dminus14.designsystem.component.icon.HilitIcon
+import com.dminus14.designsystem.component.icon.HilitIconAsset
 import com.dminus14.designsystem.theme.HilitTheme
 import org.jetbrains.compose.resources.painterResource
 
@@ -59,6 +60,7 @@ private val PdfUploadReadyMinHeight = 64.dp
 private val PdfUploadDashOn = 6.dp
 private val PdfUploadDashOff = 4.dp
 private const val PdfUploadReadyDefaultText = "아직 첨부된 포트폴리오가 없어요"
+
 /** 폴링 간격(3s)에 맞춰 목표가 바뀌어도 막대가 끊기지 않고 이어지도록 한다. */
 private const val PdfUploadProgressAnimDurationMs = 2_800
 
@@ -85,9 +87,10 @@ fun PdfUpload(
         PdfUploadType.Ready -> {
             PdfUploadReady(modifier = modifier)
         }
+
         PdfUploadType.Processing,
         PdfUploadType.Completed,
-        -> {
+            -> {
             PdfUploadFilled(
                 fileName = fileName,
                 type = type,
@@ -185,10 +188,7 @@ private fun PdfUploadFilled(
             horizontalArrangement = Arrangement.spacedBy(PdfUploadContentSpacing),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(
-                painter = painterResource(resource = Res.drawable.file),
-                contentDescription = "",
-            )
+            PdfFileBadge()
 
             Column(
                 modifier = Modifier.weight(1f),
@@ -214,11 +214,12 @@ private fun PdfUploadFilled(
                     contentDescription = "",
                     tint = Color.Unspecified,
                     modifier = Modifier
+                        .size(PdfUploadCloseSize)
                         .clickable(
                             indication = null,
                             interactionSource = null,
-                            onClick = onCloseClick
-                        )
+                            onClick = onCloseClick,
+                        ),
                 )
             }
         }
@@ -235,8 +236,12 @@ private fun PdfUploadFilled(
     }
 }
 
+/**
+ * Figma: file/36px/green (`3368:11286`)
+ * 36dp 검정 배경 + 20dp File 아이콘(hilitGreen500)
+ */
 @Composable
-private fun PdfBadge() {
+private fun PdfFileBadge() {
     Box(
         modifier =
             Modifier
@@ -247,9 +252,10 @@ private fun PdfBadge() {
                 ),
         contentAlignment = Alignment.Center,
     ) {
-        // TODO: SVG→XML Vector 전환 후 HilitIcon(File)로 교체
-        FileUploadTempFileIcon(
-            color = HilitTheme.colors.hilitGreen500,
+        HilitIcon(
+            asset = HilitIconAsset.File,
+            contentDescription = null,
+            tint = HilitTheme.colors.hilitGreen500,
             modifier = Modifier.size(PdfUploadFileIconSize),
         )
     }
