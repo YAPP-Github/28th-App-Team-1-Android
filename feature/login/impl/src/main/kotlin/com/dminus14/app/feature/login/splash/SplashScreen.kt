@@ -16,7 +16,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dminus14.app.core.resources.Res
 import com.dminus14.app.core.resources.hiiii_logo
-import com.dminus14.app.feature.login.api.Term
+import com.dminus14.app.feature.home.api.Home
+import com.dminus14.app.feature.login.api.Login
 import com.dminus14.designsystem.theme.HilitTheme
 import org.jetbrains.compose.resources.painterResource
 
@@ -33,7 +34,8 @@ fun SplashScreen(
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                SplashEffect.Finished -> onNavigate(Term)
+                SplashEffect.SessionExists -> onNavigate(Home)
+                SplashEffect.SessionNotFound -> onNavigate(Login)
             }
         }
     }
