@@ -20,14 +20,13 @@ internal val PdfUploadStories =
                 Story(
                     id = "default",
                     title = "기본",
-                    description = "Controls로 type·fileName·progress를 조절할 수 있다.",
+                    description = "Controls로 type·fileName을 조절할 수 있다. Processing은 인디케이터 바가 좌우로 움직인다.",
                 ) {
                     PdfUploadCatalogAdapterControls(
                         initialArgs =
                             PdfUploadCatalogAdapterArgs(
                                 type = PdfUploadType.Processing,
                                 fileName = "{파일명}.pdf",
-                                progress = 0.2f,
                             ),
                     )
                 },
@@ -47,7 +46,6 @@ internal val PdfUploadStories =
                         PdfUpload(
                             type = PdfUploadType.Processing,
                             fileName = "{파일명}.pdf",
-                            progress = 0.2f,
                             onCloseClick = {},
                         )
                         PdfUpload(

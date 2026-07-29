@@ -1,27 +1,34 @@
 package com.dminus14.designsystem.component.fileupload
 
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -59,10 +66,10 @@ private val PdfUploadBorderWidth = 1.5.dp
 private val PdfUploadReadyMinHeight = 64.dp
 private val PdfUploadDashOn = 6.dp
 private val PdfUploadDashOff = 4.dp
+/** Figma processing 인디케이터 너비 (`2280:10276`, 54/335) */
+private val PdfUploadIndeterminateSegmentWidth = 54.dp
 private const val PdfUploadReadyDefaultText = "아직 첨부된 포트폴리오가 없어요"
-
-/** 폴링 간격(3s)에 맞춰 목표가 바뀌어도 막대가 끊기지 않고 이어지도록 한다. */
-private const val PdfUploadProgressAnimDurationMs = 2_800
+private const val PdfUploadIndeterminateAnimDurationMs = 1_200
 
 /**
  * PDF 업로드 상태 표시 영역.
@@ -72,7 +79,6 @@ private const val PdfUploadProgressAnimDurationMs = 2_800
  * @param type Ready(미첨부) / Processing / Completed
  * @param modifier 외부 레이아웃 Modifier
  * @param fileName Processing·Completed에서 표시할 파일명
- * @param progress Processing 진행률(0f~1f). Completed에서는 무시되고 1f로 표시한다
  * @param onCloseClick 닫기(제거) 클릭. null이면 닫기 아이콘을 표시하지 않는다
  */
 @Composable
@@ -80,7 +86,6 @@ fun PdfUpload(
     type: PdfUploadType,
     modifier: Modifier = Modifier,
     fileName: String = "",
-    progress: Float = 0f,
     onCloseClick: (() -> Unit)? = null,
 ) {
     when (type) {
@@ -90,11 +95,10 @@ fun PdfUpload(
 
         PdfUploadType.Processing,
         PdfUploadType.Completed,
-            -> {
+        -> {
             PdfUploadFilled(
                 fileName = fileName,
                 type = type,
-                progress = progress,
                 onCloseClick = onCloseClick,
                 modifier = modifier,
             )
@@ -139,17 +143,10 @@ private fun PdfUploadReady(modifier: Modifier = Modifier) {
 private fun PdfUploadFilled(
     fileName: String,
     type: PdfUploadType,
-    progress: Float,
     onCloseClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val isCompleted = type == PdfUploadType.Completed
-    val progressValue =
-        if (isCompleted) {
-            1f
-        } else {
-            progress.coerceIn(0f, 1f)
-        }
     val statusText =
         if (isCompleted) {
             "Completed!"
@@ -213,26 +210,19 @@ private fun PdfUploadFilled(
                     painter = painterResource(resource = Res.drawable.delete),
                     contentDescription = "",
                     tint = Color.Unspecified,
-                    modifier = Modifier
-                        .size(PdfUploadCloseSize)
-                        .clickable(
-                            indication = null,
-                            interactionSource = null,
-                            onClick = onCloseClick,
-                        ),
+                    modifier =
+                        Modifier
+                            .size(PdfUploadCloseSize)
+                            .clickable(
+                                indication = null,
+                                interactionSource = null,
+                                onClick = onCloseClick,
+                            ),
                 )
             }
         }
 
-        PdfUploadProgress(
-            progress = progressValue,
-            trackColor =
-                if (isCompleted) {
-                    HilitTheme.colors.hilitGreen500
-                } else {
-                    HilitTheme.colors.gray200
-                },
-        )
+        PdfUploadProgress(isCompleted = isCompleted)
     }
 }
 
@@ -262,31 +252,51 @@ private fun PdfFileBadge() {
 }
 
 @Composable
-private fun PdfUploadProgress(
-    progress: Float,
-    trackColor: Color,
-) {
-    val animatedProgress by animateFloatAsState(
-        targetValue = progress.coerceIn(0f, 1f),
+private fun PdfUploadProgress(isCompleted: Boolean) {
+    if (isCompleted) {
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(PdfUploadProgressHeight)
+                    .background(HilitTheme.colors.hilitGreen500),
+        )
+        return
+    }
+
+    val transition = rememberInfiniteTransition(label = "pdfUploadIndeterminate")
+    val offsetFraction by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
         animationSpec =
-            tween(
-                durationMillis = PdfUploadProgressAnimDurationMs,
-                easing = FastOutSlowInEasing,
+            infiniteRepeatable(
+                animation =
+                    tween(
+                        durationMillis = PdfUploadIndeterminateAnimDurationMs,
+                        easing = FastOutSlowInEasing,
+                    ),
+                repeatMode = RepeatMode.Reverse,
             ),
-        label = "pdfUploadProgress",
+        label = "pdfUploadIndeterminateOffset",
     )
 
-    Box(
+    BoxWithConstraints(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .height(PdfUploadProgressHeight)
-                .background(trackColor),
+                .clipToBounds()
+                .background(HilitTheme.colors.gray200),
     ) {
+        val segmentWidth =
+            PdfUploadIndeterminateSegmentWidth.coerceAtMost(maxWidth)
+        val maxOffset = (maxWidth - segmentWidth).coerceAtLeast(0.dp)
+
         Box(
             modifier =
                 Modifier
-                    .fillMaxWidth(fraction = animatedProgress)
+                    .offset(x = maxOffset * offsetFraction)
+                    .width(segmentWidth)
                     .fillMaxHeight()
                     .background(HilitTheme.colors.hilitGreen500),
         )
@@ -338,7 +348,6 @@ private fun PdfUploadPreview() {
             PdfUpload(
                 type = PdfUploadType.Processing,
                 fileName = "홍길동 자기소개서_SK프롬티어 기업....pdf",
-                progress = 0.2f,
                 onCloseClick = {},
             )
             PdfUpload(
