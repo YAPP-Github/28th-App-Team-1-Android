@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,7 +22,7 @@ import com.dminus14.designsystem.theme.HilitTheme
 
 /** 말풍선 크기 타입. */
 enum class BubbleFieldType {
-    /** 텍스트에 맞춰 줄어드는 작은 말풍선 */
+    /** 최소 너비 149dp의 작은 말풍선 */
     Small,
 
     /** 최소 너비 274dp의 큰 말풍선. padding 14×12 */
@@ -61,6 +60,7 @@ private val SmallHorizontalPadding = 14.dp
 private val SmallVerticalPadding = 12.dp
 private val BigHorizontalPadding = 14.dp
 private val BigVerticalPadding = 12.dp
+private val SmallMinWidth = 149.dp
 private val BigMinWidth = 274.dp
 private val BubleTailWidth = 12.dp
 private val BubleTailHeight = 8.dp
@@ -72,7 +72,7 @@ private val BubleTailEdgePadding = 40.dp
  * Figma: BubbleField (`2000:7532`, Big body `2000:7343`)
  *
  * @param text 말풍선 본문 문구
- * @param type Small(콘텐츠 너비) / Big(최소 너비 274dp, padding 14×12)
+ * @param type Small(최소 너비 149dp) / Big(최소 너비 274dp, padding 14×12)
  * @param tailEdge 꼬리가 붙는 변(Top/Bottom)
  * @param tailAlign 꼬리의 좌·우 위치
  * @param tailShape 직각 삼각형의 수직 변 방향(Left/Right)
@@ -105,12 +105,12 @@ fun BubbleField(
         }
     val sizeModifier =
         when (type) {
-            BubbleFieldType.Small -> Modifier.wrapContentWidth()
+            BubbleFieldType.Small -> Modifier.widthIn(min = SmallMinWidth)
             BubbleFieldType.Big -> Modifier.widthIn(min = BigMinWidth)
         }
     val bodyWidthModifier =
         when (type) {
-            BubbleFieldType.Small -> Modifier.wrapContentWidth()
+            BubbleFieldType.Small -> Modifier.widthIn(min = SmallMinWidth)
             BubbleFieldType.Big -> Modifier.fillMaxWidth()
         }
 
