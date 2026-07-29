@@ -30,12 +30,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import com.dminus14.designsystem.theme.HilitColors
 import com.dminus14.designsystem.theme.HilitTheme
 
 internal const val HILIT_TEXT_HIGHLIGHT_ANNOTATION_TAG = "hilit-text-highlight"
 
 private val HIGHLIGHT_HORIZONTAL_PADDING = 8.dp
 private val HIGHLIGHT_SLANT = 4.dp
+
+enum class HilitTextHighlightColor {
+    Green,
+    Red,
+    Blue,
+}
 
 /**
  * 블록에서 추가한 문자열을 Hilit 텍스트 하이라이트 범위로 표시한다.
@@ -55,10 +62,14 @@ fun AnnotatedString.Builder.withHilitTextHighlight(block: AnnotatedString.Builde
 }
 
 /**
- * [withHilitTextHighlight] 범위를 Hilit 사다리꼴 하이라이트로 표시한다.
+ * [withHilitTextHighlight] 범위를 [highlightColor] 색상의 Hilit 사다리꼴 하이라이트로 표시한다.
  *
  * 각 하이라이트 범위는 좌우 8dp 여백이 있고 내부에서 줄바꿈되지 않는 하나의 인라인 요소로
  * 배치된다.
+ *
+ * [onTextLayout]으로 전달되는 [TextLayoutResult]의 인덱스와 배치 정보는 원본 [text]가 아니라
+ * 전처리된 `preparedText.text`를 기준으로 한다. 이 문자열에서는 각 하이라이트 범위가 하나의
+ * 인라인 콘텐츠 플레이스홀더로 치환되므로 원본 [text]의 인덱스와 일치하지 않을 수 있다.
  */
 @Composable
 fun HilitText(
@@ -71,15 +82,19 @@ fun HilitText(
     minLines: Int = 1,
     onTextLayout: (TextLayoutResult) -> Unit = {},
     style: TextStyle = LocalTextStyle.current,
+    highlightColor: HilitTextHighlightColor = HilitTextHighlightColor.Green,
 ) {
-    val highlightColor = HilitTheme.colors.hilitGreen500
-    val highlightTextColor = HilitTheme.colors.hilitBlack800
+    val highlightStyle =
+        hilitTextHighlightStyle(
+            color = highlightColor,
+            colors = HilitTheme.colors,
+        )
     val preparedText =
         prepareHilitText(
             text = text,
             style = style,
-            highlightColor = highlightColor,
-            highlightTextColor = highlightTextColor,
+            highlightColor = highlightStyle.backgroundColor,
+            highlightTextColor = highlightStyle.contentColor,
         )
 
     Text(
@@ -231,6 +246,38 @@ internal data class HilitTextRange(
     val end: Int,
 )
 
+internal data class HilitTextHighlightStyle(
+    val backgroundColor: Color,
+    val contentColor: Color,
+)
+
+internal fun hilitTextHighlightStyle(
+    color: HilitTextHighlightColor,
+    colors: HilitColors,
+): HilitTextHighlightStyle =
+    when (color) {
+        HilitTextHighlightColor.Green -> {
+            HilitTextHighlightStyle(
+                backgroundColor = colors.hilitGreen500,
+                contentColor = colors.hilitBlack800,
+            )
+        }
+
+        HilitTextHighlightColor.Red -> {
+            HilitTextHighlightStyle(
+                backgroundColor = colors.error200,
+                contentColor = colors.error500,
+            )
+        }
+
+        HilitTextHighlightColor.Blue -> {
+            HilitTextHighlightStyle(
+                backgroundColor = colors.positive200,
+                contentColor = colors.positive800,
+            )
+        }
+    }
+
 internal fun normalizedHighlightRanges(text: AnnotatedString): List<HilitTextRange> {
     val ranges =
         text
@@ -281,31 +328,20 @@ private data class PreparedHilitText(
 private fun HilitTextHighlightPreview() {
     HilitTheme {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            HilitText(
-                text =
-                    buildAnnotatedString {
-                        append("면접에서 ")
-                        withHilitTextHighlight {
-                            append("핵심 경험")
-                        }
-                        append("을 설명해 주세요.")
-                    },
-                style = HilitTheme.typography.body4,
-            )
-            HilitText(
-                text =
-                    buildAnnotatedString {
-                        withHilitTextHighlight {
-                            append("문제 상황")
-                        }
-                        append("과 ")
-                        withHilitTextHighlight {
-                            append("해결 과정")
-                        }
-                        append("을 차례로 설명해 주세요.")
-                    },
-                style = HilitTheme.typography.head3,
-            )
+            HilitTextHighlightColor.entries.forEach { highlightColor ->
+                HilitText(
+                    text =
+                        buildAnnotatedString {
+                            append("면접에서 ")
+                            withHilitTextHighlight {
+                                append("핵심 경험")
+                            }
+                            append("을 설명해 주세요.")
+                        },
+                    style = HilitTheme.typography.body4,
+                    highlightColor = highlightColor,
+                )
+            }
         }
     }
 }

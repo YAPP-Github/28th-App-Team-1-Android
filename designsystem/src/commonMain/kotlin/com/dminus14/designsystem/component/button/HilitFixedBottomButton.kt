@@ -21,6 +21,12 @@ import androidx.compose.ui.unit.dp
 import com.dminus14.designsystem.theme.HilitColors
 import com.dminus14.designsystem.theme.HilitTheme
 
+/**
+ * 버튼이 표시되는 화면 모드에 따른 색상 타입.
+ *
+ * 활성 상태를 기준으로 [Light]는 라이트 모드에서 검정 배경과 흰 글자를 사용하고,
+ * [Dark]는 다크 모드에서 흰 배경과 검정 글자를 사용한다.
+ */
 enum class HilitButtonType { Dark, Light }
 
 @Composable
@@ -35,12 +41,7 @@ fun HilitFixedBottomButton(
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
 
-    val color =
-        if (enabled) {
-            type.enableColor(type = type, colors = colors)
-        } else {
-            type.disabledColor(type = type, colors = colors)
-        }
+    val color = hilitFixedBottomButtonColors(type = type, enabled = enabled, colors = colors)
 
     val backgroundColor =
         when {
@@ -70,12 +71,13 @@ fun HilitFixedBottomButton(
     }
 }
 
-private fun HilitButtonType.enableColor(
+internal fun hilitFixedBottomButtonColors(
     type: HilitButtonType,
+    enabled: Boolean,
     colors: HilitColors,
 ): BtnColorSet =
-    when (type) {
-        HilitButtonType.Dark -> {
+    when {
+        type == HilitButtonType.Light && enabled -> {
             BtnColorSet(
                 contentColor = colors.hilitWhite,
                 backgroundColor = colors.hilitBlack800,
@@ -83,21 +85,15 @@ private fun HilitButtonType.enableColor(
             )
         }
 
-        HilitButtonType.Light -> {
+        type == HilitButtonType.Dark && enabled -> {
             BtnColorSet(
                 contentColor = colors.hilitBlack800,
                 backgroundColor = colors.hilitWhite,
                 pressColor = colors.gray100,
             )
         }
-    }
 
-private fun HilitButtonType.disabledColor(
-    type: HilitButtonType,
-    colors: HilitColors,
-): BtnColorSet =
-    when (type) {
-        HilitButtonType.Dark -> {
+        type == HilitButtonType.Light -> {
             BtnColorSet(
                 contentColor = colors.gray300,
                 backgroundColor = colors.gray50,
@@ -105,7 +101,7 @@ private fun HilitButtonType.disabledColor(
             )
         }
 
-        HilitButtonType.Light -> {
+        else -> {
             BtnColorSet(
                 contentColor = colors.gray300,
                 backgroundColor = colors.hilitWhite,
@@ -128,29 +124,29 @@ private fun HilitFixedBottomButtonPreview() {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 HilitFixedBottomButton(
                     modifier = Modifier,
-                    text = "Dark enable",
-                    type = HilitButtonType.Dark,
+                    text = "라이트 모드 · 활성",
+                    type = HilitButtonType.Light,
                     enabled = true,
                     onClick = {},
                 )
                 HilitFixedBottomButton(
                     modifier = Modifier,
-                    text = "Dark disable",
-                    type = HilitButtonType.Dark,
+                    text = "라이트 모드 · 비활성",
+                    type = HilitButtonType.Light,
                     enabled = false,
                     onClick = {},
                 )
                 HilitFixedBottomButton(
                     modifier = Modifier,
-                    text = "Light enable",
-                    type = HilitButtonType.Light,
+                    text = "다크 모드 · 활성",
+                    type = HilitButtonType.Dark,
                     enabled = true,
                     onClick = {},
                 )
                 HilitFixedBottomButton(
                     modifier = Modifier,
-                    text = "Light disable",
-                    type = HilitButtonType.Light,
+                    text = "다크 모드 · 비활성",
+                    type = HilitButtonType.Dark,
                     enabled = false,
                     onClick = {},
                 )

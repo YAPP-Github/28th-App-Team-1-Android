@@ -30,6 +30,12 @@ internal const val HILIT_BOTTOM_OUTLINED_MINIMUM_WIDTH_TEXT = "가"
 private val BottomPadding = 8.dp
 private val BottomOutlineThickness = 4.dp
 
+/**
+ * Hilit 앱 전용 하단 밑줄 텍스트 필드.
+ *
+ * 기본적으로 가운데 정렬하여 사용하되, 만약 텍스트 필드 너비가 화면 너비를 초과할 경우
+ * 이 때에는 좌우 패딩 `24.dp`를 적용하여야 한다.
+ */
 @Composable
 fun HilitBottomOutlinedTextField(
     value: String,

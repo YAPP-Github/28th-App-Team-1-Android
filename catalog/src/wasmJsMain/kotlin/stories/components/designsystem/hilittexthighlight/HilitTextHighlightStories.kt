@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import com.dminus14.designsystem.component.text.HilitText
+import com.dminus14.designsystem.component.text.HilitTextHighlightColor
 import com.dminus14.designsystem.component.text.withHilitTextHighlight
 import com.dminus14.designsystem.theme.HilitTheme
 import type.Story
@@ -15,7 +16,7 @@ import type.StoryGroup
 internal val HilitTextHighlightStories =
     StoryGroup(
         path = "Components/HilitTextHighlight",
-        description = "한 Text 안에서 특정 구간에 적용하는 Green 텍스트 하이라이트.",
+        description = "한 Text 안에서 특정 구간에 적용하는 초록, 빨강, 파랑 텍스트 하이라이트.",
         stories =
             listOf(
                 Story(
@@ -29,24 +30,30 @@ internal val HilitTextHighlightStories =
                                 prefix = "면접에서 ",
                                 highlight = "핵심 경험",
                                 suffix = "을 설명해 주세요.",
+                                highlightColor = HilitTextHighlightColor.Green,
                             ),
                     )
                 },
                 Story(
                     id = "figma-reference",
                     title = "Figma 기준",
-                    description = "head3 글꼴 속성과 Green 하이라이트만 표시한 기준 상태.",
+                    description = "head3 글꼴 속성으로 세 가지 하이라이트 색상을 비교하는 기준 상태.",
                 ) {
                     HilitTheme {
-                        HilitText(
-                            text =
-                                buildAnnotatedString {
-                                    withHilitTextHighlight {
-                                        append("텍스트")
-                                    }
-                                },
-                            style = HilitTheme.typography.head3,
-                        )
+                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            HilitTextHighlightColor.entries.forEach { highlightColor ->
+                                HilitText(
+                                    text =
+                                        buildAnnotatedString {
+                                            withHilitTextHighlight {
+                                                append("텍스트")
+                                            }
+                                        },
+                                    style = HilitTheme.typography.head3,
+                                    highlightColor = highlightColor,
+                                )
+                            }
+                        }
                     }
                 },
                 Story(
