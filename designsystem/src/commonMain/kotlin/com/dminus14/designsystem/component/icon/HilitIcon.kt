@@ -4,6 +4,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import com.dminus14.app.core.resources.Res
 import com.dminus14.app.core.resources.add
 import com.dminus14.app.core.resources.ai
@@ -26,6 +27,7 @@ import com.dminus14.app.core.resources.skip_right
 import com.dminus14.app.core.resources.timer
 import com.dminus14.app.core.resources.video
 import com.dminus14.app.core.resources.warning
+import com.dminus14.designsystem.theme.HilitTheme
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -68,5 +70,15 @@ fun HilitIcon(
         contentDescription = contentDescription,
         tint = tint,
         modifier = modifier,
+    )
+}
+
+@Preview
+@Composable
+fun HilitIconPreview() {
+    HilitIcon(
+        asset = HilitIconAsset.Ai,
+        tint = HilitTheme.colors.hilitGreen500,
+        contentDescription = null,
     )
 }
