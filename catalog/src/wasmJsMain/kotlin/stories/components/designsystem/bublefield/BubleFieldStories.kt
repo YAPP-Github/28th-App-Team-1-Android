@@ -8,10 +8,10 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.dminus14.designsystem.component.bubblefield.BubbleField
+import com.dminus14.designsystem.component.bubblefield.BubbleFieldType
 import com.dminus14.designsystem.component.bubblefield.BubleFieldTailAlign
 import com.dminus14.designsystem.component.bubblefield.BubleFieldTailEdge
 import com.dminus14.designsystem.component.bubblefield.BubleFieldTailShape
-import com.dminus14.designsystem.component.bubblefield.BubleFieldType
 import com.dminus14.designsystem.theme.HilitTheme
 import type.Story
 import type.StoryGroup
@@ -31,7 +31,7 @@ internal val BubleFieldStories =
                         initialArgs =
                             BubleFieldCatalogAdapterArgs(
                                 text = "텍스트를 입력해주세요",
-                                type = BubleFieldType.Big,
+                                type = BubbleFieldType.Big,
                                 tailEdge = BubleFieldTailEdge.Bottom,
                                 tailAlign = BubleFieldTailAlign.Right,
                                 tailShape = BubleFieldTailShape.Right,
@@ -50,7 +50,7 @@ internal val BubleFieldStories =
                                 .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(20.dp),
                     ) {
-                        BubleFieldType.entries.forEach { type ->
+                        BubbleFieldType.entries.forEach { type ->
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text(
                                     text = type.name,

@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.dminus14.designsystem.theme.HilitTheme
 
 /** 말풍선 크기 타입. */
-enum class BubleFieldType {
+enum class BubbleFieldType {
     /** 텍스트에 맞춰 줄어드는 작은 말풍선 */
     Small,
 
@@ -81,7 +81,7 @@ private val BubleTailEdgePadding = 40.dp
 @Composable
 fun BubbleField(
     text: String,
-    type: BubleFieldType,
+    type: BubbleFieldType,
     tailEdge: BubleFieldTailEdge,
     tailAlign: BubleFieldTailAlign,
     tailShape: BubleFieldTailShape,
@@ -95,23 +95,23 @@ fun BubbleField(
         }
     val horizontalPadding =
         when (type) {
-            BubleFieldType.Small -> SmallHorizontalPadding
-            BubleFieldType.Big -> BigHorizontalPadding
+            BubbleFieldType.Small -> SmallHorizontalPadding
+            BubbleFieldType.Big -> BigHorizontalPadding
         }
     val verticalPadding =
         when (type) {
-            BubleFieldType.Small -> SmallVerticalPadding
-            BubleFieldType.Big -> BigVerticalPadding
+            BubbleFieldType.Small -> SmallVerticalPadding
+            BubbleFieldType.Big -> BigVerticalPadding
         }
     val sizeModifier =
         when (type) {
-            BubleFieldType.Small -> Modifier.wrapContentWidth()
-            BubleFieldType.Big -> Modifier.widthIn(min = BigMinWidth)
+            BubbleFieldType.Small -> Modifier.wrapContentWidth()
+            BubbleFieldType.Big -> Modifier.widthIn(min = BigMinWidth)
         }
     val bodyWidthModifier =
         when (type) {
-            BubleFieldType.Small -> Modifier.wrapContentWidth()
-            BubleFieldType.Big -> Modifier.fillMaxWidth()
+            BubbleFieldType.Small -> Modifier.wrapContentWidth()
+            BubbleFieldType.Big -> Modifier.fillMaxWidth()
         }
 
     Column(
@@ -248,7 +248,7 @@ private fun BubbleFieldSmallPreview() {
                     BubleFieldTailShape.entries.forEach { shape ->
                         BubbleField(
                             text = "텍스트를 입력해주세요",
-                            type = BubleFieldType.Small,
+                            type = BubbleFieldType.Small,
                             tailEdge = edge,
                             tailAlign = align,
                             tailShape = shape,
@@ -278,7 +278,7 @@ private fun BubbleFieldBigPreview() {
                     BubleFieldTailShape.entries.forEach { shape ->
                         BubbleField(
                             text = "텍스트를 입력해주세요",
-                            type = BubleFieldType.Big,
+                            type = BubbleFieldType.Big,
                             tailEdge = edge,
                             tailAlign = align,
                             tailShape = shape,
