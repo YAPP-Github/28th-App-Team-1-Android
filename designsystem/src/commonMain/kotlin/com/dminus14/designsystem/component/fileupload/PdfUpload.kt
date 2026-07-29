@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -40,12 +39,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.dminus14.app.core.resources.Res
-import com.dminus14.app.core.resources.delete
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
 import com.dminus14.designsystem.theme.HilitTheme
-import org.jetbrains.compose.resources.painterResource
 
 enum class PdfUploadType {
     Ready,
@@ -198,17 +194,28 @@ private fun PdfUploadFilled(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Text(
-                    text = statusText,
-                    style = HilitTheme.typography.body9,
-                    color = statusColor,
-                )
+
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = statusText,
+                        style = HilitTheme.typography.body9,
+                        color = statusColor,
+                    )
+                    HilitIcon(
+                        asset = HilitIconAsset.Info,
+                        contentDescription = null,
+                        tint = HilitTheme.colors.gray200,
+                        modifier =
+                            Modifier
+                                .size(PdfUploadCloseSize),
+                    )
+                }
             }
 
             if (onCloseClick != null) {
-                Icon(
-                    painter = painterResource(resource = Res.drawable.delete),
-                    contentDescription = "",
+                HilitIcon(
+                    asset = HilitIconAsset.Delete,
+                    contentDescription = null,
                     tint = Color.Unspecified,
                     modifier =
                         Modifier
