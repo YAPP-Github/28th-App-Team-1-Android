@@ -5,70 +5,74 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.dminus14.app.core.resources.Res
-import com.dminus14.app.core.resources.add
-import com.dminus14.app.core.resources.ai
+import com.dminus14.app.core.resources.ai_sparkle
+import com.dminus14.app.core.resources.apple_logo
 import com.dminus14.app.core.resources.cancel
-import com.dminus14.app.core.resources.check
 import com.dminus14.app.core.resources.coupon
 import com.dminus14.app.core.resources.edit
 import com.dminus14.app.core.resources.expand
-import com.dminus14.app.core.resources.eye
 import com.dminus14.app.core.resources.file
-import com.dminus14.app.core.resources.hand
+import com.dminus14.app.core.resources.info
+import com.dminus14.app.core.resources.kakao_logo
 import com.dminus14.app.core.resources.left
 import com.dminus14.app.core.resources.pause
 import com.dminus14.app.core.resources.play
+import com.dminus14.app.core.resources.plus
 import com.dminus14.app.core.resources.profile
 import com.dminus14.app.core.resources.right
 import com.dminus14.app.core.resources.script
 import com.dminus14.app.core.resources.skip_left
 import com.dminus14.app.core.resources.skip_right
+import com.dminus14.app.core.resources.success
 import com.dminus14.app.core.resources.timer
 import com.dminus14.app.core.resources.video
-import com.dminus14.app.core.resources.warning
 import com.dminus14.designsystem.theme.HilitTheme
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
 enum class HilitIconAsset(
     val resourceName: String,
+    val defaultSize: Dp,
     internal val resource: DrawableResource,
+    internal val preservesOriginalColors: Boolean = false,
 ) {
-    Add("add", Res.drawable.add),
-    Ai("ai", Res.drawable.ai),
-    Cancel("cancel", Res.drawable.cancel),
-    Check("check", Res.drawable.check),
-    Coupon("coupon", Res.drawable.coupon),
-    Edit("edit", Res.drawable.edit),
-    Eye("eye", Res.drawable.eye),
-    File("file", Res.drawable.file),
-    Expand("expand", Res.drawable.expand),
-    Hand("hand", Res.drawable.hand),
-    Left("left", Res.drawable.left),
-    Pause("pause", Res.drawable.pause),
-    Play("play", Res.drawable.play),
-    Profile("profile", Res.drawable.profile),
-    Right("right", Res.drawable.right),
-    Script("script", Res.drawable.script),
-    SkipLeft("skip_left", Res.drawable.skip_left),
-    SkipRight("skip_right", Res.drawable.skip_right),
-    Timer("timer", Res.drawable.timer),
-    Video("video", Res.drawable.video),
-    Warning("warning", Res.drawable.warning),
+    SkipLeft("skip_left", 24.dp, Res.drawable.skip_left),
+    SkipRight("skip_right", 24.dp, Res.drawable.skip_right),
+    Play("play", 24.dp, Res.drawable.play),
+    Pause("pause", 24.dp, Res.drawable.pause),
+    Video("video", 24.dp, Res.drawable.video),
+    Timer("timer", 24.dp, Res.drawable.timer),
+    Profile("profile", 24.dp, Res.drawable.profile),
+    Edit("edit", 24.dp, Res.drawable.edit),
+    Cancel("cancel", 24.dp, Res.drawable.cancel),
+    Right("right", 24.dp, Res.drawable.right),
+    Left("left", 24.dp, Res.drawable.left),
+    Plus("plus", 24.dp, Res.drawable.plus),
+    Success("success", 24.dp, Res.drawable.success),
+    Expand("expand", 24.dp, Res.drawable.expand),
+    File("file", 24.dp, Res.drawable.file),
+    AiSparkle("ai_sparkle", 24.dp, Res.drawable.ai_sparkle),
+    Script("script", 24.dp, Res.drawable.script),
+    AppleLogo("apple_logo", 24.dp, Res.drawable.apple_logo, preservesOriginalColors = true),
+    KakaoLogo("kakao_logo", 24.dp, Res.drawable.kakao_logo, preservesOriginalColors = true),
+    Coupon("coupon", 16.dp, Res.drawable.coupon),
+    Info("info", 16.dp, Res.drawable.info),
 }
 
 @Composable
 fun HilitIcon(
     asset: HilitIconAsset,
     contentDescription: String?,
-    tint: Color,
+    tint: Color = Color.Unspecified,
     modifier: Modifier = Modifier,
 ) {
     Icon(
         painter = painterResource(asset.resource),
         contentDescription = contentDescription,
-        tint = tint,
+        tint = if (asset.preservesOriginalColors) Color.Unspecified else tint,
         modifier = modifier,
     )
 }
@@ -76,9 +80,10 @@ fun HilitIcon(
 @Preview
 @Composable
 fun HilitIconPreview() {
-    HilitIcon(
-        asset = HilitIconAsset.Ai,
-        tint = HilitTheme.colors.hilitGreen500,
-        contentDescription = null,
-    )
+    HilitTheme {
+        HilitIcon(
+            asset = HilitIconAsset.Plus,
+            contentDescription = null,
+        )
+    }
 }
