@@ -26,7 +26,7 @@ internal fun HilitJDLinkFieldCatalogAdapter(
     subText: String,
     type: HilitJDLinkFieldType,
 ) {
-    var text by remember(value, type) { mutableStateOf(value) }
+    var text by remember(value) { mutableStateOf(value) }
 
     Box(
         modifier =
