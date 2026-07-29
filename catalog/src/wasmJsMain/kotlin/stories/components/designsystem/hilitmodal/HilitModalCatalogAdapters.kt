@@ -1,4 +1,4 @@
-package stories.components.designsystem.dminusmodal
+package stories.components.designsystem.hilitmodal
 
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -8,18 +8,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.dminus14.catalog.controls.CatalogControls
-import com.dminus14.designsystem.component.modal.DMinusModal
+import com.dminus14.designsystem.component.modal.HilitModal
 
 @CatalogControls
 @Composable
-internal fun DMinusModalCatalogAdapter(
+internal fun HilitModalCatalogAdapter(
     title: String,
     message: String,
     confirmText: String,
     dismissible: Boolean,
 ) {
     CatalogModalPreview { closeModal ->
-        DMinusModal(
+        HilitModal(
             title = title,
             message = message,
             confirmText = confirmText,
@@ -34,7 +34,7 @@ internal fun DMinusModalCatalogAdapter(
 
 @CatalogControls
 @Composable
-internal fun DMinusModalWithCancelCatalogAdapter(
+internal fun HilitModalWithCancelCatalogAdapter(
     title: String,
     message: String,
     confirmText: String,
@@ -42,7 +42,7 @@ internal fun DMinusModalWithCancelCatalogAdapter(
     dismissible: Boolean,
 ) {
     CatalogModalPreview { closeModal ->
-        DMinusModal(
+        HilitModal(
             title = title,
             message = message,
             confirmText = confirmText,
