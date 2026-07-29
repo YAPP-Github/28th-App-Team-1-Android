@@ -14,7 +14,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
@@ -28,16 +27,15 @@ internal val IconStories =
     StoryGroup(
         path = "Foundations/Icon",
         description =
-            "공용 벡터 아이콘 ${HilitIconAsset.entries.size}개를 확인합니다. " +
-                "단색 아이콘은 Hilit Green 500, 원본 색이 있는 아이콘은 그대로 표시합니다.",
+            "공용 벡터 아이콘 ${HilitIconAsset.entries.size}개의 기본 크기와 색상을 확인합니다. " +
+                "원본 색 아이콘(로고·delete·fill_warning·upload 등)은 tint 없이 표시합니다.",
         stories =
             listOf(
                 Story(
                     id = "default",
                     title = "전체 아이콘",
                     description =
-                        "리소스 이름과 함께 단색 아이콘은 Hilit Green 500, " +
-                            "원본 색 아이콘(delete, fill_warning, upload)은 Unspecified tint로 확인합니다.",
+                        "일반 아이콘은 기본 tint, 원본 색이 있는 아이콘은 Unspecified로 확인합니다.",
                     content = { IconGallery() },
                 ),
             ),
@@ -88,8 +86,7 @@ private fun IconItem(
             HilitIcon(
                 asset = asset,
                 contentDescription = asset.resourceName,
-                tint = asset.catalogTint(),
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier.size(asset.defaultSize),
             )
         }
         Text(
@@ -99,13 +96,3 @@ private fun IconItem(
         )
     }
 }
-
-@Composable
-private fun HilitIconAsset.catalogTint(): Color =
-    when (this) {
-        HilitIconAsset.Delete,
-        HilitIconAsset.FillWarning,
-        HilitIconAsset.Upload,
-        -> Color.Unspecified
-        else -> HilitTheme.colors.hilitGreen500
-    }

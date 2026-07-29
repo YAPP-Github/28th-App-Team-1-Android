@@ -3,7 +3,7 @@ package com.dminus14.app.dialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.dminus14.designsystem.component.modal.DMinusModal
+import com.dminus14.designsystem.component.modal.HilitModal
 
 @Composable
 fun GlobalDialogHost(manager: GlobalModalManager) {
@@ -12,7 +12,7 @@ fun GlobalDialogHost(manager: GlobalModalManager) {
     event?.let { currentEvent ->
         val request = currentEvent.request
 
-        DMinusModal(
+        HilitModal(
             title = request.title,
             message = request.message,
             confirmText = request.confirmText,
