@@ -82,7 +82,6 @@ fun FileUploadGuide(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        // TODO: SVG→XML Vector 전환 후 HilitIcon(Upload)로 교체
         HilitIcon(
             asset = HilitIconAsset.Upload,
             contentDescription = ""
