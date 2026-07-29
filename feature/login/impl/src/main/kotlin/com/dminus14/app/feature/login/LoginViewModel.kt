@@ -1,18 +1,12 @@
 package com.dminus14.app.feature.login
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dminus14.app.core.common.mvi.MviViewModel
 import com.dminus14.app.domain.exception.CustomException
 import com.dminus14.app.domain.usecase.GetAuthSessionUseCase
 import com.dminus14.app.domain.usecase.LoginWithKakaoUseCase
 import com.dminus14.app.feature.login.kakao.KakaoLoginException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,14 +16,8 @@ class LoginViewModel
     constructor(
         private val getAuthSessionUseCase: GetAuthSessionUseCase,
         private val loginWithKakaoUseCase: LoginWithKakaoUseCase,
-    ) : ViewModel() {
-        private val _state = MutableStateFlow(LoginState())
-        val state: StateFlow<LoginState> = _state.asStateFlow()
-
-        private val _effect = Channel<LoginEffect>(Channel.BUFFERED)
-        val effect = _effect.receiveAsFlow()
-
-        fun onIntent(intent: LoginIntent) {
+    ) : MviViewModel<LoginIntent, LoginState, LoginEffect>(LoginState()) {
+        override fun onIntent(intent: LoginIntent) {
             when (intent) {
                 LoginIntent.CheckSession -> {
                     checkSession()
@@ -102,16 +90,6 @@ class LoginViewModel
                         )
                     }
                 }
-            }
-        }
-
-        private inline fun reduce(block: LoginState.() -> LoginState) {
-            _state.update(block)
-        }
-
-        private fun sendEffect(effect: LoginEffect) {
-            viewModelScope.launch {
-                _effect.send(effect)
             }
         }
     }
