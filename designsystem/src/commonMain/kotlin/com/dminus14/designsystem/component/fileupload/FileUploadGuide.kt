@@ -21,6 +21,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dminus14.app.core.resources.Res
 import com.dminus14.app.core.resources.upload
+import com.dminus14.designsystem.component.icon.HilitIcon
+import com.dminus14.designsystem.component.icon.HilitIconAsset
 import com.dminus14.designsystem.theme.HilitTheme
 import org.jetbrains.compose.resources.painterResource
 
@@ -81,10 +83,9 @@ fun FileUploadGuide(
         verticalArrangement = Arrangement.Center,
     ) {
         // TODO: SVG→XML Vector 전환 후 HilitIcon(Upload)로 교체
-        Icon(
-            painter = painterResource(Res.drawable.upload),
-            contentDescription = "",
-            tint = Color.Unspecified
+        HilitIcon(
+            asset = HilitIconAsset.Upload,
+            contentDescription = ""
         )
 
         Text(
