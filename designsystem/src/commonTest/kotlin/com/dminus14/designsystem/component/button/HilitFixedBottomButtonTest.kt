@@ -31,6 +31,7 @@ class HilitFixedBottomButtonTest {
 
         assertEquals(colors.gray50, color.backgroundColor)
         assertEquals(colors.gray300, color.contentColor)
+        assertEquals(colors.gray50, color.pressColor)
     }
 
     @Test
@@ -39,6 +40,7 @@ class HilitFixedBottomButtonTest {
 
         assertEquals(colors.hilitWhite, color.backgroundColor)
         assertEquals(colors.gray300, color.contentColor)
+        assertEquals(colors.hilitWhite, color.pressColor)
     }
 
     private fun buttonColors(
