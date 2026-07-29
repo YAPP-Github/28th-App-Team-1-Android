@@ -41,7 +41,7 @@ private const val DEFAULT_PLACEHOLDER = "텍스트를 입력해주세요"
  * @param onValueChange 입력이 바뀔 때 호출된다. [maxLength]를 넘는 값은 반영되지 않는다
  * @param modifier 외부 레이아웃 Modifier
  * @param placeholder 값이 비어 있을 때 표시할 placeholder
- * @param maxLength 최대 입력 글자 수. 카운터에도 사용된다
+ * @param maxLength 최대 입력 글자 수. 카운터에도 사용된다. 음수는 0으로 보정한다
  */
 @Composable
 fun HilitJDTextField(
@@ -51,6 +51,7 @@ fun HilitJDTextField(
     placeholder: String = DEFAULT_PLACEHOLDER,
     maxLength: Int = DEFAULT_MAX_LENGTH,
 ) {
+    val safeMaxLength = maxLength.coerceAtLeast(0)
     val scrollState = rememberScrollState()
     val textStyle = HilitTheme.typography.body4
     val counterStyle = HilitTheme.typography.body9
@@ -81,7 +82,7 @@ fun HilitJDTextField(
             BasicTextField(
                 value = value,
                 onValueChange = { newValue ->
-                    if (newValue.length <= maxLength) {
+                    if (newValue.length <= safeMaxLength) {
                         onValueChange(newValue)
                     }
                 },
@@ -108,7 +109,7 @@ fun HilitJDTextField(
         }
 
         Text(
-            text = "${value.length}/$maxLength",
+            text = "${value.length}/$safeMaxLength",
             style = counterStyle,
             color = placeholderColor,
             modifier =
