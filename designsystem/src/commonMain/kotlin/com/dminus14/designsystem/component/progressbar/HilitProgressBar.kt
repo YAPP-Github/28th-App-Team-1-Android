@@ -14,29 +14,21 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dminus14.designsystem.theme.HilitTheme
 
-/** Onboarding에서만 사용할 예정이라 indicator 갯수를 확장가능하게 만들지 않음. 참고 부탁드립니다. */
-enum class HilitStep {
-    Step1,
-    Step2,
-    Step3,
-    Step4,
-    Step5,
-}
-
 /**
- * 온보딩 등에서 쓰는 5칸 dash progress bar.
+ * 온보딩 등에서 쓰는 dash progress bar.
  *
- * Figma: progress bar (`2044:4743`)
- *
- * @param step 현재까지 활성화할 단계. [HilitStep.Step1]이면 첫 칸만 활성
+ * @param step 현재까지 활성화할 단계(1부터 [maxStep]까지). 1이면 첫 칸만 활성
+ * @param maxStep 전체 칸 수. 1 이상이어야 한다
  * @param modifier 외부 레이아웃 Modifier
  */
 @Composable
 fun HilitProgressBar(
-    step: HilitStep,
+    step: Int,
+    maxStep: Int,
     modifier: Modifier = Modifier,
 ) {
-    val activeCount = step.ordinal + 1
+    val totalSteps = maxStep.coerceAtLeast(1)
+    val activeCount = step.coerceIn(1, totalSteps)
     val activeColor = HilitTheme.colors.hilitBlack800
     val inactiveColor = HilitTheme.colors.gray50
 
@@ -46,7 +38,7 @@ fun HilitProgressBar(
                 .fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        repeat(HilitStep.entries.size) { index ->
+        repeat(totalSteps) { index ->
             val isActive = index < activeCount
             Box(
                 modifier =
@@ -71,8 +63,8 @@ private fun HilitProgressBarPreview() {
             modifier = Modifier.padding(vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            HilitStep.entries.forEach { step ->
-                HilitProgressBar(step = step)
+            (1..5).forEach { step ->
+                HilitProgressBar(step = step, maxStep = 5)
             }
         }
     }
