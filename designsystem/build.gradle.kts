@@ -11,6 +11,12 @@ kotlin {
     android {
         namespace = "com.dminus14.app.designsystem"
     }
+
+    sourceSets {
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
+    }
 }
 
 compose {
