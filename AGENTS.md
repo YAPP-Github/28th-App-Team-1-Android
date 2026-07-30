@@ -13,9 +13,10 @@ Architecture entry point.
 Interpret repository documents in this order:
 
 1. `docs/CONSTITUTION.md`
-2. `docs/ARCHITECTURE.md` and the detailed Architecture documents it incorporates
-3. `AGENTS.md`
-4. `README.md`
+2. `docs/ARCHITECTURE.md`
+3. the detailed Architecture documents it incorporates
+4. `AGENTS.md`
+5. `README.md`
 
 When documents conflict, the higher-priority document prevails. Detailed Architecture documents
 must be discovered through `docs/ARCHITECTURE.md`; do not build a second routing table here.
