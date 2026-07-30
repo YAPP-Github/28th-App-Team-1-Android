@@ -21,12 +21,16 @@ class SplashViewModel
 
         private fun load() {
             viewModelScope.launch {
-                val session = getAuthSessionUseCase()
-                if (session != null) {
-                    sendEffect(SplashEffect.SessionExists)
-                } else {
-                    sendEffect(SplashEffect.SessionNotFound)
-                }
+                getAuthSessionUseCase()
+                    .onSuccess { session ->
+                        if (session != null) {
+                            sendEffect(SplashEffect.SessionExists)
+                        } else {
+                            sendEffect(SplashEffect.SessionNotFound)
+                        }
+                    }.onFailure {
+                        sendEffect(SplashEffect.SessionNotFound)
+                    }
             }
         }
     }
