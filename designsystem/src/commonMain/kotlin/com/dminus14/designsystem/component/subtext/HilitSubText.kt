@@ -56,7 +56,7 @@ fun HilitSubText(
         }
 
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(IconTextGap),
     ) {
