@@ -1,38 +1,39 @@
-package com.dminus14.app.feature.login
+package com.dminus14.app.feature.login.login
 
 import android.app.Activity
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dminus14.app.core.resources.Res
+import com.dminus14.app.core.resources.hiiii_logo
 import com.dminus14.app.feature.login.kakao.KakaoLoginClient
 import com.dminus14.app.feature.main.api.MainHome
+import com.dminus14.designsystem.component.button.KakaoLoginButton
 import com.dminus14.designsystem.theme.HilitTheme
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun LoginScreen(
@@ -50,10 +51,6 @@ fun LoginScreen(
                 context.applicationContext,
                 KakaoLoginClientEntryPoint::class.java,
             ).kakaoLoginClient()
-
-    LaunchedEffect(Unit) {
-        viewModel.onIntent(LoginIntent.CheckSession)
-    }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
@@ -87,63 +84,38 @@ private fun LoginContent(
     modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier = modifier.fillMaxSize(),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(HilitTheme.colors.hilitWhite),
         contentAlignment = Alignment.Center,
     ) {
-        if (state.isCheckingSession) {
-            CircularProgressIndicator()
-        } else {
-            Column(
-                modifier = Modifier.padding(horizontal = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    text = "D-14",
-                    style = MaterialTheme.typography.headlineLarge,
-                )
+        Image(
+            painter = painterResource(Res.drawable.hiiii_logo),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier =
+                Modifier
+                    .offset(y = (-50).dp)
+                    .size(
+                        width = 171.dp,
+                        height = 72.dp,
+                    ),
+        )
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "면접 준비를 시작해 보세요",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-
-                Spacer(modifier = Modifier.height(48.dp))
-
-                Button(
-                    onClick = onKakaoLoginClick,
-                    enabled = !state.isLoading,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors =
-                        ButtonDefaults.buttonColors(
-                            containerColor = KakaoYellow,
-                            contentColor = KakaoBrown,
-                        ),
-                ) {
-                    Text(text = "카카오 로그인")
-                }
-
-                state.errorMessage?.let { message ->
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = message,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-            }
-
-            if (state.isLoading) {
-                CircularProgressIndicator()
-            }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 28.dp),
+            verticalArrangement = Arrangement.Bottom,
+        ) {
+            KakaoLoginButton(
+                onClick = onKakaoLoginClick,
+            )
         }
     }
 }
-
-private val KakaoYellow = Color(0xFFFEE500)
-private val KakaoBrown = Color(0xFF191919)
 
 @EntryPoint
 @InstallIn(SingletonComponent::class)
@@ -156,7 +128,7 @@ interface KakaoLoginClientEntryPoint {
 private fun LoginContentPreview() {
     HilitTheme {
         LoginContent(
-            state = LoginState(isCheckingSession = false),
+            state = LoginState(),
             onKakaoLoginClick = {},
         )
     }
