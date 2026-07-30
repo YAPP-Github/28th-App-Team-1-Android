@@ -6,12 +6,17 @@ import stories.components.designsystem.hilitbottomoutlinedtextfield.HilitBottomO
 import stories.components.designsystem.hilitfixedbottombutton.HilitFixedBottomButtonStories
 import stories.components.designsystem.hilitjdlinkfield.HilitJDLinkFieldStories
 import stories.components.designsystem.hilitjdtextfield.HilitJDTextFieldStories
+import stories.components.designsystem.hilitloadingindicator.HilitLoadingIndicatorStories
 import stories.components.designsystem.hilitmediumbutton.HilitMediumButtonStories
+import stories.components.designsystem.hilitminibutton.HilitMiniButtonStories
 import stories.components.designsystem.hilitmodal.HilitModalStories
+import stories.components.designsystem.hilitoptionalbutton.HilitOptionalButtonStories
 import stories.components.designsystem.hilitprogressbar.HilitProgressBarStories
 import stories.components.designsystem.hilitsubtext.HilitSubTextStories
+import stories.components.designsystem.hilittab.HilitTabStories
 import stories.components.designsystem.hilittag.HilitTagStories
 import stories.components.designsystem.hilittexthighlight.HilitTextHighlightStories
+import stories.components.designsystem.hilittoggle.HilitToggleStories
 import stories.components.designsystem.hilitwheelpicker.HilitWheelPickerStories
 import stories.components.designsystem.pdfupload.PdfUploadStories
 import stories.foundations.ColorStories
@@ -28,9 +33,14 @@ internal val CatalogStories: List<StoryGroup> =
         IconStories,
         TypographyStories,
         HilitFixedBottomButtonStories,
+        HilitLoadingIndicatorStories,
         HilitMediumButtonStories,
+        HilitMiniButtonStories,
+        HilitOptionalButtonStories,
         HilitTagStories,
+        HilitTabStories,
         HilitTextHighlightStories,
+        HilitToggleStories,
         HilitBottomOutlinedTextFieldStories,
         HilitModalStories,
         HilitWheelPickerStories,
