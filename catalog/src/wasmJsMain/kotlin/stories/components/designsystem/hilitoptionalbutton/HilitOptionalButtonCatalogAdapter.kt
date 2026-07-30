@@ -50,7 +50,7 @@ internal fun HilitOptionalButtonCatalogContent(
             contentAlignment = Alignment.Center,
         ) {
             HilitIcon(
-                asset = HilitIconAsset.Add,
+                asset = HilitIconAsset.Plus,
                 contentDescription = null,
                 tint = LocalContentColor.current,
                 modifier = Modifier.size(12.dp),
