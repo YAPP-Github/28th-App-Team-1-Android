@@ -39,6 +39,8 @@ class UserRepositoryImpl
 
             return UserProfile(
                 name = response.name,
+                email = response.email,
+                provider = response.provider,
                 jobRole = response.jobRole,
                 jobRoleLabel = response.jobRoleLabel,
                 careerYears = response.careerYears,

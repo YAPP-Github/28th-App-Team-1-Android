@@ -7,12 +7,12 @@ import javax.inject.Singleton
 
 @Singleton
 class UserRemoteDataSourceImpl
-@Inject
-constructor(
-    private val userApi: UserApi,
-) : UserRemoteDataSource {
-    override suspend fun getUserProfile(): UserProfileDto {
-        val response = userApi.getUserProfile()
-        return response.data ?: error("존재하지 않는 사용자입니다.")
+    @Inject
+    constructor(
+        private val userApi: UserApi,
+    ) : UserRemoteDataSource {
+        override suspend fun getUserProfile(): UserProfileDto {
+            val response = userApi.getUserProfile()
+            return response.data ?: error("회원 프로필 응답이 비어 있습니다.")
+        }
     }
-}
