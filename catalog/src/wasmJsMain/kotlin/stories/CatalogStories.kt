@@ -2,9 +2,9 @@ package stories
 
 import stories.components.designsystem.bubblefield.BubbleFieldStories
 import stories.components.designsystem.fileuploadguide.FileUploadGuideStories
+import stories.components.designsystem.hilitasynctextfield.HilitAsyncTextFieldStories
 import stories.components.designsystem.hilitbottomoutlinedtextfield.HilitBottomOutlinedTextFieldStories
 import stories.components.designsystem.hilitfixedbottombutton.HilitFixedBottomButtonStories
-import stories.components.designsystem.hilitjdlinkfield.HilitJDLinkFieldStories
 import stories.components.designsystem.hilitjdtextfield.HilitJDTextFieldStories
 import stories.components.designsystem.hilitloadingindicator.HilitLoadingIndicatorStories
 import stories.components.designsystem.hilitmediumbutton.HilitMediumButtonStories
@@ -46,7 +46,7 @@ internal val CatalogStories: List<StoryGroup> =
         HilitWheelPickerStories,
         HilitProgressBarStories,
         HilitJDTextFieldStories,
-        HilitJDLinkFieldStories,
+        HilitAsyncTextFieldStories,
         HilitSubTextStories,
         BubbleFieldStories,
         FileUploadGuideStories,

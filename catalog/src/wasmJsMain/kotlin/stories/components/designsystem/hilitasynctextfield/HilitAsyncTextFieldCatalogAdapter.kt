@@ -1,4 +1,4 @@
-package stories.components.designsystem.hilitjdlinkfield
+package stories.components.designsystem.hilitasynctextfield
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -13,18 +13,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.dminus14.catalog.controls.CatalogControls
-import com.dminus14.designsystem.component.textfield.HilitJDLinkField
-import com.dminus14.designsystem.component.textfield.HilitJDLinkFieldType
+import com.dminus14.designsystem.component.textfield.HilitAsyncTextField
+import com.dminus14.designsystem.component.textfield.HilitAsyncTextFieldType
 
 private val PreviewSurfaceColor = Color(0xFF4A4B50)
 
 @CatalogControls
 @Composable
-internal fun HilitJDLinkFieldCatalogAdapter(
+internal fun HilitAsyncTextFieldCatalogAdapter(
     value: String,
     placeholder: String,
+    processingText: String,
     subText: String,
-    type: HilitJDLinkFieldType,
+    type: HilitAsyncTextFieldType,
 ) {
     var text by remember(value) { mutableStateOf(value) }
 
@@ -35,11 +36,12 @@ internal fun HilitJDLinkFieldCatalogAdapter(
                 .background(PreviewSurfaceColor)
                 .padding(16.dp),
     ) {
-        HilitJDLinkField(
+        HilitAsyncTextField(
             value = text,
             onValueChange = { text = it },
             type = type,
             placeholder = placeholder,
+            processingText = processingText,
             subText = subText,
             onClearClick = { text = "" },
         )

@@ -1,4 +1,4 @@
-package stories.components.designsystem.hilitjdlinkfield
+package stories.components.designsystem.hilitasynctextfield
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -8,17 +8,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.dminus14.designsystem.component.textfield.HilitJDLinkField
-import com.dminus14.designsystem.component.textfield.HilitJDLinkFieldType
+import com.dminus14.designsystem.component.textfield.HilitAsyncTextField
+import com.dminus14.designsystem.component.textfield.HilitAsyncTextFieldType
 import type.Story
 import type.StoryGroup
 
 private val PreviewSurfaceColor = Color(0xFF4A4B50)
 
-internal val HilitJDLinkFieldStories =
+internal val HilitAsyncTextFieldStories =
     StoryGroup(
-        path = "Components/HilitJDLinkField",
-        description = "JD 링크 입력 필드. Ready/Focus/Edit/Processing/Complete/Error 상태.",
+        path = "Components/HilitAsyncTextField",
+        description = "범용 비동기 처리 텍스트 필드. Ready/Focus/Edit/Processing/Complete/Error 상태.",
         stories =
             listOf(
                 Story(
@@ -26,13 +26,14 @@ internal val HilitJDLinkFieldStories =
                     title = "기본",
                     description = "Controls로 value·placeholder·subText·type을 조절할 수 있다.",
                 ) {
-                    HilitJDLinkFieldCatalogAdapterControls(
+                    HilitAsyncTextFieldCatalogAdapterControls(
                         initialArgs =
-                            HilitJDLinkFieldCatalogAdapterArgs(
+                            HilitAsyncTextFieldCatalogAdapterArgs(
                                 value = "",
                                 placeholder = "텍스트를 입력해주세요",
+                                processingText = "처리 중",
                                 subText = "서브 텍스트를 입력해주세요",
-                                type = HilitJDLinkFieldType.Ready,
+                                type = HilitAsyncTextFieldType.Ready,
                             ),
                     )
                 },
@@ -49,14 +50,14 @@ internal val HilitJDLinkFieldStories =
                                 .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
-                        HilitJDLinkFieldType.entries.forEach { type ->
-                            HilitJDLinkField(
+                        HilitAsyncTextFieldType.entries.forEach { type ->
+                            HilitAsyncTextField(
                                 value =
                                     when (type) {
-                                        HilitJDLinkFieldType.Edit,
-                                        HilitJDLinkFieldType.Processing,
-                                        HilitJDLinkFieldType.Complete,
-                                        HilitJDLinkFieldType.Error,
+                                        HilitAsyncTextFieldType.Edit,
+                                        HilitAsyncTextFieldType.Processing,
+                                        HilitAsyncTextFieldType.Complete,
+                                        HilitAsyncTextFieldType.Error,
                                         -> "https://company.com/jobs/123"
 
                                         else -> ""
