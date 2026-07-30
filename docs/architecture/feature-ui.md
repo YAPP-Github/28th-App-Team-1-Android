@@ -149,7 +149,12 @@ ViewModel 규칙은 다음과 같다.
 - `domain`의 UseCase를 호출하고 Repository 구현체에 직접 접근하지 않는다.
 - 화면에 필요한 경우 Domain Model을 UiModel로 변환한다.
 - State는 immutable copy semantics로 갱신한다.
-- Effect는 `Channel` 또는 프로젝트 공통 일회성 event utility로 발행한다.
+- Effect는 `Channel` 또는 프로젝트 공통 일회성 event utility로 발행한다. `core:common`의
+  `MviViewModel`을 상속하면 `reduce()`와 `sendEffect()`를 공통으로 제공받는다.
+- `sendEffect()`는 `Channel.trySend()`로 즉시(non-blocking) 발행해 별도 코루틴 생성 없이
+  호출 순서와 채널 진입 순서를 일치시킨다. 동시 발행량이 `Channel.BUFFERED` 용량을 넘거나
+  채널이 닫혀 발행이 실패하면 Effect는 유실되며, 경고 로그만 남기고 앱을 크래시시키지
+  않는다.
 - Navigation을 직접 실행하지 않고 Feature 결과 Effect를 발행한다.
 - 오류 유형에 따른 처리는 [`error-handling.md`](error-handling.md)를 따른다.
 
