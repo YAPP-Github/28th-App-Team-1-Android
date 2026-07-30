@@ -17,8 +17,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,12 +80,21 @@ fun <T> HilitWheelPicker(
         derivedStateOf { listState.centeredItemIndex() }
     }
 
+    // scrollToItem()도 스크롤 락을 거쳐 isScrollInProgress를 true→false로 만들기 때문에,
+    // 이 플래그로 감싸지 않으면 프로그래밍 스크롤이 아래쪽 UI→props 콜백을 오발화시킨다.
+    var isProgrammaticScroll by remember { mutableStateOf(false) }
+
     // props → UI: 외부에서 selectedItem이 바뀌면 휠도 해당 위치로 스크롤
     LaunchedEffect(selectedIndex, items.size) {
         if (items.isEmpty()) return@LaunchedEffect
         val targetIndex = selectedIndex.coerceIn(0, items.lastIndex)
         if (listState.centeredItemIndex() != targetIndex) {
-            listState.scrollToItem(targetIndex)
+            isProgrammaticScroll = true
+            try {
+                listState.scrollToItem(targetIndex)
+            } finally {
+                isProgrammaticScroll = false
+            }
         }
     }
 
@@ -93,7 +104,7 @@ fun <T> HilitWheelPicker(
         snapshotFlow { listState.isScrollInProgress to listState.centeredItemIndex() }
             .distinctUntilChanged()
             .collect { (scrolling, index) ->
-                if (wasScrolling && !scrolling && items.isNotEmpty()) {
+                if (wasScrolling && !scrolling && items.isNotEmpty() && !isProgrammaticScroll) {
                     val coercedIndex = index.coerceIn(0, items.lastIndex)
                     onSelectedItemChangeState.value(items[coercedIndex])
                 }
