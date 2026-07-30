@@ -27,7 +27,7 @@ fun HilitProgressBar(
     maxStep: Int,
     modifier: Modifier = Modifier,
 ) {
-    val totalSteps = maxStep.coerceAtLeast(1)
+    val totalSteps = maxStep.coerceAtLeast(0)
     val activeCount = step.coerceIn(1, totalSteps)
     val activeColor = HilitTheme.colors.hilitBlack800
     val inactiveColor = HilitTheme.colors.gray50
