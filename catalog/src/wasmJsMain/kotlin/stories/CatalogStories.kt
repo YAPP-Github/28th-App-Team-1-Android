@@ -2,10 +2,15 @@ package stories
 
 import stories.components.designsystem.hilitbottomoutlinedtextfield.HilitBottomOutlinedTextFieldStories
 import stories.components.designsystem.hilitfixedbottombutton.HilitFixedBottomButtonStories
+import stories.components.designsystem.hilitloadingindicator.HilitLoadingIndicatorStories
 import stories.components.designsystem.hilitmediumbutton.HilitMediumButtonStories
+import stories.components.designsystem.hilitminibutton.HilitMiniButtonStories
 import stories.components.designsystem.hilitmodal.HilitModalStories
+import stories.components.designsystem.hilitoptionalbutton.HilitOptionalButtonStories
+import stories.components.designsystem.hilittab.HilitTabStories
 import stories.components.designsystem.hilittag.HilitTagStories
 import stories.components.designsystem.hilittexthighlight.HilitTextHighlightStories
+import stories.components.designsystem.hilittoggle.HilitToggleStories
 import stories.foundations.ColorStories
 import stories.foundations.IconStories
 import stories.foundations.TypographyStories
@@ -20,9 +25,14 @@ internal val CatalogStories: List<StoryGroup> =
         IconStories,
         TypographyStories,
         HilitFixedBottomButtonStories,
+        HilitLoadingIndicatorStories,
         HilitMediumButtonStories,
+        HilitMiniButtonStories,
+        HilitOptionalButtonStories,
         HilitTagStories,
+        HilitTabStories,
         HilitTextHighlightStories,
+        HilitToggleStories,
         HilitBottomOutlinedTextFieldStories,
         HilitModalStories,
     ).validateStories()
