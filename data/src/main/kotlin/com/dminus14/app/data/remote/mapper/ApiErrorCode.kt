@@ -7,6 +7,7 @@ package com.dminus14.app.data.remote.mapper
  * - 재발급 API 401: [LOGIN_EXPIRED] → 재로그인 필요
  * - 소셜 로그인 400/401: [INVALID_CREDENTIAL], [SOCIAL_LOGIN_FAILED]
  * - 재발급 API 400: [VALIDATION_ERROR]
+ * - 회원 프로필 조회 404: [USER_NOT_FOUND]
  * - 클라이언트 분류: [NETWORK_UNAVAILABLE], [SERVER_ERROR], [UNKNOWN]
  */
 internal object ApiErrorCode {
@@ -18,6 +19,8 @@ internal object ApiErrorCode {
     const val SOCIAL_LOGIN_FAILED = "SOCIAL_LOGIN_FAILED"
 
     const val VALIDATION_ERROR = "VALIDATION_ERROR"
+
+    const val USER_NOT_FOUND = "USER_NOT_FOUND"
 
     const val NETWORK_UNAVAILABLE = "NETWORK_UNAVAILABLE"
     const val SERVER_ERROR = "SERVER_ERROR"
