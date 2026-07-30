@@ -10,36 +10,40 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SplashViewModel
-@Inject
-constructor(
-    private val getAuthSessionUseCase: GetAuthSessionUseCase,
-    private val checkUserProfileUseCase: CheckUserProfileUseCase,
-) : MviViewModel<SplashIntent, SplashState, SplashEffect>(SplashState) {
-    override fun onIntent(intent: SplashIntent) {
-        when (intent) {
-            SplashIntent.Load -> load()
+    @Inject
+    constructor(
+        private val getAuthSessionUseCase: GetAuthSessionUseCase,
+        private val checkUserProfileUseCase: CheckUserProfileUseCase,
+    ) : MviViewModel<SplashIntent, SplashState, SplashEffect>(SplashState) {
+        override fun onIntent(intent: SplashIntent) {
+            when (intent) {
+                SplashIntent.Load -> load()
+            }
         }
-    }
 
-    private fun load() {
-        viewModelScope.launch {
-            getAuthSessionUseCase()
-                .onSuccess { session ->
-                    checkUserProfile()
-                }.onFailure {
-                    sendEffect(SplashEffect.SessionNotFound)
-                }
+        private fun load() {
+            viewModelScope.launch {
+                getAuthSessionUseCase()
+                    .onSuccess { session ->
+                        if (session != null) {
+                            checkUserProfile()
+                        } else {
+                            sendEffect(SplashEffect.SessionNotFound)
+                        }
+                    }.onFailure {
+                        sendEffect(SplashEffect.SessionNotFound)
+                    }
+            }
         }
-    }
 
-    private fun checkUserProfile() {
-        viewModelScope.launch {
-            checkUserProfileUseCase()
-                .onSuccess { profile ->
-                    sendEffect(SplashEffect.SessionExists)
-                }.onFailure {
-                    sendEffect(SplashEffect.SessionNotFound)
-                }
+        private fun checkUserProfile() {
+            viewModelScope.launch {
+                checkUserProfileUseCase()
+                    .onSuccess { profile ->
+                        sendEffect(SplashEffect.SessionExists)
+                    }.onFailure {
+                        sendEffect(SplashEffect.SessionNotFound)
+                    }
+            }
         }
     }
-}
