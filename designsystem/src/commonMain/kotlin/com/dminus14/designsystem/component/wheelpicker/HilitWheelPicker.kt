@@ -22,7 +22,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -144,7 +144,6 @@ fun <T> HilitWheelPicker(
             )
         }
     }
-
 }
 
 @Composable
@@ -183,24 +182,27 @@ private fun WheelPickerItem(
 }
 
 // 추후여 많이 쓰일 예정이면 Modifier Extension 별도로 패키지 만들 예정
+// drawWithCache로 Path 생성을 size 변경 시 1회만 수행하고, 매 프레임에는 그리기만 재사용한다.
 private fun Modifier.hilitMidlineHighlight(color: Color): Modifier =
-    drawBehind {
+    drawWithCache {
         val slantPx = HighlightSlant.toPx()
+        val vertices =
+            hilitTrapezoidVertices(
+                width = size.width,
+                height = size.height,
+                slant = slantPx,
+            )
         val path =
             Path().apply {
-                val vertices =
-                    hilitTrapezoidVertices(
-                        width = size.width,
-                        height = size.height,
-                        slant = slantPx,
-                    )
                 moveTo(vertices[0].x, vertices[0].y)
                 vertices.drop(1).forEach { vertex ->
                     lineTo(vertex.x, vertex.y)
                 }
                 close()
             }
-        drawPath(path = path, color = color)
+        onDrawBehind {
+            drawPath(path = path, color = color)
+        }
     }
 
 private fun hilitTrapezoidVertices(
