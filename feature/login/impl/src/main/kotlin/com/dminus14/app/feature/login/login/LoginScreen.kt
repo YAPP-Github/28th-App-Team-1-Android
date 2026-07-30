@@ -55,7 +55,7 @@ fun LoginScreen(
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                LoginEffect.NavigateToHome -> onNavigate(MainHome)
+                LoginEffect.SuccessSocialLogin -> onNavigate(MainHome)
             }
         }
     }

@@ -38,7 +38,7 @@ constructor(
             loginWithKakaoUseCase(credential)
                 .onSuccess {
                     reduce { copy(isLoading = false) }
-                    sendEffect(LoginEffect.NavigateToHome)
+                    sendEffect(LoginEffect.SuccessSocialLogin)
                 }.onFailure { throwable ->
                     handleLoginFailure(throwable)
                 }

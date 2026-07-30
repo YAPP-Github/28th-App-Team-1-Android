@@ -23,5 +23,5 @@ data class LoginState(
 ) : MviState
 
 sealed interface LoginEffect : MviEffect {
-    data object NavigateToHome : LoginEffect
+    data object SuccessSocialLogin : LoginEffect
 }
