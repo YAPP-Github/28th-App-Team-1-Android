@@ -166,6 +166,7 @@ fun SampleScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
+        viewModel.onIntent(SampleIntent.Load)
         viewModel.effect.collect { effect ->
             when (effect) {
                 SampleEffect.SubmissionSucceeded -> onCompleted()
