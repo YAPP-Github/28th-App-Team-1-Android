@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dminus14.designsystem.theme.HilitTheme
@@ -143,6 +144,7 @@ fun BubbleField(
                 text = text,
                 style = HilitTheme.typography.body5,
                 color = HilitTheme.colors.hilitWhite,
+                textAlign = TextAlign.Center
             )
         }
 
