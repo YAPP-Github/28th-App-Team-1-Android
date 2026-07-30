@@ -1,369 +1,205 @@
 # Agent Instructions
 
 This document defines execution rules for AI coding agents working in the D-14 Android repository.
-It applies to Codex, Antigravity, Claude, and any other automated coding workflow that reads this
+It applies to Codex, Antigravity, Claude, and any other automated workflow that reads this
 repository.
 
-This document does not define product principles or architecture rules. Those rules are defined by
-`docs/CONSTITUTION.md` and `docs/ARCHITECTURE.md`.
+This document does not define product or architecture policy. Those contracts are owned by
+`docs/CONSTITUTION.md`, `docs/ARCHITECTURE.md`, and the detailed documents routed from the
+Architecture entry point.
 
----
+## 1. Document Priority
 
-## 1. Purpose
-
-AI coding agents must use this document as the operational guide for repository work.
-
-The purpose of this document is to define:
-
-- which documents must be read before making changes;
-- how agents must limit work scope;
-- how agents must apply architecture and module rules during implementation;
-- how agents must handle sensitive user data tasks;
-- which validation commands must be used;
-- how agents must report completion, skipped checks, and unresolved risks;
-- when agents must stop and request clarification.
-
-Agents must not treat this document as permission to override `docs/CONSTITUTION.md` or
-`docs/ARCHITECTURE.md`.
-
----
-
-## 2. Document Priority
-
-Documents must be interpreted in the following priority order:
+Interpret repository documents in this order:
 
 1. `docs/CONSTITUTION.md`
 2. `docs/ARCHITECTURE.md`
-3. `AGENTS.md`
-4. `README.md`
+3. the detailed Architecture documents it incorporates
+4. `AGENTS.md`
+5. `README.md`
 
-When documents conflict, the higher-priority document prevails.
+When documents conflict, the higher-priority document prevails. Detailed Architecture documents
+must be discovered through `docs/ARCHITECTURE.md`; do not build a second routing table here.
 
 Use each document for its intended role:
 
-- `docs/CONSTITUTION.md` defines non-negotiable project rules and prohibited changes.
-- `docs/ARCHITECTURE.md` defines architecture, module responsibilities, dependency rules, MVI,
-  Navigation 3, design system, catalog, error handling, and project structure.
-- `AGENTS.md` defines agent execution rules.
-- `README.md` defines the public-facing service overview.
+- `docs/CONSTITUTION.md`: non-negotiable product, data, and architecture principles
+- `docs/ARCHITECTURE.md`: single Architecture entry point and task-based reading routes
+- `docs/architecture/*.md`: detailed Architecture contracts incorporated by the entry point
+- `AGENTS.md`: agent scope, permissions, validation, reporting, and stop procedures
+- `README.md`: public-facing service overview
 
----
+`docs/ARCHITECTURE_OLD.md` is a permanent, non-authoritative snapshot from before the Architecture
+documentation split. Do not use it as the current implementation contract.
 
-## 3. Required Reading
+## 2. Required Reading
 
-Before modifying code, agents must read:
+Before modifying code, read:
 
 1. `docs/CONSTITUTION.md`
 2. `docs/ARCHITECTURE.md`
-3. relevant source files
-4. relevant tests
-5. relevant build files when changing dependencies, Gradle configuration, modules, CI, catalog,
-   or convention plugins
-6. relevant feature specifications under `specs/` when that directory exists for active
-   implementation work
-
-`README.md` is not required for every code task. Read it when the task concerns service description,
-public-facing documentation, feature positioning, or repository presentation.
-
-Before changing architecture, module boundaries, navigation, design system, catalog, error handling,
-user data behavior, storage, networking, logging, or AI/media processing behavior, agents must
-reread
-`docs/CONSTITUTION.md` and the relevant section of `docs/ARCHITECTURE.md`.
-
-`docs/ARCHITECTURE.md` describes the approved target architecture. During bootstrap or staged
-implementation, modules documented there may be absent from the current Gradle build. Treat those
-absences as planned future work unless current repository code contradicts a Constitution or
-Architecture rule.
-
----
-
-## 4. Work Scope
-
-Agents must keep changes within the user-requested scope.
-
-Agents must not perform unrelated refactoring, formatting, renaming, dependency updates, module
-reorganization, or documentation edits unless the user explicitly requests them.
-
-Agents must preserve existing public behavior unless the user explicitly requests a behavior change.
-
-Agents must follow existing code style, module structure, naming patterns, and test patterns before
-introducing new patterns.
-
-Agents must not change generated files, build outputs, local machine files, IDE files, or secret
-configuration unless the user explicitly requests it and the change is repository-appropriate.
-
-### 4.1 Document edit permissions
-
-Agents must follow these document permissions:
-
-| Path                   | Permission                                                                                                          |
-|------------------------|---------------------------------------------------------------------------------------------------------------------|
-| `docs/CONSTITUTION.md` | Must not be modified unless the user explicitly requests a change and explicitly accepts the proposed modification. |
-| `docs/ARCHITECTURE.md` | May be modified only when the user requests an architecture change or architecture document update.                 |
-| `README.md`            | Must not be modified by agents. The user edits this file directly.                                                  |
-| `AGENTS.md`            | May be modified only when the user requests an agent instruction update.                                            |
-| code and tests         | May be modified within the requested task scope.                                                                    |
-
-If a task requires changing a protected document, agents must stop and report the required document
-change instead of applying it silently.
-
----
-
-## 5. Implementation Rules
-
-Agents must implement changes according to `docs/CONSTITUTION.md` and `docs/ARCHITECTURE.md`.
-
-### 5.1 Architecture and dependency checks
-
-Before adding an import, module dependency, DI binding, Gradle dependency, or module reference,
-agents must verify that the change does not violate project dependency rules.
-
-Agents must enforce these checks during implementation:
-
-- `feature:*` must not depend on `data`.
-- `feature:*` must not depend on `app`.
-- `feature:*:impl` must not depend on another feature's `impl` module.
-- `feature:*:impl` may depend on another feature's `api` module for route or entry contracts only.
-- `domain` must not depend on Android Framework APIs.
-- `domain` must not depend on `data` or `feature:*`.
-- `data` must not depend on `feature:*` or `app`.
-- `designsystem` must not depend on Android Framework APIs, Hilt, Android Navigation,
-  Android Lifecycle APIs, Android resource APIs, `feature:*`, or `app`.
-- `catalog` must not depend on Android Framework APIs or `app`.
-- A separate `:navigation` module must not be introduced.
-- A separate `:feature:navigator` module must not be introduced.
-
-`app` may depend on `data` only for composition root and Hilt binding purposes. Agents must not use
-that permission to place business logic or direct repository implementation usage in `app`.
-
-### 5.2 Navigation rules
-
-The project uses Navigation 3.
-
-Agents must keep app-level Navigation 3 assembly in `app`.
-
-Feature modules may define route or entry contracts and expose them upward. Feature modules must not
-perform app-level navigation assembly.
-
-ViewModels must not execute navigation directly. ViewModels must emit navigation effects, and the UI
-layer must perform navigation execution.
-
-### 5.3 MVI rules
-
-When modifying feature UI, agents must preserve MVI structure.
-
-Agents must follow these rules:
-
-- User actions and lifecycle-triggered events enter the ViewModel through `Intent`.
-- Persistent UI data is represented as `State`.
-- One-time events such as navigation, Toast, Snackbar, and dialog requests are represented as
-  `Effect` or a global app event.
-- State updates use immutable state-copying semantics.
-- ViewModel-connected `Screen` logic remains separated from ViewModel-free `Content` UI.
-- Previewable or catalog-exposed UI must not require Hilt, Android Lifecycle, Android Navigation,
-  or a real ViewModel instance.
-
-### 5.4 Design system and catalog rules
-
-When modifying `designsystem`, agents must keep all shared UI Compose Multiplatform-compatible.
-
-Agents must not introduce Android-only APIs into `designsystem`, including `Context`, `Activity`,
-`Intent`, Toast calls, Android resource access, Android Lifecycle APIs, Android Navigation, Hilt, or
-Android platform-specific side effects.
-
-Platform-specific behavior required by shared UI must be represented through platform-independent
-state or callbacks and handled by `app` or `feature:*`.
-
-When modifying reusable UI, agents must consider whether a catalog story must be updated. If a story
-is not updated, the completion report must explain why.
-
-When a catalog story uses an `@CatalogControls` adapter, the adapter's generated `Args` and
-`Controls` declarations become available through the Catalog Wasm KSP compilation. Run
-`./gradlew :catalog:compileKotlinWasmJs` after adding the adapter when generated declarations must be
-available to the IDE. The adapter and story may also be authored together and resolved by the same
-compilation; a separate intermediate build is not mandatory.
-
-When modifying `catalog`, agents must keep it as a design system review and communication artifact.
-`catalog` must not include Android app runtime logic, real API calls, Hilt ViewModels, Android
-Lifecycle dependencies, Android Navigation, or product runtime behavior.
-
-Catalog stories must use `designsystem` components or Android-independent `Content`-level UI.
-
-When changing product colors, typography, Theme, shared fonts, or Foundation Stories, agents must
-follow the product Theme contract in `docs/ARCHITECTURE.md`.
-
-Agents must not reinterpret product tokens as Material `ColorScheme` or `Typography` roles, add a
-dark product theme, or enable Android dynamic colors unless the user explicitly requests and
-approves that design change. When a component specification does not identify which product token
-to use, agents must stop and request clarification instead of choosing a token by appearance.
-
-The app root, previews, and catalog Story content must use `HilitTheme`. The catalog shell must
-retain its catalog-only Theme and resources; only Story content is rendered inside `HilitTheme`.
-
-When product color or typography tokens change, agents must update the matching Color or Typography
-Foundation Story. If a Foundation Story is not updated, the completion report must explain why.
-
-### 5.5 Error handling rules
-
-When implementing error handling, agents must follow the project error policy.
-
-Agents must enforce these rules:
-
-- Client errors are handled by the relevant feature through feature `State` or feature `Effect`.
-- Network errors are routed through the global app event mechanism.
-- Server errors are routed through the global app event mechanism.
-- Unknown errors are routed through the global app event mechanism.
-- `domain` must not determine UI presentation for errors.
-- `data` must convert or propagate external exceptions according to the project error model.
-- `app` collects global app events and renders app-level Dialog, Toast, or Snackbar UI.
-
-Agents must not invent a new error handling mechanism when the existing global event policy applies.
-
-### 5.6 Build and dependency rules
-
-Gradle Convention Plugins are the standard mechanism for shared build configuration.
-
-Agents must not duplicate shared Gradle configuration across modules when the same rule belongs in
-`build-logic`.
-
-Agents must not add a dependency only because it makes a local implementation easier.
-
-Dependencies affecting architecture boundaries, user data handling, media processing, AI
-integration, networking, logging, analytics, or storage require explicit justification in the
-completion report.
-
-Convention Plugins must follow the repository responsibility model:
-
-- Base plugins own only platform and compiler defaults.
-- Capability plugins own one feature such as Compose, Preview, shared resources, Hilt, Navigation,
-  or testing.
-- Quality leaf plugins own one tool, while quality bundle plugins only compose leaf plugins and
-  task ordering.
-- Composite plugins must not repeat DSL configuration or dependencies owned by their child plugins.
-- `dminus14.android.feature` is the standard composite plugin for `:feature:*:impl` only.
-- All repository modules must apply the platform-appropriate Kotlin or Android quality plugin.
-
-Preview and shared-resource capability plugins have restricted targets:
-
-- Apply `dminus14.compose.preview` only to `:app`, `:feature:*:impl`, and `:designsystem`.
-- Preview functions must render ViewModel-free UI and must not require Hilt, Lifecycle, Navigation,
-  network, file access, or real user data.
-- Apply `dminus14.compose.resources` only to `:app`, `:feature:*:impl`, and `:designsystem`.
-- Do not apply Preview or shared-resource capability plugins to `:catalog` or `:core:resources`.
-- `:catalog` must keep catalog-only resources and must not depend directly on `:core:resources`.
-
-Android test conventions are separated by responsibility. Use `dminus14.android.test` for the
-general JUnit/AndroidX test stack and add `dminus14.android.compose.test` only when the module uses
-Compose UI tests.
-
----
-
-## 6. User Data Rules
-
-Agents must treat user data rules as stop-condition rules, not as implementation details to infer.
-
-When a task touches user media, PDF resumes, interview video, interview audio, STT transcripts,
-interview feedback, reports, storage, retention, deletion, sharing, upload, external transmission,
-logging, analytics, crash reporting, test fixtures, sample assets, screenshots, documentation, or
-prompt examples, agents must consult `docs/CONSTITUTION.md` before making changes.
-
-Agents must not decide sensitive data behavior on behalf of the user.
-
-Agents must stop and request clarification when storage, transmission, sharing, logging, retention,
-deletion, access, or external processing policy is incomplete or ambiguous.
-
-Agents must not use real user data in source code, tests, fixtures, screenshots, catalog stories,
-documentation, examples, prompts, CI logs, build logs, analytics events, or crash reports.
-
-Agents must not log sensitive user data in plaintext.
-
-Agents must not add sample sensitive data unless it is clearly synthetic, non-identifying, and
-appropriate for the requested task.
-
----
-
-## 7. Validation
-
-After code changes, agents must run the most relevant available validation command.
-
-The CI validation command is:
-
-```bash
+3. every detailed Architecture document selected by its task routing table
+4. relevant source files
+5. relevant tests
+6. relevant build files when changing dependencies, Gradle, modules, CI, Catalog, or Convention
+   Plugins
+7. relevant Feature specifications under `specs/` when present for active implementation work
+
+When a task spans multiple Architecture areas, read every applicable detailed document. Reread the
+Constitution and relevant detailed contracts before changing architecture, module boundaries,
+Navigation, Design System, Catalog, error handling, user data, storage, networking, logging, AI, or
+media processing.
+
+`README.md` is required only for service description, public documentation, Feature positioning, or
+repository presentation work.
+
+The Architecture documents describe an approved target. A target module may be absent or only
+partially implemented during staged development. Do not weaken a target contract to match bootstrap
+code.
+
+## 3. Work Scope
+
+- Keep changes within the user-requested scope.
+- Do not perform unrelated refactoring, formatting, renaming, dependency updates, module moves, or
+  documentation edits.
+- Preserve public behavior unless the user requests a behavior change.
+- Follow existing source, naming, module, and test patterns before introducing a new pattern.
+- Preserve user changes in a dirty worktree and do not revert or include unrelated changes.
+- Do not modify generated files, build output, local machine files, IDE files, or secret
+  configuration unless explicitly requested and repository-appropriate.
+- Read-only requests do not authorize file, Git index, external service, or environment changes.
+- A commit request does not authorize push.
+
+### 3.1 Document Edit Permissions
+
+| Path | Permission |
+|---|---|
+| `docs/CONSTITUTION.md` | Do not modify unless the user explicitly requests the change and explicitly accepts the proposed modification. |
+| `docs/ARCHITECTURE.md` | Modify only for a user-requested Architecture or Architecture-document change. |
+| `docs/architecture/**` | Apply the same permission boundary as `docs/ARCHITECTURE.md`. |
+| `docs/ARCHITECTURE_OLD.md` | Permanent read-only snapshot. Do not modify. |
+| `AGENTS.md` | Modify only for a user-requested agent-instruction update. |
+| `README.md` | Do not modify; the user edits this file directly. |
+| code and tests | Modify within the requested implementation scope. |
+
+If a task requires a protected document change that is not authorized, stop and report it instead
+of editing silently.
+
+## 4. Implementation Workflow
+
+Before implementation:
+
+1. Identify the modules and contracts affected by the request.
+2. Use the routing table in `docs/ARCHITECTURE.md` to select detailed documents.
+3. Inspect relevant source, tests, and build configuration.
+4. Verify imports, module dependencies, DI bindings, Gradle dependencies, and module references
+   against the selected contracts.
+5. Stop rather than guessing if product behavior, data policy, a token selection, or an architecture
+   boundary is ambiguous.
+
+During implementation:
+
+- Keep each change in the module that owns the responsibility.
+- Do not add a dependency merely because it makes a local implementation easier.
+- Preserve MVI, Navigation, Design System, Catalog, error, and build contracts by following their
+  detailed Architecture documents.
+- Keep Preview and Catalog examples free of Hilt, Lifecycle, Navigation, network, file access, and
+  real user data.
+- Test function names must be Korean sentences that describe the expected behavior.
+
+When adding a Catalog Controls adapter, generated Args and Controls become available through Wasm
+KSP compilation. Run the following when generated declarations are needed by the IDE:
+
+```text
+./gradlew :catalog:compileKotlinWasmJs
+```
+
+The adapter and Story may be authored together and resolved by the same compilation; a separate
+intermediate build is not mandatory.
+
+## 5. User Data
+
+Treat user-data rules as stop conditions, not implementation details to infer.
+
+Before work involving resumes, interview video or audio, STT transcripts, feedback, reports,
+storage, retention, deletion, sharing, upload, external transmission, logging, analytics, crash
+reporting, fixtures, sample assets, screenshots, documentation, or prompt examples, reread the User
+Data Protection section of `docs/CONSTITUTION.md`.
+
+- Do not decide storage, transmission, sharing, logging, retention, deletion, access, or external
+  processing policy on behalf of the user.
+- Stop when any required sensitive-data policy is incomplete or ambiguous.
+- Do not use real user data in source, tests, fixtures, screenshots, Catalog Stories,
+  documentation, examples, prompts, CI logs, build logs, analytics, or crash reports.
+- Do not log sensitive user data in plaintext.
+- Synthetic samples must be non-identifying and appropriate for the requested task.
+
+## 6. Validation
+
+After code changes, run the most relevant available validation command. The full CI validation is:
+
+```text
 ./gradlew --stacktrace --continue spotlessCheck detekt testDebugUnitTest lintDebug assembleDebug
 ```
 
-When `catalog` or `designsystem` changes affect the Web/WASM catalog, agents must also run:
+When Catalog or Design System changes affect Web/WASM output, also run:
 
-```bash
+```text
 ./gradlew :catalog:wasmJsBrowserDistribution
 ```
 
-When only a narrower validation is appropriate, agents may run a targeted command first. However,
-the completion report must state whether the full CI validation command was run.
+A targeted command may be run first when appropriate, but the completion report must state whether
+the full CI command ran.
 
-If validation cannot be run, agents must report:
+For documentation-only changes, run at least:
 
-- the command that should have been run;
-- why it was not run;
-- what risk remains;
-- whether the change is unvalidated, partially validated, or fully validated.
+```text
+git diff --check
+```
 
-Agents must not claim that validation passed unless the relevant command completed successfully.
+Also inspect changed Markdown links and stale path or section references. Do not run Gradle only to
+validate prose unless the documentation change also modifies or claims build behavior that requires
+it.
 
-Agents must not hide failing checks. If a check fails, agents must report the failure and either fix
-it within scope or stop when the fix would exceed scope or violate a higher-priority document.
+If validation cannot run, report:
 
----
+- the command that should have run
+- why it did not run
+- the remaining risk
+- whether the work is unvalidated, partially validated, or fully validated
 
-## 8. Reporting
+Never claim a check passed unless the command completed successfully. Do not hide failures. Fix a
+failure within scope or stop if the fix would exceed scope or violate a higher-priority contract.
 
-Completion reports must be concise and must include:
+## 7. Reporting
 
-- summary of changes;
-- files changed;
-- validation commands and results;
-- skipped checks and reasons;
-- unresolved risks, assumptions, or required follow-up decisions.
+Completion reports must be concise and include:
 
-When the user requests Korean, report in Korean. Otherwise, use the language that best matches the
-working context.
+- summary of changes
+- files changed
+- validation commands and actual results
+- skipped checks and reasons
+- unresolved risks, assumptions, or required follow-up decisions
 
-When a change affects architecture, module dependencies, navigation, design system, catalog, error
-handling, sensitive data behavior, storage, logging, networking, AI integration, or media
-processing,
-the report must explicitly mention the relevant risk area and how the change stayed compliant.
+Use Korean when requested; otherwise match the working context. If a change affects architecture,
+module dependencies, Navigation, Design System, Catalog, error handling, sensitive data, storage,
+logging, networking, AI, or media processing, state the risk area and how the change remained
+compliant.
 
-If no files were changed, the report must say so directly.
+If no files changed, say so directly. Do not overstate partial or unvalidated work.
 
-Agents must not overstate completion. Partial work must be reported as partial work.
+## 8. Stop Conditions
 
----
+Stop and request clarification when:
 
-## 9. Stop Conditions
+- the task conflicts with the Constitution or selected Architecture contracts
+- implementation requires weakening a module or dependency boundary
+- a protected document change lacks authorization
+- sensitive-data policy is incomplete or ambiguous
+- product behavior is too ambiguous to implement safely
+- a Design System specification does not identify the product token to use
+- validation results cannot be interpreted safely
+- fixing a failure would require unrelated or unauthorized work
 
-Agents must stop and request clarification when any of the following conditions occurs:
-
-- The task conflicts with `docs/CONSTITUTION.md`.
-- The task conflicts with `docs/ARCHITECTURE.md` and cannot be implemented without changing the
-  architecture.
-- The task requires weakening architecture boundaries.
-- The task requires adding a prohibited module dependency.
-- The task requires creating a separate `:navigation` module.
-- The task requires creating a separate `:feature:navigator` module.
-- The task requires moving app-level Navigation 3 assembly out of `app`.
-- The task requires adding Android dependencies to `designsystem` or `catalog`.
-- The task requires modifying `docs/CONSTITUTION.md`.
-- Sensitive data storage, transmission, sharing, logging, retention, deletion, access, or external
-  processing policy is unclear.
-- Product behavior or requirements are too ambiguous to implement without human clarification.
-- Validation results cannot be interpreted safely.
-- Fixing a validation failure would require work outside the requested scope.
-
-When work stops, agents must report:
-
-- the blocking condition;
-- the exact missing decision or conflict;
-- the safest available options, if any;
-- the files or rules involved.
-
-Agents must not proceed by guessing when a stop condition applies.
+When stopping, report the blocking condition, exact missing decision or conflict, safest options,
+and affected files or rules. Do not proceed by guessing.
