@@ -30,7 +30,7 @@ enum class BubbleFieldType {
 }
 
 /** 꼬리가 붙는 변. */
-enum class BubleFieldTailEdge {
+enum class BubbleFieldTailEdge {
     /** 본문 위쪽에 꼬리 */
     Top,
 
@@ -39,7 +39,7 @@ enum class BubleFieldTailEdge {
 }
 
 /** 꼬리의 좌·우 위치. */
-enum class BubleFieldTailAlign {
+enum class BubbleFieldTailAlign {
     /** 본문 왼쪽(시작) 쪽에 꼬리 */
     Left,
 
@@ -48,7 +48,7 @@ enum class BubleFieldTailAlign {
 }
 
 /** 직각 삼각형의 수직 변 방향(왼쪽/오른쪽). */
-enum class BubleFieldTailShape {
+enum class BubbleFieldTailShape {
     /** 수직 변이 왼쪽. 끝이 왼쪽을 가리킨다 */
     Left,
 
@@ -62,9 +62,9 @@ private val BigHorizontalPadding = 14.dp
 private val BigVerticalPadding = 12.dp
 private val SmallMinWidth = 149.dp
 private val BigMinWidth = 274.dp
-private val BubleTailWidth = 12.dp
-private val BubleTailHeight = 8.dp
-private val BubleTailEdgePadding = 40.dp
+private val BubbleTailWidth = 12.dp
+private val BubbleTailHeight = 8.dp
+private val BubbleTailEdgePadding = 40.dp
 
 /**
  * 말풍선 필드. 크기 타입과 꼬리의 상·하 위치, 좌·우 정렬, 삼각형 방향을 지정한다.
@@ -82,16 +82,16 @@ private val BubleTailEdgePadding = 40.dp
 fun BubbleField(
     text: String,
     type: BubbleFieldType,
-    tailEdge: BubleFieldTailEdge,
-    tailAlign: BubleFieldTailAlign,
-    tailShape: BubleFieldTailShape,
+    tailEdge: BubbleFieldTailEdge,
+    tailAlign: BubbleFieldTailAlign,
+    tailShape: BubbleFieldTailShape,
     modifier: Modifier = Modifier,
 ) {
     val backgroundColor = HilitTheme.colors.hilitBlack800
     val columnAlignment =
         when (tailAlign) {
-            BubleFieldTailAlign.Left -> Alignment.Start
-            BubleFieldTailAlign.Right -> Alignment.End
+            BubbleFieldTailAlign.Left -> Alignment.Start
+            BubbleFieldTailAlign.Right -> Alignment.End
         }
     val horizontalPadding =
         when (type) {
@@ -118,8 +118,8 @@ fun BubbleField(
         modifier = modifier.then(sizeModifier),
         horizontalAlignment = columnAlignment,
     ) {
-        if (tailEdge == BubleFieldTailEdge.Top) {
-            BubleTail(
+        if (tailEdge == BubbleFieldTailEdge.Top) {
+            BubbleTail(
                 edge = tailEdge,
                 align = tailAlign,
                 shape = tailShape,
@@ -146,8 +146,8 @@ fun BubbleField(
             )
         }
 
-        if (tailEdge == BubleFieldTailEdge.Bottom) {
-            BubleTail(
+        if (tailEdge == BubbleFieldTailEdge.Bottom) {
+            BubbleTail(
                 edge = tailEdge,
                 align = tailAlign,
                 shape = tailShape,
@@ -158,26 +158,26 @@ fun BubbleField(
 }
 
 @Composable
-private fun BubleTail(
-    edge: BubleFieldTailEdge,
-    align: BubleFieldTailAlign,
-    shape: BubleFieldTailShape,
+private fun BubbleTail(
+    edge: BubbleFieldTailEdge,
+    align: BubbleFieldTailAlign,
+    shape: BubbleFieldTailShape,
     color: Color,
 ) {
     val edgePaddingModifier =
         when (align) {
-            BubleFieldTailAlign.Left -> Modifier.padding(start = BubleTailEdgePadding)
-            BubleFieldTailAlign.Right -> Modifier.padding(end = BubleTailEdgePadding)
+            BubbleFieldTailAlign.Left -> Modifier.padding(start = BubbleTailEdgePadding)
+            BubbleFieldTailAlign.Right -> Modifier.padding(end = BubbleTailEdgePadding)
         }
 
     Box(
         modifier =
             edgePaddingModifier
-                .size(width = BubleTailWidth, height = BubleTailHeight)
+                .size(width = BubbleTailWidth, height = BubbleTailHeight)
                 .drawBehind {
                     drawPath(
                         path =
-                            bubleTailPath(
+                            bubbleTailPath(
                                 edge = edge,
                                 shape = shape,
                                 width = size.width,
@@ -189,23 +189,23 @@ private fun BubleTail(
     )
 }
 
-private fun bubleTailPath(
-    edge: BubleFieldTailEdge,
-    shape: BubleFieldTailShape,
+private fun bubbleTailPath(
+    edge: BubbleFieldTailEdge,
+    shape: BubbleFieldTailShape,
     width: Float,
     height: Float,
 ): Path =
     Path().apply {
         when (edge) {
-            BubleFieldTailEdge.Bottom -> {
+            BubbleFieldTailEdge.Bottom -> {
                 when (shape) {
-                    BubleFieldTailShape.Left -> {
+                    BubbleFieldTailShape.Left -> {
                         moveTo(0f, 0f)
                         lineTo(width, 0f)
                         lineTo(0f, height)
                     }
 
-                    BubleFieldTailShape.Right -> {
+                    BubbleFieldTailShape.Right -> {
                         moveTo(0f, 0f)
                         lineTo(width, 0f)
                         lineTo(width, height)
@@ -213,15 +213,15 @@ private fun bubleTailPath(
                 }
             }
 
-            BubleFieldTailEdge.Top -> {
+            BubbleFieldTailEdge.Top -> {
                 when (shape) {
-                    BubleFieldTailShape.Left -> {
+                    BubbleFieldTailShape.Left -> {
                         moveTo(0f, height)
                         lineTo(width, height)
                         lineTo(0f, 0f)
                     }
 
-                    BubleFieldTailShape.Right -> {
+                    BubbleFieldTailShape.Right -> {
                         moveTo(0f, height)
                         lineTo(width, height)
                         lineTo(width, 0f)
@@ -245,9 +245,9 @@ private fun BubbleFieldSmallPreview() {
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            BubleFieldTailEdge.entries.forEach { edge ->
-                BubleFieldTailAlign.entries.forEach { align ->
-                    BubleFieldTailShape.entries.forEach { shape ->
+            BubbleFieldTailEdge.entries.forEach { edge ->
+                BubbleFieldTailAlign.entries.forEach { align ->
+                    BubbleFieldTailShape.entries.forEach { shape ->
                         BubbleField(
                             text = "텍스트를 입력해주세요",
                             type = BubbleFieldType.Small,
@@ -275,9 +275,9 @@ private fun BubbleFieldBigPreview() {
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            BubleFieldTailEdge.entries.forEach { edge ->
-                BubleFieldTailAlign.entries.forEach { align ->
-                    BubleFieldTailShape.entries.forEach { shape ->
+            BubbleFieldTailEdge.entries.forEach { edge ->
+                BubbleFieldTailAlign.entries.forEach { align ->
+                    BubbleFieldTailShape.entries.forEach { shape ->
                         BubbleField(
                             text = "텍스트를 입력해주세요",
                             type = BubbleFieldType.Big,

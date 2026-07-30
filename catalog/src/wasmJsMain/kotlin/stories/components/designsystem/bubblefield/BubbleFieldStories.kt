@@ -1,4 +1,4 @@
-package stories.components.designsystem.bublefield
+package stories.components.designsystem.bubblefield
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,17 +8,17 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.dminus14.designsystem.component.bubblefield.BubbleField
+import com.dminus14.designsystem.component.bubblefield.BubbleFieldTailAlign
+import com.dminus14.designsystem.component.bubblefield.BubbleFieldTailEdge
+import com.dminus14.designsystem.component.bubblefield.BubbleFieldTailShape
 import com.dminus14.designsystem.component.bubblefield.BubbleFieldType
-import com.dminus14.designsystem.component.bubblefield.BubleFieldTailAlign
-import com.dminus14.designsystem.component.bubblefield.BubleFieldTailEdge
-import com.dminus14.designsystem.component.bubblefield.BubleFieldTailShape
 import com.dminus14.designsystem.theme.HilitTheme
 import type.Story
 import type.StoryGroup
 
-internal val BubleFieldStories =
+internal val BubbleFieldStories =
     StoryGroup(
-        path = "Components/BubleField",
+        path = "Components/BubbleField",
         description = "말풍선 필드. Type(Small/Big) × Edge × Align × Shape.",
         stories =
             listOf(
@@ -27,14 +27,14 @@ internal val BubleFieldStories =
                     title = "기본",
                     description = "Controls로 타입·문구·꼬리 옵션을 조절할 수 있다.",
                 ) {
-                    BubleFieldCatalogAdapterControls(
+                    BubbleFieldCatalogAdapterControls(
                         initialArgs =
-                            BubleFieldCatalogAdapterArgs(
+                            BubbleFieldCatalogAdapterArgs(
                                 text = "텍스트를 입력해주세요",
                                 type = BubbleFieldType.Big,
-                                tailEdge = BubleFieldTailEdge.Bottom,
-                                tailAlign = BubleFieldTailAlign.Right,
-                                tailShape = BubleFieldTailShape.Right,
+                                tailEdge = BubbleFieldTailEdge.Bottom,
+                                tailAlign = BubbleFieldTailAlign.Right,
+                                tailShape = BubbleFieldTailShape.Right,
                             ),
                     )
                 },
@@ -60,9 +60,9 @@ internal val BubleFieldStories =
                                 BubbleField(
                                     text = "텍스트를 입력해주세요",
                                     type = type,
-                                    tailEdge = BubleFieldTailEdge.Bottom,
-                                    tailAlign = BubleFieldTailAlign.Right,
-                                    tailShape = BubleFieldTailShape.Right,
+                                    tailEdge = BubbleFieldTailEdge.Bottom,
+                                    tailAlign = BubbleFieldTailAlign.Right,
+                                    tailShape = BubbleFieldTailShape.Right,
                                 )
                             }
                         }

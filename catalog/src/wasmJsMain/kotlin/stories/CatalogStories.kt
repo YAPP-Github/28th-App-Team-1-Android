@@ -1,6 +1,6 @@
 package stories
 
-import stories.components.designsystem.bublefield.BubleFieldStories
+import stories.components.designsystem.bubblefield.BubbleFieldStories
 import stories.components.designsystem.fileuploadguide.FileUploadGuideStories
 import stories.components.designsystem.hilitbottomoutlinedtextfield.HilitBottomOutlinedTextFieldStories
 import stories.components.designsystem.hilitfixedbottombutton.HilitFixedBottomButtonStories
@@ -48,7 +48,7 @@ internal val CatalogStories: List<StoryGroup> =
         HilitJDTextFieldStories,
         HilitJDLinkFieldStories,
         HilitSubTextStories,
-        BubleFieldStories,
+        BubbleFieldStories,
         FileUploadGuideStories,
         PdfUploadStories,
     ).validateStories()
