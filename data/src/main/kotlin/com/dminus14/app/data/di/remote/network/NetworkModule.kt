@@ -1,6 +1,7 @@
 package com.dminus14.app.data.di.remote.network
 
 import com.dminus14.app.data.remote.api.AuthApi
+import com.dminus14.app.data.remote.api.UserApi
 import com.dminus14.app.data.remote.authenticator.TokenAuthenticator
 import com.dminus14.app.data.remote.config.NetworkConfig
 import com.dminus14.app.data.remote.interceptor.InsertAuthorizationInterceptor
@@ -62,6 +63,10 @@ object NetworkModule {
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
+
+    @Provides
+    @Singleton
+    fun provideUserApi(retrofit: Retrofit): UserApi = retrofit.create(UserApi::class.java)
 
     /**
      * `AuthApi`(로그인/토큰 재발급) 전용 OkHttpClient.
