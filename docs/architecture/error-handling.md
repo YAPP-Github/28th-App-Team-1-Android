@@ -60,13 +60,30 @@ sealed interface GlobalAppEvent {
 `GlobalErrorHandler`는 project error를 app-level event로 변환한다.
 
 ```kotlin
-suspend fun emit(error: CustomException) {
-    when (error) {
-        is NetworkUnavailableException -> emit(ShowNetworkDialog)
-        is ServerException -> emit(ShowServerErrorDialog)
-        is UnknownException -> emit(ShowToast(error.message))
-        is ClientException -> Unit
-        else -> emit(ShowToast(error.message))
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+
+object GlobalErrorHandler {
+    private val _events = MutableSharedFlow<GlobalAppEvent>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+    val events: SharedFlow<GlobalAppEvent> = _events.asSharedFlow()
+
+    suspend fun emit(error: CustomException) {
+        when (error) {
+            is NetworkUnavailableException -> emit(GlobalAppEvent.ShowNetworkDialog)
+            is ServerException -> emit(GlobalAppEvent.ShowServerErrorDialog)
+            is UnknownException -> emit(GlobalAppEvent.ShowToast(error.message))
+            is ClientException -> Unit
+            else -> emit(GlobalAppEvent.ShowToast(error.message))
+        }
+    }
+
+    suspend fun emit(event: GlobalAppEvent) {
+        _events.emit(event)
     }
 }
 ```
@@ -89,7 +106,7 @@ when (throwable) {
     is UnknownException,
         -> GlobalErrorHandler.emit(throwable)
 
-    else -> GlobalErrorHandler.emit(ShowToast(...))
+    else -> GlobalErrorHandler.emit(GlobalAppEvent.ShowToast(...))
 }
 ```
 
@@ -103,9 +120,9 @@ ViewModel은 Android UI를 직접 표시하지 않는다.
 LaunchedEffect(Unit) {
     GlobalErrorHandler.events.collect { event ->
         when (event) {
-            ShowNetworkDialog -> ...
-            ShowServerErrorDialog -> ...
-            is ShowToast -> ...
+            GlobalAppEvent.ShowNetworkDialog -> ...
+            GlobalAppEvent.ShowServerErrorDialog -> ...
+            is GlobalAppEvent.ShowToast -> ...
         }
     }
 }
