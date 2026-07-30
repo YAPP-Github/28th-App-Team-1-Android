@@ -77,6 +77,7 @@ fun LoginScreen(
     )
 }
 
+@Suppress("UnusedParameter")
 @Composable
 private fun LoginContent(
     state: LoginState,
@@ -104,10 +105,11 @@ private fun LoginContent(
         )
 
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 28.dp),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 28.dp),
             verticalArrangement = Arrangement.Bottom,
         ) {
             KakaoLoginButton(
