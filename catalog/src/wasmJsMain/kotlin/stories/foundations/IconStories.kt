@@ -26,13 +26,13 @@ private const val ICONS_PER_ROW = 4
 internal val IconStories =
     StoryGroup(
         path = "Foundations/Icon",
-        description = "공용 벡터 아이콘 21개를 Hilit Green 500으로 확인합니다.",
+        description = "공용 벡터 아이콘 21개의 기본 크기와 색상을 확인합니다.",
         stories =
             listOf(
                 Story(
                     id = "default",
                     title = "전체 아이콘",
-                    description = "리소스 이름과 Hilit Green 500이 적용된 아이콘을 함께 확인합니다.",
+                    description = "일반 아이콘은 Hilit Black 800, 소셜 로고는 원본 색상으로 표시합니다.",
                     content = { IconGallery() },
                 ),
             ),
@@ -83,8 +83,7 @@ private fun IconItem(
             HilitIcon(
                 asset = asset,
                 contentDescription = asset.resourceName,
-                tint = HilitTheme.colors.hilitGreen500,
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier.size(asset.defaultSize),
             )
         }
         Text(
