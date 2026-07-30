@@ -3,6 +3,7 @@ package com.dminus14.app.data.di.remote.network
 import com.dminus14.app.data.remote.api.FileUploadApi
 import com.dminus14.app.data.remote.config.UploadNetworkConfig
 import com.dminus14.app.data.remote.interceptor.OkHttpLoggingInterceptorFactory
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -42,12 +43,13 @@ object UploadNetworkModule {
     @UploadRetrofit
     fun provideUploadRetrofit(
         @UploadOkHttpClient okHttpClient: OkHttpClient,
+        gson: Gson,
     ): Retrofit =
         Retrofit
             .Builder()
             .baseUrl(UploadNetworkConfig.BASE_URL)
             .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
 
     @Provides
