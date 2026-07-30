@@ -38,7 +38,7 @@ private const val DEFAULT_PLACEHOLDER = "텍스트를 입력해주세요"
  * Figma: text-field status=large (`2091:806`)
  *
  * @param value 현재 입력 값
- * @param onValueChange 입력이 바뀔 때 호출된다. [maxLength]를 넘는 값은 반영되지 않는다
+ * @param onValueChange 입력이 바뀔 때 호출된다. [maxLength]를 넘는 값은 초과분이 잘려 반영된다
  * @param modifier 외부 레이아웃 Modifier
  * @param placeholder 값이 비어 있을 때 표시할 placeholder
  * @param maxLength 최대 입력 글자 수. 카운터에도 사용된다. 음수는 0으로 보정한다
@@ -82,9 +82,9 @@ fun HilitJDTextField(
             BasicTextField(
                 value = value,
                 onValueChange = { newValue ->
-                    if (newValue.length <= safeMaxLength) {
-                        onValueChange(newValue)
-                    }
+                    // 붙여넣기 등으로 maxLength를 초과해 들어와도 잘라서 반영해야
+                    // 사용자가 백스페이스로 지울 수 없는 락 상태에 빠지지 않는다.
+                    onValueChange(newValue.take(safeMaxLength))
                 },
                 textStyle = textStyle.copy(color = textColor),
                 cursorBrush = SolidColor(textColor),
