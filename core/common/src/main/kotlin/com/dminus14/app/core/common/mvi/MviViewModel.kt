@@ -1,14 +1,14 @@
 package com.dminus14.app.core.common.mvi
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 
 /**
  * Feature ViewModel의 MVI 보일러플레이트를 담당하는 Base.
@@ -34,9 +34,23 @@ abstract class MviViewModel<I : MviIntent, S : MviState, E : MviEffect>(
         _state.update(reducer)
     }
 
+    /**
+     * Effect를 채널에 즉시(non-blocking) 발행한다.
+     *
+     * 호출 즉시 [Channel.trySend]로 채널에 넣기 때문에 별도 코루틴을 생성하지 않고,
+     * 호출 순서와 채널 진입 순서가 항상 일치한다. 단, 동시에 발행되는 Effect 수가
+     * [Channel.BUFFERED] 용량을 넘거나 채널이 닫힌 경우 발행이 실패할 수 있으며,
+     * 이 경우 Effect는 유실되고 경고 로그만 남긴다(화면 크래시로 이어지지 않음).
+     */
     protected fun sendEffect(effect: E) {
-        viewModelScope.launch {
-            _effect.send(effect)
-        }
+        _effect
+            .trySend(effect)
+            .onFailure { cause ->
+                Log.w(TAG, "Effect 발행 실패: $effect", cause)
+            }
+    }
+
+    private companion object {
+        const val TAG = "MviViewModel"
     }
 }

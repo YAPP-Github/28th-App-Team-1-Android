@@ -797,9 +797,11 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun sendEffect(effect: HomeEffect) {
-        viewModelScope.launch {
-            _effect.send(effect)
-        }
+        _effect
+            .trySend(effect)
+            .onFailure { cause ->
+                Log.w("HomeViewModel", "Effect 발행 실패: $effect", cause)
+            }
     }
 }
 ```
@@ -810,7 +812,7 @@ class HomeViewModel @Inject constructor(
 | --------------- | ------------------------------------------------------------------------------------ |
 | Intent 수신     | 외부에서 호출하는 이벤트 진입점은 `onIntent()` 하나로 통일한다.                      |
 | State 변경      | `_state.update { copy(...) }` 또는 `reduce { copy(...) }`로 처리한다.                |
-| Effect 발행     | `Channel` 또는 프로젝트 공통 Effect 처리 유틸을 통해 1회성으로 발행한다.             |
+| Effect 발행     | `Channel.trySend()`로 즉시 발행한다. 동시 발행량이 `Channel.BUFFERED` 용량을 넘어 실패하면 Effect는 유실되며, 경고 로그만 남기고 크래시시키지 않는다. |
 | UseCase 호출    | ViewModel은 `domain`의 UseCase를 호출한다. Repository 구현체에 직접 접근하지 않는다. |
 | UI 모델 변환    | 화면 표시 전 필요한 경우 Entity/Domain Model을 UiModel로 변환한다.                   |
 | Navigation 처리 | ViewModel은 Navigation 실행 자체를 수행하지 않고, Navigation Effect를 발행한다.      |
