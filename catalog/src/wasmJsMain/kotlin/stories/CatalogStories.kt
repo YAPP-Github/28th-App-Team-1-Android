@@ -6,6 +6,7 @@ import stories.components.designsystem.hilitmediumbutton.HilitMediumButtonStorie
 import stories.components.designsystem.hilitmodal.HilitModalStories
 import stories.components.designsystem.hilittag.HilitTagStories
 import stories.components.designsystem.hilittexthighlight.HilitTextHighlightStories
+import stories.components.designsystem.kakaologinbutton.KakaoLoginButtonStories
 import stories.foundations.ColorStories
 import stories.foundations.IconStories
 import stories.foundations.TypographyStories
@@ -21,6 +22,7 @@ internal val CatalogStories: List<StoryGroup> =
         TypographyStories,
         HilitFixedBottomButtonStories,
         HilitMediumButtonStories,
+        KakaoLoginButtonStories,
         HilitTagStories,
         HilitTextHighlightStories,
         HilitBottomOutlinedTextFieldStories,
