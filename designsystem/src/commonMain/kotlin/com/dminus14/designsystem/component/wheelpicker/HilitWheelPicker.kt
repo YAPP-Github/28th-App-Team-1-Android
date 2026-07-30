@@ -107,67 +107,44 @@ fun <T> HilitWheelPicker(
     val surfaceColor = HilitTheme.colors.hilitWhite
     val textStyle = HilitTheme.typography.sub4
 
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
+    LazyColumn(
+        state = listState,
+        flingBehavior = flingBehavior,
+        modifier =
+            modifier
+                .padding(horizontal = WheelSentenceSpacing)
+                .height(WheelItemHeight * WheelVisibleItemCount)
+                .background(surfaceColor)
+                .drawWithContent {
+                    drawContent()
+                    drawRect(
+                        brush =
+                            Brush.verticalGradient(
+                                0f to surfaceColor,
+                                0.28f to surfaceColor.copy(alpha = 0f),
+                                0.72f to surfaceColor.copy(alpha = 0f),
+                                1f to surfaceColor,
+                            ),
+                    )
+                },
+        contentPadding =
+            PaddingValues(
+                vertical = WheelItemHeight * (WheelVisibleItemCount / 2),
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(
-            modifier = Modifier.weight(1f),
-            text = LEADING_TEXT,
-            style = textStyle,
-            color = selectedTextColor,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-        )
-
-        LazyColumn(
-            state = listState,
-            flingBehavior = flingBehavior,
-            modifier =
-                Modifier
-                    .padding(horizontal = WheelSentenceSpacing)
-                    .weight(1f)
-                    .height(WheelItemHeight * WheelVisibleItemCount)
-                    .background(surfaceColor)
-                    .drawWithContent {
-                        drawContent()
-                        drawRect(
-                            brush =
-                                Brush.verticalGradient(
-                                    0f to surfaceColor,
-                                    0.28f to surfaceColor.copy(alpha = 0f),
-                                    0.72f to surfaceColor.copy(alpha = 0f),
-                                    1f to surfaceColor,
-                                ),
-                        )
-                    },
-            contentPadding =
-                PaddingValues(
-                    vertical = WheelItemHeight * (WheelVisibleItemCount / 2),
-                ),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            itemsIndexed(items) { index, item ->
-                WheelPickerItem(
-                    text = label(item),
-                    selected = index == centeredIndex,
-                    selectedTextColor = selectedTextColor,
-                    unselectedTextColor = unselectedTextColor,
-                    highlightColor = highlightColor,
-                    textStyle = textStyle,
-                )
-            }
+        itemsIndexed(items) { index, item ->
+            WheelPickerItem(
+                text = label(item),
+                selected = index == centeredIndex,
+                selectedTextColor = selectedTextColor,
+                unselectedTextColor = unselectedTextColor,
+                highlightColor = highlightColor,
+                textStyle = textStyle,
+            )
         }
-
-        Text(
-            modifier = Modifier.weight(1f),
-            text = TRAILING_TEXT,
-            style = textStyle,
-            color = selectedTextColor,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-        )
     }
+
 }
 
 @Composable
