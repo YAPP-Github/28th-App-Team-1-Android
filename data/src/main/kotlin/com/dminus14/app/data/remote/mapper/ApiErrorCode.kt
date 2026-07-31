@@ -1,5 +1,17 @@
 package com.dminus14.app.data.remote.mapper
 
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_CREDENTIAL
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_TOKEN
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.LOGIN_EXPIRED
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.NETWORK_UNAVAILABLE
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.SERVER_ERROR
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.SOCIAL_LOGIN_FAILED
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.TOKEN_EXPIRED
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.UNKNOWN
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.USER_NOT_FOUND
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.VALIDATION_ERROR
+
+
 /**
  * API / 클라이언트 에러 `code` 값.
  *
@@ -19,6 +31,14 @@ internal object ApiErrorCode {
     const val SOCIAL_LOGIN_FAILED = "SOCIAL_LOGIN_FAILED"
 
     const val VALIDATION_ERROR = "VALIDATION_ERROR"
+
+    const val FEEDBACK_SHARE_TOKEN_NOT_FOUND = "FEEDBACK_SHARE_TOKEN_NOT_FOUND"
+    const val INCOMPLETE_RATINGS = "INCOMPLETE_RATINGS"
+    const val INVALID_RATING_LEVEL = "INVALID_RATING_LEVEL"
+    const val MISSING_DEVICE_ID = "MISSING_DEVICE_ID"
+    const val FEEDBACK_SHARE_CLOSED = "FEEDBACK_SHARE_CLOSED"
+    const val FEEDBACK_CAPACITY_FULL = "FEEDBACK_CAPACITY_FULL"
+    const val FEEDBACK_ALREADY_SUBMITTED = "FEEDBACK_ALREADY_SUBMITTED"
 
     const val USER_NOT_FOUND = "USER_NOT_FOUND"
 
