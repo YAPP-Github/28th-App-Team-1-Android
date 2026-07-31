@@ -35,7 +35,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class SplashViewModelTest {
     @Test
-    fun `Load 시 세션과 프로필이 있으면 ProfileExists Effect를 발행한다`() =
+    fun `Load 시 세션과 완성된 프로필이 있으면 ProfileReady Effect를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -49,7 +49,28 @@ class SplashViewModelTest {
 
                 viewModel.onIntent(SplashIntent.Load)
 
-                assertEquals(SplashEffect.ProfileExists, effect.await())
+                assertEquals(SplashEffect.ProfileReady, effect.await())
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun `Load 시 세션은 있지만 이름이 없으면 OnboardingRequired Effect를 발행한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = sampleSession,
+                        profileResult = Result.success(sampleUserProfileWithoutName),
+                    )
+                val effect = async { viewModel.effect.first() }
+
+                viewModel.onIntent(SplashIntent.Load)
+
+                assertEquals(SplashEffect.OnboardingRequired, effect.await())
             } finally {
                 Dispatchers.resetMain()
             }
@@ -180,7 +201,7 @@ class SplashViewModelTest {
         }
 
     @Test
-    fun `카카오 로그인 성공 후 프로필이 있으면 ProfileExists Effect를 발행한다`() =
+    fun `카카오 로그인 성공 후 완성된 프로필이 있으면 ProfileReady Effect를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -195,9 +216,31 @@ class SplashViewModelTest {
 
                 viewModel.onIntent(SplashIntent.KakaoLoginSucceeded("credential"))
 
-                assertEquals(SplashEffect.ProfileExists, effect.await())
+                assertEquals(SplashEffect.ProfileReady, effect.await())
                 assertFalse(viewModel.state.value.isLoading)
                 assertFalse(viewModel.state.value.showKakaoLoginButton)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun `카카오 로그인 성공 후 이름이 없으면 OnboardingRequired Effect를 발행한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = null,
+                        profileResult = Result.success(sampleUserProfileWithoutName),
+                        loginResult = Result.success(sampleSession),
+                    )
+                val effect = async { viewModel.effect.first() }
+
+                viewModel.onIntent(SplashIntent.KakaoLoginSucceeded("credential"))
+
+                assertEquals(SplashEffect.OnboardingRequired, effect.await())
             } finally {
                 Dispatchers.resetMain()
             }
@@ -277,6 +320,11 @@ class SplashViewModelTest {
                 jobRoleLabel = "백엔드",
                 careerYears = 1,
                 remainingTicketCount = 3,
+            )
+
+        val sampleUserProfileWithoutName =
+            sampleUserProfile.copy(
+                name = null,
             )
     }
 

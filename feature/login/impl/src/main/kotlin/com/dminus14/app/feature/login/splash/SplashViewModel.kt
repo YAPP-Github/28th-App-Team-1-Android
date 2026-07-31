@@ -74,9 +74,13 @@ class SplashViewModel
 
         private suspend fun checkUserProfile() {
             checkUserProfileUseCase()
-                .onSuccess {
+                .onSuccess { profile ->
                     reduce { copy(isLoading = false, showKakaoLoginButton = false) }
-                    sendEffect(SplashEffect.ProfileExists)
+                    if (profile.requiresOnboarding) {
+                        sendEffect(SplashEffect.OnboardingRequired)
+                    } else {
+                        sendEffect(SplashEffect.ProfileReady)
+                    }
                 }.onFailure { error ->
                     when (error) {
                         is UserNotFoundException -> {

@@ -30,6 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dminus14.app.core.resources.Res
 import com.dminus14.app.core.resources.hiiii_logo
 import com.dminus14.app.feature.home.api.Home
+import com.dminus14.app.feature.login.api.Onboarding
 import com.dminus14.app.feature.login.api.Term
 import com.dminus14.app.feature.login.kakao.KakaoLoginClient
 import com.dminus14.designsystem.component.button.KakaoLoginButton
@@ -67,7 +68,8 @@ fun SplashScreen(
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                SplashEffect.ProfileExists -> onNavigate(Home)
+                SplashEffect.ProfileReady -> onNavigate(Home)
+                SplashEffect.OnboardingRequired -> onNavigate(Onboarding)
                 SplashEffect.ProfileNotFound -> onNavigate(Term)
             }
         }

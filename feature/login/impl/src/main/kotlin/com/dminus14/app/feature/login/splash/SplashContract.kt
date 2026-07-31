@@ -26,8 +26,11 @@ data class SplashState(
 ) : MviState
 
 sealed interface SplashEffect : MviEffect {
-    /** 유효한 세션과 프로필이 모두 존재한다. */
-    data object ProfileExists : SplashEffect
+    /** 프로필이 있고 온보딩이 완료된 상태다. */
+    data object ProfileReady : SplashEffect
+
+    /** 프로필은 있지만 온보딩이 필요하다. */
+    data object OnboardingRequired : SplashEffect
 
     /** 세션은 있으나 프로필이 없다. */
     data object ProfileNotFound : SplashEffect
