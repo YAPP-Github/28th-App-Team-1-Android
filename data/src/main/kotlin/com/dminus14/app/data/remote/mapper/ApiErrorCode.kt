@@ -11,7 +11,6 @@ import com.dminus14.app.data.remote.mapper.ApiErrorCode.UNKNOWN
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.USER_NOT_FOUND
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.VALIDATION_ERROR
 
-
 /**
  * API / 클라이언트 에러 `code` 값.
  *

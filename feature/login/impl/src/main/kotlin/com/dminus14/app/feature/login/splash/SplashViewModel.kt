@@ -36,14 +36,12 @@ class SplashViewModel
             }
         }
 
-        private fun checkUserProfile() {
-            viewModelScope.launch {
-                checkUserProfileUseCase()
-                    .onSuccess { profile ->
-                        sendEffect(SplashEffect.SessionExists)
-                    }.onFailure {
-                        sendEffect(SplashEffect.SessionNotFound)
-                    }
-            }
+        private suspend fun checkUserProfile() {
+            checkUserProfileUseCase()
+                .onSuccess {
+                    sendEffect(SplashEffect.SessionExists)
+                }.onFailure {
+                    sendEffect(SplashEffect.SessionNotFound)
+                }
         }
     }
