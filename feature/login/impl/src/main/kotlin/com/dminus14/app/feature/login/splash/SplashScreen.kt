@@ -1,5 +1,6 @@
 package com.dminus14.app.feature.login.splash
 
+import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -11,6 +12,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -27,6 +29,8 @@ fun SplashScreen(
     modifier: Modifier = Modifier,
     viewModel: SplashViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
+
     LaunchedEffect(Unit) {
         viewModel.onIntent(SplashIntent.Load)
     }
@@ -36,6 +40,7 @@ fun SplashScreen(
             when (effect) {
                 SplashEffect.SessionExists -> onNavigate(Home)
                 SplashEffect.SessionNotFound -> onNavigate(Login)
+                SplashEffect.UnknownError -> (context as Activity).finish()
             }
         }
     }

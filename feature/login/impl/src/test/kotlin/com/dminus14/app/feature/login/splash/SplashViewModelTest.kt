@@ -1,11 +1,15 @@
 package com.dminus14.app.feature.login.splash
 
+import com.dminus14.app.core.common.modal.GlobalModalResult
+import com.dminus14.app.core.common.modal.globalModalEvents
+import com.dminus14.app.domain.exception.UserNotFoundException
 import com.dminus14.app.domain.model.AuthSession
 import com.dminus14.app.domain.model.UserProfile
 import com.dminus14.app.domain.repository.SessionRepository
 import com.dminus14.app.domain.repository.UserRepository
 import com.dminus14.app.domain.usecase.CheckUserProfileUseCase
 import com.dminus14.app.domain.usecase.GetAuthSessionUseCase
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -35,7 +39,9 @@ class SplashViewModelTest {
                                 ),
                             ),
                         ),
-                        CheckUserProfileUseCase(FakeUserRepository(sampleUserProfile)),
+                        CheckUserProfileUseCase(
+                            FakeUserRepository(Result.success(sampleUserProfile)),
+                        ),
                     )
                 val effect = async { viewModel.effect.first() }
 
@@ -56,7 +62,9 @@ class SplashViewModelTest {
                 val viewModel =
                     SplashViewModel(
                         GetAuthSessionUseCase(FakeSessionRepository(null)),
-                        CheckUserProfileUseCase(FakeUserRepository(sampleUserProfile)),
+                        CheckUserProfileUseCase(
+                            FakeUserRepository(Result.success(sampleUserProfile)),
+                        ),
                     )
                 val effect = async { viewModel.effect.first() }
 
@@ -69,7 +77,7 @@ class SplashViewModelTest {
         }
 
     @Test
-    fun `Load 시 세션은 있지만 프로필 조회에 실패하면 SessionNotFound Effect를 발행한다`() =
+    fun `Load 시 세션은 있지만 존재하지 않는 사용자면 SessionNotFound Effect를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -84,13 +92,50 @@ class SplashViewModelTest {
                                 ),
                             ),
                         ),
-                        CheckUserProfileUseCase(FakeUserRepository(profile = null)),
+                        CheckUserProfileUseCase(
+                            FakeUserRepository(
+                                Result.failure(UserNotFoundException(errCode = "USER_NOT_FOUND")),
+                            ),
+                        ),
                     )
                 val effect = async { viewModel.effect.first() }
 
                 viewModel.onIntent(SplashIntent.Load)
 
                 assertEquals(SplashEffect.SessionNotFound, effect.await())
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun `Load 시 세션은 있지만 프로필 조회에서 알 수 없는 오류가 발생하면 전역 모달을 노출한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    SplashViewModel(
+                        GetAuthSessionUseCase(
+                            FakeSessionRepository(
+                                AuthSession(
+                                    accessToken = "access",
+                                    refreshToken = "refresh",
+                                ),
+                            ),
+                        ),
+                        CheckUserProfileUseCase(
+                            FakeUserRepository(Result.failure(IllegalStateException("알 수 없는 오류"))),
+                        ),
+                    )
+                val modalEvent =
+                    async(start = CoroutineStart.UNDISPATCHED) { globalModalEvents.first() }
+
+                viewModel.onIntent(SplashIntent.Load)
+
+                val event = modalEvent.await()
+                assertEquals("확인", event.request.confirmText)
+                event.complete(GlobalModalResult.Confirm)
             } finally {
                 Dispatchers.resetMain()
             }
@@ -126,8 +171,8 @@ class SplashViewModelTest {
     }
 
     private class FakeUserRepository(
-        private val profile: UserProfile?,
+        private val result: Result<UserProfile>,
     ) : UserRepository {
-        override suspend fun getUserProfile(): UserProfile = profile ?: error("존재하지 않는 사용자입니다.")
+        override suspend fun getUserProfile(): UserProfile = result.getOrThrow()
     }
 }
