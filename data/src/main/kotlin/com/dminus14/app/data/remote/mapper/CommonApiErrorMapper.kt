@@ -7,12 +7,16 @@ import com.dminus14.app.domain.exception.ServerException
 import com.dminus14.app.domain.exception.UnknownException
 import retrofit2.HttpException
 import java.io.IOException
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * 전송·HTTP 계층의 공통 오류를 domain [CustomException]으로 변환한다.
  *
  * API별 비즈니스 코드는 [mapBusiness]에서만 처리하고, 인식하지 못하면 `null`을 반환한다.
  * 공통 정책(Network / 5xx / Unknown)은 이 객체가 담당한다.
+ *
+ * [CancellationException]은 JVM에서 [IllegalStateException]의 하위 타입이므로, domain 예외로
+ * 변환하지 않고 그대로 다시 던져 구조적 동시성의 취소 전파를 보존한다.
  */
 internal object CommonApiErrorMapper {
     fun map(
@@ -20,6 +24,10 @@ internal object CommonApiErrorMapper {
         mapBusiness: (HttpException, ApiErrorResponseDto?) -> CustomException? = { _, _ -> null },
     ): Throwable =
         when (error) {
+            is CancellationException -> {
+                throw error
+            }
+
             is IOException -> {
                 NetworkUnavailableException(
                     errCode = ApiErrorCode.NETWORK_UNAVAILABLE,

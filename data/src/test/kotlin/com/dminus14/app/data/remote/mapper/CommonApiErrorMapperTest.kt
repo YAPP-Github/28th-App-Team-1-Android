@@ -8,13 +8,25 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import retrofit2.HttpException
 import retrofit2.Response
 import java.io.IOException
+import kotlin.coroutines.cancellation.CancellationException
 
 class CommonApiErrorMapperTest {
+    @Test
+    fun `CancellationException은 domain 예외로 변환하지 않고 그대로 다시 던진다`() {
+        val cause = CancellationException("cancelled")
+
+        val thrown =
+            assertThrows(CancellationException::class.java) { CommonApiErrorMapper.map(cause) }
+
+        assertSame(cause, thrown)
+    }
+
     @Test
     fun `IOException은 NetworkUnavailableException으로 변환한다`() {
         val cause = IOException("offline")
