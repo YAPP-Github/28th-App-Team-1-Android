@@ -14,6 +14,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.dminus14.app.dialog.GlobalDialogHost
 import com.dminus14.app.dialog.GlobalModalManager
+import com.dminus14.app.error.GlobalErrorHost
 import com.dminus14.app.navigation.AppNavigationState
 import com.dminus14.designsystem.theme.HilitTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -55,6 +56,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 GlobalDialogHost(manager = globalModalManager)
+                GlobalErrorHost(onExit = ::finishAffinity)
             }
         }
     }
