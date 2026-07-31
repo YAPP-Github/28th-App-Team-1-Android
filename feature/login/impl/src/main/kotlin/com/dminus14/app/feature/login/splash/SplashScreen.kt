@@ -69,7 +69,6 @@ fun SplashScreen(
             when (effect) {
                 SplashEffect.ProfileExists -> onNavigate(Home)
                 SplashEffect.ProfileNotFound -> onNavigate(Term)
-                SplashEffect.UnknownError -> activity.finish()
             }
         }
     }

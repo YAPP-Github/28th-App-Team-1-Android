@@ -31,6 +31,4 @@ sealed interface SplashEffect : MviEffect {
 
     /** 세션은 있으나 프로필이 없다. */
     data object ProfileNotFound : SplashEffect
-
-    data object UnknownError : SplashEffect
 }
