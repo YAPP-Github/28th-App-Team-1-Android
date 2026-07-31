@@ -1,7 +1,10 @@
 package com.dminus14.app.feature.login.splash
 
-import com.dminus14.app.core.common.modal.GlobalModalResult
-import com.dminus14.app.core.common.modal.globalModalEvents
+import com.dminus14.app.core.common.event.GlobalAppEvent
+import com.dminus14.app.core.common.event.GlobalErrorHandler
+import com.dminus14.app.domain.exception.NetworkUnavailableException
+import com.dminus14.app.domain.exception.ServerException
+import com.dminus14.app.domain.exception.UnknownException
 import com.dminus14.app.domain.exception.UserNotFoundException
 import com.dminus14.app.domain.model.AuthSession
 import com.dminus14.app.domain.model.UserProfile
@@ -110,7 +113,7 @@ class SplashViewModelTest {
         }
 
     @Test
-    fun `Load 시 세션은 있지만 프로필 조회에서 알 수 없는 오류가 발생하면 전역 모달을 노출한다`() =
+    fun `Load 시 세션은 있지만 네트워크 오류면 ShowNetworkErrorAndExit를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -126,29 +129,29 @@ class SplashViewModelTest {
                             ),
                         ),
                         CheckUserProfileUseCase(
-                            FakeUserRepository(Result.failure(IllegalStateException("알 수 없는 오류"))),
+                            FakeUserRepository(
+                                Result.failure(
+                                    NetworkUnavailableException(errCode = "NETWORK_UNAVAILABLE"),
+                                ),
+                            ),
                         ),
                     )
-                val modalEvent =
-                    async(start = CoroutineStart.UNDISPATCHED) { globalModalEvents.first() }
-                val effect = async { viewModel.effect.first() }
+                val receivedEffects = mutableListOf<SplashEffect>()
+                backgroundScope.launch { viewModel.effect.collect(receivedEffects::add) }
+                val globalEvent =
+                    async(start = CoroutineStart.UNDISPATCHED) { GlobalErrorHandler.events.first() }
 
                 viewModel.onIntent(SplashIntent.Load)
 
-                val event = modalEvent.await()
-                assertEquals("확인", event.request.confirmText)
-                assertEquals(false, event.request.dismissible)
-
-                event.complete(GlobalModalResult.Confirm)
-
-                assertEquals(SplashEffect.UnknownError, effect.await())
+                assertEquals(GlobalAppEvent.ShowNetworkErrorAndExit, globalEvent.await())
+                assertEquals(emptyList<SplashEffect>(), receivedEffects)
             } finally {
                 Dispatchers.resetMain()
             }
         }
 
     @Test
-    fun `Load 시 알 수 없는 오류의 전역 모달을 확인하지 않으면 UnknownError Effect를 발행하지 않는다`() =
+    fun `Load 시 세션은 있지만 서버 오류면 ShowServerErrorAndExit를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -164,20 +167,55 @@ class SplashViewModelTest {
                             ),
                         ),
                         CheckUserProfileUseCase(
-                            FakeUserRepository(Result.failure(IllegalStateException("알 수 없는 오류"))),
+                            FakeUserRepository(
+                                Result.failure(ServerException(errCode = "SERVER_ERROR")),
+                            ),
                         ),
                     )
                 val receivedEffects = mutableListOf<SplashEffect>()
                 backgroundScope.launch { viewModel.effect.collect(receivedEffects::add) }
-                val modalEvent =
-                    async(start = CoroutineStart.UNDISPATCHED) { globalModalEvents.first() }
+                val globalEvent =
+                    async(start = CoroutineStart.UNDISPATCHED) { GlobalErrorHandler.events.first() }
 
                 viewModel.onIntent(SplashIntent.Load)
 
-                val event = modalEvent.await()
-                event.complete(GlobalModalResult.Dismiss)
-                testScheduler.advanceUntilIdle()
+                assertEquals(GlobalAppEvent.ShowServerErrorAndExit, globalEvent.await())
+                assertEquals(emptyList<SplashEffect>(), receivedEffects)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
 
+    @Test
+    fun `Load 시 세션은 있지만 알 수 없는 오류면 ShowUnknownError를 발행한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    SplashViewModel(
+                        GetAuthSessionUseCase(
+                            FakeSessionRepository(
+                                AuthSession(
+                                    accessToken = "access",
+                                    refreshToken = "refresh",
+                                ),
+                            ),
+                        ),
+                        CheckUserProfileUseCase(
+                            FakeUserRepository(
+                                Result.failure(UnknownException(errCode = "UNKNOWN")),
+                            ),
+                        ),
+                    )
+                val receivedEffects = mutableListOf<SplashEffect>()
+                backgroundScope.launch { viewModel.effect.collect(receivedEffects::add) }
+                val globalEvent =
+                    async(start = CoroutineStart.UNDISPATCHED) { GlobalErrorHandler.events.first() }
+
+                viewModel.onIntent(SplashIntent.Load)
+
+                assertEquals(GlobalAppEvent.ShowUnknownError, globalEvent.await())
                 assertEquals(emptyList<SplashEffect>(), receivedEffects)
             } finally {
                 Dispatchers.resetMain()

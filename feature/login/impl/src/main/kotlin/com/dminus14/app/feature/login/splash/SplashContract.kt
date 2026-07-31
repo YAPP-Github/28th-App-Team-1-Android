@@ -17,6 +17,4 @@ sealed interface SplashEffect : MviEffect {
 
     /** 인증 세션이 없다. */
     data object SessionNotFound : SplashEffect
-
-    data object UnknownError : SplashEffect
 }
