@@ -16,7 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.dminus14.app.feature.login.api.Login
+import com.dminus14.app.feature.home.api.Home
 import com.dminus14.designsystem.theme.HilitTheme
 
 @Composable
@@ -34,7 +34,7 @@ fun OnboardingScreen(
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                OnboardingEffect.Completed -> onNavigate(Login)
+                OnboardingEffect.Completed -> onNavigate(Home)
             }
         }
     }

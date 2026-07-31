@@ -8,6 +8,3 @@ object Term
 
 /** 온보딩 화면 route */
 object Onboarding
-
-/** 로그인 화면 route */
-object Login

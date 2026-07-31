@@ -5,9 +5,12 @@ import com.dminus14.app.core.common.modal.GlobalModalRequest
 import com.dminus14.app.core.common.modal.GlobalModalResult
 import com.dminus14.app.core.common.modal.showGlobalModal
 import com.dminus14.app.core.common.mvi.MviViewModel
+import com.dminus14.app.domain.exception.CustomException
 import com.dminus14.app.domain.exception.UserNotFoundException
 import com.dminus14.app.domain.usecase.CheckUserProfileUseCase
 import com.dminus14.app.domain.usecase.GetAuthSessionUseCase
+import com.dminus14.app.domain.usecase.LoginWithKakaoUseCase
+import com.dminus14.app.feature.login.kakao.KakaoLoginException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -18,10 +21,25 @@ class SplashViewModel
     constructor(
         private val getAuthSessionUseCase: GetAuthSessionUseCase,
         private val checkUserProfileUseCase: CheckUserProfileUseCase,
-    ) : MviViewModel<SplashIntent, SplashState, SplashEffect>(SplashState) {
+        private val loginWithKakaoUseCase: LoginWithKakaoUseCase,
+    ) : MviViewModel<SplashIntent, SplashState, SplashEffect>(SplashState()) {
         override fun onIntent(intent: SplashIntent) {
             when (intent) {
-                SplashIntent.Load -> load()
+                SplashIntent.Load -> {
+                    load()
+                }
+
+                SplashIntent.ClickKakaoLogin -> {
+                    reduce { copy(isLoading = true, errorMessage = null) }
+                }
+
+                is SplashIntent.KakaoLoginSucceeded -> {
+                    loginWithKakao(intent.credential)
+                }
+
+                is SplashIntent.KakaoLoginFailed -> {
+                    handleLoginFailure(intent.error)
+                }
             }
         }
 
@@ -32,10 +50,23 @@ class SplashViewModel
                         if (session != null) {
                             checkUserProfile()
                         } else {
-                            sendEffect(SplashEffect.SessionNotFound)
+                            reduce { copy(showKakaoLoginButton = true) }
                         }
                     }.onFailure {
-                        sendEffect(SplashEffect.SessionNotFound)
+                        reduce { copy(showKakaoLoginButton = true) }
+                    }
+            }
+        }
+
+        private fun loginWithKakao(credential: String) {
+            viewModelScope.launch {
+                reduce { copy(isLoading = true, errorMessage = null) }
+
+                loginWithKakaoUseCase(credential)
+                    .onSuccess {
+                        checkUserProfile()
+                    }.onFailure { throwable ->
+                        handleLoginFailure(throwable)
                     }
             }
         }
@@ -43,14 +74,17 @@ class SplashViewModel
         private suspend fun checkUserProfile() {
             checkUserProfileUseCase()
                 .onSuccess {
-                    sendEffect(SplashEffect.SessionExists)
+                    reduce { copy(isLoading = false, showKakaoLoginButton = false) }
+                    sendEffect(SplashEffect.ProfileExists)
                 }.onFailure {
                     when (it) {
                         is UserNotFoundException -> {
-                            sendEffect(SplashEffect.SessionNotFound)
+                            reduce { copy(isLoading = false, showKakaoLoginButton = false) }
+                            sendEffect(SplashEffect.ProfileNotFound)
                         }
 
                         else -> {
+                            reduce { copy(isLoading = false) }
                             // 문구, 확인 이후 후속 동작(재시도/이동 여부)은 기획 확정 후 반영
                             val result =
                                 showGlobalModal(
@@ -74,5 +108,33 @@ class SplashViewModel
                         }
                     }
                 }
+        }
+
+        private fun handleLoginFailure(throwable: Throwable) {
+            when (throwable) {
+                is KakaoLoginException.Cancelled -> {
+                    reduce { copy(isLoading = false) }
+                }
+
+                is KakaoLoginException,
+                is CustomException,
+                -> {
+                    reduce {
+                        copy(
+                            isLoading = false,
+                            errorMessage = throwable.message,
+                        )
+                    }
+                }
+
+                else -> {
+                    reduce {
+                        copy(
+                            isLoading = false,
+                            errorMessage = throwable.message,
+                        )
+                    }
+                }
+            }
         }
     }

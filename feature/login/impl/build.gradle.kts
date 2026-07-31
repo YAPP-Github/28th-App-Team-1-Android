@@ -12,7 +12,6 @@ dependencies {
     implementation(project(":designsystem"))
     implementation(project(":domain"))
     implementation(project(":feature:home:api"))
-    implementation(project(":feature:main:api"))
     implementation(libs.kakao.v2.user)
 
     testImplementation(libs.kotlinx.coroutines.test)
