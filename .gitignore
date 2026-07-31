@@ -145,3 +145,6 @@ replay_pid*
 
 # Keep the Gradle wrapper JAR even when generic JAR files are ignored.
 !/gradle/wrapper/gradle-wrapper.jar
+
+# API Docs
+api-docs.json
