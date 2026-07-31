@@ -12,6 +12,7 @@ local.properties
 .signing/
 google-services.json
 GoogleService-Info.plist
+/key
 
 # Gradle, Kotlin, and common build outputs
 .gradle/
