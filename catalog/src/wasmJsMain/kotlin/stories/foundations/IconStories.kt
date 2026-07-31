@@ -26,13 +26,16 @@ private const val ICONS_PER_ROW = 4
 internal val IconStories =
     StoryGroup(
         path = "Foundations/Icon",
-        description = "공용 벡터 아이콘 21개의 기본 크기와 색상을 확인합니다.",
+        description =
+            "공용 벡터 아이콘 ${HilitIconAsset.entries.size}개의 기본 크기와 색상을 확인합니다. " +
+                "원본 색 아이콘(로고·delete·fill_warning·upload 등)은 tint 없이 표시합니다.",
         stories =
             listOf(
                 Story(
                     id = "default",
                     title = "전체 아이콘",
-                    description = "일반 아이콘은 Hilit Black 800, 소셜 로고는 원본 색상으로 표시합니다.",
+                    description =
+                        "일반 아이콘은 기본 tint, 원본 색이 있는 아이콘은 Unspecified로 확인합니다.",
                     content = { IconGallery() },
                 ),
             ),

@@ -12,9 +12,11 @@ import com.dminus14.app.core.resources.ai_sparkle
 import com.dminus14.app.core.resources.apple_logo
 import com.dminus14.app.core.resources.cancel
 import com.dminus14.app.core.resources.coupon
+import com.dminus14.app.core.resources.delete
 import com.dminus14.app.core.resources.edit
 import com.dminus14.app.core.resources.expand
 import com.dminus14.app.core.resources.file
+import com.dminus14.app.core.resources.fill_warning
 import com.dminus14.app.core.resources.info
 import com.dminus14.app.core.resources.kakao_logo
 import com.dminus14.app.core.resources.left
@@ -28,6 +30,7 @@ import com.dminus14.app.core.resources.skip_left
 import com.dminus14.app.core.resources.skip_right
 import com.dminus14.app.core.resources.success
 import com.dminus14.app.core.resources.timer
+import com.dminus14.app.core.resources.upload
 import com.dminus14.app.core.resources.video
 import com.dminus14.designsystem.theme.HilitTheme
 import org.jetbrains.compose.resources.DrawableResource
@@ -60,6 +63,9 @@ enum class HilitIconAsset(
     KakaoLogo("kakao_logo", 24.dp, Res.drawable.kakao_logo, preservesOriginalColors = true),
     Coupon("coupon", 16.dp, Res.drawable.coupon),
     Info("info", 16.dp, Res.drawable.info),
+    Delete("delete", 16.dp, Res.drawable.delete, preservesOriginalColors = true),
+    FillWarning("fill_warning", 16.dp, Res.drawable.fill_warning, preservesOriginalColors = true),
+    Upload("upload", 44.dp, Res.drawable.upload, preservesOriginalColors = true),
 }
 
 @Composable
