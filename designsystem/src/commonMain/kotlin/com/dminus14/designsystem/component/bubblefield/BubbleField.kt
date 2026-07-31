@@ -144,7 +144,7 @@ fun BubbleField(
                 text = text,
                 style = HilitTheme.typography.body5,
                 color = HilitTheme.colors.hilitWhite,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
         }
 

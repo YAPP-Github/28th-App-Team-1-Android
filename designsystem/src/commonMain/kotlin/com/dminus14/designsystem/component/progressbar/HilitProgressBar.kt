@@ -34,7 +34,7 @@ fun HilitProgressBar(
 
     Row(
         modifier =
-            modifier,
+        modifier,
         horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         repeat(totalSteps) { index ->
