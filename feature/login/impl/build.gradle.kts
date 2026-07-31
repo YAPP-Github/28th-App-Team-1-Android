@@ -8,6 +8,7 @@ android {
 
 dependencies {
     api(project(":feature:login:api"))
+    implementation(project(":core:common"))
     implementation(project(":designsystem"))
     implementation(project(":domain"))
     implementation(project(":feature:main:api"))
