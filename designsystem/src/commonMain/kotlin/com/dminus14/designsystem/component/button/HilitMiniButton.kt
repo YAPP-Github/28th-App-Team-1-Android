@@ -29,6 +29,7 @@ import com.dminus14.designsystem.theme.HilitTheme
 enum class HilitMiniButtonColor {
     Light,
     Dark,
+    Non
 }
 
 @Composable
@@ -91,6 +92,15 @@ internal fun hilitMiniButtonStyle(
                 contentSpacing = 8.dp,
             )
         }
+
+        HilitMiniButtonColor.Non -> {
+            HilitMiniButtonStyle(
+                backgroundColor = Color.Unspecified,
+                contentColor = colors.hilitWhite,
+                contentPadding = 8.dp,
+                contentSpacing = 8.dp,
+            )
+        }
     }
 
 @Composable
@@ -119,6 +129,13 @@ private fun HilitMiniButtonPreview() {
                 HilitMiniButtonSampleContent(text = "버튼")
             }
             HilitMiniButton(onClick = {}) {
+                Text(text = "텍스트만 사용")
+            }
+
+            HilitMiniButton(
+                color = HilitMiniButtonColor.Non,
+                onClick = {}
+            ) {
                 Text(text = "텍스트만 사용")
             }
         }
