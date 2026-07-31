@@ -71,7 +71,7 @@ fun HilitTextTopBar(
         trailing = {
             HilitMiniButton(
                 color = HilitMiniButtonColor.Non,
-                onClick = onButtonClick
+                onClick = onButtonClick,
             ) {
                 Text(text = buttonText)
             }

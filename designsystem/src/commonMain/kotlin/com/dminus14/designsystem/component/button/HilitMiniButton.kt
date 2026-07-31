@@ -29,7 +29,7 @@ import com.dminus14.designsystem.theme.HilitTheme
 enum class HilitMiniButtonColor {
     Light,
     Dark,
-    Non
+    Non,
 }
 
 @Composable
@@ -134,7 +134,7 @@ private fun HilitMiniButtonPreview() {
 
             HilitMiniButton(
                 color = HilitMiniButtonColor.Non,
-                onClick = {}
+                onClick = {},
             ) {
                 Text(text = "텍스트만 사용")
             }
