@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -130,12 +131,54 @@ class SplashViewModelTest {
                     )
                 val modalEvent =
                     async(start = CoroutineStart.UNDISPATCHED) { globalModalEvents.first() }
+                val effect = async { viewModel.effect.first() }
 
                 viewModel.onIntent(SplashIntent.Load)
 
                 val event = modalEvent.await()
                 assertEquals("확인", event.request.confirmText)
+                assertEquals(false, event.request.dismissible)
+
                 event.complete(GlobalModalResult.Confirm)
+
+                assertEquals(SplashEffect.UnknownError, effect.await())
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun `Load 시 알 수 없는 오류의 전역 모달을 확인하지 않으면 UnknownError Effect를 발행하지 않는다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    SplashViewModel(
+                        GetAuthSessionUseCase(
+                            FakeSessionRepository(
+                                AuthSession(
+                                    accessToken = "access",
+                                    refreshToken = "refresh",
+                                ),
+                            ),
+                        ),
+                        CheckUserProfileUseCase(
+                            FakeUserRepository(Result.failure(IllegalStateException("알 수 없는 오류"))),
+                        ),
+                    )
+                val receivedEffects = mutableListOf<SplashEffect>()
+                backgroundScope.launch { viewModel.effect.collect(receivedEffects::add) }
+                val modalEvent =
+                    async(start = CoroutineStart.UNDISPATCHED) { globalModalEvents.first() }
+
+                viewModel.onIntent(SplashIntent.Load)
+
+                val event = modalEvent.await()
+                event.complete(GlobalModalResult.Dismiss)
+                testScheduler.advanceUntilIdle()
+
+                assertEquals(emptyList<SplashEffect>(), receivedEffects)
             } finally {
                 Dispatchers.resetMain()
             }
