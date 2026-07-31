@@ -19,6 +19,7 @@ import com.dminus14.app.core.resources.edit
 import com.dminus14.app.core.resources.expand
 import com.dminus14.app.core.resources.file
 import com.dminus14.app.core.resources.fill_warning
+import com.dminus14.app.core.resources.hiiii_logo
 import com.dminus14.app.core.resources.info
 import com.dminus14.app.core.resources.kakao_logo
 import com.dminus14.app.core.resources.left
@@ -63,8 +64,19 @@ enum class HilitIconAsset(
     Script("script", 24.dp, Res.drawable.script),
     AppleLogo("apple_logo", 24.dp, Res.drawable.apple_logo, preservesOriginalColors = true),
     KakaoLogo("kakao_logo", 24.dp, Res.drawable.kakao_logo, preservesOriginalColors = true),
-    CheckboxCheck("checkbox_check", 24.dp, Res.drawable.checkbox_check, preservesOriginalColors = true,),
-    CheckboxUncheck("checkbox_uncheck", 24.dp, Res.drawable.checkbox_uncheck, preservesOriginalColors = true,),
+    HilitLogo("hiiii_logo", 24.dp, Res.drawable.hiiii_logo, preservesOriginalColors = true),
+    CheckboxCheck(
+        "checkbox_check",
+        24.dp,
+        Res.drawable.checkbox_check,
+        preservesOriginalColors = true,
+    ),
+    CheckboxUncheck(
+        "checkbox_uncheck",
+        24.dp,
+        Res.drawable.checkbox_uncheck,
+        preservesOriginalColors = true,
+    ),
     Coupon("coupon", 16.dp, Res.drawable.coupon),
     Info("info", 16.dp, Res.drawable.info),
     Delete("delete", 16.dp, Res.drawable.delete, preservesOriginalColors = true),

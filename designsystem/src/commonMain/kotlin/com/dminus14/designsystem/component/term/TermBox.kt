@@ -117,6 +117,7 @@ fun TermBox(
 private fun termBoxTextStyle(type: TermBoxType): TextStyle =
     when (type) {
         TermBoxType.AllAgree -> HilitTheme.typography.sub7
+
         TermBoxType.Text,
         TermBoxType.Term,
         -> HilitTheme.typography.body3

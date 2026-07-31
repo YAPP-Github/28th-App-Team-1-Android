@@ -18,6 +18,7 @@ import stories.components.designsystem.hilittab.HilitTabStories
 import stories.components.designsystem.hilittag.HilitTagStories
 import stories.components.designsystem.hilittexthighlight.HilitTextHighlightStories
 import stories.components.designsystem.hilittoggle.HilitToggleStories
+import stories.components.designsystem.hilittopbar.HilitTopBarStories
 import stories.components.designsystem.hilitwheelpicker.HilitWheelPickerStories
 import stories.components.designsystem.kakaologinbutton.KakaoLoginButtonStories
 import stories.components.designsystem.pdfupload.PdfUploadStories
@@ -43,6 +44,7 @@ internal val CatalogStories: List<StoryGroup> =
         KakaoLoginButtonStories,
         TermBoxStories,
         HilitBottomSheetStories,
+        HilitTopBarStories,
         HilitTagStories,
         HilitTabStories,
         HilitTextHighlightStories,

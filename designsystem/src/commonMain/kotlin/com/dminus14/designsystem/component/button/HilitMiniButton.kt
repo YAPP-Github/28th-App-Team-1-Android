@@ -96,7 +96,7 @@ internal fun hilitMiniButtonStyle(
         HilitMiniButtonColor.Non -> {
             HilitMiniButtonStyle(
                 backgroundColor = Color.Unspecified,
-                contentColor = colors.hilitWhite,
+                contentColor = colors.gray400,
                 contentPadding = 8.dp,
                 contentSpacing = 8.dp,
             )
