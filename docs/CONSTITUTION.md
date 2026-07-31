@@ -86,6 +86,17 @@ implementation must stop and the ambiguity must be reported immediately.
 
 AI coding agents must not decide sensitive data behavior on behalf of the user.
 
+For the avoidance of doubt, the Android client must implement, to the fullest extent reasonably
+possible, all user data protection measures that fall within its scope and capabilities. This
+project and its contributors, including AI coding agents, must neither participate in nor make
+decisions concerning server-side implementation, server-side policy, or any other matter that falls
+outside the Android client's scope of responsibility.
+
+This scope limitation does not relax any user data protection requirement applicable to the Android
+client, nor does it authorize the Android client to assume or determine server-side behavior. If a
+compliant Android client implementation depends on an undefined or ambiguous server-side
+implementation or policy, implementation must stop and the missing decision must be reported.
+
 ---
 
 ## 5. Architecture Principles

@@ -25,6 +25,11 @@ interface InstallationIdStore {
     suspend fun set(value: String)
 }
 
+/**
+ * 비회원 참여자 UUID의 기기 내 원본을 앱 전용 Preferences DataStore에 저장한다.
+ *
+ * 이 DataStore 파일은 앱의 현재 기본 cloud backup 및 device transfer 정책 적용 대상이다.
+ */
 @Singleton
 class PreferencesInstallationIdStore
     @Inject

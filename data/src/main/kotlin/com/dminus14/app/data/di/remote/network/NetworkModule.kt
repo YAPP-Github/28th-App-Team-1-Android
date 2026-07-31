@@ -1,12 +1,14 @@
 package com.dminus14.app.data.di.remote.network
 
 import com.dminus14.app.data.remote.api.AuthApi
+import com.dminus14.app.data.remote.api.GuestFeedbackApi
 import com.dminus14.app.data.remote.api.UserApi
 import com.dminus14.app.data.remote.authenticator.TokenAuthenticator
 import com.dminus14.app.data.remote.config.NetworkConfig
 import com.dminus14.app.data.remote.interceptor.InsertAuthorizationInterceptor
 import com.dminus14.app.data.remote.interceptor.InsertInstallationIdInterceptor
 import com.dminus14.app.data.remote.interceptor.OkHttpLoggingInterceptorFactory
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,6 +20,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
+// OkHttp Clients
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class DefaultOkHttpClient
@@ -28,7 +31,16 @@ annotation class AuthOkHttpClient
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
+annotation class GuestOkHttpClient
+
+// Retrofit Client
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
 annotation class AuthRetrofit
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class GuestRetrofit
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -56,12 +68,13 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit(
         @DefaultOkHttpClient okHttpClient: OkHttpClient,
+        gson: Gson,
     ): Retrofit =
         Retrofit
             .Builder()
             .baseUrl(NetworkConfig.BASE_URL)
             .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
 
     @Provides
@@ -95,12 +108,13 @@ object NetworkModule {
     @AuthRetrofit
     fun provideAuthRetrofit(
         @AuthOkHttpClient okHttpClient: OkHttpClient,
+        gson: Gson,
     ): Retrofit =
         Retrofit
             .Builder()
             .baseUrl(NetworkConfig.BASE_URL)
             .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
 
     @Provides
@@ -108,4 +122,47 @@ object NetworkModule {
     fun provideAuthApi(
         @AuthRetrofit retrofit: Retrofit,
     ): AuthApi = retrofit.create(AuthApi::class.java)
+
+    /**
+     * Guest Feedback 요청에 설치 ID만 추가하는 비회원 전용 HTTP client를 제공한다.
+     *
+     * 공유 token, 영상 URL, 질문 원문과 제출 본문이 로그로 노출되지 않도록 로깅 interceptor는
+     * 의도적으로 연결하지 않는다. 회원 인증 interceptor, authenticator와 disk cache도 비회원
+     * 전송 계약에 포함되지 않으므로 제외한다.
+     */
+    @Provides
+    @Singleton
+    @GuestOkHttpClient
+    fun provideGuestOkHttpClient(
+        insertInstallationIdInterceptor: InsertInstallationIdInterceptor,
+    ): OkHttpClient =
+        OkHttpClient
+            .Builder()
+            .addInterceptor(insertInstallationIdInterceptor)
+            .connectTimeout(NetworkConfig.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(NetworkConfig.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(NetworkConfig.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .build()
+
+    /** Guest 전용 전송 구성과 [GuestGson] 응답 계약을 결합한 Retrofit을 제공한다. */
+    @Provides
+    @Singleton
+    @GuestRetrofit
+    fun provideGuestRetrofit(
+        @GuestOkHttpClient okHttpClient: OkHttpClient,
+        @GuestGson gson: Gson,
+    ): Retrofit =
+        Retrofit
+            .Builder()
+            .baseUrl(NetworkConfig.BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+
+    /** Guest Retrofit으로 비회원 피드백 API 구현을 생성한다. */
+    @Provides
+    @Singleton
+    fun provideGuestFeedbackApi(
+        @GuestRetrofit retrofit: Retrofit,
+    ): GuestFeedbackApi = retrofit.create(GuestFeedbackApi::class.java)
 }
