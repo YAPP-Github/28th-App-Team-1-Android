@@ -20,6 +20,7 @@ import stories.components.designsystem.hilittoggle.HilitToggleStories
 import stories.components.designsystem.hilitwheelpicker.HilitWheelPickerStories
 import stories.components.designsystem.kakaologinbutton.KakaoLoginButtonStories
 import stories.components.designsystem.pdfupload.PdfUploadStories
+import stories.components.designsystem.termbox.TermBoxStories
 import stories.foundations.ColorStories
 import stories.foundations.IconStories
 import stories.foundations.TypographyStories
@@ -39,6 +40,7 @@ internal val CatalogStories: List<StoryGroup> =
         HilitMiniButtonStories,
         HilitOptionalButtonStories,
         KakaoLoginButtonStories,
+        TermBoxStories,
         HilitTagStories,
         HilitTabStories,
         HilitTextHighlightStories,
