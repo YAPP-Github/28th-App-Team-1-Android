@@ -4,6 +4,7 @@ import stories.components.designsystem.bubblefield.BubbleFieldStories
 import stories.components.designsystem.fileuploadguide.FileUploadGuideStories
 import stories.components.designsystem.hilitasynctextfield.HilitAsyncTextFieldStories
 import stories.components.designsystem.hilitbottomoutlinedtextfield.HilitBottomOutlinedTextFieldStories
+import stories.components.designsystem.hilitbottomsheet.HilitBottomSheetStories
 import stories.components.designsystem.hilitfixedbottombutton.HilitFixedBottomButtonStories
 import stories.components.designsystem.hilitjdtextfield.HilitJDTextFieldStories
 import stories.components.designsystem.hilitloadingindicator.HilitLoadingIndicatorStories
@@ -41,6 +42,7 @@ internal val CatalogStories: List<StoryGroup> =
         HilitOptionalButtonStories,
         KakaoLoginButtonStories,
         TermBoxStories,
+        HilitBottomSheetStories,
         HilitTagStories,
         HilitTabStories,
         HilitTextHighlightStories,
