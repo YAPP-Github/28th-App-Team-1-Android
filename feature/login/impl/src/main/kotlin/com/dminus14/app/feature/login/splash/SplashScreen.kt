@@ -68,9 +68,9 @@ fun SplashScreen(
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                SplashEffect.ProfileReady -> onNavigate(Home)
-                SplashEffect.OnboardingRequired -> onNavigate(Onboarding)
-                SplashEffect.ProfileNotFound -> onNavigate(Term)
+                SplashEffect.Ready -> onNavigate(Home)
+                SplashEffect.RequireConsent -> onNavigate(Term)
+                SplashEffect.RequireOnboarding -> onNavigate(Onboarding)
             }
         }
     }
