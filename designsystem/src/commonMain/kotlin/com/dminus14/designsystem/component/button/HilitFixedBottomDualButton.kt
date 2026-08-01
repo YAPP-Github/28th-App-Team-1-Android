@@ -62,9 +62,10 @@ fun HilitFixedBottomDualButton(
     val dividerColor = hilitFixedBottomDualButtonDividerColor(type = type, colors = colors)
 
     Row(
-        modifier = modifier
-            .background(background)
-            .fillMaxWidth(),
+        modifier =
+            modifier
+                .background(background)
+                .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         DualButtonSide(
@@ -133,13 +134,15 @@ private fun DualButtonSide(
     }
 }
 
-private fun backgroundColor(colors: HilitColors, type: HilitFixedBottomDualButtonType): Color =
+private fun backgroundColor(
+    colors: HilitColors,
+    type: HilitFixedBottomDualButtonType,
+): Color =
     when (type) {
         HilitFixedBottomDualButtonType.Default -> colors.hilitBlack800
         HilitFixedBottomDualButtonType.Gray -> Color.Unspecified
         HilitFixedBottomDualButtonType.TwoColor -> Color.Unspecified
     }
-
 
 private fun dualButtonLeftSide(
     colors: HilitColors,
@@ -170,7 +173,6 @@ private fun dualButtonLeftSide(
             )
         }
     }
-
 
 private fun dualButtonRightSide(
     colors: HilitColors,

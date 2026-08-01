@@ -110,8 +110,6 @@ private fun PermissionConsentContent(
     }
 }
 
-private val PermissionConsentIconSize = 28.dp
-
 @Preview(showBackground = true, widthDp = 375, heightDp = 812)
 @Composable
 private fun PermissionConsentContentPreview() {

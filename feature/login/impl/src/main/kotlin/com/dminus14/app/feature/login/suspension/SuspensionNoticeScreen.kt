@@ -65,46 +65,7 @@ private fun SuspensionNoticeContent(
                     .fillMaxWidth(),
             contentAlignment = Alignment.Center,
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                modifier = Modifier.padding(horizontal = 20.dp),
-            ) {
-                Image(
-                    painter = painterResource(Res.drawable.fill_warning),
-                    contentDescription = null,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(SuspensionNoticeIconSize),
-                )
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Text(
-                        text = "면접 이용이 제한되었어요",
-                        style = HilitTheme.typography.sub1,
-                        color = HilitTheme.colors.hilitBlack800,
-                        textAlign = TextAlign.Center,
-                    )
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        Text(
-                            text = "비정상적인 이용 패턴이 반복 확인되어 면접 시작이\n제한되었어요. 궁금한 점은 아래로 문의해주세요.",
-                            style = HilitTheme.typography.body4,
-                            color = HilitTheme.colors.gray500,
-                            textAlign = TextAlign.Center,
-                        )
-                        Text(
-                            text = "문의 : [이메일]",
-                            style = HilitTheme.typography.body4,
-                            color = HilitTheme.colors.gray500,
-                            textAlign = TextAlign.Center,
-                        )
-                    }
-                }
-            }
+            SuspensionNoticeBody()
         }
 
         HilitFixedBottomDualButton(
@@ -113,6 +74,50 @@ private fun SuspensionNoticeContent(
             onLeftClick = onSendMailClick,
             onRightClick = onHomeClick,
         )
+    }
+}
+
+@Composable
+private fun SuspensionNoticeBody() {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+        modifier = Modifier.padding(horizontal = 20.dp),
+    ) {
+        Image(
+            painter = painterResource(Res.drawable.fill_warning),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.size(SuspensionNoticeIconSize),
+        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                text = "면접 이용이 제한되었어요",
+                style = HilitTheme.typography.sub1,
+                color = HilitTheme.colors.hilitBlack800,
+                textAlign = TextAlign.Center,
+            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(
+                    text = "비정상적인 이용 패턴이 반복 확인되어 면접 시작이\n제한되었어요. 궁금한 점은 아래로 문의해주세요.",
+                    style = HilitTheme.typography.body4,
+                    color = HilitTheme.colors.gray500,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = "문의 : [이메일]",
+                    style = HilitTheme.typography.body4,
+                    color = HilitTheme.colors.gray500,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
     }
 }
 
