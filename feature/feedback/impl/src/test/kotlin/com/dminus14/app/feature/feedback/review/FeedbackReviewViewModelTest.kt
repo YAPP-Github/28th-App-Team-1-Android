@@ -6,6 +6,7 @@ import com.dminus14.app.feature.feedback.FakeGuestFeedbackRepository
 import com.dminus14.app.feature.feedback.MainDispatcherRule
 import com.dminus14.app.feature.feedback.openEntry
 import com.dminus14.app.feature.feedback.session.GuestFeedbackFlowSession
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
@@ -104,6 +105,49 @@ class FeedbackReviewViewModelTest {
                 ),
                 effects,
             )
+            collectJob.cancel()
+        }
+
+    @Test
+    fun `제출 중에는 이탈과 코멘트 수정과 중복 제출을 모두 무시한다`() =
+        runTest {
+            val submitGate = CompletableDeferred<Unit>()
+            val repository = FakeGuestFeedbackRepository(submitGate = submitGate)
+            val session = session()
+            val viewModel = FeedbackReviewViewModel(SubmitGuestFeedbackUseCase(repository), session)
+            val effects = mutableListOf<FeedbackReviewEffect>()
+            val collectJob = backgroundScope.launch { viewModel.effect.toList(effects) }
+            viewModel.onIntent(FeedbackReviewIntent.LoadSession)
+
+            viewModel.onIntent(FeedbackReviewIntent.SubmitConfirmed)
+            runCurrent()
+            viewModel.onIntent(FeedbackReviewIntent.ReplayVideoClicked)
+            viewModel.onIntent(
+                FeedbackReviewIntent.EditCommentClicked(GuestFeedbackAxisCode.GAZE),
+            )
+            viewModel.onIntent(FeedbackReviewIntent.CommentChanged("변경하면 안 되는 코멘트"))
+            viewModel.onIntent(FeedbackReviewIntent.CommentConfirmed)
+            viewModel.onIntent(FeedbackReviewIntent.SubmitConfirmed)
+            runCurrent()
+
+            assertTrue(viewModel.state.value.isSubmitting)
+            assertFalse(viewModel.state.value.isCommentEditorVisible)
+            assertEquals(1, repository.submitCount)
+            assertEquals(
+                "합성 코멘트",
+                session
+                    .snapshot()
+                    ?.ratings
+                    ?.get(GuestFeedbackAxisCode.GAZE)
+                    ?.comment,
+            )
+            assertTrue(effects.isEmpty())
+
+            submitGate.complete(Unit)
+            runCurrent()
+
+            assertFalse(viewModel.state.value.isSubmitting)
+            assertEquals(1, repository.submitCount)
             collectJob.cancel()
         }
 

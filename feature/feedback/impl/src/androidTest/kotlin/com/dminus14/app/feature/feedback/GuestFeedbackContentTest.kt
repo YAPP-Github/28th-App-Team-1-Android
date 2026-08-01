@@ -8,12 +8,14 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
 import com.dminus14.app.domain.model.GuestFeedbackAxisCode
 import com.dminus14.app.feature.feedback.component.GuestFeedbackCommentModal
 import com.dminus14.app.feature.feedback.feedback.FeedbackAxisUiModel
@@ -22,9 +24,16 @@ import com.dminus14.app.feature.feedback.feedback.FeedbackIntent
 import com.dminus14.app.feature.feedback.feedback.FeedbackState
 import com.dminus14.app.feature.feedback.onboarding.FeedbackOnboardingContent
 import com.dminus14.app.feature.feedback.onboarding.FeedbackOnboardingIntent
+import com.dminus14.app.feature.feedback.onboarding.FeedbackOnboardingLoadState
 import com.dminus14.app.feature.feedback.onboarding.FeedbackOnboardingState
+import com.dminus14.app.feature.feedback.review.FeedbackReviewAxisUiModel
+import com.dminus14.app.feature.feedback.review.FeedbackReviewBackHandler
+import com.dminus14.app.feature.feedback.review.FeedbackReviewContent
+import com.dminus14.app.feature.feedback.review.FeedbackReviewIntent
+import com.dminus14.app.feature.feedback.review.FeedbackReviewState
 import com.dminus14.designsystem.theme.HilitTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -38,7 +47,11 @@ class GuestFeedbackContentTest {
         composeRule.setContent {
             HilitTheme {
                 FeedbackOnboardingContent(
-                    state = FeedbackOnboardingState(requesterName = "합성 요청자"),
+                    state =
+                        FeedbackOnboardingState(
+                            requesterName = "합성 요청자",
+                            loadState = FeedbackOnboardingLoadState.Ready,
+                        ),
                     onIntent = { receivedIntent = it },
                 )
             }
@@ -165,6 +178,45 @@ class GuestFeedbackContentTest {
         assertEquals(0, dismissCount)
     }
 
+    @Test
+    fun `제출 중 검토 화면은 영상 다시보기와 코멘트 수정을 전달하지 않는다`() {
+        val received = mutableListOf<FeedbackReviewIntent>()
+        composeRule.setContent {
+            HilitTheme {
+                FeedbackReviewContent(
+                    state = submittingReviewState(),
+                    onIntent = received::add,
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("영상 다시보기").assertIsNotEnabled().performClick()
+        composeRule
+            .onNodeWithContentDescription("시선 코멘트 수정")
+            .assertIsNotEnabled()
+            .performTouchInput { click() }
+
+        assertTrue(received.isEmpty())
+    }
+
+    @Test
+    fun `제출 중 검토 화면은 시스템 뒤로 가기를 소비하고 이동을 요청하지 않는다`() {
+        var replayCount = 0
+        composeRule.setContent {
+            FeedbackReviewBackHandler(
+                isSubmitting = true,
+                onReplayRequested = { replayCount++ },
+            )
+        }
+
+        composeRule.activityRule.scenario.onActivity {
+            it.onBackPressedDispatcher.onBackPressed()
+        }
+        composeRule.waitForIdle()
+
+        assertEquals(0, replayCount)
+    }
+
     private fun selectedState(
         level: Int? = null,
         comment: String = "",
@@ -185,4 +237,22 @@ class GuestFeedbackContentTest {
         isVideoIntroVisible = false,
         hasLoaded = true,
     )
+
+    private fun submittingReviewState() =
+        FeedbackReviewState(
+            requesterName = "합성 요청자",
+            nickname = "합성 지인",
+            axes =
+                listOf(
+                    FeedbackReviewAxisUiModel(
+                        code = GuestFeedbackAxisCode.GAZE,
+                        title = "시선",
+                        level = 4,
+                        levelLabel = "잘 맞춤",
+                        comment = "합성 코멘트",
+                    ),
+                ),
+            isSubmitting = true,
+            hasLoaded = true,
+        )
 }

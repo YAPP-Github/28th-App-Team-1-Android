@@ -5,6 +5,7 @@ import com.dminus14.app.domain.model.GuestFeedbackAxisCode
 import com.dminus14.app.domain.model.GuestFeedbackEntry
 import com.dminus14.app.domain.model.GuestFeedbackSubmission
 import com.dminus14.app.domain.repository.GuestFeedbackRepository
+import kotlinx.coroutines.CompletableDeferred
 
 internal fun openEntry(): GuestFeedbackEntry.Open =
     GuestFeedbackEntry.Open(
@@ -22,14 +23,17 @@ internal fun openEntry(): GuestFeedbackEntry.Open =
 internal class FakeGuestFeedbackRepository(
     var entry: GuestFeedbackEntry = openEntry(),
     var failure: Throwable? = null,
+    var enterGate: CompletableDeferred<Unit>? = null,
+    var submitGate: CompletableDeferred<Unit>? = null,
 ) : GuestFeedbackRepository {
     var enterCount = 0
     var submitCount = 0
     var submission: GuestFeedbackSubmission? = null
 
     override suspend fun enter(token: String): GuestFeedbackEntry {
-        failure?.let { throw it }
         enterCount += 1
+        enterGate?.await()
+        failure?.let { throw it }
         return entry
     }
 
@@ -39,6 +43,7 @@ internal class FakeGuestFeedbackRepository(
     ) {
         failure?.let { throw it }
         submitCount += 1
+        submitGate?.await()
         this.submission = submission
     }
 }

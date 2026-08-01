@@ -16,4 +16,5 @@ dependencies {
     implementation(libs.androidx.media3.ui.compose)
 
     testImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(libs.mockk.android)
 }

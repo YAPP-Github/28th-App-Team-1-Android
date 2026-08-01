@@ -1,5 +1,9 @@
 package com.dminus14.app.feature.feedback.onboarding
 
+import com.dminus14.app.core.common.event.GlobalAppEvent
+import com.dminus14.app.core.common.event.GlobalErrorHandler
+import com.dminus14.app.core.common.modal.GlobalModalResult
+import com.dminus14.app.core.common.modal.globalModalEvents
 import com.dminus14.app.domain.usecase.EnterGuestFeedbackUseCase
 import com.dminus14.app.feature.feedback.FakeGuestFeedbackRepository
 import com.dminus14.app.feature.feedback.MainDispatcherRule
@@ -36,7 +40,7 @@ class FeedbackOnboardingViewModelTest {
 
             assertEquals(1, repository.enterCount)
             assertEquals("합성 요청자", viewModel.state.value.requesterName)
-            assertTrue(viewModel.state.value.hasLoaded)
+            assertEquals(FeedbackOnboardingLoadState.Ready, viewModel.state.value.loadState)
             assertEquals(openEntry().videoUrl, session.snapshot()?.videoUrl)
         }
 
@@ -50,6 +54,8 @@ class FeedbackOnboardingViewModelTest {
                     session,
                 )
             val effect = async { viewModel.effect.first() }
+            viewModel.onIntent(FeedbackOnboardingIntent.Load("synthetic-token"))
+            runCurrent()
 
             viewModel.onIntent(FeedbackOnboardingIntent.NicknameChanged("  합성 지인  "))
             assertTrue(viewModel.state.value.canContinue)
@@ -76,4 +82,74 @@ class FeedbackOnboardingViewModelTest {
         assertFalse(route.toString().contains("sensitive-synthetic-token"))
         assertTrue(route.toString().contains("redacted"))
     }
+
+    @Test
+    fun `진입 준비 전과 로딩 중에는 시작과 별칭 확정을 차단한다`() =
+        runTest {
+            val enterGate = kotlinx.coroutines.CompletableDeferred<Unit>()
+            val session = GuestFeedbackFlowSession()
+            val viewModel =
+                FeedbackOnboardingViewModel(
+                    EnterGuestFeedbackUseCase(FakeGuestFeedbackRepository(enterGate = enterGate)),
+                    session,
+                )
+
+            viewModel.onIntent(FeedbackOnboardingIntent.StartClicked)
+            viewModel.onIntent(FeedbackOnboardingIntent.NicknameChanged("합성 지인"))
+            viewModel.onIntent(FeedbackOnboardingIntent.NicknameConfirmed)
+            assertFalse(viewModel.state.value.isNameEditorVisible)
+            assertEquals(null, session.snapshot())
+
+            viewModel.onIntent(FeedbackOnboardingIntent.Load("synthetic-token"))
+            runCurrent()
+            assertEquals(FeedbackOnboardingLoadState.Loading, viewModel.state.value.loadState)
+            viewModel.onIntent(FeedbackOnboardingIntent.StartClicked)
+            viewModel.onIntent(FeedbackOnboardingIntent.NicknameConfirmed)
+            assertFalse(viewModel.state.value.isNameEditorVisible)
+            assertEquals(null, session.snapshot())
+
+            enterGate.complete(Unit)
+            runCurrent()
+        }
+
+    @Test
+    fun `알 수 없는 진입 오류는 토스트와 닫을 수 없는 종료 모달을 거쳐 한 번 종료한다`() =
+        runTest {
+            val session = GuestFeedbackFlowSession()
+            val repository =
+                FakeGuestFeedbackRepository(failure = IllegalStateException("synthetic"))
+            val viewModel =
+                FeedbackOnboardingViewModel(EnterGuestFeedbackUseCase(repository), session)
+            val globalEvent = async { GlobalErrorHandler.events.first() }
+            val modalEvent = async { globalModalEvents.first() }
+            val exitEffect = async { viewModel.effect.first() }
+            runCurrent()
+
+            viewModel.onIntent(FeedbackOnboardingIntent.Load("synthetic-token"))
+            runCurrent()
+
+            assertEquals(GlobalAppEvent.ShowUnknownError, globalEvent.await())
+            assertEquals(FeedbackOnboardingLoadState.Failed, viewModel.state.value.loadState)
+            assertEquals(null, session.snapshot())
+            viewModel.onIntent(FeedbackOnboardingIntent.StartClicked)
+            viewModel.onIntent(FeedbackOnboardingIntent.NicknameChanged("합성 지인"))
+            viewModel.onIntent(FeedbackOnboardingIntent.NicknameConfirmed)
+            assertFalse(viewModel.state.value.isNameEditorVisible)
+            assertEquals(null, session.snapshot())
+            val requestEvent = modalEvent.await()
+            assertEquals("오류가 발생했어요", requestEvent.request.title)
+            assertEquals(
+                "앱을 종료한 뒤 링크를 다시 열어주세요.",
+                requestEvent.request.message,
+            )
+            assertEquals("종료하기", requestEvent.request.confirmText)
+            assertEquals(null, requestEvent.request.cancelText)
+            assertFalse(requestEvent.request.dismissible)
+            assertFalse(exitEffect.isCompleted)
+
+            requestEvent.complete(GlobalModalResult.Confirm)
+            runCurrent()
+
+            assertEquals(FeedbackOnboardingEffect.ExitRequested, exitEffect.await())
+        }
 }

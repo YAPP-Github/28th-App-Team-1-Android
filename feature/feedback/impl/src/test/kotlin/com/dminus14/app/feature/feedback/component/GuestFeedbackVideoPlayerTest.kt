@@ -50,4 +50,40 @@ class GuestFeedbackVideoPlayerTest {
         assertEquals(10_000L, seekPositionAfterOffset(0L, C.TIME_UNSET, 10_000L))
         assertEquals(0L, seekPositionAfterOffset(0L, C.TIME_UNSET, -10_000L))
     }
+
+    @Test
+    fun `세로 영상은 가로 출력 영역에서 종횡비를 유지한 채 너비에 맞춘다`() {
+        val scale =
+            calculateSharpFrameScale(
+                inputWidth = 1_080,
+                inputHeight = 1_920,
+                outputWidth = 1_920,
+                outputHeight = 1_080,
+            )
+
+        assertEquals(0.31640625f, scale.x, 0.0001f)
+        assertEquals(1f, scale.y, 0f)
+    }
+
+    @Test
+    fun `가로 영상은 세로 출력 영역에서 종횡비를 유지한 채 높이에 맞춘다`() {
+        val scale =
+            calculateSharpFrameScale(
+                inputWidth = 1_920,
+                inputHeight = 1_080,
+                outputWidth = 1_080,
+                outputHeight = 1_920,
+            )
+
+        assertEquals(1f, scale.x, 0f)
+        assertEquals(0.31640625f, scale.y, 0.0001f)
+    }
+
+    @Test
+    fun `영상이나 출력 크기를 모르면 원본 배율을 사용한다`() {
+        assertEquals(
+            SharpFrameScale(1f, 1f),
+            calculateSharpFrameScale(0, 0, 1_080, 1_920),
+        )
+    }
 }
