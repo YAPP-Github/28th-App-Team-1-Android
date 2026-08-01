@@ -13,7 +13,7 @@
 |---|---|
 | `Intent` | 사용자 액션 또는 UI lifecycle-triggered event |
 | `State` | 화면에 지속적으로 표시되는 데이터 |
-| `Effect` | 한 번만 소비되는 Navigation, Toast, Snackbar, Dialog 요청 |
+| `Effect` | 한 번만 소비되는 Navigation, Toast, Snackbar, Modal 요청 |
 | `ViewModel` | Intent 처리, UseCase 호출, State 갱신, Effect 발행 |
 | `Screen` | ViewModel 연결, State 구독, Intent 전달, Effect 수집 |
 | `Content` | ViewModel이 없는 순수 UI 렌더링 |
@@ -100,7 +100,7 @@ sealed interface SampleEffect {
 }
 ```
 
-대표적인 Effect는 Navigation을 유발하는 Feature 결과, Toast, Snackbar와 일회성 Dialog
+대표적인 Effect는 Navigation을 유발하는 Feature 결과, Toast, Snackbar와 일회성 Modal
 요청이다. recomposition으로 반복 실행되면 안 되는 동작은 State가 아니라 Effect로 처리한다.
 
 ### 3.4 State와 Effect 선택

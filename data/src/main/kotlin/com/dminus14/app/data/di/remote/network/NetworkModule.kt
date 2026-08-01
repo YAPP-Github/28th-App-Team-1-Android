@@ -1,6 +1,7 @@
 package com.dminus14.app.data.di.remote.network
 
 import com.dminus14.app.data.remote.api.AuthApi
+import com.dminus14.app.data.remote.api.ConsentApi
 import com.dminus14.app.data.remote.api.GuestFeedbackApi
 import com.dminus14.app.data.remote.api.UserApi
 import com.dminus14.app.data.remote.authenticator.TokenAuthenticator
@@ -80,6 +81,10 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideUserApi(retrofit: Retrofit): UserApi = retrofit.create(UserApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideConsentApi(retrofit: Retrofit): ConsentApi = retrofit.create(ConsentApi::class.java)
 
     /**
      * `AuthApi`(로그인/토큰 재발급) 전용 OkHttpClient.
