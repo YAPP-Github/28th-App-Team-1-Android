@@ -37,6 +37,8 @@ class FeedbackReviewViewModel
         private var isConfirmationPending = false
 
         override fun onIntent(intent: FeedbackReviewIntent) {
+            if (state.value.isSubmitting && intent != FeedbackReviewIntent.LoadSession) return
+
             when (intent) {
                 FeedbackReviewIntent.LoadSession -> {
                     loadSession()
@@ -184,7 +186,14 @@ class FeedbackReviewViewModel
                     GuestFeedbackRating(axis.code, level, draft.comment)
                 }
 
-            reduce { copy(isSubmitting = true) }
+            reduce {
+                copy(
+                    isSubmitting = true,
+                    editingAxis = null,
+                    editingValue = "",
+                    isCommentEditorVisible = false,
+                )
+            }
             viewModelScope.launch {
                 submitGuestFeedbackUseCase(
                     token = data.token,

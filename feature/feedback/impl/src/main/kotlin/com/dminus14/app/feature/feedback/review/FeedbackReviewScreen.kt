@@ -26,10 +26,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -83,7 +86,10 @@ fun FeedbackReviewScreen(
             }
         }
     }
-    BackHandler { viewModel.onIntent(FeedbackReviewIntent.ReplayVideoClicked) }
+    FeedbackReviewBackHandler(
+        isSubmitting = state.isSubmitting,
+        onReplayRequested = { viewModel.onIntent(FeedbackReviewIntent.ReplayVideoClicked) },
+    )
 
     FeedbackReviewContent(
         state = state,
@@ -158,7 +164,21 @@ fun FeedbackReviewContent(
                             )
 
                             HilitMiniButton(
-                                onClick = { onIntent(FeedbackReviewIntent.ReplayVideoClicked) },
+                                onClick = {
+                                    if (!state.isSubmitting) {
+                                        onIntent(FeedbackReviewIntent.ReplayVideoClicked)
+                                    }
+                                },
+                                modifier =
+                                    Modifier
+                                        .alpha(if (state.isSubmitting) DISABLED_ALPHA else 1f)
+                                        .then(
+                                            if (state.isSubmitting) {
+                                                Modifier.semantics { disabled() }
+                                            } else {
+                                                Modifier
+                                            },
+                                        ),
                             ) {
                                 HilitIcon(
                                     asset = HilitIconAsset.Video,
@@ -173,8 +193,11 @@ fun FeedbackReviewContent(
                         FeedbackReviewCard(
                             axis = axis,
                             onEdit = {
-                                onIntent(FeedbackReviewIntent.EditCommentClicked(axis.code))
+                                if (!state.isSubmitting) {
+                                    onIntent(FeedbackReviewIntent.EditCommentClicked(axis.code))
+                                }
                             },
+                            enabled = !state.isSubmitting,
                         )
                     }
                 }
@@ -188,7 +211,7 @@ fun FeedbackReviewContent(
         }
     }
 
-    if (state.isCommentEditorVisible) {
+    if (state.isCommentEditorVisible && !state.isSubmitting) {
         GuestFeedbackCommentModal(
             value = state.editingValue,
             onValueChange = { onIntent(FeedbackReviewIntent.CommentChanged(it)) },
@@ -199,9 +222,11 @@ fun FeedbackReviewContent(
 }
 
 @Composable
+@Suppress("LongMethod")
 private fun FeedbackReviewCard(
     axis: FeedbackReviewAxisUiModel,
     onEdit: () -> Unit,
+    enabled: Boolean,
 ) {
     val highlightColor =
         if (axis.isPositive) HilitTextHighlightColor.Blue else HilitTextHighlightColor.Red
@@ -212,7 +237,7 @@ private fun FeedbackReviewCard(
             Modifier
                 .fillMaxWidth()
                 .background(HilitTheme.colors.hilitWhite)
-                .border((1.2f).dp, borderColor)
+                .border(REVIEW_CARD_BORDER_WIDTH, borderColor)
                 .drawBehind {
                     val leftWidthPx = 6.dp.toPx()
                     drawLine(
@@ -242,9 +267,13 @@ private fun FeedbackReviewCard(
                 modifier =
                     Modifier
                         .size(16.dp)
+                        .alpha(if (enabled) 1f else DISABLED_ALPHA)
                         .clip(
                             RoundedCornerShape(4.dp),
-                        ).clickable(onClick = onEdit),
+                        ).clickable(enabled = enabled, onClick = onEdit)
+                        .then(
+                            if (enabled) Modifier else Modifier.semantics { disabled() },
+                        ),
             )
         }
 
@@ -320,3 +349,16 @@ private fun FeedbackReviewContentPreview() {
         )
     }
 }
+
+@Composable
+internal fun FeedbackReviewBackHandler(
+    isSubmitting: Boolean,
+    onReplayRequested: () -> Unit,
+) {
+    BackHandler {
+        if (!isSubmitting) onReplayRequested()
+    }
+}
+
+private const val DISABLED_ALPHA = 0.38f
+private val REVIEW_CARD_BORDER_WIDTH = 1.2.dp
