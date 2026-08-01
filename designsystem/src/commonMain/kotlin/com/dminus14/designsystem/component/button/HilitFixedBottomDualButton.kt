@@ -110,8 +110,7 @@ private fun DualButtonSide(
     val contentColor =
         when {
             enabled -> color.contentColor
-            !enabled -> HilitTheme.colors.gray400
-            else -> color.backgroundColor
+            else -> HilitTheme.colors.gray400
         }
 
     Box(
