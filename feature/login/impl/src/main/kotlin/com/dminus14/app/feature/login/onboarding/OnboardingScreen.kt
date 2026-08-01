@@ -1,27 +1,54 @@
 package com.dminus14.app.feature.login.onboarding
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dminus14.app.feature.home.api.Home
+import com.dminus14.app.feature.login.onboarding.component.OnboardingBottomBar
+import com.dminus14.app.feature.login.onboarding.component.OnboardingExperienceStep
+import com.dminus14.app.feature.login.onboarding.component.OnboardingJobStep
+import com.dminus14.app.feature.login.onboarding.component.OnboardingNamingStep
+import com.dminus14.app.feature.login.onboarding.component.OnboardingRegisterDoneStep
+import com.dminus14.designsystem.component.icon.HilitIconAsset
+import com.dminus14.designsystem.component.progressbar.HilitProgressBar
+import com.dminus14.designsystem.component.topbar.HilitIconTopBar
+import com.dminus14.designsystem.component.topbar.TopBarType
 import com.dminus14.designsystem.theme.HilitTheme
+
+private val ContentHorizontalPadding = 20.dp
+private val IndicatorHorizontalPadding = 20.dp
+private val IndicatorTopSpacing = 8.dp
+private val ContentTopSpacing = 24.dp
+private const val PROGRESS_MAX_STEP = 3
+private const val PROGRESS_STEP_NAMING = 1
+private const val PROGRESS_STEP_JOB = 2
+private const val PROGRESS_STEP_EXPERIENCE = 3
 
 @Composable
 fun OnboardingScreen(
     onNavigate: (Any) -> Unit,
+    onClose: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: OnboardingViewModel = hiltViewModel(),
 ) {
@@ -34,6 +61,7 @@ fun OnboardingScreen(
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
+                OnboardingEffect.CloseRequested -> onClose()
                 OnboardingEffect.Completed -> onNavigate(Home)
             }
         }
@@ -41,7 +69,7 @@ fun OnboardingScreen(
 
     OnboardingContent(
         state = state,
-        onCompleteClick = { viewModel.onIntent(OnboardingIntent.ClickComplete) },
+        onIntent = viewModel::onIntent,
         modifier = modifier,
     )
 }
@@ -49,38 +77,235 @@ fun OnboardingScreen(
 @Composable
 private fun OnboardingContent(
     state: OnboardingState,
-    onCompleteClick: () -> Unit,
+    onIntent: (OnboardingIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    BackHandler {
+        onIntent(OnboardingIntent.PreviousClick)
+    }
+
     Column(
         modifier =
             modifier
                 .fillMaxSize()
-                .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+                .background(HilitTheme.colors.hilitWhite)
+                .pointerInput(Unit) {
+                    detectTapGestures {
+                        focusManager.clearFocus()
+                        keyboardController?.hide()
+                    }
+                },
     ) {
-        Text(text = "온보딩")
-        Button(
-            onClick = onCompleteClick,
-            enabled = !state.isLoading,
+        OnboardingHeader(
+            step = state.step,
+            onCloseClick = { onIntent(OnboardingIntent.CloseClick) },
+        )
+
+        AnimatedContent(
+            targetState = state.step,
             modifier =
                 Modifier
-                    .fillMaxWidth()
-                    .padding(top = 24.dp),
-        ) {
-            Text(text = "시작하기")
+                    .weight(1f)
+                    .fillMaxWidth(),
+            transitionSpec = {
+                val forward = targetState.ordinal > initialState.ordinal
+                if (forward) {
+                    (
+                        slideInHorizontally { fullWidth -> fullWidth } + fadeIn()
+                        ) togetherWith (
+                        slideOutHorizontally { fullWidth -> -fullWidth } + fadeOut()
+                        )
+                } else {
+                    (
+                        slideInHorizontally { fullWidth -> -fullWidth } + fadeIn()
+                        ) togetherWith (
+                        slideOutHorizontally { fullWidth -> fullWidth } + fadeOut()
+                        )
+                }
+            },
+            label = "onboardingStep",
+        ) { step ->
+            OnboardingStepContent(
+                step = step,
+                state = state,
+                onIntent = onIntent,
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = ContentHorizontalPadding)
+                        .padding(
+                            top =
+                                if (step == OnboardingStep.RegisterDone) {
+                                    0.dp
+                                } else {
+                                    ContentTopSpacing
+                                },
+                        ),
+            )
+        }
+
+        OnboardingBottomBar(
+            step = state.step,
+            isContinueEnabled = state.isContinueEnabled,
+            onIntent = onIntent,
+        )
+    }
+}
+
+@Composable
+private fun OnboardingHeader(
+    step: OnboardingStep,
+    onCloseClick: () -> Unit,
+) {
+    if (step == OnboardingStep.RegisterDone) return
+
+    HilitIconTopBar(
+        type = TopBarType.HideRight,
+        leftIcon = HilitIconAsset.Cancel,
+        title = "",
+        onLeftClick = onCloseClick,
+    )
+
+    HilitProgressBar(
+        step = step.toProgressStep(),
+        maxStep = PROGRESS_MAX_STEP,
+        modifier =
+            Modifier
+                .padding(horizontal = IndicatorHorizontalPadding)
+                .padding(top = IndicatorTopSpacing),
+    )
+}
+
+@Composable
+private fun OnboardingStepContent(
+    step: OnboardingStep,
+    state: OnboardingState,
+    onIntent: (OnboardingIntent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    when (step) {
+        OnboardingStep.Naming -> {
+            OnboardingNamingStep(
+                name = state.name,
+                onNameChange = { onIntent(OnboardingIntent.NameChange(it)) },
+                modifier = modifier,
+            )
+        }
+
+        OnboardingStep.JobSelection -> {
+            OnboardingJobStep(
+                userName = state.name,
+                jobs = state.jobs,
+                selectedJobIndex = state.selectedJobIndex,
+                onJobClick = { onIntent(OnboardingIntent.JobClick(it)) },
+                modifier = modifier,
+            )
+        }
+
+        OnboardingStep.ExperienceSelection -> {
+            OnboardingExperienceStep(
+                options = state.experienceOptions,
+                selectedOption = state.selectedExperienceIndex,
+                onOptionChange = { onIntent(OnboardingIntent.ExperienceChange(it)) },
+                modifier = modifier,
+            )
+        }
+
+        OnboardingStep.RegisterDone -> {
+            OnboardingRegisterDoneStep(modifier = modifier)
         }
     }
 }
 
-@Preview(showBackground = true)
+private fun OnboardingStep.toProgressStep(): Int =
+    when (this) {
+        OnboardingStep.Naming -> PROGRESS_STEP_NAMING
+        OnboardingStep.JobSelection -> PROGRESS_STEP_JOB
+        OnboardingStep.ExperienceSelection,
+        OnboardingStep.RegisterDone,
+            -> PROGRESS_STEP_EXPERIENCE
+    }
+
+
+private const val PREVIEW_SELECTED_JOB_INDEX = 3
+private const val PREVIEW_SELECTED_EXPERIENCE_INDEX = 2
+
+@Preview(
+    name = "Naming",
+    showBackground = true,
+    widthDp = 375,
+    heightDp = 812,
+)
 @Composable
-private fun OnboardingContentPreview() {
+private fun OnboardingNamingPreview() {
     HilitTheme {
         OnboardingContent(
-            state = OnboardingState(),
-            onCompleteClick = {},
+            state = OnboardingState(step = OnboardingStep.Naming),
+            onIntent = {},
+        )
+    }
+}
+
+@Preview(
+    name = "JobSelection",
+    showBackground = true,
+    widthDp = 375,
+    heightDp = 812,
+)
+@Composable
+private fun OnboardingJobSelectionPreview() {
+    HilitTheme {
+        OnboardingContent(
+            state =
+                OnboardingState(
+                    step = OnboardingStep.JobSelection,
+                    name = "재원",
+                    selectedJobIndex = PREVIEW_SELECTED_JOB_INDEX,
+                    isContinueEnabled = true,
+                ),
+            onIntent = {},
+        )
+    }
+}
+
+@Preview(
+    name = "ExperienceSelection",
+    showBackground = true,
+    widthDp = 375,
+    heightDp = 812,
+)
+@Composable
+private fun OnboardingExperienceSelectionPreview() {
+    HilitTheme {
+        OnboardingContent(
+            state =
+                OnboardingState(
+                    step = OnboardingStep.ExperienceSelection,
+                    name = "재원",
+                    selectedJobIndex = PREVIEW_SELECTED_JOB_INDEX,
+                    selectedExperienceIndex = PREVIEW_SELECTED_EXPERIENCE_INDEX,
+                    isContinueEnabled = true,
+                ),
+            onIntent = {},
+        )
+    }
+}
+
+@Preview(
+    name = "RegisterDone",
+    showBackground = true,
+    widthDp = 375,
+    heightDp = 812,
+)
+@Composable
+private fun OnboardingRegisterDonePreview() {
+    HilitTheme {
+        OnboardingContent(
+            state = OnboardingState(step = OnboardingStep.RegisterDone),
+            onIntent = {},
         )
     }
 }
