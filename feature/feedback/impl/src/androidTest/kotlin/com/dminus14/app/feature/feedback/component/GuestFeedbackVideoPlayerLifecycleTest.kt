@@ -47,6 +47,7 @@ class GuestFeedbackVideoPlayerLifecycleTest {
         verify(exactly = 0) { player.release() }
 
         composeRule.runOnIdle { isVisible = false }
+        composeRule.waitForIdle()
 
         verify(exactly = 1) { player.release() }
     }
@@ -126,7 +127,7 @@ class GuestFeedbackVideoPlayerLifecycleTest {
     }
 
     private class TestLifecycleOwner : LifecycleOwner {
-        val registry = LifecycleRegistry(this)
+        val registry = LifecycleRegistry.createUnsafe(this)
 
         override val lifecycle: Lifecycle = registry
 
