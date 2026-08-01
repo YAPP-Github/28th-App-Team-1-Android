@@ -65,7 +65,7 @@ Convention Plugin을 기준으로 구성한다.
 | [`design-system.md`](architecture/design-system.md)         | CMP 공용 UI, Theme, 상태와 리소스 소유권           |
 | [`catalog.md`](architecture/catalog.md)                     | Web/WASM Story, Catalog Controls와 KSP 계약        |
 | [`error-handling.md`](architecture/error-handling.md)       | 오류 분류, 레이어 책임과 Global Event              |
-| [`global-dialog.md`](architecture/global-dialog.md)         | 앱 전역 Dialog 요청, 결과, queue와 lifetime        |
+| [`global-modal.md`](architecture/global-modal.md)           | 앱 전역 Modal 요청, 결과, queue와 lifetime         |
 | [`build-conventions.md`](architecture/build-conventions.md) | Gradle Convention Plugin과 capability 적용 계약    |
 | [`project-structure.md`](architecture/project-structure.md) | 현재 Gradle module 상태와 승인된 목표 구조         |
 
@@ -88,7 +88,7 @@ Convention Plugin을 기준으로 구성한다.
 | Catalog Story 변경                | `catalog.md`, 필요하면 `design-system.md`                          |
 | Catalog Controls 또는 KSP 변경    | `catalog.md`, `build-conventions.md`                               |
 | 공통 오류 정책 변경               | `module-system.md`, `feature-ui.md`, `error-handling.md`           |
-| 전역 Dialog 호출 또는 구현 변경   | `feature-ui.md`, `design-system.md`, `global-dialog.md`            |
+| 전역 Modal 호출 또는 구현 변경    | `feature-ui.md`, `design-system.md`, `global-modal.md`             |
 | Preview 구성 변경                 | `feature-ui.md`, `build-conventions.md`                            |
 | 목표 프로젝트 구조 변경           | `module-system.md`, `build-conventions.md`, `project-structure.md` |
 | 사용자 민감 데이터 관련 작업      | 관련 세부 문서와 `CONSTITUTION.md` 사용자 데이터 조항 재확인       |

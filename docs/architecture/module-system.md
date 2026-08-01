@@ -34,7 +34,7 @@
 - `@HiltAndroidApp` Application과 Android Manifest 등록을 소유한다.
 - `MainActivity`와 앱 루트 Navigation 3 조립을 소유한다.
 - Feature가 제공한 route와 entry를 수집한다.
-- 전역 Dialog, Toast와 Snackbar를 앱 최상단에서 렌더링한다.
+- 전역 Modal, Toast와 Snackbar를 앱 최상단에서 렌더링한다.
 - Android 진입점과 앱 실행 설정을 관리한다.
 
 `app`은 data에 Hilt binding과 composition root 구성 목적으로만 의존할 수 있다. 이 예외는
