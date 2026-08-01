@@ -1,6 +1,7 @@
 package com.dminus14.app.feature.login.splash
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.EaseOut
 import androidx.compose.animation.core.tween
@@ -71,6 +72,9 @@ fun SplashScreen(
                 SplashEffect.Ready -> onNavigate(Home)
                 SplashEffect.RequireConsent -> onNavigate(Term)
                 SplashEffect.RequireOnboarding -> onNavigate(Onboarding)
+                is SplashEffect.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

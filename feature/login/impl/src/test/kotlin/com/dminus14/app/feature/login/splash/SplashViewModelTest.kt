@@ -36,7 +36,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -331,7 +330,7 @@ class SplashViewModelTest {
         }
 
     @Test
-    fun `카카오 로그인 API가 SOCIAL_LOGIN_FAILED면 에러 메시지를 노출한다`() =
+    fun `카카오 로그인 API가 SOCIAL_LOGIN_FAILED면 ShowToast Effect를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -349,22 +348,22 @@ class SplashViewModelTest {
                                 ),
                             ),
                     )
-                val receivedEffects = mutableListOf<SplashEffect>()
-                backgroundScope.launch { viewModel.effect.collect(receivedEffects::add) }
+                val effect = async { viewModel.effect.first() }
 
                 viewModel.onIntent(SplashIntent.KakaoLoginSucceeded("credential"))
-                advanceUntilIdle()
 
+                assertEquals(
+                    SplashEffect.ShowToast("소셜 로그인에 실패했습니다."),
+                    effect.await(),
+                )
                 assertFalse(viewModel.state.value.isLoading)
-                assertEquals("소셜 로그인에 실패했습니다.", viewModel.state.value.errorMessage)
-                assertEquals(emptyList<SplashEffect>(), receivedEffects)
             } finally {
                 Dispatchers.resetMain()
             }
         }
 
     @Test
-    fun `카카오 로그인 API가 INVALID_CREDENTIAL이면 에러 메시지를 노출한다`() =
+    fun `카카오 로그인 API가 INVALID_CREDENTIAL이면 ShowToast Effect를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -382,15 +381,15 @@ class SplashViewModelTest {
                                 ),
                             ),
                     )
-                val receivedEffects = mutableListOf<SplashEffect>()
-                backgroundScope.launch { viewModel.effect.collect(receivedEffects::add) }
+                val effect = async { viewModel.effect.first() }
 
                 viewModel.onIntent(SplashIntent.KakaoLoginSucceeded("credential"))
-                advanceUntilIdle()
 
+                assertEquals(
+                    SplashEffect.ShowToast("유효하지 않은 인증 정보입니다."),
+                    effect.await(),
+                )
                 assertFalse(viewModel.state.value.isLoading)
-                assertEquals("유효하지 않은 인증 정보입니다.", viewModel.state.value.errorMessage)
-                assertEquals(emptyList<SplashEffect>(), receivedEffects)
             } finally {
                 Dispatchers.resetMain()
             }
@@ -438,6 +437,9 @@ class SplashViewModelTest {
                         pendingResult = Result.success(upToDatePending),
                         profileResult = Result.success(sampleUserProfile),
                     )
+                val receivedEffects = mutableListOf<SplashEffect>()
+                backgroundScope.launch { viewModel.effect.collect(receivedEffects::add) }
+
                 viewModel.onIntent(SplashIntent.ClickKakaoLogin)
                 assertTrue(viewModel.state.value.isLoading)
 
@@ -445,14 +447,14 @@ class SplashViewModelTest {
                 advanceUntilIdle()
 
                 assertFalse(viewModel.state.value.isLoading)
-                assertNull(viewModel.state.value.errorMessage)
+                assertEquals(emptyList<SplashEffect>(), receivedEffects)
             } finally {
                 Dispatchers.resetMain()
             }
         }
 
     @Test
-    fun `카카오 SDK 로그인 실패면 에러 메시지를 노출한다`() =
+    fun `카카오 SDK 로그인 실패면 ShowToast Effect를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -463,13 +465,16 @@ class SplashViewModelTest {
                         pendingResult = Result.success(upToDatePending),
                         profileResult = Result.success(sampleUserProfile),
                     )
+                val effect = async { viewModel.effect.first() }
+
                 viewModel.onIntent(SplashIntent.ClickKakaoLogin)
-
                 viewModel.onIntent(SplashIntent.KakaoLoginFailed(KakaoLoginException.AccessDenied))
-                advanceUntilIdle()
 
+                assertEquals(
+                    SplashEffect.ShowToast("로그인 동의가 필요합니다."),
+                    effect.await(),
+                )
                 assertFalse(viewModel.state.value.isLoading)
-                assertEquals("로그인 동의가 필요합니다.", viewModel.state.value.errorMessage)
             } finally {
                 Dispatchers.resetMain()
             }

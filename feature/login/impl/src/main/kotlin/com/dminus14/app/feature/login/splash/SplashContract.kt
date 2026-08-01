@@ -22,7 +22,6 @@ sealed interface SplashIntent : MviIntent {
 data class SplashState(
     val showKakaoLoginButton: Boolean = false,
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
 ) : MviState
 
 sealed interface SplashEffect : MviEffect {
@@ -34,4 +33,9 @@ sealed interface SplashEffect : MviEffect {
 
     /** 온보딩(이름 등록 등)이 필요하다. */
     data object RequireOnboarding : SplashEffect
+
+    /** 로그인 실패 등 1회성 Toast를 표시한다. */
+    data class ShowToast(
+        val message: String,
+    ) : SplashEffect
 }

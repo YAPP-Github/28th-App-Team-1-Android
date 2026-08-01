@@ -21,151 +21,142 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SplashViewModel
-@Inject
-constructor(
-    private val getAuthSessionUseCase: GetAuthSessionUseCase,
-    private val checkUserProfileUseCase: CheckUserProfileUseCase,
-    private val loginWithKakaoUseCase: LoginWithKakaoUseCase,
-    private val getPendingConsentListUseCase: GetPendingConsentListUseCase,
-) : MviViewModel<SplashIntent, SplashState, SplashEffect>(SplashState()) {
-    override fun onIntent(intent: SplashIntent) {
-        when (intent) {
-            SplashIntent.Load -> {
-                load()
-            }
+    @Inject
+    constructor(
+        private val getAuthSessionUseCase: GetAuthSessionUseCase,
+        private val checkUserProfileUseCase: CheckUserProfileUseCase,
+        private val loginWithKakaoUseCase: LoginWithKakaoUseCase,
+        private val getPendingConsentListUseCase: GetPendingConsentListUseCase,
+    ) : MviViewModel<SplashIntent, SplashState, SplashEffect>(SplashState()) {
+        override fun onIntent(intent: SplashIntent) {
+            when (intent) {
+                SplashIntent.Load -> {
+                    load()
+                }
 
-            SplashIntent.ClickKakaoLogin -> {
-                reduce { copy(isLoading = true, errorMessage = null) }
-            }
+                SplashIntent.ClickKakaoLogin -> {
+                    reduce { copy(isLoading = true) }
+                }
 
-            is SplashIntent.KakaoLoginSucceeded -> {
-                loginWithKakao(intent.credential)
-            }
+                is SplashIntent.KakaoLoginSucceeded -> {
+                    loginWithKakao(intent.credential)
+                }
 
-            is SplashIntent.KakaoLoginFailed -> {
-                when (intent.error) {
-                    is KakaoLoginException.Cancelled -> {
-                        reduce { copy(isLoading = false) }
-                    }
-
-                    is KakaoLoginException -> {
-                        reduce {
-                            copy(
-                                isLoading = false,
-                                errorMessage = intent.error.message,
-                            )
+                is SplashIntent.KakaoLoginFailed -> {
+                    when (intent.error) {
+                        is KakaoLoginException.Cancelled -> {
+                            reduce { copy(isLoading = false) }
                         }
-                    }
 
-                    else -> {
-                        reduce {
-                            copy(
-                                isLoading = false,
-                                errorMessage = intent.error.message,
+                        else -> {
+                            reduce { copy(isLoading = false) }
+                            sendEffect(
+                                SplashEffect.ShowToast(
+                                    intent.error.message ?: DEFAULT_LOGIN_ERROR_MESSAGE,
+                                ),
                             )
                         }
                     }
                 }
             }
         }
-    }
 
-    private fun load() {
-        viewModelScope.launch {
-            getAuthSessionUseCase()
-                .onSuccess { session ->
-                    if (session != null) {
-                        checkPendingConsent()
-                    } else {
+        private fun load() {
+            viewModelScope.launch {
+                getAuthSessionUseCase()
+                    .onSuccess { session ->
+                        if (session != null) {
+                            checkPendingConsent()
+                        } else {
+                            reduce { copy(showKakaoLoginButton = true) }
+                        }
+                    }.onFailure {
                         reduce { copy(showKakaoLoginButton = true) }
                     }
-                }.onFailure {
-                    reduce { copy(showKakaoLoginButton = true) }
-                }
+            }
         }
-    }
 
-    private fun loginWithKakao(credential: String) {
-        viewModelScope.launch {
-            reduce { copy(isLoading = true, errorMessage = null) }
+        private fun loginWithKakao(credential: String) {
+            viewModelScope.launch {
+                reduce { copy(isLoading = true) }
 
-            loginWithKakaoUseCase(credential)
-                .onSuccess {
-                    checkPendingConsent()
-                }.onFailure { throwable ->
-                    when (throwable) {
-                        is SocialLoginFailedException,
-                        is InvalidCredentialException,
-                        -> {
-                            reduce {
-                                copy(
-                                    isLoading = false,
-                                    errorMessage = throwable.message,
-                                )
+                loginWithKakaoUseCase(credential)
+                    .onSuccess {
+                        checkPendingConsent()
+                    }.onFailure { throwable ->
+                        when (throwable) {
+                            is SocialLoginFailedException,
+                            is InvalidCredentialException,
+                            -> {
+                                reduce { copy(isLoading = false) }
+                                sendEffect(SplashEffect.ShowToast(throwable.message))
                             }
+
+                            else -> handleBootstrapFailure(throwable)
+                        }
+                    }
+            }
+        }
+
+        private suspend fun checkPendingConsent() {
+            getPendingConsentListUseCase()
+                .onSuccess { pending ->
+                    when (pending.status) {
+                        ConsentPendingStatus.NOT_SUBMITTED,
+                        ConsentPendingStatus.STALE,
+                        ConsentPendingStatus.UNKNOWN,
+                        -> {
+                            reduce { copy(isLoading = false, showKakaoLoginButton = false) }
+                            sendEffect(SplashEffect.RequireConsent)
                         }
 
-                        else -> handleBootstrapFailure(throwable)
+                        ConsentPendingStatus.UP_TO_DATE -> checkUserProfile()
                     }
+                }.onFailure { throwable ->
+                    handleBootstrapFailure(throwable)
                 }
         }
-    }
 
-    private suspend fun checkPendingConsent() {
-        getPendingConsentListUseCase()
-            .onSuccess { pending ->
-                when (pending.status) {
-                    ConsentPendingStatus.NOT_SUBMITTED,
-                    ConsentPendingStatus.STALE,
-                    ConsentPendingStatus.UNKNOWN,
-                        -> {
-                        reduce { copy(isLoading = false, showKakaoLoginButton = false) }
-                        sendEffect(SplashEffect.RequireConsent)
-                    }
-
-                    ConsentPendingStatus.UP_TO_DATE -> checkUserProfile()
-                }
-            }.onFailure { throwable ->
-                handleBootstrapFailure(throwable)
-            }
-    }
-
-    private suspend fun checkUserProfile() {
-        checkUserProfileUseCase()
-            .onSuccess { profile ->
-                reduce { copy(isLoading = false, showKakaoLoginButton = false) }
-                if (profile.requiresOnboarding) {
-                    sendEffect(SplashEffect.RequireOnboarding)
-                } else {
-                    sendEffect(SplashEffect.Ready)
-                }
-            }.onFailure { error ->
-                when (error) {
-                    is UserNotFoundException -> {
-                        reduce { copy(isLoading = false, showKakaoLoginButton = false) }
+        private suspend fun checkUserProfile() {
+            checkUserProfileUseCase()
+                .onSuccess { profile ->
+                    reduce { copy(isLoading = false, showKakaoLoginButton = false) }
+                    if (profile.requiresOnboarding) {
                         sendEffect(SplashEffect.RequireOnboarding)
+                    } else {
+                        sendEffect(SplashEffect.Ready)
                     }
+                }.onFailure { error ->
+                    when (error) {
+                        is UserNotFoundException -> {
+                            reduce { copy(isLoading = false, showKakaoLoginButton = false) }
+                            sendEffect(SplashEffect.RequireOnboarding)
+                        }
 
-                    else -> handleBootstrapFailure(error)
+                        else -> handleBootstrapFailure(error)
+                    }
+                }
+        }
+
+        // 아래 에러 처리 사항은 임시입니다. 공통 처리 기획자 문의 모든 ViewModel 일괄 수정 예정
+        private suspend fun handleBootstrapFailure(error: Throwable) {
+            reduce { copy(isLoading = false) }
+            when (error) {
+                is NetworkUnavailableException -> {
+                    GlobalErrorHandler.emit(GlobalAppEvent.ShowNetworkErrorAndExit)
+                }
+
+                is ServerException -> {
+                    GlobalErrorHandler.emit(GlobalAppEvent.ShowServerErrorAndExit)
+                }
+
+                else -> {
+                    GlobalErrorHandler.emit(GlobalAppEvent.ShowUnknownError)
                 }
             }
-    }
+        }
 
-    // 아래 에러 처리 사항은 임시입니다. 공통 처리 기획자 문의 모든 ViewModel 일괄 수정 예정
-    private suspend fun handleBootstrapFailure(error: Throwable) {
-        reduce { copy(isLoading = false) }
-        when (error) {
-            is NetworkUnavailableException -> {
-                GlobalErrorHandler.emit(GlobalAppEvent.ShowNetworkErrorAndExit)
-            }
-
-            is ServerException -> {
-                GlobalErrorHandler.emit(GlobalAppEvent.ShowServerErrorAndExit)
-            }
-
-            else -> {
-                GlobalErrorHandler.emit(GlobalAppEvent.ShowUnknownError)
-            }
+        private companion object {
+            const val DEFAULT_LOGIN_ERROR_MESSAGE = "로그인에 실패했습니다."
         }
     }
-}
