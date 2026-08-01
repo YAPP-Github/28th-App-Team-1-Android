@@ -111,10 +111,11 @@ private fun SuspensionNoticeBody() {
                     textAlign = TextAlign.Center,
                 )
                 Text(
-                    text = "문의 : [이메일]",
+                    text = "문의 : [aiinterview.hilit@gmail.com]",
                     style = HilitTheme.typography.body4,
                     color = HilitTheme.colors.gray500,
                     textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
