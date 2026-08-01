@@ -1,7 +1,7 @@
 package com.dminus14.app.feature.login.splash
 
-import android.app.Activity
 import android.widget.Toast
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.EaseOut
 import androidx.compose.animation.core.tween
@@ -22,7 +22,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,7 +54,7 @@ fun SplashScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val activity = context as Activity
+    val activity = LocalActivity.current
     val scope = rememberCoroutineScope()
     val kakaoLoginClient =
         EntryPointAccessors
@@ -93,14 +92,21 @@ fun SplashScreen(
     SplashContent(
         state = state,
         onKakaoLoginClick = {
-            viewModel.onIntent(SplashIntent.ClickKakaoLogin)
-            scope.launch {
-                runCatching { kakaoLoginClient.login(activity) }
-                    .onSuccess { credential ->
-                        viewModel.onIntent(SplashIntent.KakaoLoginSucceeded(credential))
-                    }.onFailure { error ->
-                        viewModel.onIntent(SplashIntent.KakaoLoginFailed(error))
-                    }
+            val hostActivity = activity
+            if (hostActivity == null) {
+                Toast
+                    .makeText(context, "로그인을 진행할 수 없습니다.", Toast.LENGTH_SHORT)
+                    .show()
+            } else {
+                viewModel.onIntent(SplashIntent.ClickKakaoLogin)
+                scope.launch {
+                    runCatching { kakaoLoginClient.login(hostActivity) }
+                        .onSuccess { credential ->
+                            viewModel.onIntent(SplashIntent.KakaoLoginSucceeded(credential))
+                        }.onFailure { error ->
+                            viewModel.onIntent(SplashIntent.KakaoLoginFailed(error))
+                        }
+                }
             }
         },
         modifier = modifier,
