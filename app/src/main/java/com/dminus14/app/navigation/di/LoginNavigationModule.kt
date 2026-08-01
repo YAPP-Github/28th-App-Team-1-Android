@@ -1,7 +1,6 @@
 package com.dminus14.app.navigation.di
 
 import androidx.navigation3.runtime.EntryProviderScope
-import com.dminus14.app.feature.login.navigation.loginEntryBuilder
 import com.dminus14.app.feature.login.onboarding.onboardingEntryBuilder
 import com.dminus14.app.feature.login.splash.splashEntryBuilder
 import com.dminus14.app.feature.login.term.termEntryBuilder
@@ -21,7 +20,6 @@ object LoginNavigationModule {
         {
             splashEntryBuilder(onNavigate = navigator::replaceAll)
             termEntryBuilder(onNavigate = navigator::goTo)
-            onboardingEntryBuilder(onNavigate = navigator::goTo)
-            loginEntryBuilder(onNavigate = navigator::replaceAll)
+            onboardingEntryBuilder(onNavigate = navigator::replaceAll)
         }
 }

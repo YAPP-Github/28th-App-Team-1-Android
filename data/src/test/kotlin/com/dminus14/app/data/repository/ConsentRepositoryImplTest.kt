@@ -183,13 +183,14 @@ class ConsentRepositoryImplTest {
         }
     }
 
-    private fun captureFailure(block: suspend () -> Unit): Throwable =
+    private fun captureFailure(block: suspend () -> Unit): Throwable {
         try {
             runBlocking { block() }
-            throw AssertionError("예외가 발생해야 합니다.")
         } catch (error: Throwable) {
-            error
+            return error
         }
+        throw AssertionError("예외가 발생해야 합니다.")
+    }
 
     private fun httpException(
         status: Int,
