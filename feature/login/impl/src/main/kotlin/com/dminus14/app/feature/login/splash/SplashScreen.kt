@@ -155,6 +155,7 @@ private fun SplashContent(
                 )
             }
         }
+
     }
 }
 
