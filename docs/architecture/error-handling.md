@@ -8,7 +8,7 @@
 
 | 타입 | 예시 | UI 처리 | 전달 방식 |
 |---|---|---|---|
-| `NetworkUnavailable` | 인터넷 연결 없음, timeout, DNS 실패 | 재시도 또는 앱 종료 Modal | Global Event |
+| `NetworkUnavailable` | 인터넷 연결 없음, timeout, DNS 실패 | 앱 종료 Modal | Global Event |
 | `ServerError` | HTTP 500, 502, 503 | 앱 종료 Modal | Global Event |
 | `ClientError` | HTTP 400, 401, 404 | 화면별 기획에 따른 UI | Feature State 또는 Effect |
 | `Unknown` | 분류할 수 없는 Exception | Toast | Global Event |
@@ -124,7 +124,7 @@ LaunchedEffect(Unit) {
 }
 ```
 
-- Network와 Server Event는 app-level Modal 정책에 연결한다.
+- Network와 Server Event는 app-level 종료 Modal 정책에 연결한다.
 - Unknown Event는 app-level Toast 또는 Snackbar에 연결한다.
 - UI component는 `designsystem`, Android action과 root rendering은 `app`이 소유한다.
 - 재시도 action은 현재 화면 또는 Feature 정책으로 다시 전달한다.
