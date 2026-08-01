@@ -6,7 +6,7 @@ import type.StoryGroup
 internal val HilitModalStories =
     StoryGroup(
         path = "Components/HilitModal",
-        description = "Material 기반 공용 Modal 상태.",
+        description = "Hilit 제품 시각과 고정 하단 버튼을 사용하는 공용 Modal 상태.",
         stories =
             listOf(
                 Story(
@@ -27,7 +27,7 @@ internal val HilitModalStories =
                 Story(
                     id = "two-buttons",
                     title = "두 버튼",
-                    description = "확인과 취소 선택을 제공하는 Modal.",
+                    description = "같은 너비의 검정 버튼 두 개와 중앙 구분선을 제공하는 Modal.",
                 ) {
                     HilitModalWithCancelCatalogAdapterControls(
                         initialArgs =
@@ -43,15 +43,14 @@ internal val HilitModalStories =
                 Story(
                     id = "non-dismissible",
                     title = "외부 닫기 차단",
-                    description = "명시적인 버튼 선택으로만 닫을 수 있는 Modal.",
+                    description = "Guest Feedback 오류에서 명시적인 종료 선택만 허용하는 Modal.",
                 ) {
-                    HilitModalWithCancelCatalogAdapterControls(
+                    HilitModalCatalogAdapterControls(
                         initialArgs =
-                            HilitModalWithCancelCatalogAdapterArgs(
-                                title = "선택이 필요합니다",
-                                message = "계속하려면 아래 버튼 중 하나를 선택해 주세요.",
-                                confirmText = "동의",
-                                cancelText = "취소",
+                            HilitModalCatalogAdapterArgs(
+                                title = "오류가 발생했어요",
+                                message = "앱을 종료한 뒤 링크를 다시 열어주세요.",
+                                confirmText = "종료하기",
                                 dismissible = false,
                             ),
                     )
@@ -67,7 +66,7 @@ internal val HilitModalStories =
                                 title = "긴 제목이 표시될 때 Modal 레이아웃을 확인합니다",
                                 message =
                                     "이 문구는 실제 사용자 데이터가 아닌 합성 예시입니다. " +
-                                        "본문이 여러 줄로 표시되는 상황에서 기본 Material Modal " +
+                                        "본문이 여러 줄로 표시되는 상황에서 제품 Modal " +
                                         "간격과 버튼 배치를 검토하기 위해 사용합니다.",
                                 confirmText = "확인",
                                 cancelText = "취소",

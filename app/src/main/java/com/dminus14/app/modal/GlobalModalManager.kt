@@ -1,4 +1,4 @@
-package com.dminus14.app.dialog
+package com.dminus14.app.modal
 
 import com.dminus14.app.core.common.modal.GlobalModalEvent
 import com.dminus14.app.core.common.modal.GlobalModalResult
@@ -89,7 +89,7 @@ class GlobalModalManager internal constructor(
             pendingEvents.indexOfFirst { pending -> pending.request.dismissible }
 
         return when {
-            pendingEvents.size < MAX_PENDING_DIALOGS -> {
+            pendingEvents.size < MAX_PENDING_MODALS -> {
                 pendingEvents.addLast(event)
                 true
             }
@@ -154,6 +154,6 @@ class GlobalModalManager internal constructor(
     }
 
     private companion object {
-        const val MAX_PENDING_DIALOGS = 10
+        const val MAX_PENDING_MODALS = 10
     }
 }
