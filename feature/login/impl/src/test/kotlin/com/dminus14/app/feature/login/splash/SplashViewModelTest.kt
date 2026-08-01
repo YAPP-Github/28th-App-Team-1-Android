@@ -104,7 +104,34 @@ class SplashViewModelTest {
                 advanceUntilIdle()
 
                 assertTrue(viewModel.state.value.showKakaoLoginButton)
+                assertFalse(viewModel.state.value.isLoading)
                 assertEquals(emptyList<SplashEffect>(), receivedEffects)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun `Load 시 세션이 없으면 이전 카카오 로그인 로딩 상태를 해제한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = null,
+                        pendingResult = Result.success(upToDatePending),
+                        profileResult = Result.success(sampleUserProfile),
+                    )
+
+                viewModel.onIntent(SplashIntent.ClickKakaoLogin)
+                assertTrue(viewModel.state.value.isLoading)
+
+                viewModel.onIntent(SplashIntent.Load)
+                advanceUntilIdle()
+
+                assertFalse(viewModel.state.value.isLoading)
+                assertTrue(viewModel.state.value.showKakaoLoginButton)
             } finally {
                 Dispatchers.resetMain()
             }

@@ -68,10 +68,10 @@ class SplashViewModel
                         if (session != null) {
                             checkPendingConsent()
                         } else {
-                            reduce { copy(showKakaoLoginButton = true) }
+                            reduce { copy(isLoading = false, showKakaoLoginButton = true) }
                         }
                     }.onFailure {
-                        reduce { copy(showKakaoLoginButton = true) }
+                        reduce { copy(isLoading = false, showKakaoLoginButton = true) }
                     }
             }
         }

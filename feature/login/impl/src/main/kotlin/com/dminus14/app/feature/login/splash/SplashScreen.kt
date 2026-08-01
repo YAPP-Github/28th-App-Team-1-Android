@@ -1,5 +1,7 @@
 package com.dminus14.app.feature.login.splash
 
+import android.app.Activity
+import android.content.Context
 import android.widget.Toast
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
@@ -38,6 +40,7 @@ import com.dminus14.app.feature.home.api.Home
 import com.dminus14.app.feature.login.api.Onboarding
 import com.dminus14.app.feature.login.api.Term
 import com.dminus14.app.feature.login.kakao.KakaoLoginClient
+import com.dminus14.app.feature.login.kakao.KakaoLoginException
 import com.dminus14.designsystem.component.button.KakaoLoginButton
 import com.dminus14.designsystem.component.loading.HilitLoadingIndicator
 import com.dminus14.designsystem.theme.HilitTheme
@@ -45,8 +48,10 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
+import kotlin.coroutines.cancellation.CancellationException
 
 private const val KAKAO_LOGIN_BUTTON_ENTER_DURATION_MS = 300
 
@@ -96,25 +101,47 @@ fun SplashScreen(
     SplashContent(
         state = state,
         onKakaoLoginClick = {
-            val hostActivity = activity
-            if (hostActivity == null) {
-                Toast
-                    .makeText(context, "로그인을 진행할 수 없습니다.", Toast.LENGTH_SHORT)
-                    .show()
-            } else {
-                viewModel.onIntent(SplashIntent.ClickKakaoLogin)
-                scope.launch {
-                    runCatchingCancellable { kakaoLoginClient.login(hostActivity) }
-                        .onSuccess { credential ->
-                            viewModel.onIntent(SplashIntent.KakaoLoginSucceeded(credential))
-                        }.onFailure { error ->
-                            viewModel.onIntent(SplashIntent.KakaoLoginFailed(error))
-                        }
-                }
-            }
+            startKakaoLogin(
+                activity = activity,
+                context = context,
+                scope = scope,
+                kakaoLoginClient = kakaoLoginClient,
+                viewModel = viewModel,
+            )
         },
         modifier = modifier,
     )
+}
+
+private fun startKakaoLogin(
+    activity: Activity?,
+    context: Context,
+    scope: CoroutineScope,
+    kakaoLoginClient: KakaoLoginClient,
+    viewModel: SplashViewModel,
+) {
+    val hostActivity = activity
+    if (hostActivity == null) {
+        Toast
+            .makeText(context, "로그인을 진행할 수 없습니다.", Toast.LENGTH_SHORT)
+            .show()
+        return
+    }
+
+    viewModel.onIntent(SplashIntent.ClickKakaoLogin)
+    scope.launch {
+        try {
+            runCatchingCancellable { kakaoLoginClient.login(hostActivity) }
+                .onSuccess { credential ->
+                    viewModel.onIntent(SplashIntent.KakaoLoginSucceeded(credential))
+                }.onFailure { error ->
+                    viewModel.onIntent(SplashIntent.KakaoLoginFailed(error))
+                }
+        } catch (cancellation: CancellationException) {
+            viewModel.onIntent(SplashIntent.KakaoLoginFailed(KakaoLoginException.Cancelled))
+            throw cancellation
+        }
+    }
 }
 
 @Composable
