@@ -1,4 +1,4 @@
-package com.dminus14.app.dialog
+package com.dminus14.app.modal
 
 import com.dminus14.app.core.common.modal.GlobalModalEvent
 import com.dminus14.app.core.common.modal.GlobalModalRequest
@@ -34,7 +34,7 @@ class GlobalModalManagerTest {
         }
 
     @Test
-    fun `다이얼로그를 완료하면 대기 이벤트를 선입선출 순서로 표시한다`() =
+    fun `모달을 완료하면 대기 이벤트를 선입선출 순서로 표시한다`() =
         runTest {
             val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = startedManager(events)
@@ -143,7 +143,7 @@ class GlobalModalManagerTest {
         }
 
     @Test
-    fun `현재 다이얼로그를 취소하면 다음 이벤트를 표시한다`() =
+    fun `현재 모달을 취소하면 다음 이벤트를 표시한다`() =
         runTest {
             val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = startedManager(events)
@@ -160,7 +160,7 @@ class GlobalModalManagerTest {
         }
 
     @Test
-    fun `대기 중인 다이얼로그를 취소하면 대기열에서 제거한다`() =
+    fun `대기 중인 모달을 취소하면 대기열에서 제거한다`() =
         runTest {
             val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = startedManager(events)
@@ -181,7 +181,7 @@ class GlobalModalManagerTest {
         }
 
     @Test
-    fun `호스트가 관찰하지 않아도 현재 다이얼로그를 유지한다`() =
+    fun `호스트가 관찰하지 않아도 현재 모달을 유지한다`() =
         runTest {
             val events = MutableSharedFlow<GlobalModalEvent>()
             val manager = startedManager(events)
