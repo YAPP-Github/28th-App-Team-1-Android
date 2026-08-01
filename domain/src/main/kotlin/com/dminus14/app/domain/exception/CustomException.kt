@@ -58,3 +58,10 @@ class ValidationException(
     message: String = "요청 값이 올바르지 않습니다.",
     cause: Throwable? = null,
 ) : CustomException(errCode = errCode, message = message, cause = cause)
+
+/** 회원 프로필 조회 — 존재하지 않는 사용자 (`USER_NOT_FOUND`). */
+class UserNotFoundException(
+    errCode: String,
+    message: String = "존재하지 않는 사용자입니다.",
+    cause: Throwable? = null,
+) : CustomException(errCode = errCode, message = message, cause = cause)

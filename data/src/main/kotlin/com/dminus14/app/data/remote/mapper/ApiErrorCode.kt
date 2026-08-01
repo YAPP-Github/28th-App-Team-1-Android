@@ -1,5 +1,16 @@
 package com.dminus14.app.data.remote.mapper
 
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_CREDENTIAL
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_TOKEN
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.LOGIN_EXPIRED
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.NETWORK_UNAVAILABLE
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.SERVER_ERROR
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.SOCIAL_LOGIN_FAILED
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.TOKEN_EXPIRED
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.UNKNOWN
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.USER_NOT_FOUND
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.VALIDATION_ERROR
+
 /**
  * API / 클라이언트 에러 `code` 값.
  *
@@ -7,6 +18,7 @@ package com.dminus14.app.data.remote.mapper
  * - 재발급 API 401: [LOGIN_EXPIRED] → 재로그인 필요
  * - 소셜 로그인 400/401: [INVALID_CREDENTIAL], [SOCIAL_LOGIN_FAILED]
  * - 재발급 API 400: [VALIDATION_ERROR]
+ * - 회원 프로필 조회 404: [USER_NOT_FOUND]
  * - 클라이언트 분류: [NETWORK_UNAVAILABLE], [SERVER_ERROR], [UNKNOWN]
  */
 internal object ApiErrorCode {
@@ -26,6 +38,8 @@ internal object ApiErrorCode {
     const val FEEDBACK_SHARE_CLOSED = "FEEDBACK_SHARE_CLOSED"
     const val FEEDBACK_CAPACITY_FULL = "FEEDBACK_CAPACITY_FULL"
     const val FEEDBACK_ALREADY_SUBMITTED = "FEEDBACK_ALREADY_SUBMITTED"
+
+    const val USER_NOT_FOUND = "USER_NOT_FOUND"
 
     const val NETWORK_UNAVAILABLE = "NETWORK_UNAVAILABLE"
     const val SERVER_ERROR = "SERVER_ERROR"

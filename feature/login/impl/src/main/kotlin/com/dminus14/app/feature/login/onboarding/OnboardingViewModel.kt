@@ -7,7 +7,8 @@ import javax.inject.Inject
 @HiltViewModel
 class OnboardingViewModel
     @Inject
-    constructor() : MviViewModel<OnboardingIntent, OnboardingState, OnboardingEffect>(OnboardingState()) {
+    constructor() :
+    MviViewModel<OnboardingIntent, OnboardingState, OnboardingEffect>(OnboardingState()) {
         override fun onIntent(intent: OnboardingIntent) {
             when (intent) {
                 OnboardingIntent.Load -> {
