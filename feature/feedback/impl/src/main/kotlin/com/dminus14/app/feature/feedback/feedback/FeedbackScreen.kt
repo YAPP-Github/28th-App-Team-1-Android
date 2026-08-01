@@ -24,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -151,7 +152,10 @@ private fun FeedbackVideoArea(
             )
         } else {
             Box(
-                modifier = Modifier.fillMaxSize().background(HilitTheme.colors.hilitBlack800),
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(HilitTheme.colors.hilitBlack800),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -219,12 +223,16 @@ private fun FeedbackAxisSelector(
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         axes.forEach { axis ->
             val selected = axis.code == selectedAxis
+
             Box(
                 modifier =
                     Modifier
@@ -233,7 +241,7 @@ private fun FeedbackAxisSelector(
                             if (selected) {
                                 HilitTheme.colors.hilitGreen500
                             } else {
-                                androidx.compose.ui.graphics.Color.Transparent
+                                Color.Transparent
                             },
                         ).clickable(
                             enabled = enabled,
@@ -273,7 +281,12 @@ private fun FeedbackAxisPanel(
     onIntent: (FeedbackIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxWidth().background(HilitTheme.colors.hilitWhite)) {
+    Column(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .background(HilitTheme.colors.hilitWhite),
+    ) {
         Column(
             modifier =
                 Modifier
@@ -310,12 +323,12 @@ private fun FeedbackAxisPanel(
                     HilitMediumButton(
                         text = option.label,
                         color =
-                            when {
-                                axis.level == option.level && option.isPositive -> {
+                            when (axis.level) {
+                                option.level if option.isPositive -> {
                                     HilitMediumButtonColor.Blue
                                 }
 
-                                axis.level == option.level -> {
+                                option.level -> {
                                     HilitMediumButtonColor.Red
                                 }
 
@@ -372,7 +385,10 @@ private fun FeedbackAxisPanel(
                     )
                     Text(
                         text = axis.comment,
-                        modifier = Modifier.weight(1f).padding(12.dp),
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .padding(12.dp),
                         color = HilitTheme.colors.hilitBlack800,
                         style = HilitTheme.typography.body6,
                         maxLines = 1,
@@ -409,7 +425,11 @@ private fun FeedbackAxisPanel(
 private fun FeedbackFullVideoPreview() {
     HilitTheme {
         FeedbackContent(
-            state = previewState(selectedAxis = null, isVideoExpanded = true),
+            state =
+                previewState(
+                    selectedAxis = GuestFeedbackAxisCode.GESTURE,
+                    isVideoExpanded = true,
+                ),
             onIntent = {},
             showVideoPlayer = false,
         )
