@@ -27,6 +27,11 @@ class ConsentRemoteDataSourceImpl
         }
 
         override suspend fun submitConsent(request: ConsentSubmitRequestDto) {
-            consentApi.submitConsent(request)
+            val response = consentApi.submitConsent(request)
+            // 성공 응답은 data 없이 success만 올 수 있으므로 success를 반드시 확인한다.
+            // HTTP non-2xx는 Retrofit이 HttpException으로 던지고 Repository에서 매핑한다.
+            if (!response.success) {
+                error("동의 제출에 실패했습니다.")
+            }
         }
     }
