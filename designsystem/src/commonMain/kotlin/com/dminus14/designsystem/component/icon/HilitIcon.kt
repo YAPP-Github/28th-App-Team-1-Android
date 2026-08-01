@@ -32,6 +32,7 @@ import com.dminus14.app.core.resources.success
 import com.dminus14.app.core.resources.timer
 import com.dminus14.app.core.resources.upload
 import com.dminus14.app.core.resources.video
+import com.dminus14.app.core.resources.voice
 import com.dminus14.designsystem.theme.HilitTheme
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
@@ -66,6 +67,7 @@ enum class HilitIconAsset(
     Delete("delete", 16.dp, Res.drawable.delete, preservesOriginalColors = true),
     FillWarning("fill_warning", 16.dp, Res.drawable.fill_warning, preservesOriginalColors = true),
     Upload("upload", 44.dp, Res.drawable.upload, preservesOriginalColors = true),
+    Voice("voice", 28.dp, Res.drawable.voice, preservesOriginalColors = true),
 }
 
 @Composable
