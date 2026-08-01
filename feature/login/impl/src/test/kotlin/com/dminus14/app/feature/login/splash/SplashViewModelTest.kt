@@ -567,7 +567,8 @@ class SplashViewModelTest {
     private class FakeConsentRepository(
         private val pendingResult: Result<PendingConsentList>,
     ) : ConsentRepository {
-        override suspend fun getPendingConsentList(): PendingConsentList = pendingResult.getOrThrow()
+        override suspend fun getPendingConsentList(): PendingConsentList =
+            pendingResult.getOrThrow()
 
         override suspend fun getConsentDocument(
             rawCode: String,

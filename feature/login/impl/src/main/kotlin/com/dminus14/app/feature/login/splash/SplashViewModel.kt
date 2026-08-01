@@ -92,7 +92,9 @@ class SplashViewModel
                                 sendEffect(SplashEffect.ShowToast(throwable.message))
                             }
 
-                            else -> handleBootstrapFailure(throwable)
+                            else -> {
+                                handleBootstrapFailure(throwable)
+                            }
                         }
                     }
             }
@@ -110,7 +112,9 @@ class SplashViewModel
                             sendEffect(SplashEffect.RequireConsent)
                         }
 
-                        ConsentPendingStatus.UP_TO_DATE -> checkUserProfile()
+                        ConsentPendingStatus.UP_TO_DATE -> {
+                            checkUserProfile()
+                        }
                     }
                 }.onFailure { throwable ->
                     handleBootstrapFailure(throwable)
@@ -133,7 +137,9 @@ class SplashViewModel
                             sendEffect(SplashEffect.RequireOnboarding)
                         }
 
-                        else -> handleBootstrapFailure(error)
+                        else -> {
+                            handleBootstrapFailure(error)
+                        }
                     }
                 }
         }

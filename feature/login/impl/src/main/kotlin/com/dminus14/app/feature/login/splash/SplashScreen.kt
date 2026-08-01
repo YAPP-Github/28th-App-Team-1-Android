@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,6 +36,7 @@ import com.dminus14.app.feature.login.api.Onboarding
 import com.dminus14.app.feature.login.api.Term
 import com.dminus14.app.feature.login.kakao.KakaoLoginClient
 import com.dminus14.designsystem.component.button.KakaoLoginButton
+import com.dminus14.designsystem.component.loading.HilitLoadingIndicator
 import com.dminus14.designsystem.theme.HilitTheme
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -69,9 +71,18 @@ fun SplashScreen(
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                SplashEffect.Ready -> onNavigate(Home)
-                SplashEffect.RequireConsent -> onNavigate(Term)
-                SplashEffect.RequireOnboarding -> onNavigate(Onboarding)
+                SplashEffect.Ready -> {
+                    onNavigate(Home)
+                }
+
+                SplashEffect.RequireConsent -> {
+                    onNavigate(Term)
+                }
+
+                SplashEffect.RequireOnboarding -> {
+                    onNavigate(Onboarding)
+                }
+
                 is SplashEffect.ShowToast -> {
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
@@ -156,6 +167,17 @@ private fun SplashContent(
             }
         }
 
+        if (state.isLoading) {
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(HilitTheme.colors.gray200.copy(alpha = 0.6f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                HilitLoadingIndicator(size = 24.dp)
+            }
+        }
     }
 }
 
