@@ -18,17 +18,20 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -37,6 +40,7 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.compose.PlayerSurface
@@ -71,68 +75,40 @@ fun GuestFeedbackVideoPlayer(
         }
     var isPlaying by remember(player) { mutableStateOf(false) }
     var arePlaybackControlsVisible by remember(player) { mutableStateOf(false) }
-    var didReportError by remember(player) { mutableStateOf(false) }
-    var didRecoverVideoEffect by remember(player) { mutableStateOf(false) }
+    var videoSize by remember(player) { mutableStateOf<VideoSize?>(null) }
+    var outputSize by remember(player) { mutableStateOf(IntSize.Zero) }
     var introDismissRequested by remember(isIntroVisible) { mutableStateOf(false) }
     val introAlpha by
-    animateFloatAsState(
-        targetValue = if (introDismissRequested) 0f else 1f,
-        animationSpec = tween(INTRO_FADE_MILLIS),
-        label = "guest-feedback-video-intro",
-    )
-
-    DisposableEffect(player, lifecycleOwner, showBlurredBackdrop) {
-        val playerListener =
-            object : Player.Listener {
-                override fun onIsPlayingChanged(value: Boolean) {
-                    isPlaying = value
-                }
-
-                override fun onPlayerError(error: PlaybackException) {
-                    if (shouldRecoverVideoEffect(
-                            showBlurredBackdrop,
-                            didRecoverVideoEffect,
-                            error.errorCode,
-                        )
-                    ) {
-                        didRecoverVideoEffect = true
-                        val position = player.currentPosition
-                        val shouldResume = player.playWhenReady
-                        player.setVideoEffects(emptyList())
-                        player.prepare()
-                        player.seekTo(position)
-                        player.playWhenReady = shouldResume
-                        return
-                    }
-                    if (!didReportError) {
-                        didReportError = true
-                        onFatalPlaybackError()
-                    }
-                }
-            }
-        val lifecycleObserver =
-            LifecycleEventObserver { _, event ->
-                if (event == Lifecycle.Event.ON_STOP) player.pause()
-            }
-        player.addListener(playerListener)
-        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
-
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
-            player.removeListener(playerListener)
-            player.release()
-        }
-    }
-
-    LaunchedEffect(player, showBlurredBackdrop, didRecoverVideoEffect) {
-        player.setVideoEffects(
-            if (showBlurredBackdrop && !didRecoverVideoEffect) {
-                listOf(GuestFeedbackVideoPresentationEffect())
-            } else {
-                emptyList()
-            },
+        animateFloatAsState(
+            targetValue = if (introDismissRequested) 0f else 1f,
+            animationSpec = tween(INTRO_FADE_MILLIS),
+            label = "guest-feedback-video-intro",
         )
-    }
+
+    val sharpFrameScale =
+        calculateSharpFrameScale(
+            inputWidth = videoSize?.width ?: 0,
+            inputHeight = videoSize?.height ?: 0,
+            outputWidth = outputSize.width,
+            outputHeight = outputSize.height,
+        )
+    val videoEffect =
+        remember(sharpFrameScale) {
+            GuestFeedbackVideoPresentationEffect(
+                sharpFrameScaleX = sharpFrameScale.x,
+                sharpFrameScaleY = sharpFrameScale.y,
+            )
+        }
+
+    GuestFeedbackPlayerLifecycle(
+        player = player,
+        lifecycleOwner = lifecycleOwner,
+        showBlurredBackdrop = showBlurredBackdrop,
+        videoEffect = videoEffect,
+        onIsPlayingChanged = { isPlaying = it },
+        onVideoSizeChanged = { videoSize = it },
+        onFatalPlaybackError = onFatalPlaybackError,
+    )
 
     LaunchedEffect(isIntroVisible, introDismissRequested) {
         if (!isIntroVisible) {
@@ -152,11 +128,11 @@ fun GuestFeedbackVideoPlayer(
     Box(
         modifier =
             modifier
+                .onSizeChanged { outputSize = it }
                 .background(Color.Black)
                 .semantics {
                     contentDescription = if (isPlaying) "재생 중인 면접 영상" else "일시정지된 면접 영상"
-                }
-                .clickable(enabled = !isIntroVisible) {
+                }.clickable(enabled = !isIntroVisible) {
                     arePlaybackControlsVisible = !arePlaybackControlsVisible
                 },
     ) {
@@ -176,8 +152,7 @@ fun GuestFeedbackVideoPlayer(
                         .clickable(
                             role = Role.Button,
                             onClick = onExpand,
-                        )
-                        .semantics {
+                        ).semantics {
                             role = Role.Button
                             contentDescription = "영상 확대"
                         },
@@ -240,6 +215,84 @@ fun GuestFeedbackVideoPlayer(
                 )
             }
         }
+    }
+}
+
+/** Player listener와 Lifecycle observer의 등록·해제를 Player 인스턴스 수명에 연결한다. */
+@Composable
+@OptIn(UnstableApi::class)
+@Suppress("LongParameterList")
+internal fun GuestFeedbackPlayerLifecycle(
+    player: ExoPlayer,
+    lifecycleOwner: androidx.lifecycle.LifecycleOwner,
+    showBlurredBackdrop: Boolean,
+    videoEffect: GuestFeedbackVideoPresentationEffect,
+    onIsPlayingChanged: (Boolean) -> Unit,
+    onVideoSizeChanged: (VideoSize) -> Unit,
+    onFatalPlaybackError: () -> Unit,
+) {
+    var didReportError by remember(player) { mutableStateOf(false) }
+    var didRecoverVideoEffect by remember(player) { mutableStateOf(false) }
+    val currentShowBlurredBackdrop by rememberUpdatedState(showBlurredBackdrop)
+    val currentOnIsPlayingChanged by rememberUpdatedState(onIsPlayingChanged)
+    val currentOnVideoSizeChanged by rememberUpdatedState(onVideoSizeChanged)
+    val currentOnFatalPlaybackError by rememberUpdatedState(onFatalPlaybackError)
+
+    DisposableEffect(player, lifecycleOwner) {
+        val playerListener =
+            object : Player.Listener {
+                override fun onIsPlayingChanged(value: Boolean) {
+                    currentOnIsPlayingChanged(value)
+                }
+
+                override fun onVideoSizeChanged(videoSize: VideoSize) {
+                    currentOnVideoSizeChanged(videoSize)
+                }
+
+                override fun onPlayerError(error: PlaybackException) {
+                    if (shouldRecoverVideoEffect(
+                            currentShowBlurredBackdrop,
+                            didRecoverVideoEffect,
+                            error.errorCode,
+                        )
+                    ) {
+                        didRecoverVideoEffect = true
+                        val position = player.currentPosition
+                        val shouldResume = player.playWhenReady
+                        player.setVideoEffects(emptyList())
+                        player.prepare()
+                        player.seekTo(position)
+                        player.playWhenReady = shouldResume
+                        return
+                    }
+                    if (!didReportError) {
+                        didReportError = true
+                        currentOnFatalPlaybackError()
+                    }
+                }
+            }
+        val lifecycleObserver =
+            LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_STOP) player.pause()
+            }
+        player.addListener(playerListener)
+        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
+            player.removeListener(playerListener)
+            player.release()
+        }
+    }
+
+    LaunchedEffect(player, showBlurredBackdrop, didRecoverVideoEffect, videoEffect) {
+        player.setVideoEffects(
+            if (showBlurredBackdrop && !didRecoverVideoEffect) {
+                listOf(videoEffect)
+            } else {
+                emptyList()
+            },
+        )
     }
 }
 
