@@ -48,6 +48,7 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":designsystem"))
     implementation(project(":feature:main:impl"))
+    implementation(project(":feature:mypage:impl"))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
