@@ -33,6 +33,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dminus14.app.core.resources.Res
 import com.dminus14.app.core.resources.hiiii_logo
+import com.dminus14.app.domain.util.runCatchingCancellable
 import com.dminus14.app.feature.home.api.Home
 import com.dminus14.app.feature.login.api.Onboarding
 import com.dminus14.app.feature.login.api.Term
@@ -103,7 +104,7 @@ fun SplashScreen(
             } else {
                 viewModel.onIntent(SplashIntent.ClickKakaoLogin)
                 scope.launch {
-                    runCatching { kakaoLoginClient.login(hostActivity) }
+                    runCatchingCancellable { kakaoLoginClient.login(hostActivity) }
                         .onSuccess { credential ->
                             viewModel.onIntent(SplashIntent.KakaoLoginSucceeded(credential))
                         }.onFailure { error ->
