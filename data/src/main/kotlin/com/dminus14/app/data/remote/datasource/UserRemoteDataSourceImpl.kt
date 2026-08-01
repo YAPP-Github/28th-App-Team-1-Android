@@ -12,7 +12,15 @@ class UserRemoteDataSourceImpl
         private val userApi: UserApi,
     ) : UserRemoteDataSource {
         override suspend fun getUserProfile(): UserProfileDto {
-            val response = userApi.getUserProfile()
-            return response.data ?: error("회원 프로필 응답이 비어 있습니다.")
+            val response = userApi.getProfile()
+            return UserProfileDto(
+                name = response.name.orEmpty(),
+                email = response.email.orEmpty(),
+                provider = response.provider.orEmpty(),
+                jobRole = response.jobRole.orEmpty(),
+                jobRoleLabel = response.jobRoleLabel.orEmpty(),
+                careerYears = response.careerYears ?: 0,
+                remainingTicketCount = response.remainingTicketCount ?: 0,
+            )
         }
     }
