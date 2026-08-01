@@ -117,7 +117,6 @@ fun SplashScreen(
     )
 }
 
-@Suppress("UnusedParameter")
 @Composable
 private fun SplashContent(
     state: SplashState,
@@ -131,68 +130,87 @@ private fun SplashContent(
                 .background(HilitTheme.colors.hilitWhite),
         contentAlignment = Alignment.Center,
     ) {
-        Image(
-            painter = painterResource(Res.drawable.hiiii_logo),
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            modifier =
-                Modifier
-                    .offset(y = (-50).dp)
-                    .size(
-                        width = 171.dp,
-                        height = 72.dp,
-                    ),
+        SplashLogo()
+        SplashKakaoLoginSection(
+            visible = state.showKakaoLoginButton,
+            onKakaoLoginClick = onKakaoLoginClick,
         )
+        if (state.isLoading) {
+            SplashLoadingOverlay()
+        }
+    }
+}
 
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp)
-                    .padding(bottom = 28.dp),
-            verticalArrangement = Arrangement.Bottom,
-        ) {
-            AnimatedVisibility(
-                visible = state.showKakaoLoginButton,
-                enter =
-                    slideInVertically(
+@Composable
+private fun SplashLogo() {
+    Image(
+        painter = painterResource(Res.drawable.hiiii_logo),
+        contentDescription = null,
+        contentScale = ContentScale.Fit,
+        modifier =
+            Modifier
+                .offset(y = (-50).dp)
+                .size(
+                    width = 171.dp,
+                    height = 72.dp,
+                ),
+    )
+}
+
+@Composable
+private fun SplashKakaoLoginSection(
+    visible: Boolean,
+    onKakaoLoginClick: () -> Unit,
+) {
+    Column(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 28.dp),
+        verticalArrangement = Arrangement.Bottom,
+    ) {
+        AnimatedVisibility(
+            visible = visible,
+            enter =
+                slideInVertically(
+                    animationSpec =
+                        tween(
+                            durationMillis = KAKAO_LOGIN_BUTTON_ENTER_DURATION_MS,
+                            easing = EaseOut,
+                        ),
+                    initialOffsetY = { it },
+                ) +
+                    fadeIn(
                         animationSpec =
                             tween(
                                 durationMillis = KAKAO_LOGIN_BUTTON_ENTER_DURATION_MS,
                                 easing = EaseOut,
                             ),
-                        initialOffsetY = { it },
-                    ) +
-                        fadeIn(
-                            animationSpec =
-                                tween(
-                                    durationMillis = KAKAO_LOGIN_BUTTON_ENTER_DURATION_MS,
-                                    easing = EaseOut,
-                                ),
-                        ),
-            ) {
-                KakaoLoginButton(
-                    onClick = onKakaoLoginClick,
-                )
-            }
+                    ),
+        ) {
+            KakaoLoginButton(
+                onClick = onKakaoLoginClick,
+            )
         }
+    }
+}
 
-        if (state.isLoading) {
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .background(HilitTheme.colors.gray200.copy(alpha = 0.6f))
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = {},
-                        ),
-                contentAlignment = Alignment.Center,
-            ) {
-                HilitLoadingIndicator(size = 24.dp)
-            }
-        }
+@Composable
+private fun SplashLoadingOverlay() {
+    Box(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(HilitTheme.colors.gray200.copy(alpha = 0.6f))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = {},
+                ),
+        contentAlignment = Alignment.Center,
+    ) {
+        HilitLoadingIndicator(size = 24.dp)
     }
 }
 
