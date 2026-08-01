@@ -2,8 +2,10 @@ package com.dminus14.app.feature.login.splash
 
 import com.dminus14.app.core.common.event.GlobalAppEvent
 import com.dminus14.app.core.common.event.GlobalErrorHandler
+import com.dminus14.app.domain.exception.InvalidCredentialException
 import com.dminus14.app.domain.exception.NetworkUnavailableException
 import com.dminus14.app.domain.exception.ServerException
+import com.dminus14.app.domain.exception.SocialLoginFailedException
 import com.dminus14.app.domain.exception.UnknownException
 import com.dminus14.app.domain.exception.UserNotFoundException
 import com.dminus14.app.domain.model.AuthSession
@@ -329,6 +331,102 @@ class SplashViewModelTest {
         }
 
     @Test
+    fun `카카오 로그인 API가 SOCIAL_LOGIN_FAILED면 에러 메시지를 노출한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = null,
+                        pendingResult = Result.success(upToDatePending),
+                        profileResult = Result.success(sampleUserProfile),
+                        loginResult =
+                            Result.failure(
+                                SocialLoginFailedException(
+                                    errCode = "SOCIAL_LOGIN_FAILED",
+                                    message = "소셜 로그인에 실패했습니다.",
+                                ),
+                            ),
+                    )
+                val receivedEffects = mutableListOf<SplashEffect>()
+                backgroundScope.launch { viewModel.effect.collect(receivedEffects::add) }
+
+                viewModel.onIntent(SplashIntent.KakaoLoginSucceeded("credential"))
+                advanceUntilIdle()
+
+                assertFalse(viewModel.state.value.isLoading)
+                assertEquals("소셜 로그인에 실패했습니다.", viewModel.state.value.errorMessage)
+                assertEquals(emptyList<SplashEffect>(), receivedEffects)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun `카카오 로그인 API가 INVALID_CREDENTIAL이면 에러 메시지를 노출한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = null,
+                        pendingResult = Result.success(upToDatePending),
+                        profileResult = Result.success(sampleUserProfile),
+                        loginResult =
+                            Result.failure(
+                                InvalidCredentialException(
+                                    errCode = "INVALID_CREDENTIAL",
+                                    message = "유효하지 않은 인증 정보입니다.",
+                                ),
+                            ),
+                    )
+                val receivedEffects = mutableListOf<SplashEffect>()
+                backgroundScope.launch { viewModel.effect.collect(receivedEffects::add) }
+
+                viewModel.onIntent(SplashIntent.KakaoLoginSucceeded("credential"))
+                advanceUntilIdle()
+
+                assertFalse(viewModel.state.value.isLoading)
+                assertEquals("유효하지 않은 인증 정보입니다.", viewModel.state.value.errorMessage)
+                assertEquals(emptyList<SplashEffect>(), receivedEffects)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun `카카오 로그인 API 네트워크 오류면 ShowNetworkErrorAndExit를 발행한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = null,
+                        pendingResult = Result.success(upToDatePending),
+                        profileResult = Result.success(sampleUserProfile),
+                        loginResult =
+                            Result.failure(
+                                NetworkUnavailableException(errCode = "NETWORK_UNAVAILABLE"),
+                            ),
+                    )
+                val receivedEffects = mutableListOf<SplashEffect>()
+                backgroundScope.launch { viewModel.effect.collect(receivedEffects::add) }
+                val globalEvent =
+                    async(start = CoroutineStart.UNDISPATCHED) { GlobalErrorHandler.events.first() }
+
+                viewModel.onIntent(SplashIntent.KakaoLoginSucceeded("credential"))
+
+                assertEquals(GlobalAppEvent.ShowNetworkErrorAndExit, globalEvent.await())
+                assertEquals(emptyList<SplashEffect>(), receivedEffects)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
     fun `카카오 로그인을 취소하면 로딩만 해제한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
@@ -348,6 +446,30 @@ class SplashViewModelTest {
 
                 assertFalse(viewModel.state.value.isLoading)
                 assertNull(viewModel.state.value.errorMessage)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun `카카오 SDK 로그인 실패면 에러 메시지를 노출한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = null,
+                        pendingResult = Result.success(upToDatePending),
+                        profileResult = Result.success(sampleUserProfile),
+                    )
+                viewModel.onIntent(SplashIntent.ClickKakaoLogin)
+
+                viewModel.onIntent(SplashIntent.KakaoLoginFailed(KakaoLoginException.AccessDenied))
+                advanceUntilIdle()
+
+                assertFalse(viewModel.state.value.isLoading)
+                assertEquals("로그인 동의가 필요합니다.", viewModel.state.value.errorMessage)
             } finally {
                 Dispatchers.resetMain()
             }

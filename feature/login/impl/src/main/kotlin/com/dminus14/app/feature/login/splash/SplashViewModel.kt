@@ -4,9 +4,10 @@ import androidx.lifecycle.viewModelScope
 import com.dminus14.app.core.common.event.GlobalAppEvent
 import com.dminus14.app.core.common.event.GlobalErrorHandler
 import com.dminus14.app.core.common.mvi.MviViewModel
-import com.dminus14.app.domain.exception.CustomException
+import com.dminus14.app.domain.exception.InvalidCredentialException
 import com.dminus14.app.domain.exception.NetworkUnavailableException
 import com.dminus14.app.domain.exception.ServerException
+import com.dminus14.app.domain.exception.SocialLoginFailedException
 import com.dminus14.app.domain.exception.UserNotFoundException
 import com.dminus14.app.domain.model.ConsentPendingStatus
 import com.dminus14.app.domain.usecase.CheckUserProfileUseCase
@@ -42,7 +43,29 @@ constructor(
             }
 
             is SplashIntent.KakaoLoginFailed -> {
-                handleLoginFailure(intent.error)
+                when (intent.error) {
+                    is KakaoLoginException.Cancelled -> {
+                        reduce { copy(isLoading = false) }
+                    }
+
+                    is KakaoLoginException -> {
+                        reduce {
+                            copy(
+                                isLoading = false,
+                                errorMessage = intent.error.message,
+                            )
+                        }
+                    }
+
+                    else -> {
+                        reduce {
+                            copy(
+                                isLoading = false,
+                                errorMessage = intent.error.message,
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -70,7 +93,20 @@ constructor(
                 .onSuccess {
                     checkPendingConsent()
                 }.onFailure { throwable ->
-                    handleLoginFailure(throwable)
+                    when (throwable) {
+                        is SocialLoginFailedException,
+                        is InvalidCredentialException,
+                        -> {
+                            reduce {
+                                copy(
+                                    isLoading = false,
+                                    errorMessage = throwable.message,
+                                )
+                            }
+                        }
+
+                        else -> handleBootstrapFailure(throwable)
+                    }
                 }
         }
     }
@@ -82,31 +118,15 @@ constructor(
                     ConsentPendingStatus.NOT_SUBMITTED,
                     ConsentPendingStatus.STALE,
                     ConsentPendingStatus.UNKNOWN,
-                    -> {
+                        -> {
                         reduce { copy(isLoading = false, showKakaoLoginButton = false) }
                         sendEffect(SplashEffect.RequireConsent)
                     }
 
                     ConsentPendingStatus.UP_TO_DATE -> checkUserProfile()
                 }
-            }.onFailure { error ->
-                when (error) {
-                    // 아래 에러 처리 사항은 임시입니다. 공통 처리 기획자 문의 모든 ViewModel 일괄 수정 예정
-                    is NetworkUnavailableException -> {
-                        reduce { copy(isLoading = false) }
-                        GlobalErrorHandler.emit(GlobalAppEvent.ShowNetworkErrorAndExit)
-                    }
-
-                    is ServerException -> {
-                        reduce { copy(isLoading = false) }
-                        GlobalErrorHandler.emit(GlobalAppEvent.ShowServerErrorAndExit)
-                    }
-
-                    else -> {
-                        reduce { copy(isLoading = false) }
-                        GlobalErrorHandler.emit(GlobalAppEvent.ShowUnknownError)
-                    }
-                }
+            }.onFailure { throwable ->
+                handleBootstrapFailure(throwable)
             }
     }
 
@@ -126,49 +146,25 @@ constructor(
                         sendEffect(SplashEffect.RequireOnboarding)
                     }
 
-                    // 아래 에러 처리 사항은 임시입니다. 공통 처리 기획자 문의 모든 ViewModel 일괄 수정 예정
-                    is NetworkUnavailableException -> {
-                        reduce { copy(isLoading = false) }
-                        GlobalErrorHandler.emit(GlobalAppEvent.ShowNetworkErrorAndExit)
-                    }
-
-                    is ServerException -> {
-                        reduce { copy(isLoading = false) }
-                        GlobalErrorHandler.emit(GlobalAppEvent.ShowServerErrorAndExit)
-                    }
-
-                    else -> {
-                        reduce { copy(isLoading = false) }
-                        GlobalErrorHandler.emit(GlobalAppEvent.ShowUnknownError)
-                    }
+                    else -> handleBootstrapFailure(error)
                 }
             }
     }
 
-    private fun handleLoginFailure(throwable: Throwable) {
-        when (throwable) {
-            is KakaoLoginException.Cancelled -> {
-                reduce { copy(isLoading = false) }
+    // 아래 에러 처리 사항은 임시입니다. 공통 처리 기획자 문의 모든 ViewModel 일괄 수정 예정
+    private suspend fun handleBootstrapFailure(error: Throwable) {
+        reduce { copy(isLoading = false) }
+        when (error) {
+            is NetworkUnavailableException -> {
+                GlobalErrorHandler.emit(GlobalAppEvent.ShowNetworkErrorAndExit)
             }
 
-            is KakaoLoginException,
-            is CustomException,
-                -> {
-                reduce {
-                    copy(
-                        isLoading = false,
-                        errorMessage = throwable.message,
-                    )
-                }
+            is ServerException -> {
+                GlobalErrorHandler.emit(GlobalAppEvent.ShowServerErrorAndExit)
             }
 
             else -> {
-                reduce {
-                    copy(
-                        isLoading = false,
-                        errorMessage = throwable.message,
-                    )
-                }
+                GlobalErrorHandler.emit(GlobalAppEvent.ShowUnknownError)
             }
         }
     }
