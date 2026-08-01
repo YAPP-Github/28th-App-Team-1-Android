@@ -151,3 +151,64 @@ Player, 그라데이션, 축 선택기를 같은 `Box`에 순서대로 선언했
 
 이번 변경은 영상이나 피드백을 새로 저장·공유·기록하지 않는다. `media3-effect`는 Feedback 구현
 모듈의 런타임 GPU 처리에만 사용하며 Design System, Domain, Data의 모듈 경계를 변경하지 않았다.
+
+## 7. 후속 구현: 영상 재생 컨트롤과 Preview
+
+Figma `435:7111`을 기준으로 `GuestFeedbackVideoPlayer`의 터치 동작과 재생 컨트롤을 추가했다.
+
+- 인트로 종료 후 영상을 한 번 터치하면 65% `hilitBlack800` 오버레이와 재생 컨트롤이 나타난다.
+- 컨트롤이 보이는 상태에서 영상 배경을 다시 터치하면 오버레이와 컨트롤이 사라진다.
+- 가운데 74dp 버튼은 기존 `play.xml`과 `pause.xml`을 `HilitIconAsset.Play/Pause`로 사용하고,
+  실제 Player 재생 상태에 따라 재생·일시정지 아이콘과 접근성 설명을 전환한다.
+- 좌우 44dp 버튼은 기존 `skip_left.xml`과 `skip_right.xml`을 사용해 현재 위치에서 ±10초를
+  이동한다. 계산 결과는 영상 시작과 끝 범위를 넘지 않는다.
+- Figma 치수에 맞춰 아이콘 34dp와 버튼 사이 46dp 간격을 적용했다.
+- 컨트롤 표시 여부는 Player 내부의 일시 상태로 관리해 Feedback MVI Contract와 ViewModel에는
+  상태나 Intent를 추가하지 않았다.
+
+### 7.1 Preview
+
+`GuestFeedbackVideoPlayer.kt`에 다음 ViewModel-free Preview 두 개를 추가했다.
+
+| Preview | 상태 | 런타임 의존성 |
+|---|---|---|
+| `재생 컨트롤 표시` | 합성 배경 위 오버레이, Pause와 좌우 이동 버튼 표시 | 없음 |
+| `재생 컨트롤 숨김` | 합성 배경만 표시 | 없음 |
+
+두 Preview 모두 375×812 크기와 `HilitTheme`을 사용한다. 실제 ExoPlayer, 영상 URL, Lifecycle,
+network, 파일 접근과 사용자 데이터를 포함하지 않는다. 같은 파일에 동시에 반영된 Kotlin
+Duration 기반 delay에는 누락된 `milliseconds` import를 보완했다.
+
+### 7.2 추가 변경 파일
+
+| 파일 | 내용 |
+|---|---|
+| `feature/feedback/impl/src/main/kotlin/com/dminus14/app/feature/feedback/component/GuestFeedbackVideoPlayer.kt` | 터치 표시·숨김, 오버레이, 재생·일시정지, ±10초 이동 컨트롤과 Preview 2종 |
+| `feature/feedback/impl/src/test/kotlin/com/dminus14/app/feature/feedback/component/GuestFeedbackVideoPlayerTest.kt` | ±10초 이동과 재생 위치 경계 단위 테스트 |
+| `plan.md` | 후속 컨트롤·Preview 계획과 검증 기준 추가 |
+| `report.md` | 후속 구현·검증 결과와 잔여 검수 추가 |
+
+### 7.3 추가 검증 결과
+
+| 명령 | 결과 |
+|---|---|
+| `.\gradlew.bat :feature:feedback:impl:testDebugUnitTest :feature:feedback:impl:lintDebug :feature:feedback:impl:assembleDebug :feature:feedback:impl:spotlessCheck -PspotlessFiles=.*GuestFeedbackVideoPlayer(Test)?\\.kt -x :feature:feedback:impl:detekt` | 성공 |
+| `.\gradlew.bat -PspotlessFiles=.*GuestFeedbackVideoPlayer[.]kt :feature:feedback:impl:spotlessCheck :feature:feedback:impl:compileDebugKotlin` | 성공 |
+| `git diff --check` | 성공 |
+
+후속 변경 뒤 전체 CI 명령은 다시 실행하지 않았다. Feedback 모듈 전체 Detekt는 기존
+`FeedbackReviewScreen.kt`의 `LongMethod`와 `MagicNumber` 위반 2건 때문에 실패하며, 이번에 추가한
+Player 컨트롤과 Preview의 Detekt 파라미터 수 위반은 구현을 분리해 해결했다. 따라서 최신 후속
+변경은 대상 컴파일·단위 테스트·Spotless·Lint·Debug 조립까지 검증했고, 저장소 전체 상태는 기존
+정적 분석 문제로 인해 여전히 부분 검증이다.
+
+### 7.4 남은 기기 검수
+
+- 영상 한 번 터치 시 컨트롤이 표시되고 다시 터치하면 숨겨지는지
+- 재생·일시정지 버튼 클릭 후 아이콘이 실제 Player 상태와 일치하는지
+- 좌우 버튼이 정확히 10초 이동하고 영상 시작·끝에서 안전하게 제한되는지
+- 컨트롤 버튼을 누를 때 배경 닫기 동작이 함께 실행되지 않는지
+- 전체 영상과 3:2 분할 영상 모두에서 컨트롤과 축 선택기 터치 영역이 충돌하지 않는지
+
+이 후속 구현도 영상 프레임, URL 또는 재생 위치를 저장·전송·로깅하지 않으며 기존 단일 Player
+수명과 Feature 모듈 경계를 유지한다.
