@@ -3,7 +3,6 @@ package com.dminus14.app.data.repository
 import com.dminus14.app.data.remote.datasource.UserRemoteDataSource
 import com.dminus14.app.data.remote.mapper.ApiErrorCode
 import com.dminus14.app.data.remote.mapper.CommonApiErrorMapper
-import com.dminus14.app.domain.exception.UnknownException
 import com.dminus14.app.domain.exception.UserNotFoundException
 import com.dminus14.app.domain.model.UserProfile
 import com.dminus14.app.domain.repository.UserRepository
@@ -32,11 +31,7 @@ class UserRepositoryImpl
                                 }
 
                                 else -> {
-                                    UnknownException(
-                                        errCode = ApiErrorCode.UNKNOWN,
-                                        message = message.ifBlank { "알 수 없는 오류가 발생했습니다." },
-                                        cause = error,
-                                    )
+                                    null
                                 }
                             }
                         }
