@@ -23,11 +23,10 @@ sealed interface FeedbackOnboardingIntent : MviIntent {
 }
 
 data class FeedbackOnboardingState(
-    val isLoading: Boolean = false,
+    val loadState: FeedbackOnboardingLoadState = FeedbackOnboardingLoadState.Idle,
     val requesterName: String = "",
     val nickname: String = "",
     val isNameEditorVisible: Boolean = false,
-    val hasLoaded: Boolean = false,
 ) : MviState {
     val canContinue: Boolean
         get() {
@@ -37,6 +36,13 @@ data class FeedbackOnboardingState(
                 '\n' !in normalized &&
                 '\r' !in normalized
         }
+}
+
+enum class FeedbackOnboardingLoadState {
+    Idle,
+    Loading,
+    Ready,
+    Failed,
 }
 
 sealed interface FeedbackOnboardingEffect : MviEffect {

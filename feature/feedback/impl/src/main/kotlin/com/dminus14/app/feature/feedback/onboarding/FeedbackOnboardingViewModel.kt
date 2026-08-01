@@ -36,7 +36,9 @@ class FeedbackOnboardingViewModel
                 }
 
                 FeedbackOnboardingIntent.StartClicked -> {
-                    reduce { copy(isNameEditorVisible = true) }
+                    if (state.value.loadState == FeedbackOnboardingLoadState.Ready) {
+                        reduce { copy(isNameEditorVisible = true) }
+                    }
                 }
 
                 is FeedbackOnboardingIntent.NicknameChanged -> {
@@ -58,9 +60,9 @@ class FeedbackOnboardingViewModel
         }
 
         private fun load(token: String) {
-            if (state.value.hasLoaded || state.value.isLoading) return
+            if (state.value.loadState != FeedbackOnboardingLoadState.Idle) return
 
-            reduce { copy(isLoading = true) }
+            reduce { copy(loadState = FeedbackOnboardingLoadState.Loading) }
             viewModelScope.launch {
                 enterGuestFeedbackUseCase(token)
                     .onSuccess { entry ->
@@ -87,9 +89,8 @@ class FeedbackOnboardingViewModel
             session.start(token, entry)
             reduce {
                 copy(
-                    isLoading = false,
                     requesterName = entry.requesterName,
-                    hasLoaded = true,
+                    loadState = FeedbackOnboardingLoadState.Ready,
                 )
             }
         }
@@ -118,7 +119,12 @@ class FeedbackOnboardingViewModel
 
         private fun confirmNickname() {
             val nickname = state.value.nickname.trim()
-            if (!state.value.canContinue) return
+            if (state.value.loadState != FeedbackOnboardingLoadState.Ready ||
+                !state.value.canContinue ||
+                session.snapshot() == null
+            ) {
+                return
+            }
 
             session.setNickname(nickname)
             reduce { copy(nickname = nickname, isNameEditorVisible = false) }
@@ -137,7 +143,12 @@ class FeedbackOnboardingViewModel
         }
 
         private fun handleFailure(error: Throwable) {
-            reduce { copy(isLoading = false) }
+            reduce {
+                copy(
+                    loadState = FeedbackOnboardingLoadState.Failed,
+                    isNameEditorVisible = false,
+                )
+            }
             viewModelScope.launch {
                 when (error) {
                     is GuestFeedbackRequestException -> {
@@ -159,6 +170,10 @@ class FeedbackOnboardingViewModel
 
                     else -> {
                         GlobalErrorHandler.emit(GlobalAppEvent.ShowUnknownError)
+                        showBlockingModal(
+                            title = "오류가 발생했어요",
+                            message = "앱을 종료한 뒤 링크를 다시 열어주세요.",
+                        )
                     }
                 }
             }
@@ -168,6 +183,12 @@ class FeedbackOnboardingViewModel
             title: String,
             message: String,
         ) {
+            reduce {
+                copy(
+                    loadState = FeedbackOnboardingLoadState.Failed,
+                    isNameEditorVisible = false,
+                )
+            }
             session.clear()
             val result =
                 showGlobalModal(

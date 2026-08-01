@@ -15,7 +15,6 @@ import com.dminus14.app.core.resources.coupon
 import com.dminus14.app.core.resources.delete
 import com.dminus14.app.core.resources.edit
 import com.dminus14.app.core.resources.expand
-import com.dminus14.app.core.resources.feedback
 import com.dminus14.app.core.resources.file
 import com.dminus14.app.core.resources.fill_warning
 import com.dminus14.app.core.resources.info
@@ -30,7 +29,6 @@ import com.dminus14.app.core.resources.script
 import com.dminus14.app.core.resources.skip_left
 import com.dminus14.app.core.resources.skip_right
 import com.dminus14.app.core.resources.success
-import com.dminus14.app.core.resources.talk
 import com.dminus14.app.core.resources.timer
 import com.dminus14.app.core.resources.upload
 import com.dminus14.app.core.resources.video
@@ -68,8 +66,6 @@ enum class HilitIconAsset(
     Delete("delete", 16.dp, Res.drawable.delete, preservesOriginalColors = true),
     FillWarning("fill_warning", 16.dp, Res.drawable.fill_warning, preservesOriginalColors = true),
     Upload("upload", 44.dp, Res.drawable.upload, preservesOriginalColors = true),
-    Talk("talk", 24.dp, Res.drawable.talk),
-    Feedback("feedback", 214.dp, Res.drawable.feedback, preservesOriginalColors = true),
 }
 
 @Composable
