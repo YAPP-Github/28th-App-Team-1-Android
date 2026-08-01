@@ -23,7 +23,11 @@ class Navigator(
         if (backStack.size > 1) {
             backStack.removeAt(backStack.lastIndex)
         } else {
-            onExit()
+            exit()
         }
+    }
+
+    fun exit() {
+        onExit()
     }
 }
