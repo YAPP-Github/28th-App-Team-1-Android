@@ -18,6 +18,7 @@ import com.dminus14.designsystem.component.textfield.HilitBottomOutlinedTextFiel
 import com.dminus14.designsystem.theme.HilitTheme
 
 private val TagToTitleSpacing = 8.dp
+private val TitleToSubtitleSpacing = 4.dp
 
 @Composable
 fun OnboardingNamingStep(
@@ -39,6 +40,16 @@ fun OnboardingNamingStep(
             modifier =
                 Modifier
                     .padding(top = TagToTitleSpacing)
+                    .fillMaxWidth(),
+        )
+
+        Text(
+            text = "이름은 5글자까지 가능합니다.",
+            style = HilitTheme.typography.body6,
+            color = HilitTheme.colors.gray500,
+            modifier =
+                Modifier
+                    .padding(top = TitleToSubtitleSpacing)
                     .fillMaxWidth(),
         )
 
