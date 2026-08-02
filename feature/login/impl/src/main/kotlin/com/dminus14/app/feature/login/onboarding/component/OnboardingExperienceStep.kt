@@ -25,8 +25,8 @@ import com.dminus14.designsystem.component.text.withHilitTextHighlight
 import com.dminus14.designsystem.component.wheelpicker.HilitWheelPicker
 import com.dminus14.designsystem.theme.HilitTheme
 
-private val TagToTitleSpacing = 12.dp
-private val TitleToSubtitleSpacing = 8.dp
+private val TagToTitleSpacing = 8.dp
+private val TitleToSubtitleSpacing = 4.dp
 private val WheelWidth = 104.dp
 private val SentenceSpacing = 12.dp
 
@@ -85,7 +85,7 @@ private fun ExperienceHeader() {
         Text(
             text = "지금까지 근무한 모든 기간의 합\n(정규직·계약직·프리랜서 포함, 인턴)입니다.",
             style = HilitTheme.typography.body4,
-            color = HilitTheme.colors.gray400,
+            color = HilitTheme.colors.gray500,
             modifier =
                 Modifier
                     .padding(top = TitleToSubtitleSpacing)
