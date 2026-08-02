@@ -39,7 +39,7 @@ fun OnboardingRegisterDoneStep(modifier: Modifier = Modifier) {
 
         Text(
             text = "등록이 완료됐어요!",
-            style = HilitTheme.typography.head4,
+            style = HilitTheme.typography.sub1,
             color = HilitTheme.colors.hilitBlack800,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = IconToTitleSpacing),
