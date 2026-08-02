@@ -32,7 +32,7 @@ class OnboardingViewModel
 
                 is OnboardingIntent.NameChange -> {
                     reduce {
-                        copy(name = sanitizeOnboardingNickname(intent.value)).withContinueEnabled()
+                        copy(name = sanitizeNickname(intent.value)).withContinueEnabled()
                     }
                 }
 
@@ -112,10 +112,23 @@ class OnboardingViewModel
 
         private fun resolveContinueEnabled(state: OnboardingState): Boolean =
             when (state.step) {
-                OnboardingStep.Naming -> isValidOnboardingNickname(state.name)
+                OnboardingStep.Naming -> isValidNickname(state.name)
                 OnboardingStep.JobSelection -> state.selectedJobIndex != null
                 OnboardingStep.ExperienceSelection ->
                     state.selectedExperienceIndex in state.experienceOptions.indices
                 OnboardingStep.RegisterDone -> true
             }
+
+        private fun sanitizeNickname(input: String): String =
+            input
+                .filter { char -> NICKNAME_ALLOWED_CHAR_REGEX.matches(char.toString()) }
+                .take(NICKNAME_MAX_LENGTH)
+
+        private fun isValidNickname(name: String): Boolean =
+            sanitizeNickname(name) == name && name.isNotBlank()
+
+        private companion object {
+            private const val NICKNAME_MAX_LENGTH = 5
+            private val NICKNAME_ALLOWED_CHAR_REGEX = Regex("[a-zA-Z가-힣ㄱ-ㅎㅏ-ㅣ]")
+        }
     }
