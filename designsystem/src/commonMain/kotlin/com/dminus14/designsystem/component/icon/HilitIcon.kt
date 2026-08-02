@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import com.dminus14.app.core.resources.Res
 import com.dminus14.app.core.resources.ai_sparkle
 import com.dminus14.app.core.resources.apple_logo
+import com.dminus14.app.core.resources.book
 import com.dminus14.app.core.resources.cancel
 import com.dminus14.app.core.resources.checkbox_check
 import com.dminus14.app.core.resources.checkbox_uncheck
@@ -84,6 +85,7 @@ enum class HilitIconAsset(
     FillWarning("fill_warning", 16.dp, Res.drawable.fill_warning, preservesOriginalColors = true),
     Upload("upload", 44.dp, Res.drawable.upload, preservesOriginalColors = true),
     Voice("voice", 28.dp, Res.drawable.voice, preservesOriginalColors = true),
+    Book("book", 63.dp, Res.drawable.book, preservesOriginalColors = true),
 }
 
 @Composable
