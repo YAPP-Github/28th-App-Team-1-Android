@@ -21,8 +21,8 @@ import com.dminus14.designsystem.component.text.HilitTextHighlightColor
 import com.dminus14.designsystem.component.text.withHilitTextHighlight
 import com.dminus14.designsystem.theme.HilitTheme
 
-private val TagToTitleSpacing = 12.dp
-private val TitleToSubtitleSpacing = 8.dp
+private val TagToTitleSpacing = 8.dp
+private val TitleToSubtitleSpacing = 4.dp
 private val HeaderToChipsSpacing = 34.dp
 private val ChipSpacing = 8.dp
 
