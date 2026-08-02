@@ -1,6 +1,5 @@
 package com.dminus14.app.feature.login.onboarding.component
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -57,7 +56,6 @@ fun OnboardingExperienceStep(
     }
 }
 
-@SuppressLint("ComposeMultipleContentEmitters")
 @Composable
 private fun ExperienceHeader() {
     val title =
@@ -66,32 +64,34 @@ private fun ExperienceHeader() {
             append("를 입력해 주세요")
         }
 
-    HilitTag(
-        colorType = TagColorType.Black,
-        tagType = TagType.Small,
-        text = "필수",
-    )
+    Column(modifier = Modifier.fillMaxWidth()) {
+        HilitTag(
+            colorType = TagColorType.Black,
+            tagType = TagType.Small,
+            text = "필수",
+        )
 
-    HilitText(
-        text = title,
-        color = HilitTheme.colors.hilitBlack800,
-        highlightColor = HilitTextHighlightColor.Green,
-        style = HilitTheme.typography.head3,
-        modifier =
-            Modifier
-                .padding(top = TagToTitleSpacing)
-                .fillMaxWidth(),
-    )
+        HilitText(
+            text = title,
+            color = HilitTheme.colors.hilitBlack800,
+            highlightColor = HilitTextHighlightColor.Green,
+            style = HilitTheme.typography.head3,
+            modifier =
+                Modifier
+                    .padding(top = TagToTitleSpacing)
+                    .fillMaxWidth(),
+        )
 
-    Text(
-        text = "지금까지 근무한 모든 기간의 합\n(정규직·계약직·프리랜서 포함, 인턴)입니다.",
-        style = HilitTheme.typography.body4,
-        color = HilitTheme.colors.gray400,
-        modifier =
-            Modifier
-                .padding(top = TitleToSubtitleSpacing)
-                .fillMaxWidth(),
-    )
+        Text(
+            text = "지금까지 근무한 모든 기간의 합\n(정규직·계약직·프리랜서 포함, 인턴)입니다.",
+            style = HilitTheme.typography.body4,
+            color = HilitTheme.colors.gray400,
+            modifier =
+                Modifier
+                    .padding(top = TitleToSubtitleSpacing)
+                    .fillMaxWidth(),
+        )
+    }
 }
 
 @Composable
