@@ -221,7 +221,6 @@ private fun TermContentCheckedPreview() {
     }
 }
 
-
 @Preview(showBackground = true, widthDp = 375, heightDp = 812)
 @Composable
 private fun TermDetailPreview() {
