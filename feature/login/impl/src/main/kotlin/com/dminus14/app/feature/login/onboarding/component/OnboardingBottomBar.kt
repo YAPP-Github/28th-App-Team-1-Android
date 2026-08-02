@@ -28,11 +28,14 @@ fun OnboardingBottomBar(
         }
 
         OnboardingStep.JobSelection -> {
-            HilitFixedBottomButton(
-                text = "계속하기",
-                enabled = isContinueEnabled,
-                type = HilitButtonType.Light,
-                onClick = { onIntent(OnboardingIntent.ContinueClick) },
+            HilitFixedBottomDualButton(
+                leftText = "이전으로",
+                rightText = "계속하기",
+                leftEnabled = true,
+                rightEnabled = isContinueEnabled,
+                type = HilitFixedBottomDualButtonType.Default,
+                onLeftClick = { onIntent(OnboardingIntent.PreviousClick) },
+                onRightClick = { onIntent(OnboardingIntent.ContinueClick) },
                 modifier = Modifier.navigationBarsPadding(),
             )
         }
