@@ -108,9 +108,9 @@ internal fun hilitChipStyle(
     }
 }
 
-private val ChipHorizontalPadding = 32.dp
-private val ChipVerticalPadding = 16.dp
-private val ChipBorderWidth = 1.dp
+private val ChipHorizontalPadding = 24.dp
+private val ChipVerticalPadding = 12.dp
+private val ChipBorderWidth = (1.2).dp
 
 @Preview(name = "HilitChip", showBackground = true)
 @Composable
