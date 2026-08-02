@@ -76,6 +76,36 @@ class TermViewModelTest {
     }
 
     @Test
+    fun `선택 약관이 체크되지 않아도 필수 약관이 모두 체크되면 canSubmit은 true다`() {
+        val terms =
+            SampleTerms.mapIndexed { index, term ->
+                if (index == SampleTerms.lastIndex) {
+                    term.copy(isEssential = false, isChecked = false)
+                } else {
+                    term.copy(isChecked = true)
+                }
+            }
+        val state = TermState(terms = terms)
+
+        assertTrue(state.canSubmit)
+    }
+
+    @Test
+    fun `필수 약관이 하나라도 체크되지 않으면 선택 약관을 체크해도 canSubmit은 false다`() {
+        val terms =
+            SampleTerms.mapIndexed { index, term ->
+                when (index) {
+                    0 -> term.copy(isChecked = false)
+                    SampleTerms.lastIndex -> term.copy(isEssential = false, isChecked = true)
+                    else -> term.copy(isChecked = true)
+                }
+            }
+        val state = TermState(terms = terms)
+
+        assertFalse(state.canSubmit)
+    }
+
+    @Test
     fun `visibleTermDetailIndex가 null이면 visibleTermDetail은 null이다`() {
         val state = TermState(terms = SampleTerms)
 
