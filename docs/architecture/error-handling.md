@@ -1,15 +1,15 @@
 # Error Handling
 
 이 문서는 오류 분류, 레이어별 전달 책임과 UI 처리 정책을 정의한다. Feature의 State와 Effect는
-[`feature-ui.md`](feature-ui.md), 앱 전역 Dialog는 [`global-dialog.md`](global-dialog.md)를 함께
+[`feature-ui.md`](feature-ui.md), 앱 전역 Modal은 [`global-modal.md`](global-modal.md)를 함께
 따른다.
 
 ## 1. 오류 분류
 
 | 타입 | 예시 | UI 처리 | 전달 방식 |
 |---|---|---|---|
-| `NetworkUnavailable` | 인터넷 연결 없음, timeout, DNS 실패 | 재시도 또는 앱 종료 Dialog | Global Event |
-| `ServerError` | HTTP 500, 502, 503 | 앱 종료 Dialog | Global Event |
+| `NetworkUnavailable` | 인터넷 연결 없음, timeout, DNS 실패 | 앱 종료 Modal | Global Event |
+| `ServerError` | HTTP 500, 502, 503 | 앱 종료 Modal | Global Event |
 | `ClientError` | HTTP 400, 401, 404 | 화면별 기획에 따른 UI | Feature State 또는 Effect |
 | `Unknown` | 분류할 수 없는 Exception | Toast | Global Event |
 
@@ -17,7 +17,7 @@
 
 - 화면별 message나 UI가 다르면 Feature State로 처리한다.
 - 한 번만 표시할 화면별 알림은 Feature Effect로 처리한다.
-- 앱 전체에서 동일한 Dialog, Toast 또는 Snackbar로 처리하면 Global Event를 사용한다.
+- 앱 전체에서 동일한 Modal, Toast 또는 Snackbar로 처리하면 Global Event를 사용한다.
 - 재시도나 앱 종료처럼 app-level action이 필요하면 Global Event를 사용한다.
 - Client Error를 기본 Global Event로 변환하지 않는다.
 
@@ -29,7 +29,7 @@
 | `domain` | UseCase 결과와 UI 독립 error를 전달하고 UI 표현은 결정하지 않음 |
 | `feature:*` | Client Error를 State/Effect로 처리하고 Network/Server/Unknown을 Global Event로 전달 |
 | `core:common` | 플랫폼 독립 공통 Error, `GlobalAppEvent`, `GlobalErrorHandler` 계약 |
-| `app` | Global Event를 collect하고 Dialog, Toast 또는 Snackbar 렌더링 |
+| `app` | Global Event를 collect하고 Modal, Toast 또는 Snackbar 렌더링 |
 
 새로운 오류 처리 mechanism을 임의로 만들지 않고 기존 Global Event 정책을 사용한다.
 
@@ -51,13 +51,15 @@ class UnknownException(...) : CustomException(...)
 
 ```kotlin
 sealed interface GlobalAppEvent {
-    data object ShowNetworkDialog : GlobalAppEvent
-    data object ShowServerErrorDialog : GlobalAppEvent
-    data class ShowToast(val message: String) : GlobalAppEvent
+    data object ShowNetworkErrorAndExit : GlobalAppEvent
+    data object ShowServerErrorAndExit : GlobalAppEvent
+    data object ShowUnknownError : GlobalAppEvent
 }
 ```
 
-`GlobalErrorHandler`는 project error를 app-level event로 변환한다.
+Feature는 오류를 분류해 해당 `GlobalAppEvent`를 선택하고, `GlobalErrorHandler`는 선택된 event를
+app에 전달하는 단일 hub 역할만 한다. `core:common`이 `domain` 예외 타입에 의존해 오류를 다시
+분류하지 않는다.
 
 ```kotlin
 import kotlinx.coroutines.channels.BufferOverflow
@@ -71,16 +73,6 @@ object GlobalErrorHandler {
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
     val events: SharedFlow<GlobalAppEvent> = _events.asSharedFlow()
-
-    suspend fun emit(error: CustomException) {
-        when (error) {
-            is NetworkUnavailableException -> emit(GlobalAppEvent.ShowNetworkDialog)
-            is ServerException -> emit(GlobalAppEvent.ShowServerErrorDialog)
-            is UnknownException -> emit(GlobalAppEvent.ShowToast(error.message))
-            is ClientException -> Unit
-            else -> emit(GlobalAppEvent.ShowToast(error.message))
-        }
-    }
 
     suspend fun emit(event: GlobalAppEvent) {
         _events.emit(event)
@@ -101,12 +93,16 @@ when (throwable) {
         copy(isLoading = false, errorMessage = throwable.message)
     }
 
-    is NetworkUnavailableException,
-    is ServerException,
-    is UnknownException,
-        -> GlobalErrorHandler.emit(throwable)
+    is NetworkUnavailableException ->
+        GlobalErrorHandler.emit(GlobalAppEvent.ShowNetworkErrorAndExit)
 
-    else -> GlobalErrorHandler.emit(GlobalAppEvent.ShowToast(...))
+    is ServerException ->
+        GlobalErrorHandler.emit(GlobalAppEvent.ShowServerErrorAndExit)
+
+    is UnknownException ->
+        GlobalErrorHandler.emit(GlobalAppEvent.ShowUnknownError)
+
+    else -> GlobalErrorHandler.emit(GlobalAppEvent.ShowUnknownError)
 }
 ```
 
@@ -120,23 +116,23 @@ ViewModel은 Android UI를 직접 표시하지 않는다.
 LaunchedEffect(Unit) {
     GlobalErrorHandler.events.collect { event ->
         when (event) {
-            GlobalAppEvent.ShowNetworkDialog -> ...
-            GlobalAppEvent.ShowServerErrorDialog -> ...
-            is GlobalAppEvent.ShowToast -> ...
+            GlobalAppEvent.ShowNetworkErrorAndExit -> ...
+            GlobalAppEvent.ShowServerErrorAndExit -> ...
+            GlobalAppEvent.ShowUnknownError -> ...
         }
     }
 }
 ```
 
-- Network와 Server Event는 app-level Dialog 정책에 연결한다.
+- Network와 Server Event는 app-level 종료 Modal 정책에 연결한다.
 - Unknown Event는 app-level Toast 또는 Snackbar에 연결한다.
 - UI component는 `designsystem`, Android action과 root rendering은 `app`이 소유한다.
 - 재시도 action은 현재 화면 또는 Feature 정책으로 다시 전달한다.
 
 ## 7. 금지 사항
 
-- `domain`에서 Dialog, Toast, Snackbar 문구나 UI 유형 결정
+- `domain`에서 Modal, Toast, Snackbar 문구나 UI 유형 결정
 - `data`에서 UI event 발행 또는 UI 정책 encoding
 - Feature에서 Network/Server/Unknown Error를 위한 별도 전역 mechanism 도입
-- ViewModel에서 Android Toast나 Dialog 직접 표시
+- ViewModel에서 Android Toast나 Modal 직접 표시
 - 민감한 error payload나 사용자 데이터를 plaintext log에 기록

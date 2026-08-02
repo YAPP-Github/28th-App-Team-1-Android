@@ -1,4 +1,4 @@
-package com.dminus14.app.dialog
+package com.dminus14.app.modal
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -6,7 +6,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dminus14.designsystem.component.modal.HilitModal
 
 @Composable
-fun GlobalDialogHost(manager: GlobalModalManager) {
+fun GlobalModalHost(manager: GlobalModalManager) {
     val event by manager.currentModal.collectAsStateWithLifecycle()
 
     event?.let { currentEvent ->

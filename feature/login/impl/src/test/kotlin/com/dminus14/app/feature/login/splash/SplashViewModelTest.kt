@@ -2,17 +2,25 @@ package com.dminus14.app.feature.login.splash
 
 import com.dminus14.app.core.common.event.GlobalAppEvent
 import com.dminus14.app.core.common.event.GlobalErrorHandler
+import com.dminus14.app.domain.exception.InvalidCredentialException
 import com.dminus14.app.domain.exception.NetworkUnavailableException
 import com.dminus14.app.domain.exception.ServerException
+import com.dminus14.app.domain.exception.SocialLoginFailedException
 import com.dminus14.app.domain.exception.UnknownException
 import com.dminus14.app.domain.exception.UserNotFoundException
 import com.dminus14.app.domain.model.AuthSession
+import com.dminus14.app.domain.model.ConsentDocument
+import com.dminus14.app.domain.model.ConsentPendingStatus
+import com.dminus14.app.domain.model.ConsentSubmission
+import com.dminus14.app.domain.model.PendingConsentList
 import com.dminus14.app.domain.model.UserProfile
 import com.dminus14.app.domain.repository.AuthRepository
+import com.dminus14.app.domain.repository.ConsentRepository
 import com.dminus14.app.domain.repository.SessionRepository
 import com.dminus14.app.domain.repository.UserRepository
 import com.dminus14.app.domain.usecase.CheckUserProfileUseCase
 import com.dminus14.app.domain.usecase.GetAuthSessionUseCase
+import com.dminus14.app.domain.usecase.GetPendingConsentListUseCase
 import com.dminus14.app.domain.usecase.LoginWithKakaoUseCase
 import com.dminus14.app.feature.login.kakao.KakaoLoginException
 import kotlinx.coroutines.CoroutineStart
@@ -28,14 +36,13 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SplashViewModelTest {
     @Test
-    fun `Load 시 세션과 완성된 프로필이 있으면 ProfileReady Effect를 발행한다`() =
+    fun `Load 시 세션과 동의 최신·완성된 프로필이 있으면 Ready Effect를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -43,20 +50,21 @@ class SplashViewModelTest {
                 val viewModel =
                     createViewModel(
                         session = sampleSession,
+                        pendingResult = Result.success(upToDatePending),
                         profileResult = Result.success(sampleUserProfile),
                     )
                 val effect = async { viewModel.effect.first() }
 
                 viewModel.onIntent(SplashIntent.Load)
 
-                assertEquals(SplashEffect.ProfileReady, effect.await())
+                assertEquals(SplashEffect.Ready, effect.await())
             } finally {
                 Dispatchers.resetMain()
             }
         }
 
     @Test
-    fun `Load 시 세션은 있지만 이름이 없으면 OnboardingRequired Effect를 발행한다`() =
+    fun `Load 시 세션과 동의 최신이지만 이름이 없으면 RequireOnboarding Effect를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -64,13 +72,14 @@ class SplashViewModelTest {
                 val viewModel =
                     createViewModel(
                         session = sampleSession,
+                        pendingResult = Result.success(upToDatePending),
                         profileResult = Result.success(sampleUserProfileWithoutName),
                     )
                 val effect = async { viewModel.effect.first() }
 
                 viewModel.onIntent(SplashIntent.Load)
 
-                assertEquals(SplashEffect.OnboardingRequired, effect.await())
+                assertEquals(SplashEffect.RequireOnboarding, effect.await())
             } finally {
                 Dispatchers.resetMain()
             }
@@ -85,6 +94,7 @@ class SplashViewModelTest {
                 val viewModel =
                     createViewModel(
                         session = null,
+                        pendingResult = Result.success(upToDatePending),
                         profileResult = Result.success(sampleUserProfile),
                     )
                 val receivedEffects = mutableListOf<SplashEffect>()
@@ -94,6 +104,7 @@ class SplashViewModelTest {
                 advanceUntilIdle()
 
                 assertTrue(viewModel.state.value.showKakaoLoginButton)
+                assertFalse(viewModel.state.value.isLoading)
                 assertEquals(emptyList<SplashEffect>(), receivedEffects)
             } finally {
                 Dispatchers.resetMain()
@@ -101,7 +112,33 @@ class SplashViewModelTest {
         }
 
     @Test
-    fun `Load 시 세션은 있지만 프로필이 없으면 ProfileNotFound Effect를 발행한다`() =
+    fun `Load 시 세션이 없으면 이전 카카오 로그인 로딩 상태를 해제한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = null,
+                        pendingResult = Result.success(upToDatePending),
+                        profileResult = Result.success(sampleUserProfile),
+                    )
+
+                viewModel.onIntent(SplashIntent.ClickKakaoLogin)
+                assertTrue(viewModel.state.value.isLoading)
+
+                viewModel.onIntent(SplashIntent.Load)
+                advanceUntilIdle()
+
+                assertFalse(viewModel.state.value.isLoading)
+                assertTrue(viewModel.state.value.showKakaoLoginButton)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun `Load 시 세션은 있지만 최초 동의가 필요하면 RequireConsent Effect를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -109,6 +146,51 @@ class SplashViewModelTest {
                 val viewModel =
                     createViewModel(
                         session = sampleSession,
+                        pendingResult = Result.success(notSubmittedPending),
+                        profileResult = Result.success(sampleUserProfile),
+                    )
+                val effect = async { viewModel.effect.first() }
+
+                viewModel.onIntent(SplashIntent.Load)
+
+                assertEquals(SplashEffect.RequireConsent, effect.await())
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun `Load 시 세션은 있지만 재동의가 필요하면 RequireConsent Effect를 발행한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = sampleSession,
+                        pendingResult = Result.success(stalePending),
+                        profileResult = Result.success(sampleUserProfile),
+                    )
+                val effect = async { viewModel.effect.first() }
+
+                viewModel.onIntent(SplashIntent.Load)
+
+                assertEquals(SplashEffect.RequireConsent, effect.await())
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun `Load 시 동의 최신인데 프로필이 없으면 RequireOnboarding Effect를 발행한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = sampleSession,
+                        pendingResult = Result.success(upToDatePending),
                         profileResult =
                             Result.failure(UserNotFoundException(errCode = "USER_NOT_FOUND")),
                     )
@@ -116,14 +198,14 @@ class SplashViewModelTest {
 
                 viewModel.onIntent(SplashIntent.Load)
 
-                assertEquals(SplashEffect.ProfileNotFound, effect.await())
+                assertEquals(SplashEffect.RequireOnboarding, effect.await())
             } finally {
                 Dispatchers.resetMain()
             }
         }
 
     @Test
-    fun `Load 시 세션은 있지만 네트워크 오류면 ShowNetworkErrorAndExit를 발행한다`() =
+    fun `Load 시 세션은 있지만 동의 조회 네트워크 오류면 ShowNetworkErrorAndExit를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -131,10 +213,11 @@ class SplashViewModelTest {
                 val viewModel =
                     createViewModel(
                         session = sampleSession,
-                        profileResult =
+                        pendingResult =
                             Result.failure(
                                 NetworkUnavailableException(errCode = "NETWORK_UNAVAILABLE"),
                             ),
+                        profileResult = Result.success(sampleUserProfile),
                     )
                 val receivedEffects = mutableListOf<SplashEffect>()
                 backgroundScope.launch { viewModel.effect.collect(receivedEffects::add) }
@@ -151,7 +234,7 @@ class SplashViewModelTest {
         }
 
     @Test
-    fun `Load 시 세션은 있지만 서버 오류면 ShowServerErrorAndExit를 발행한다`() =
+    fun `Load 시 세션은 있지만 동의 조회 서버 오류면 ShowServerErrorAndExit를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -159,7 +242,8 @@ class SplashViewModelTest {
                 val viewModel =
                     createViewModel(
                         session = sampleSession,
-                        profileResult = Result.failure(ServerException(errCode = "SERVER_ERROR")),
+                        pendingResult = Result.failure(ServerException(errCode = "SERVER_ERROR")),
+                        profileResult = Result.success(sampleUserProfile),
                     )
                 val receivedEffects = mutableListOf<SplashEffect>()
                 backgroundScope.launch { viewModel.effect.collect(receivedEffects::add) }
@@ -176,7 +260,7 @@ class SplashViewModelTest {
         }
 
     @Test
-    fun `Load 시 세션은 있지만 알 수 없는 오류면 ShowUnknownError를 발행한다`() =
+    fun `Load 시 세션은 있지만 동의 조회 알 수 없는 오류면 ShowUnknownError를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -184,7 +268,8 @@ class SplashViewModelTest {
                 val viewModel =
                     createViewModel(
                         session = sampleSession,
-                        profileResult = Result.failure(UnknownException(errCode = "UNKNOWN")),
+                        pendingResult = Result.failure(UnknownException(errCode = "UNKNOWN")),
+                        profileResult = Result.success(sampleUserProfile),
                     )
                 val receivedEffects = mutableListOf<SplashEffect>()
                 backgroundScope.launch { viewModel.effect.collect(receivedEffects::add) }
@@ -201,7 +286,7 @@ class SplashViewModelTest {
         }
 
     @Test
-    fun `카카오 로그인 성공 후 완성된 프로필이 있으면 ProfileReady Effect를 발행한다`() =
+    fun `카카오 로그인 성공 후 동의 최신·완성된 프로필이면 Ready Effect를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -209,6 +294,7 @@ class SplashViewModelTest {
                 val viewModel =
                     createViewModel(
                         session = null,
+                        pendingResult = Result.success(upToDatePending),
                         profileResult = Result.success(sampleUserProfile),
                         loginResult = Result.success(sampleSession),
                     )
@@ -216,7 +302,7 @@ class SplashViewModelTest {
 
                 viewModel.onIntent(SplashIntent.KakaoLoginSucceeded("credential"))
 
-                assertEquals(SplashEffect.ProfileReady, effect.await())
+                assertEquals(SplashEffect.Ready, effect.await())
                 assertFalse(viewModel.state.value.isLoading)
                 assertFalse(viewModel.state.value.showKakaoLoginButton)
             } finally {
@@ -225,7 +311,7 @@ class SplashViewModelTest {
         }
 
     @Test
-    fun `카카오 로그인 성공 후 이름이 없으면 OnboardingRequired Effect를 발행한다`() =
+    fun `카카오 로그인 성공 후 동의 최신이지만 이름이 없으면 RequireOnboarding Effect를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -233,6 +319,7 @@ class SplashViewModelTest {
                 val viewModel =
                     createViewModel(
                         session = null,
+                        pendingResult = Result.success(upToDatePending),
                         profileResult = Result.success(sampleUserProfileWithoutName),
                         loginResult = Result.success(sampleSession),
                     )
@@ -240,14 +327,14 @@ class SplashViewModelTest {
 
                 viewModel.onIntent(SplashIntent.KakaoLoginSucceeded("credential"))
 
-                assertEquals(SplashEffect.OnboardingRequired, effect.await())
+                assertEquals(SplashEffect.RequireOnboarding, effect.await())
             } finally {
                 Dispatchers.resetMain()
             }
         }
 
     @Test
-    fun `카카오 로그인 성공 후 프로필이 없으면 ProfileNotFound Effect를 발행한다`() =
+    fun `카카오 로그인 성공 후 최초 동의가 필요하면 RequireConsent Effect를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -255,15 +342,111 @@ class SplashViewModelTest {
                 val viewModel =
                     createViewModel(
                         session = null,
-                        profileResult =
-                            Result.failure(UserNotFoundException(errCode = "USER_NOT_FOUND")),
+                        pendingResult = Result.success(notSubmittedPending),
+                        profileResult = Result.success(sampleUserProfile),
                         loginResult = Result.success(sampleSession),
                     )
                 val effect = async { viewModel.effect.first() }
 
                 viewModel.onIntent(SplashIntent.KakaoLoginSucceeded("credential"))
 
-                assertEquals(SplashEffect.ProfileNotFound, effect.await())
+                assertEquals(SplashEffect.RequireConsent, effect.await())
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun `카카오 로그인 API가 SOCIAL_LOGIN_FAILED면 ShowToast Effect를 발행한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = null,
+                        pendingResult = Result.success(upToDatePending),
+                        profileResult = Result.success(sampleUserProfile),
+                        loginResult =
+                            Result.failure(
+                                SocialLoginFailedException(
+                                    errCode = "SOCIAL_LOGIN_FAILED",
+                                    message = "소셜 로그인에 실패했습니다.",
+                                ),
+                            ),
+                    )
+                val effect = async { viewModel.effect.first() }
+
+                viewModel.onIntent(SplashIntent.KakaoLoginSucceeded("credential"))
+
+                assertEquals(
+                    SplashEffect.ShowToast("소셜 로그인에 실패했습니다."),
+                    effect.await(),
+                )
+                assertFalse(viewModel.state.value.isLoading)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun `카카오 로그인 API가 INVALID_CREDENTIAL이면 ShowToast Effect를 발행한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = null,
+                        pendingResult = Result.success(upToDatePending),
+                        profileResult = Result.success(sampleUserProfile),
+                        loginResult =
+                            Result.failure(
+                                InvalidCredentialException(
+                                    errCode = "INVALID_CREDENTIAL",
+                                    message = "유효하지 않은 인증 정보입니다.",
+                                ),
+                            ),
+                    )
+                val effect = async { viewModel.effect.first() }
+
+                viewModel.onIntent(SplashIntent.KakaoLoginSucceeded("credential"))
+
+                assertEquals(
+                    SplashEffect.ShowToast("유효하지 않은 인증 정보입니다."),
+                    effect.await(),
+                )
+                assertFalse(viewModel.state.value.isLoading)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun `카카오 로그인 API 네트워크 오류면 ShowNetworkErrorAndExit를 발행한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = null,
+                        pendingResult = Result.success(upToDatePending),
+                        profileResult = Result.success(sampleUserProfile),
+                        loginResult =
+                            Result.failure(
+                                NetworkUnavailableException(errCode = "NETWORK_UNAVAILABLE"),
+                            ),
+                    )
+                val receivedEffects = mutableListOf<SplashEffect>()
+                backgroundScope.launch { viewModel.effect.collect(receivedEffects::add) }
+                val globalEvent =
+                    async(start = CoroutineStart.UNDISPATCHED) { GlobalErrorHandler.events.first() }
+
+                viewModel.onIntent(SplashIntent.KakaoLoginSucceeded("credential"))
+
+                assertEquals(GlobalAppEvent.ShowNetworkErrorAndExit, globalEvent.await())
+                assertEquals(emptyList<SplashEffect>(), receivedEffects)
             } finally {
                 Dispatchers.resetMain()
             }
@@ -278,8 +461,12 @@ class SplashViewModelTest {
                 val viewModel =
                     createViewModel(
                         session = null,
+                        pendingResult = Result.success(upToDatePending),
                         profileResult = Result.success(sampleUserProfile),
                     )
+                val receivedEffects = mutableListOf<SplashEffect>()
+                backgroundScope.launch { viewModel.effect.collect(receivedEffects::add) }
+
                 viewModel.onIntent(SplashIntent.ClickKakaoLogin)
                 assertTrue(viewModel.state.value.isLoading)
 
@@ -287,7 +474,34 @@ class SplashViewModelTest {
                 advanceUntilIdle()
 
                 assertFalse(viewModel.state.value.isLoading)
-                assertNull(viewModel.state.value.errorMessage)
+                assertEquals(emptyList<SplashEffect>(), receivedEffects)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun `카카오 SDK 로그인 실패면 ShowToast Effect를 발행한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = null,
+                        pendingResult = Result.success(upToDatePending),
+                        profileResult = Result.success(sampleUserProfile),
+                    )
+                val effect = async { viewModel.effect.first() }
+
+                viewModel.onIntent(SplashIntent.ClickKakaoLogin)
+                viewModel.onIntent(SplashIntent.KakaoLoginFailed(KakaoLoginException.AccessDenied))
+
+                assertEquals(
+                    SplashEffect.ShowToast("로그인 동의가 필요합니다."),
+                    effect.await(),
+                )
+                assertFalse(viewModel.state.value.isLoading)
             } finally {
                 Dispatchers.resetMain()
             }
@@ -295,6 +509,7 @@ class SplashViewModelTest {
 
     private fun createViewModel(
         session: AuthSession?,
+        pendingResult: Result<PendingConsentList>,
         profileResult: Result<UserProfile>,
         loginResult: Result<AuthSession> = Result.success(sampleSession),
     ): SplashViewModel =
@@ -302,6 +517,7 @@ class SplashViewModelTest {
             GetAuthSessionUseCase(FakeSessionRepository(session)),
             CheckUserProfileUseCase(FakeUserRepository(profileResult)),
             LoginWithKakaoUseCase(FakeAuthRepository(loginResult)),
+            GetPendingConsentListUseCase(FakeConsentRepository(pendingResult)),
         )
 
     private companion object {
@@ -325,6 +541,24 @@ class SplashViewModelTest {
         val sampleUserProfileWithoutName =
             sampleUserProfile.copy(
                 name = null,
+            )
+
+        val upToDatePending =
+            PendingConsentList(
+                status = ConsentPendingStatus.UP_TO_DATE,
+                items = emptyList(),
+            )
+
+        val notSubmittedPending =
+            PendingConsentList(
+                status = ConsentPendingStatus.NOT_SUBMITTED,
+                items = emptyList(),
+            )
+
+        val stalePending =
+            PendingConsentList(
+                status = ConsentPendingStatus.STALE,
+                items = emptyList(),
             )
     }
 
@@ -355,5 +589,20 @@ class SplashViewModelTest {
     ) : AuthRepository {
         override suspend fun loginWithKakao(credential: String): AuthSession =
             loginResult.getOrThrow()
+    }
+
+    private class FakeConsentRepository(
+        private val pendingResult: Result<PendingConsentList>,
+    ) : ConsentRepository {
+        override suspend fun getPendingConsentList(): PendingConsentList =
+            pendingResult.getOrThrow()
+
+        override suspend fun getConsentDocument(
+            rawCode: String,
+            version: Int,
+        ): ConsentDocument = error("Not used in SplashViewModelTest")
+
+        override suspend fun submitConsent(submission: ConsentSubmission) =
+            error("Not used in SplashViewModelTest")
     }
 }

@@ -197,7 +197,7 @@ android-project/
 | Design System과 resource | [`design-system.md`](design-system.md) |
 | Catalog와 Controls | [`catalog.md`](catalog.md) |
 | Error 처리 | [`error-handling.md`](error-handling.md) |
-| Global Dialog | [`global-dialog.md`](global-dialog.md) |
+| Global Modal | [`global-modal.md`](global-modal.md) |
 | Convention Plugin | [`build-conventions.md`](build-conventions.md) |
 
 `AppNavigationState`가 사용하는 `ActivityRetainedScoped` 수명 계약은

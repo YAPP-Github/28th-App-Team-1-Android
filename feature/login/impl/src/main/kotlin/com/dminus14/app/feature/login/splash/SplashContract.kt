@@ -22,16 +22,20 @@ sealed interface SplashIntent : MviIntent {
 data class SplashState(
     val showKakaoLoginButton: Boolean = false,
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
 ) : MviState
 
 sealed interface SplashEffect : MviEffect {
-    /** 프로필이 있고 온보딩이 완료된 상태다. */
-    data object ProfileReady : SplashEffect
+    /** 동의·온보딩이 완료되어 홈으로 이동한다. */
+    data object Ready : SplashEffect
 
-    /** 프로필은 있지만 온보딩이 필요하다. */
-    data object OnboardingRequired : SplashEffect
+    /** 약관(최초/재동의)이 필요하다. */
+    data object RequireConsent : SplashEffect
 
-    /** 세션은 있으나 프로필이 없다. */
-    data object ProfileNotFound : SplashEffect
+    /** 온보딩(이름 등록 등)이 필요하다. */
+    data object RequireOnboarding : SplashEffect
+
+    /** 로그인 실패 등 1회성 Toast를 표시한다. */
+    data class ShowToast(
+        val message: String,
+    ) : SplashEffect
 }

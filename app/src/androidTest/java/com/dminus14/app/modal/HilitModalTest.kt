@@ -1,4 +1,4 @@
-package com.dminus14.app.dialog
+package com.dminus14.app.modal
 
 import android.os.SystemClock
 import android.view.InputDevice
@@ -17,12 +17,12 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
-class DMinusDialogTest {
+class HilitModalTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun `다이얼로그는 콘텐츠를 표시하고 버튼 콜백을 호출한다`() {
+    fun `모달은 콘텐츠를 표시하고 버튼 콜백을 호출한다`() {
         var confirmCount = 0
         var cancelCount = 0
         composeRule.setContent {
@@ -48,7 +48,7 @@ class DMinusDialogTest {
     }
 
     @Test
-    fun `닫을 수 있는 다이얼로그는 뒤로 가기 시 닫기 콜백을 호출한다`() {
+    fun `닫을 수 있는 모달은 뒤로 가기 시 닫기 콜백을 호출한다`() {
         var dismissCount = 0
         setDialog(dismissible = true, onDismiss = { dismissCount++ })
 
@@ -59,7 +59,7 @@ class DMinusDialogTest {
     }
 
     @Test
-    fun `닫을 수 없는 다이얼로그는 뒤로 가기를 무시한다`() {
+    fun `닫을 수 없는 모달은 뒤로 가기를 무시한다`() {
         var dismissCount = 0
         setDialog(dismissible = false, onDismiss = { dismissCount++ })
 
@@ -71,7 +71,7 @@ class DMinusDialogTest {
     }
 
     @Test
-    fun `닫을 수 있는 다이얼로그는 바깥 영역 터치 시 닫기 콜백을 호출한다`() {
+    fun `닫을 수 있는 모달은 바깥 영역 터치 시 닫기 콜백을 호출한다`() {
         var dismissCount = 0
         setDialog(dismissible = true, onDismiss = { dismissCount++ })
 
@@ -82,7 +82,7 @@ class DMinusDialogTest {
     }
 
     @Test
-    fun `닫을 수 없는 다이얼로그는 바깥 영역 터치를 무시한다`() {
+    fun `닫을 수 없는 모달은 바깥 영역 터치를 무시한다`() {
         var dismissCount = 0
         setDialog(dismissible = false, onDismiss = { dismissCount++ })
 
