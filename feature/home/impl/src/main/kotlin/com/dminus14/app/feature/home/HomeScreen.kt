@@ -1,12 +1,13 @@
 package com.dminus14.app.feature.home
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,13 +19,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -44,10 +44,10 @@ private val GreetingTopSpacing = 54.dp
 private val GreetingToHintSpacing = 60.dp
 private val HintHorizontalPadding = 10.dp
 private val HintVerticalPadding = 16.dp
-private val TopBarExpandedShadowElevation = 6.dp
+private val TopBarShadowHeight = 16.dp
 private val TopBarExpandedShadowColor = Color(0x99DDDFE5)
-private val FallbackExpandedTop = 87.dp
 private val HomeTopBarHeight = 52.dp
+private val FallbackExpandedTop = HomeTopBarHeight
 
 @Composable
 fun HomeScreen(
@@ -97,7 +97,6 @@ private fun HomeContent(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .statusBarsPadding()
                     .padding(top = HomeTopBarHeight),
         ) {
             HomeHeroSection(userName = state.userName)
@@ -125,14 +124,11 @@ private fun HomeContent(
 
         HomeTopBar(
             showExpandedShadow = sheetAnchor == HomeSheetAnchor.Expanded,
+            onBottomPositioned = { topBarBottomPx = it },
             modifier =
                 Modifier
                     .zIndex(1f)
-                    .statusBarsPadding()
-                    .fillMaxWidth()
-                    .onGloballyPositioned { coordinates ->
-                        topBarBottomPx = coordinates.positionInRoot().y + coordinates.size.height
-                    },
+                    .fillMaxWidth(),
         )
     }
 }
@@ -140,22 +136,30 @@ private fun HomeContent(
 @Composable
 private fun HomeTopBar(
     showExpandedShadow: Boolean,
+    onBottomPositioned: (Float) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val shadowModifier =
+    Column(modifier = modifier) {
+        HilitLogoTopBar(
+            modifier =
+                Modifier.onGloballyPositioned { coordinates ->
+                    onBottomPositioned(coordinates.positionInRoot().y + coordinates.size.height)
+                },
+        )
         if (showExpandedShadow) {
-            Modifier.shadow(
-                elevation = TopBarExpandedShadowElevation,
-                shape = RectangleShape,
-                clip = false,
-                ambientColor = TopBarExpandedShadowColor,
-                spotColor = TopBarExpandedShadowColor,
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(TopBarShadowHeight)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(TopBarExpandedShadowColor, TopBarExpandedShadowColor.copy(alpha = 0f)),
+                            ),
+                        ),
             )
-        } else {
-            Modifier
         }
-
-    HilitLogoTopBar(modifier = modifier.then(shadowModifier))
+    }
 }
 
 @Composable
