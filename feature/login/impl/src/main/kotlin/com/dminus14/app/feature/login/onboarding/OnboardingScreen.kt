@@ -251,6 +251,49 @@ private fun OnboardingNamingPreview() {
 }
 
 @Preview(
+    name = "Naming",
+    showBackground = true,
+    widthDp = 375,
+    heightDp = 812,
+)
+@Composable
+private fun OnboardingInputNamingPreview() {
+    HilitTheme {
+        OnboardingContent(
+            state =
+                OnboardingState(
+                    step = OnboardingStep.Naming,
+                    name = "재원",
+                    isContinueEnabled = true,
+                ),
+            onIntent = {},
+        )
+    }
+}
+
+@Preview(
+    name = "JobUnSelection",
+    showBackground = true,
+    widthDp = 375,
+    heightDp = 812,
+)
+@Composable
+private fun OnboardingJobUnSelectionPreview() {
+    HilitTheme {
+        OnboardingContent(
+            state =
+                OnboardingState(
+                    step = OnboardingStep.JobSelection,
+                    name = "재원",
+                    selectedJobIndex = null,
+                    isContinueEnabled = true,
+                ),
+            onIntent = {},
+        )
+    }
+}
+
+@Preview(
     name = "JobSelection",
     showBackground = true,
     widthDp = 375,
