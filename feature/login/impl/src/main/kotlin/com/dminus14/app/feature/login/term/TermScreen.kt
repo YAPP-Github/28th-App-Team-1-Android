@@ -221,6 +221,22 @@ private fun TermContentCheckedPreview() {
     }
 }
 
+
+@Preview(showBackground = true, widthDp = 375, heightDp = 812)
+@Composable
+private fun TermDetailPreview() {
+    HilitTheme {
+        TermContent(
+            state =
+                TermState(
+                    terms = PreviewTerms.map { it.copy(isChecked = true) },
+                    visibleTermDetailIndex = 1,
+                ),
+            onIntent = {},
+        )
+    }
+}
+
 private val PreviewTerms =
     listOf(
         TermDetailContent(
