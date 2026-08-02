@@ -24,6 +24,11 @@ import com.dminus14.designsystem.component.fileupload.PdfUpload
 import com.dminus14.designsystem.component.fileupload.PdfUploadType
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
+import com.dminus14.designsystem.component.button.HilitFixedBottomDualButton
+import com.dminus14.designsystem.component.button.HilitFixedBottomDualButtonType
+import com.dminus14.designsystem.component.modal.HilitBookIllustration
+import com.dminus14.designsystem.component.modal.HilitModal
+import com.dminus14.designsystem.component.modal.HilitModalType
 import com.dminus14.designsystem.component.tag.TagColorType
 import com.dminus14.designsystem.component.text.withHilitTextHighlight
 import com.dminus14.designsystem.theme.HilitTheme
@@ -91,9 +96,20 @@ fun OnBoardingPortfolioStep(
     }
 
     if (showExistingPortfolioModal) {
-        OnBoardingExistingPortfolioModal(
-            onUseExistingClick = { onIntent(OnBoardingInterviewIntent.PortfolioUseExistingClick) },
-            onUploadNewClick = { onIntent(OnBoardingInterviewIntent.PortfolioUploadNewClick) },
+        HilitModal(
+            type = HilitModalType.InvisibleInfo,
+            title = "기존에 있는 포트폴리오로\n진행할까요?",
+            dismissible = false,
+            graphic = { HilitBookIllustration() },
+            buttons = {
+                HilitFixedBottomDualButton(
+                    leftText = "새로 업로드",
+                    rightText = "기존 포트폴리오 사용",
+                    type = HilitFixedBottomDualButtonType.Default,
+                    onLeftClick = { onIntent(OnBoardingInterviewIntent.PortfolioUploadNewClick) },
+                    onRightClick = { onIntent(OnBoardingInterviewIntent.PortfolioUseExistingClick) },
+                )
+            },
         )
     }
 }

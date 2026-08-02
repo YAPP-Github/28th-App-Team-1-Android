@@ -3,7 +3,7 @@ package com.dminus14.app.modal
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.dminus14.designsystem.component.modal.HilitModal
+import com.dminus14.designsystem.component.modal.HilitGlobalModal
 
 @Composable
 fun GlobalModalHost(manager: GlobalModalManager) {
@@ -12,7 +12,7 @@ fun GlobalModalHost(manager: GlobalModalManager) {
     event?.let { currentEvent ->
         val request = currentEvent.request
 
-        HilitModal(
+        HilitGlobalModal(
             title = request.title,
             message = request.message,
             confirmText = request.confirmText,

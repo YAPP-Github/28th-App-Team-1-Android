@@ -12,6 +12,7 @@ import stories.components.designsystem.hilitjdtextfield.HilitJDTextFieldStories
 import stories.components.designsystem.hilitloadingindicator.HilitLoadingIndicatorStories
 import stories.components.designsystem.hilitmediumbutton.HilitMediumButtonStories
 import stories.components.designsystem.hilitminibutton.HilitMiniButtonStories
+import stories.components.designsystem.hilitglobalmodal.HilitGlobalModalStories
 import stories.components.designsystem.hilitmodal.HilitModalStories
 import stories.components.designsystem.hilitoptionalbutton.HilitOptionalButtonStories
 import stories.components.designsystem.hilitprogressbar.HilitProgressBarStories
@@ -54,6 +55,7 @@ internal val CatalogStories: List<StoryGroup> =
         HilitTextHighlightStories,
         HilitToggleStories,
         HilitBottomOutlinedTextFieldStories,
+        HilitGlobalModalStories,
         HilitModalStories,
         HilitWheelPickerStories,
         HilitProgressBarStories,

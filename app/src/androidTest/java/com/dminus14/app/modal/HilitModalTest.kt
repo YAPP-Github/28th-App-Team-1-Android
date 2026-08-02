@@ -11,7 +11,7 @@ import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.platform.app.InstrumentationRegistry
-import com.dminus14.designsystem.component.modal.HilitModal
+import com.dminus14.designsystem.component.modal.HilitGlobalModal
 import com.dminus14.designsystem.theme.HilitTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -27,7 +27,7 @@ class HilitModalTest {
         var cancelCount = 0
         composeRule.setContent {
             HilitTheme {
-                HilitModal(
+                HilitGlobalModal(
                     title = "Synthetic title",
                     message = "Synthetic message",
                     confirmText = "Confirm",
@@ -175,7 +175,7 @@ class HilitModalTest {
     ) {
         composeRule.setContent {
             HilitTheme {
-                HilitModal(
+                HilitGlobalModal(
                     title = "Synthetic title",
                     message = "Synthetic message",
                     confirmText = "Confirm",
