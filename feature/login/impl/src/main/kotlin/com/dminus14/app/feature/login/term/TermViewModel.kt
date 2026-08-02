@@ -35,7 +35,7 @@ class TermViewModel
 
                 TermIntent.ClickAgree -> {
                     if (state.value.canSubmit) {
-                        // TODO: 약관 동의 및 권한 상태 확인
+                        sendEffect(TermEffect.Agreed)
                     }
                 }
             }

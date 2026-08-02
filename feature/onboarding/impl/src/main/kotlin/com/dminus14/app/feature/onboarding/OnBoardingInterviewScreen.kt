@@ -255,9 +255,11 @@ private fun OnBoardingInterviewJobDescriptionPreview() {
 private fun OnBoardingInterviewPortfolioPreview() {
     HilitTheme {
         OnBoardingInterviewContent(
-            state = OnBoardingInterviewState(
-                step = OnBoardingInterviewStep.Portfolio,
-                showExistingPortfolioModal=true),
+            state =
+                OnBoardingInterviewState(
+                    step = OnBoardingInterviewStep.Portfolio,
+                    showExistingPortfolioModal = true,
+                ),
             onIntent = {},
         )
     }

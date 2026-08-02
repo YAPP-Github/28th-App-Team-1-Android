@@ -19,13 +19,13 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dminus14.app.feature.onboarding.OnBoardingInterviewIntent
+import com.dminus14.designsystem.component.button.HilitFixedBottomDualButton
+import com.dminus14.designsystem.component.button.HilitFixedBottomDualButtonType
 import com.dminus14.designsystem.component.fileupload.FileUploadGuide
 import com.dminus14.designsystem.component.fileupload.PdfUpload
 import com.dminus14.designsystem.component.fileupload.PdfUploadType
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
-import com.dminus14.designsystem.component.button.HilitFixedBottomDualButton
-import com.dminus14.designsystem.component.button.HilitFixedBottomDualButtonType
 import com.dminus14.designsystem.component.modal.HilitBookIllustration
 import com.dminus14.designsystem.component.modal.HilitModal
 import com.dminus14.designsystem.component.modal.HilitModalType
@@ -96,22 +96,27 @@ fun OnBoardingPortfolioStep(
     }
 
     if (showExistingPortfolioModal) {
-        HilitModal(
-            type = HilitModalType.InvisibleInfo,
-            title = "기존에 있는 포트폴리오로\n진행할까요?",
-            dismissible = false,
-            graphic = { HilitBookIllustration() },
-            buttons = {
-                HilitFixedBottomDualButton(
-                    leftText = "새로 업로드",
-                    rightText = "기존 포트폴리오 사용",
-                    type = HilitFixedBottomDualButtonType.Default,
-                    onLeftClick = { onIntent(OnBoardingInterviewIntent.PortfolioUploadNewClick) },
-                    onRightClick = { onIntent(OnBoardingInterviewIntent.PortfolioUseExistingClick) },
-                )
-            },
-        )
+        OnBoardingExistingPortfolioModal(onIntent = onIntent)
     }
+}
+
+@Composable
+private fun OnBoardingExistingPortfolioModal(onIntent: (OnBoardingInterviewIntent) -> Unit) {
+    HilitModal(
+        type = HilitModalType.InvisibleInfo,
+        title = "기존에 있는 포트폴리오로\n진행할까요?",
+        dismissible = false,
+        graphic = { HilitBookIllustration() },
+        buttons = {
+            HilitFixedBottomDualButton(
+                leftText = "새로 업로드",
+                rightText = "기존 포트폴리오 사용",
+                type = HilitFixedBottomDualButtonType.Default,
+                onLeftClick = { onIntent(OnBoardingInterviewIntent.PortfolioUploadNewClick) },
+                onRightClick = { onIntent(OnBoardingInterviewIntent.PortfolioUseExistingClick) },
+            )
+        },
+    )
 }
 
 /** 필수 업로드 없이 계속하기를 눌렀을 때 뜨는 인라인 에러(Figma `443:9641`, "info-field"). */
