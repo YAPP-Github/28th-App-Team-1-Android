@@ -5,6 +5,7 @@ import stories.components.designsystem.fileuploadguide.FileUploadGuideStories
 import stories.components.designsystem.hilitasynctextfield.HilitAsyncTextFieldStories
 import stories.components.designsystem.hilitbottomoutlinedtextfield.HilitBottomOutlinedTextFieldStories
 import stories.components.designsystem.hilitfixedbottombutton.HilitFixedBottomButtonStories
+import stories.components.designsystem.hilitfixedbottomdualbutton.HilitFixedBottomDualButtonStories
 import stories.components.designsystem.hilitjdtextfield.HilitJDTextFieldStories
 import stories.components.designsystem.hilitloadingindicator.HilitLoadingIndicatorStories
 import stories.components.designsystem.hilitmediumbutton.HilitMediumButtonStories
@@ -34,6 +35,7 @@ internal val CatalogStories: List<StoryGroup> =
         IconStories,
         TypographyStories,
         HilitFixedBottomButtonStories,
+        HilitFixedBottomDualButtonStories,
         HilitLoadingIndicatorStories,
         HilitMediumButtonStories,
         HilitMiniButtonStories,
