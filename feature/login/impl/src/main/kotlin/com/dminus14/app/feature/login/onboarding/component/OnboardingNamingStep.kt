@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.dminus14.app.feature.login.onboarding.ONBOARDING_NICKNAME_CONSTRAINT_TEXT
 import com.dminus14.designsystem.component.tag.HilitTag
 import com.dminus14.designsystem.component.tag.TagColorType
 import com.dminus14.designsystem.component.tag.TagType
@@ -18,6 +19,7 @@ import com.dminus14.designsystem.component.textfield.HilitBottomOutlinedTextFiel
 import com.dminus14.designsystem.theme.HilitTheme
 
 private val TagToTitleSpacing = 8.dp
+private val FieldToConstraintSpacing = 12.dp
 
 @Composable
 fun OnboardingNamingStep(
@@ -49,11 +51,20 @@ fun OnboardingNamingStep(
                     .weight(1f),
             contentAlignment = Alignment.Center,
         ) {
-            HilitBottomOutlinedTextField(
-                value = name,
-                onValueChange = onNameChange,
-                placeholder = "이름을 알려주세요",
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                HilitBottomOutlinedTextField(
+                    value = name,
+                    onValueChange = onNameChange,
+                    placeholder = "이름을 알려주세요",
+                )
+
+                Text(
+                    text = ONBOARDING_NICKNAME_CONSTRAINT_TEXT,
+                    style = HilitTheme.typography.body4,
+                    color = HilitTheme.colors.gray500,
+                    modifier = Modifier.padding(top = FieldToConstraintSpacing),
+                )
+            }
         }
     }
 }

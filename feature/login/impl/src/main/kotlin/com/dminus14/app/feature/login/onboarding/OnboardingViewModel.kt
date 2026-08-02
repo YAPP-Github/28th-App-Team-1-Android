@@ -32,7 +32,7 @@ class OnboardingViewModel
 
                 is OnboardingIntent.NameChange -> {
                     reduce {
-                        copy(name = intent.value).withContinueEnabled()
+                        copy(name = sanitizeOnboardingNickname(intent.value)).withContinueEnabled()
                     }
                 }
 
@@ -112,7 +112,7 @@ class OnboardingViewModel
 
         private fun resolveContinueEnabled(state: OnboardingState): Boolean =
             when (state.step) {
-                OnboardingStep.Naming -> state.name.isNotBlank()
+                OnboardingStep.Naming -> isValidOnboardingNickname(state.name)
                 OnboardingStep.JobSelection -> state.selectedJobIndex != null
                 OnboardingStep.ExperienceSelection ->
                     state.selectedExperienceIndex in state.experienceOptions.indices
