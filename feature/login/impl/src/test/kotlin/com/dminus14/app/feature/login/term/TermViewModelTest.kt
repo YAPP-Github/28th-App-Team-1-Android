@@ -155,7 +155,10 @@ class TermViewModelTest {
 
         viewModel.onIntent(TermIntent.ClickAllAgree)
 
-        assertTrue(viewModel.state.value.terms.all(TermDetailContent::isChecked))
+        assertTrue(
+            viewModel.state.value.terms
+                .all(TermDetailContent::isChecked),
+        )
         assertTrue(viewModel.state.value.isAllChecked)
         assertTrue(viewModel.state.value.canSubmit)
     }
@@ -169,7 +172,10 @@ class TermViewModelTest {
 
         viewModel.onIntent(TermIntent.ClickAllAgree)
 
-        assertTrue(viewModel.state.value.terms.none(TermDetailContent::isChecked))
+        assertTrue(
+            viewModel.state.value.terms
+                .none(TermDetailContent::isChecked),
+        )
         assertFalse(viewModel.state.value.isAllChecked)
         assertFalse(viewModel.state.value.canSubmit)
     }
@@ -186,7 +192,10 @@ class TermViewModelTest {
 
         viewModel.onIntent(TermIntent.ClickAllAgree)
 
-        assertTrue(viewModel.state.value.terms.all(TermDetailContent::isChecked))
+        assertTrue(
+            viewModel.state.value.terms
+                .all(TermDetailContent::isChecked),
+        )
         assertTrue(viewModel.state.value.isAllChecked)
     }
 
@@ -211,9 +220,18 @@ class TermViewModelTest {
 
         viewModel.onIntent(TermIntent.ClickTerm(1))
 
-        assertFalse(viewModel.state.value.terms[0].isChecked)
-        assertTrue(viewModel.state.value.terms[1].isChecked)
-        assertFalse(viewModel.state.value.terms[2].isChecked)
+        assertFalse(
+            viewModel.state.value.terms[0]
+                .isChecked,
+        )
+        assertTrue(
+            viewModel.state.value.terms[1]
+                .isChecked,
+        )
+        assertFalse(
+            viewModel.state.value.terms[2]
+                .isChecked,
+        )
     }
 
     @Test
@@ -225,9 +243,18 @@ class TermViewModelTest {
 
         viewModel.onIntent(TermIntent.ClickTerm(1))
 
-        assertTrue(viewModel.state.value.terms[0].isChecked)
-        assertFalse(viewModel.state.value.terms[1].isChecked)
-        assertTrue(viewModel.state.value.terms[2].isChecked)
+        assertTrue(
+            viewModel.state.value.terms[0]
+                .isChecked,
+        )
+        assertFalse(
+            viewModel.state.value.terms[1]
+                .isChecked,
+        )
+        assertTrue(
+            viewModel.state.value.terms[2]
+                .isChecked,
+        )
     }
 
     @Test
@@ -320,7 +347,10 @@ class TermViewModelTest {
         viewModel.onIntent(TermIntent.ClickTerm(1))
 
         assertEquals(1, viewModel.state.value.visibleTermDetailIndex)
-        assertTrue(viewModel.state.value.terms[1].isChecked)
+        assertTrue(
+            viewModel.state.value.terms[1]
+                .isChecked,
+        )
     }
 
     @Test
