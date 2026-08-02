@@ -115,15 +115,15 @@ private fun OnboardingContent(
                 if (forward) {
                     (
                         slideInHorizontally { fullWidth -> fullWidth } + fadeIn()
-                        ) togetherWith (
+                    ) togetherWith (
                         slideOutHorizontally { fullWidth -> -fullWidth } + fadeOut()
-                        )
+                    )
                 } else {
                     (
                         slideInHorizontally { fullWidth -> -fullWidth } + fadeIn()
-                        ) togetherWith (
+                    ) togetherWith (
                         slideOutHorizontally { fullWidth -> fullWidth } + fadeOut()
-                        )
+                    )
                 }
             },
             label = "onboardingStep",
@@ -223,12 +223,13 @@ private fun OnboardingStepContent(
 private fun OnboardingStep.toProgressStep(): Int =
     when (this) {
         OnboardingStep.Naming -> PROGRESS_STEP_NAMING
+
         OnboardingStep.JobSelection -> PROGRESS_STEP_JOB
+
         OnboardingStep.ExperienceSelection,
         OnboardingStep.RegisterDone,
-            -> PROGRESS_STEP_EXPERIENCE
+        -> PROGRESS_STEP_EXPERIENCE
     }
-
 
 private const val PREVIEW_SELECTED_JOB_INDEX = 3
 private const val PREVIEW_SELECTED_EXPERIENCE_INDEX = 2

@@ -26,9 +26,13 @@ class OnboardingViewModel
                     sendEffect(OnboardingEffect.CloseRequested)
                 }
 
-                OnboardingIntent.ContinueClick -> onContinueClick()
+                OnboardingIntent.ContinueClick -> {
+                    onContinueClick()
+                }
 
-                OnboardingIntent.PreviousClick -> onPreviousClick()
+                OnboardingIntent.PreviousClick -> {
+                    onPreviousClick()
+                }
 
                 is OnboardingIntent.NameChange -> {
                     reduce {
@@ -112,11 +116,21 @@ class OnboardingViewModel
 
         private fun resolveContinueEnabled(state: OnboardingState): Boolean =
             when (state.step) {
-                OnboardingStep.Naming -> isValidNickname(state.name)
-                OnboardingStep.JobSelection -> state.selectedJobIndex != null
-                OnboardingStep.ExperienceSelection ->
+                OnboardingStep.Naming -> {
+                    isValidNickname(state.name)
+                }
+
+                OnboardingStep.JobSelection -> {
+                    state.selectedJobIndex != null
+                }
+
+                OnboardingStep.ExperienceSelection -> {
                     state.selectedExperienceIndex in state.experienceOptions.indices
-                OnboardingStep.RegisterDone -> true
+                }
+
+                OnboardingStep.RegisterDone -> {
+                    true
+                }
             }
 
         private fun sanitizeNickname(input: String): String =
