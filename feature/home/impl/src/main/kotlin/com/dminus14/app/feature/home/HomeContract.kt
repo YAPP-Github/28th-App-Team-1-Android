@@ -7,7 +7,11 @@ import com.dminus14.app.core.common.mvi.MviState
 sealed interface HomeIntent : MviIntent {
     data object Load : HomeIntent
 
-    data class ReportClick(
+    data class ReportExpandClick(
+        val reportId: String,
+    ) : HomeIntent
+
+    data class ReportActionClick(
         val reportId: String,
     ) : HomeIntent
 }
@@ -16,13 +20,13 @@ data class HomeReportItem(
     val id: String,
     val date: String,
     val title: String?,
-    val isExpanded: Boolean,
 )
 
 data class HomeState(
     val isLoading: Boolean = false,
     val userName: String = "",
     val reports: List<HomeReportItem> = emptyList(),
+    val expandedReportId: String? = null,
 ) : MviState
 
 sealed interface HomeEffect : MviEffect
@@ -33,30 +37,25 @@ internal val PreviewHomeReports =
             id = "1",
             date = "7월 11일 월",
             title = "캐시 도입 결정의 이유와 한계까지 구체적인 수치로 설명해 주셨어요",
-            isExpanded = true,
         ),
         HomeReportItem(
             id = "2",
             date = "7월 10일 월",
-            title = null,
-            isExpanded = false,
+            title = "서비스 아키텍처 변경 배경을 명확히 설명해 주셨어요",
         ),
         HomeReportItem(
             id = "3",
             date = "7월 10일 월",
-            title = null,
-            isExpanded = false,
+            title = "팀 협업 경험을 구체적인 사례로 설명해 주셨어요",
         ),
         HomeReportItem(
             id = "4",
             date = "7월 10일 월",
-            title = null,
-            isExpanded = false,
+            title = "문제 해결 과정을 단계별로 설명해 주셨어요",
         ),
         HomeReportItem(
             id = "5",
             date = "7월 10일 월",
-            title = null,
-            isExpanded = false,
+            title = "기술 선택 근거를 비교 관점에서 설명해 주셨어요",
         ),
     )

@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import com.dminus14.app.feature.home.HomeReportItem
+import com.dminus14.designsystem.component.reportcard.HilitReportCard
 import com.dminus14.designsystem.theme.HilitTheme
 import kotlinx.coroutines.CoroutineScope
 
@@ -66,7 +67,9 @@ private const val EXPANDED_POSITION_TOLERANCE_PX = 2f
 @Composable
 fun HomeReportSheet(
     reports: List<HomeReportItem>,
-    onReportClick: (String) -> Unit,
+    expandedReportId: String?,
+    onReportExpandClick: (String) -> Unit,
+    onReportActionClick: (String) -> Unit,
     expandedTopPx: Float,
     modifier: Modifier = Modifier,
     onSheetAnchorChange: (HomeSheetAnchor) -> Unit = {},
@@ -121,10 +124,12 @@ fun HomeReportSheet(
                 HomeReportSheetContentState(
                     sheetTopPx = sheetTopPx,
                     reports = reports,
+                    expandedReportId = expandedReportId,
                     listState = listState,
                     anchors = sheetLayout.anchors,
                     nestedScrollConnection = sheetLayout.nestedScrollConnection,
-                    onReportClick = onReportClick,
+                    onReportExpandClick = onReportExpandClick,
+                    onReportActionClick = onReportActionClick,
                     getSheetTopPx = { currentSheetTopPx },
                     onSheetTopPxChange = { value -> sheetTopPx = value },
                     onDragEnd = sheetLayout.onDragEnd,
@@ -204,10 +209,12 @@ private fun rememberHomeReportSheetLayout(
 private data class HomeReportSheetContentState(
     val sheetTopPx: Float,
     val reports: List<HomeReportItem>,
+    val expandedReportId: String?,
     val listState: LazyListState,
     val anchors: HomeSheetAnchors,
     val nestedScrollConnection: NestedScrollConnection,
-    val onReportClick: (String) -> Unit,
+    val onReportExpandClick: (String) -> Unit,
+    val onReportActionClick: (String) -> Unit,
     val getSheetTopPx: () -> Float,
     val onSheetTopPxChange: (Float) -> Unit,
     val onDragEnd: (Float) -> Unit,
@@ -265,9 +272,11 @@ private fun HomeReportSheetContainer(
             }
             HomeReportSheetBody(
                 reports = contentState.reports,
+                expandedReportId = contentState.expandedReportId,
                 listState = contentState.listState,
                 nestedScrollConnection = contentState.nestedScrollConnection,
-                onReportClick = contentState.onReportClick,
+                onReportExpandClick = contentState.onReportExpandClick,
+                onReportActionClick = contentState.onReportActionClick,
             )
         }
     }
@@ -276,9 +285,11 @@ private fun HomeReportSheetContainer(
 @Composable
 private fun ColumnScope.HomeReportSheetBody(
     reports: List<HomeReportItem>,
+    expandedReportId: String?,
     listState: LazyListState,
     nestedScrollConnection: NestedScrollConnection,
-    onReportClick: (String) -> Unit,
+    onReportExpandClick: (String) -> Unit,
+    onReportActionClick: (String) -> Unit,
 ) {
     if (reports.isEmpty()) {
         Box(
@@ -306,18 +317,13 @@ private fun ColumnScope.HomeReportSheetBody(
                 items = reports,
                 key = HomeReportItem::id,
             ) { report ->
-                if (report.isExpanded) {
-                    HomeReportCardOpen(
-                        date = report.date,
-                        title = report.title.orEmpty(),
-                        onClick = { onReportClick(report.id) },
-                    )
-                } else {
-                    HomeReportCardClose(
-                        date = report.date,
-                        onClick = { onReportClick(report.id) },
-                    )
-                }
+                HilitReportCard(
+                    date = report.date,
+                    title = report.title.orEmpty(),
+                    expanded = expandedReportId == report.id,
+                    onExpandClick = { onReportExpandClick(report.id) },
+                    onActionClick = { onReportActionClick(report.id) },
+                )
                 Spacer(modifier = Modifier.height(ReportItemSpacing))
             }
         }

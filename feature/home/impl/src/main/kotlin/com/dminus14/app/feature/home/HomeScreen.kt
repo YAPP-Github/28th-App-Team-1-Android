@@ -62,7 +62,8 @@ fun HomeScreen(
 
     HomeContent(
         state = state,
-        onReportClick = { viewModel.onIntent(HomeIntent.ReportClick(it)) },
+        onReportExpandClick = { viewModel.onIntent(HomeIntent.ReportExpandClick(it)) },
+        onReportActionClick = { viewModel.onIntent(HomeIntent.ReportActionClick(it)) },
         modifier = modifier,
     )
 }
@@ -70,7 +71,8 @@ fun HomeScreen(
 @Composable
 private fun HomeContent(
     state: HomeState,
-    onReportClick: (String) -> Unit,
+    onReportExpandClick: (String) -> Unit,
+    onReportActionClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (state.isLoading) {
@@ -113,7 +115,9 @@ private fun HomeContent(
 
         HomeReportSheet(
             reports = state.reports,
-            onReportClick = onReportClick,
+            expandedReportId = state.expandedReportId,
+            onReportExpandClick = onReportExpandClick,
+            onReportActionClick = onReportActionClick,
             expandedTopPx = expandedTopPx,
             onSheetAnchorChange = { sheetAnchor = it },
             modifier = Modifier.fillMaxSize(),
@@ -162,23 +166,23 @@ private fun HomeHeroSection(userName: String) {
                 .fillMaxWidth()
                 .padding(horizontal = HeroHorizontalPadding)
                 .padding(top = GreetingTopSpacing),
-    ) {
-        Text(
-            text = "오랜만이에요\n${userName}님!",
-            style = HilitTheme.typography.head1,
-            color = HilitTheme.colors.hilitBlack800,
-        )
-        Text(
-            text = "밑으로 스크롤해서 면접을 시작해 보세요!",
-            style = HilitTheme.typography.body3,
-            color = HilitTheme.colors.hilitGreen800,
-            textAlign = TextAlign.Center,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = HintHorizontalPadding,
-                        vertical = HintVerticalPadding,
+        ) {
+            Text(
+                text = "오랜만이에요\n${userName}님!",
+                style = HilitTheme.typography.head1,
+                color = HilitTheme.colors.hilitBlack800,
+            )
+            Text(
+                text = "밑으로 스크롤해서 면접을 시작해 보세요!",
+                style = HilitTheme.typography.body3,
+                color = HilitTheme.colors.hilitGreen800,
+                textAlign = TextAlign.Center,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = HintHorizontalPadding,
+                            vertical = HintVerticalPadding,
                     )
                     .padding(top = GreetingToHintSpacing),
         )
@@ -200,7 +204,8 @@ private fun HomeDefaultPreview() {
                     userName = "재원",
                     reports = emptyList(),
                 ),
-            onReportClick = {},
+            onReportExpandClick = {},
+            onReportActionClick = {},
         )
     }
 }
@@ -219,8 +224,10 @@ private fun HomeReportPreview() {
                 HomeState(
                     userName = "재원",
                     reports = PreviewHomeReports,
+                    expandedReportId = PreviewHomeReports.first().id,
                 ),
-            onReportClick = {},
+            onReportExpandClick = {},
+            onReportActionClick = {},
         )
     }
 }
