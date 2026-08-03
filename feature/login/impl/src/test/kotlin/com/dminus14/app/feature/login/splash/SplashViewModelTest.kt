@@ -14,6 +14,7 @@ import com.dminus14.app.domain.model.ConsentPendingStatus
 import com.dminus14.app.domain.model.ConsentSubmission
 import com.dminus14.app.domain.model.PendingConsentList
 import com.dminus14.app.domain.model.UserProfile
+import com.dminus14.app.domain.model.UserProfileUpdate
 import com.dminus14.app.domain.repository.AuthRepository
 import com.dminus14.app.domain.repository.ConsentRepository
 import com.dminus14.app.domain.repository.SessionRepository
@@ -582,6 +583,11 @@ class SplashViewModelTest {
         private val result: Result<UserProfile>,
     ) : UserRepository {
         override suspend fun getUserProfile(): UserProfile = result.getOrThrow()
+
+        override suspend fun updateUserProfile(update: UserProfileUpdate) =
+            error("Not used in SplashViewModelTest")
+
+        override suspend fun withdraw() = error("Not used in SplashViewModelTest")
     }
 
     private class FakeAuthRepository(
