@@ -16,6 +16,7 @@ import com.dminus14.designsystem.component.topbar.HilitIconTopBar
 import com.dminus14.designsystem.component.topbar.TopBarType
 import com.dminus14.designsystem.theme.HilitTheme
 
+@Suppress("UnusedParameter")
 @Composable
 fun OnBoardingInterviewScreen(
     onNavigate: (Any) -> Unit,
@@ -44,6 +45,7 @@ fun OnBoardingInterviewScreen(
     )
 }
 
+@Suppress("UnusedParameter")
 @Composable
 private fun OnBoardingInterviewContent(
     state: OnBoardingInterviewState,
