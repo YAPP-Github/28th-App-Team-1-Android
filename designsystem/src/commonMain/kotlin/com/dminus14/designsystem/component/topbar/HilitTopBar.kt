@@ -5,10 +5,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -56,23 +58,25 @@ fun HilitTopBar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(contentAlignment = Alignment.CenterStart) {
+            Column(
+                modifier = Modifier.width(40.dp),
+                horizontalAlignment = Alignment.Start,
+            ) {
                 leading?.invoke()
             }
-            Box(contentAlignment = Alignment.CenterEnd) {
-                trailing?.invoke()
-            }
-        }
 
-        if (title != null) {
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.Center),
-                contentAlignment = Alignment.Center,
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                title()
+                title?.invoke()
+            }
+
+            Column(
+                modifier = Modifier.width(40.dp),
+                horizontalAlignment = Alignment.End,
+            ) {
+                trailing?.invoke()
             }
         }
     }

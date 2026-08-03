@@ -65,6 +65,7 @@ fun OnBoardingInterviewScreen(
     )
 }
 
+@Suppress("UnusedParameter")
 @Composable
 private fun OnBoardingInterviewContent(
     state: OnBoardingInterviewState,

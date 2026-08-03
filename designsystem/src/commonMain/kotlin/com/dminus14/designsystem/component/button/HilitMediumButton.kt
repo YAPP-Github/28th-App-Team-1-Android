@@ -166,7 +166,7 @@ internal fun hilitMediumButtonStyle(
     }
 }
 
-private val MediumButtonHorizontalPadding = 24.dp
+private val MediumButtonHorizontalPadding = 0.dp
 private val MediumButtonVerticalPadding = 12.dp
 private val MediumButtonOutlineWidth = 1.2.dp
 

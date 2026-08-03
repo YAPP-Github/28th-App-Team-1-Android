@@ -2,14 +2,14 @@ package com.dminus14.app.feature.login.onboarding
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,8 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
@@ -92,50 +92,80 @@ internal fun OnboardingContent(
             modifier
                 .fillMaxSize()
                 .background(HilitTheme.colors.hilitWhite)
-                .pointerInput(Unit) {
-                    detectTapGestures {
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = {
                         focusManager.clearFocus()
                         keyboardController?.hide()
-                    }
-                },
+                    },
+                ),
     ) {
         OnboardingHeader(
             step = state.step,
             onCloseClick = { onIntent(OnboardingIntent.CloseClick) },
         )
 
-        AnimatedContent(
-            targetState = state.step,
+        OnboardingStepPager(
+            state = state,
+            onIntent = onIntent,
             modifier =
                 Modifier
                     .weight(1f)
                     .fillMaxWidth(),
-            transitionSpec = { onboardingStepTransition(initialState, targetState) },
-            label = "onboardingStep",
-        ) { step ->
-            OnboardingStepContent(
-                step = step,
-                state = state,
-                onIntent = onIntent,
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = ContentHorizontalPadding)
-                        .padding(
-                            top =
-                                if (step == OnboardingStep.RegisterDone) {
-                                    0.dp
-                                } else {
-                                    ContentTopSpacing
-                                },
-                        ),
-            )
-        }
+        )
 
         OnboardingBottomBar(
             step = state.step,
             isContinueEnabled = state.isContinueEnabled,
             onIntent = onIntent,
+        )
+    }
+}
+
+@Composable
+private fun OnboardingStepPager(
+    state: OnboardingState,
+    onIntent: (OnboardingIntent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    AnimatedContent(
+        targetState = state.step,
+        modifier = modifier,
+        transitionSpec = {
+            val forward = targetState.ordinal > initialState.ordinal
+            if (forward) {
+                (
+                    slideInHorizontally { fullWidth -> fullWidth } + fadeIn()
+                ) togetherWith (
+                    slideOutHorizontally { fullWidth -> -fullWidth } + fadeOut()
+                )
+            } else {
+                (
+                    slideInHorizontally { fullWidth -> -fullWidth } + fadeIn()
+                ) togetherWith (
+                    slideOutHorizontally { fullWidth -> fullWidth } + fadeOut()
+                )
+            }
+        },
+        label = "onboardingStep",
+    ) { step ->
+        OnboardingStepContent(
+            step = step,
+            state = state,
+            onIntent = onIntent,
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = ContentHorizontalPadding)
+                    .padding(
+                        top =
+                            if (step == OnboardingStep.RegisterDone) {
+                                0.dp
+                            } else {
+                                ContentTopSpacing
+                            },
+                    ),
         )
     }
 }
@@ -215,23 +245,3 @@ private fun OnboardingStep.toProgressStep(): Int =
         OnboardingStep.RegisterDone,
         -> PROGRESS_STEP_EXPERIENCE
     }
-
-private fun onboardingStepTransition(
-    initialStep: OnboardingStep,
-    targetStep: OnboardingStep,
-): ContentTransform {
-    val forward = targetStep.ordinal > initialStep.ordinal
-    return if (forward) {
-        (
-            slideInHorizontally { fullWidth -> fullWidth } + fadeIn()
-        ) togetherWith (
-            slideOutHorizontally { fullWidth -> -fullWidth } + fadeOut()
-        )
-    } else {
-        (
-            slideInHorizontally { fullWidth -> -fullWidth } + fadeIn()
-        ) togetherWith (
-            slideOutHorizontally { fullWidth -> fullWidth } + fadeOut()
-        )
-    }
-}

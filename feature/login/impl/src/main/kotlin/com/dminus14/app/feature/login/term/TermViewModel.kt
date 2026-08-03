@@ -9,6 +9,10 @@ class TermViewModel
     @Inject
     constructor() :
     MviViewModel<TermIntent, TermState, TermEffect>(TermState()) {
+        internal constructor(initialState: TermState) : this() {
+            reduce { initialState }
+        }
+
         override fun onIntent(intent: TermIntent) {
             when (intent) {
                 TermIntent.Load -> {}
