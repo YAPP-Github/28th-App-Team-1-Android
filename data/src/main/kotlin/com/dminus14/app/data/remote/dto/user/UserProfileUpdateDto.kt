@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 data class UserProfileUpdateRequestDto(
     @SerializedName("name")
-    val name: String,
+    val name: String?,
     @SerializedName("jobRole")
     val jobRole: String,
     @SerializedName("careerYears")

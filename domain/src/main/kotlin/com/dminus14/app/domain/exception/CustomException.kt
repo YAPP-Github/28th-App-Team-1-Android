@@ -59,9 +59,37 @@ class ValidationException(
     cause: Throwable? = null,
 ) : CustomException(errCode = errCode, message = message, cause = cause)
 
-/** 회원 프로필 조회 — 존재하지 않는 사용자 (`USER_NOT_FOUND`). */
+/** User API — 존재하지 않는 사용자 (`USER_NOT_FOUND`). */
 class UserNotFoundException(
     errCode: String,
     message: String = "존재하지 않는 사용자입니다.",
+    cause: Throwable? = null,
+) : CustomException(errCode = errCode, message = message, cause = cause)
+
+/** 회원 프로필 수정 — 지원하지 않는 직무 (`INVALID_JOB_ROLE`). */
+class InvalidJobRoleException(
+    errCode: String,
+    message: String = "지원하지 않는 직무입니다.",
+    cause: Throwable? = null,
+) : CustomException(errCode = errCode, message = message, cause = cause)
+
+/** 회원 프로필 수정 — 이미 사용 중인 이름 (`NAME_ALREADY_TAKEN`). */
+class NameAlreadyTakenException(
+    errCode: String,
+    message: String = "이미 사용 중인 이름입니다.",
+    cause: Throwable? = null,
+) : CustomException(errCode = errCode, message = message, cause = cause)
+
+/** 회원 탈퇴 — 소셜 연동 정보를 복구하기 위해 재로그인이 필요한 경우 (`SOCIAL_RECONNECT_REQUIRED`). */
+class SocialReconnectRequiredException(
+    errCode: String,
+    message: String = "다시 로그인한 뒤 탈퇴해 주세요.",
+    cause: Throwable? = null,
+) : CustomException(errCode = errCode, message = message, cause = cause)
+
+/** 회원 탈퇴 — 외부 소셜 연결 해제 실패 (`SOCIAL_UNLINK_FAILED`). */
+class SocialUnlinkFailedException(
+    errCode: String,
+    message: String = "소셜 연결 해제에 실패했습니다.",
     cause: Throwable? = null,
 ) : CustomException(errCode = errCode, message = message, cause = cause)
