@@ -11,6 +11,7 @@ import com.dminus14.app.domain.model.InterviewSessionRequest
 import com.dminus14.app.domain.model.InterviewSessionStatusType
 import com.dminus14.app.domain.model.PortfolioStatus
 import com.dminus14.app.domain.usecase.CheckUserProfileUseCase
+import com.dminus14.app.domain.usecase.DeletePortfolioUseCase
 import com.dminus14.app.domain.usecase.GetInterviewSessionUseCase
 import com.dminus14.app.domain.usecase.GetPortfolioIdUseCase
 import com.dminus14.app.domain.usecase.GetPortfolioStatusUseCase
@@ -36,6 +37,7 @@ class OnBoardingInterviewViewModel
         private val getPortfolioId: GetPortfolioIdUseCase,
         private val uploadPortfolio: UploadPortfolioUseCase,
         private val getPortfolioStatus: GetPortfolioStatusUseCase,
+        private val deletePortfolio: DeletePortfolioUseCase,
         private val validateJdUrl: ValidateJdUrlUseCase,
         private val makeInterviewSession: MakeInterviewSessionUseCase,
         private val getInterviewSession: GetInterviewSessionUseCase,
@@ -104,15 +106,7 @@ class OnBoardingInterviewViewModel
                 }
 
                 OnBoardingInterviewIntent.ClickPortfolioRemove -> {
-                    readyPortfolioId = null
-                    // 포폴 삭제 UseCase 호출
-                    reduce {
-                        copy(
-                            portfolioFileName = null,
-                            isPortfolioProcessing = false,
-                            portfolioErrorMessage = null,
-                        )
-                    }
+                    removePortfolio()
                 }
 
                 OnBoardingInterviewIntent.ClickPortfolioUseExisting -> {
@@ -303,6 +297,34 @@ class OnBoardingInterviewViewModel
                 else -> {
                     Unit
                 }
+            }
+        }
+
+        /**
+         * 업로드했거나 선택한 포트폴리오를 서버에서 삭제한다. 삭제는 파괴적·rate-limited라
+         * 서버 성공을 확인한 뒤에만 로컬 상태를 정리하고, 실패하면 인라인 에러로 노출한다.
+         */
+        private fun removePortfolio() {
+            val portfolioId = readyPortfolioId ?: return
+
+            reduce { copy(isPortfolioProcessing = true, portfolioErrorMessage = null) }
+            viewModelScope.launch {
+                deletePortfolio(portfolioId)
+                    .onSuccess {
+                        readyPortfolioId = null
+                        existingPortfolioId = null
+                        existingPortfolioFileName = null
+                        reduce {
+                            copy(portfolioFileName = null, isPortfolioProcessing = false)
+                        }
+                    }.onFailure { error ->
+                        reduce {
+                            copy(
+                                isPortfolioProcessing = false,
+                                portfolioErrorMessage = error.message,
+                            )
+                        }
+                    }
             }
         }
 

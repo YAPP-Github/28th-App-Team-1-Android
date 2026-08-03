@@ -70,7 +70,7 @@ fun OnBoardingPortfolioStep(
                 color = HilitTheme.colors.hilitBlack800,
                 modifier = Modifier.fillMaxWidth(),
             )
-
+            
             FileUploadGuide(
                 onClick = { onIntent(OnBoardingInterviewIntent.ClickPortfolioUpload) },
                 modifier = Modifier.padding(top = LabelToUploadSpacing),
@@ -141,7 +141,8 @@ private fun OnBoardingPortfolioRequiredError(
                     width = RequiredErrorBorderWidth,
                     color = HilitTheme.colors.error300,
                     shape = RectangleShape,
-                ).padding(
+                )
+                .padding(
                     horizontal = RequiredErrorHorizontalPadding,
                     vertical = RequiredErrorVerticalPadding,
                 ),
