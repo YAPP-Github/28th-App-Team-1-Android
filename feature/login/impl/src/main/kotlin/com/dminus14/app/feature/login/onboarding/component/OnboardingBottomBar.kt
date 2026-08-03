@@ -15,6 +15,7 @@ fun OnboardingBottomBar(
     step: OnboardingStep,
     isContinueEnabled: Boolean,
     onIntent: (OnboardingIntent) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     when (step) {
         OnboardingStep.Naming -> {
@@ -23,7 +24,7 @@ fun OnboardingBottomBar(
                 enabled = isContinueEnabled,
                 type = HilitButtonType.Light,
                 onClick = { onIntent(OnboardingIntent.ContinueClick) },
-                modifier = Modifier.navigationBarsPadding(),
+                modifier = modifier.navigationBarsPadding(),
             )
         }
 
@@ -36,7 +37,7 @@ fun OnboardingBottomBar(
                 type = HilitFixedBottomDualButtonType.Default,
                 onLeftClick = { onIntent(OnboardingIntent.PreviousClick) },
                 onRightClick = { onIntent(OnboardingIntent.ContinueClick) },
-                modifier = Modifier.navigationBarsPadding(),
+                modifier = modifier.navigationBarsPadding(),
             )
         }
 
@@ -49,7 +50,7 @@ fun OnboardingBottomBar(
                 type = HilitFixedBottomDualButtonType.Default,
                 onLeftClick = { onIntent(OnboardingIntent.PreviousClick) },
                 onRightClick = { onIntent(OnboardingIntent.ContinueClick) },
-                modifier = Modifier.navigationBarsPadding(),
+                modifier = modifier.navigationBarsPadding(),
             )
         }
 
@@ -59,7 +60,7 @@ fun OnboardingBottomBar(
                 enabled = true,
                 type = HilitButtonType.Light,
                 onClick = { onIntent(OnboardingIntent.ContinueClick) },
-                modifier = Modifier.navigationBarsPadding(),
+                modifier = modifier.navigationBarsPadding(),
             )
         }
     }
