@@ -13,6 +13,7 @@ import com.dminus14.app.core.resources.apple_logo
 import com.dminus14.app.core.resources.cancel
 import com.dminus14.app.core.resources.coupon
 import com.dminus14.app.core.resources.delete
+import com.dminus14.app.core.resources.down
 import com.dminus14.app.core.resources.edit
 import com.dminus14.app.core.resources.expand
 import com.dminus14.app.core.resources.file
@@ -30,6 +31,8 @@ import com.dminus14.app.core.resources.skip_left
 import com.dminus14.app.core.resources.skip_right
 import com.dminus14.app.core.resources.success
 import com.dminus14.app.core.resources.timer
+import com.dminus14.app.core.resources.undo
+import com.dminus14.app.core.resources.up
 import com.dminus14.app.core.resources.upload
 import com.dminus14.app.core.resources.video
 import com.dminus14.app.core.resources.voice
@@ -54,6 +57,8 @@ enum class HilitIconAsset(
     Cancel("cancel", 24.dp, Res.drawable.cancel),
     Right("right", 24.dp, Res.drawable.right),
     Left("left", 24.dp, Res.drawable.left),
+    Up("up", 24.dp, Res.drawable.up),
+    Down("down", 24.dp, Res.drawable.down),
     Plus("plus", 24.dp, Res.drawable.plus),
     Success("success", 24.dp, Res.drawable.success),
     Expand("expand", 24.dp, Res.drawable.expand),
@@ -67,6 +72,7 @@ enum class HilitIconAsset(
     Delete("delete", 16.dp, Res.drawable.delete, preservesOriginalColors = true),
     FillWarning("fill_warning", 16.dp, Res.drawable.fill_warning, preservesOriginalColors = true),
     Upload("upload", 44.dp, Res.drawable.upload, preservesOriginalColors = true),
+    Undo("undo", 16.dp, Res.drawable.undo, preservesOriginalColors = true),
     Voice("voice", 28.dp, Res.drawable.voice, preservesOriginalColors = true),
 }
 
