@@ -31,6 +31,9 @@ object LoginNavigationModule {
             permissionConsentEntryBuilder(onNavigate = navigator::goTo)
             permissionConsentDeniedEntryBuilder(onHome = { navigator.replaceAll(Home) })
             suspensionNoticeEntryBuilder(onHome = { navigator.replaceAll(Home) })
-            onboardingEntryBuilder(onNavigate = navigator::replaceAll)
+            onboardingEntryBuilder(
+                onNavigate = navigator::replaceAll,
+                onClose = { navigator.replaceAll(Splash) },
+            )
         }
 }

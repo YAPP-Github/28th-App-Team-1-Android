@@ -113,7 +113,7 @@ private fun TermContent(
             },
         )
 
-        TermList(
+        TermAgreementList(
             state = state,
             onIntent = onIntent,
             modifier = Modifier.weight(1f),
@@ -137,7 +137,7 @@ private fun TermContent(
 }
 
 @Composable
-private fun TermList(
+private fun TermAgreementList(
     state: TermState,
     onIntent: (TermIntent) -> Unit,
     modifier: Modifier = Modifier,
