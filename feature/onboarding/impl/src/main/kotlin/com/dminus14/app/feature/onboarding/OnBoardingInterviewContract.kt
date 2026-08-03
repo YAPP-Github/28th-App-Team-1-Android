@@ -88,6 +88,8 @@ data class OnBoardingInterviewState(
     val jdLinkStatus: JdLinkStatus = JdLinkStatus.Idle,
     val jdLinkSubText: String = "",
     val jobDescriptionText: String = "",
+    /** 직접 입력(Text) 탭의 검증 에러 메시지. 표기 방식은 디자이너 협의 예정이라 저장만 한다. */
+    val jdTextError: String? = null,
     val portfolioFileName: String? = null,
     val showExistingPortfolioModal: Boolean = false,
     val showPortfolioRequiredError: Boolean = false,
