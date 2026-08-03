@@ -98,8 +98,8 @@ class FeedbackReviewViewModel
                         levelLabel =
                             axis.code
                                 .ratingOptions()
-                                .first { it.level == level }
-                                .label,
+                                .firstOrNull { it.level == level }
+                                ?.label ?: return@mapNotNull null,
                         comment = draft.comment,
                     )
                 }
