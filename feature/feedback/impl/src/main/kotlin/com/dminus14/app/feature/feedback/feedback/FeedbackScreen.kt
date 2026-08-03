@@ -24,7 +24,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -233,40 +232,18 @@ private fun FeedbackAxisSelector(
         axes.forEach { axis ->
             val selected = axis.code == selectedAxis
 
-            Box(
-                modifier =
-                    Modifier
-                        .weight(1f)
-                        .background(
-                            if (selected) {
-                                HilitTheme.colors.hilitGreen500
-                            } else {
-                                Color.Transparent
-                            },
-                        ).clickable(
-                            enabled = enabled,
-                            role = Role.Button,
-                            onClick = { onSelected(axis.code) },
-                        ).padding(vertical = 10.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = axis.title,
-                    color =
-                        if (selected) {
-                            HilitTheme.colors.hilitGreen800
-                        } else {
-                            HilitTheme.colors.hilitWhite
-                        },
-                    style =
-                        if (selected) {
-                            HilitTheme.typography.body1
-                        } else {
-                            HilitTheme.typography.body3
-                        },
-                    maxLines = 1,
-                )
-            }
+            HilitMediumButton(
+                text = axis.title,
+                color =
+                    if (selected) {
+                        HilitMediumButtonColor.Green
+                    } else {
+                        HilitMediumButtonColor.Black
+                    },
+                enabled = enabled,
+                onClick = { onSelected(axis.code) },
+                modifier = Modifier.weight(1f),
+            )
         }
     }
 }
