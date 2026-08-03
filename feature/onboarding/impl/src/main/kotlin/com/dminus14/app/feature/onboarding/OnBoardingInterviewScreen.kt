@@ -65,6 +65,7 @@ fun OnBoardingInterviewScreen(
     )
 }
 
+@Suppress("UnusedParameter")
 @Composable
 private fun OnBoardingInterviewContent(
     state: OnBoardingInterviewState,
@@ -77,7 +78,7 @@ private fun OnBoardingInterviewContent(
     }
 
     BackHandler {
-        onIntent(OnBoardingInterviewIntent.PreviousClick)
+        onIntent(OnBoardingInterviewIntent.ClickPrevious)
     }
 
     Column(
@@ -88,8 +89,8 @@ private fun OnBoardingInterviewContent(
     ) {
         OnBoardingInterviewHeader(
             step = state.step,
-            onCloseClick = { onIntent(OnBoardingInterviewIntent.CloseClick) },
-            onSkipClick = { onIntent(OnBoardingInterviewIntent.SkipClick) },
+            onCloseClick = { onIntent(OnBoardingInterviewIntent.ClickClose) },
+            onSkipClick = { onIntent(OnBoardingInterviewIntent.ClickSkip) },
         )
 
         OnBoardingInterviewAnimatedStepContent(
@@ -103,8 +104,8 @@ private fun OnBoardingInterviewContent(
             rightText = "계속하기",
             leftEnabled = true,
             rightEnabled = true,
-            onLeftClick = { onIntent(OnBoardingInterviewIntent.PreviousClick) },
-            onRightClick = { onIntent(OnBoardingInterviewIntent.ContinueClick) },
+            onLeftClick = { onIntent(OnBoardingInterviewIntent.ClickPrevious) },
+            onRightClick = { onIntent(OnBoardingInterviewIntent.ClickContinue) },
         )
     }
 }

@@ -59,7 +59,7 @@ fun OnBoardingPreloadStep(
                     .clickable(
                         interactionSource = closeInteractionSource,
                         indication = null,
-                        onClick = { onIntent(OnBoardingInterviewIntent.CloseClick) },
+                        onClick = { onIntent(OnBoardingInterviewIntent.ClickClose) },
                     ),
         )
 

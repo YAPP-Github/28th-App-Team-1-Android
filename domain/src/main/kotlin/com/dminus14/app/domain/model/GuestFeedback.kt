@@ -60,11 +60,11 @@ data class GuestFeedbackQuestionBoundary(
 /**
  * 서버로 제출할 비회원 피드백 입력이다.
  *
- * [nickname]과 각 평가의 코멘트는 제출 유스케이스가 양끝 공백을 제거한다. 비어 있는 별칭은
- * `익명의 지인`, 비어 있는 코멘트는 빈 문자열로 정규화한 뒤 Repository에 전달한다.
+ * [nickname]과 각 평가의 코멘트는 제출 유스케이스가 양끝 공백을 제거한다. 별칭은 줄바꿈 없이
+ * `String.length` 1~12자를 만족해야 하며, 비어 있는 코멘트는 빈 문자열로 정규화한다.
  */
 data class GuestFeedbackSubmission(
-    val nickname: String?,
+    val nickname: String,
     val ratings: List<GuestFeedbackRating>,
 )
 
