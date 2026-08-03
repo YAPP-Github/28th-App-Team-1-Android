@@ -47,7 +47,7 @@ fun OnBoardingPortfolioStep(
     fileName: String?,
     isProcessing: Boolean,
     showExistingPortfolioModal: Boolean,
-    showRequiredError: Boolean,
+    errorMessage: String?,
     onIntent: (OnBoardingInterviewIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -76,8 +76,9 @@ fun OnBoardingPortfolioStep(
                 modifier = Modifier.padding(top = LabelToUploadSpacing),
             )
 
-            if (showRequiredError) {
+            if (errorMessage != null) {
                 OnBoardingPortfolioRequiredError(
+                    message = errorMessage,
                     modifier = Modifier.padding(top = UploadToStatusSpacing),
                 )
             }
@@ -125,9 +126,12 @@ private fun OnBoardingExistingPortfolioModal(onIntent: (OnBoardingInterviewInten
     )
 }
 
-/** 필수 업로드 없이 계속하기를 눌렀을 때 뜨는 인라인 에러(Figma `443:9641`, "info-field"). */
+/** 포트폴리오 스텝의 인라인 에러(Figma `443:9641`, "info-field"). 필수 누락·PDF 검증 실패에 공용. */
 @Composable
-private fun OnBoardingPortfolioRequiredError(modifier: Modifier = Modifier) {
+private fun OnBoardingPortfolioRequiredError(
+    message: String,
+    modifier: Modifier = Modifier,
+) {
     Row(
         modifier =
             modifier
@@ -151,7 +155,7 @@ private fun OnBoardingPortfolioRequiredError(modifier: Modifier = Modifier) {
             modifier = Modifier.size(RequiredErrorIconSize),
         )
         Text(
-            text = "포트폴리오를 업로드해주세요",
+            text = message,
             style = HilitTheme.typography.body9,
             color = HilitTheme.colors.error500,
         )
@@ -166,7 +170,7 @@ private fun OnBoardingPortfolioStepEmptyPreview() {
             fileName = null,
             isProcessing = false,
             showExistingPortfolioModal = false,
-            showRequiredError = false,
+            errorMessage = null,
             onIntent = {},
         )
     }
@@ -180,7 +184,7 @@ private fun OnBoardingPortfolioStepUploadedPreview() {
             fileName = "포트폴리오.pdf",
             isProcessing = false,
             showExistingPortfolioModal = false,
-            showRequiredError = false,
+            errorMessage = null,
             onIntent = {},
         )
     }
@@ -194,7 +198,7 @@ private fun OnBoardingPortfolioStepRequiredErrorPreview() {
             fileName = null,
             isProcessing = false,
             showExistingPortfolioModal = false,
-            showRequiredError = true,
+            errorMessage = "포트폴리오를 업로드해주세요",
             onIntent = {},
         )
     }
@@ -208,7 +212,7 @@ private fun OnBoardingPortfolioStepModalPreview() {
             fileName = null,
             isProcessing = false,
             showExistingPortfolioModal = true,
-            showRequiredError = false,
+            errorMessage = null,
             onIntent = {},
         )
     }

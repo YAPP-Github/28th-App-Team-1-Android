@@ -1,7 +1,12 @@
 package com.dminus14.app.feature.onboarding
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.dminus14.app.core.common.mvi.MviViewModel
+import com.dminus14.app.core.common.pdf.PdfInvalidReason
+import com.dminus14.app.core.common.pdf.PdfValidationResult
+import com.dminus14.app.core.common.pdf.validatePdf
 import com.dminus14.app.domain.model.InterviewSessionRequest
 import com.dminus14.app.domain.model.InterviewSessionStatusType
 import com.dminus14.app.domain.model.PortfolioStatus
@@ -14,15 +19,19 @@ import com.dminus14.app.domain.usecase.UploadPortfolioUseCase
 import com.dminus14.app.domain.usecase.ValidateJdUrlUseCase
 import com.dminus14.app.feature.onboarding.OnBoardingInterviewViewModel.Companion.JD_DEBOUNCE_MS
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class OnBoardingInterviewViewModel
     @Inject
     constructor(
+        @ApplicationContext private val context: Context,
         private val checkUserProfile: CheckUserProfileUseCase,
         private val getPortfolioId: GetPortfolioIdUseCase,
         private val uploadPortfolio: UploadPortfolioUseCase,
@@ -96,7 +105,14 @@ class OnBoardingInterviewViewModel
 
                 OnBoardingInterviewIntent.ClickPortfolioRemove -> {
                     readyPortfolioId = null
-                    reduce { copy(portfolioFileName = null, isPortfolioProcessing = false) }
+                    // 포폴 삭제 UseCase 호출
+                    reduce {
+                        copy(
+                            portfolioFileName = null,
+                            isPortfolioProcessing = false,
+                            portfolioErrorMessage = null,
+                        )
+                    }
                 }
 
                 OnBoardingInterviewIntent.ClickPortfolioUseExisting -> {
@@ -105,7 +121,7 @@ class OnBoardingInterviewViewModel
                         copy(
                             portfolioFileName = existingPortfolioFileName,
                             showExistingPortfolioModal = false,
-                            showPortfolioRequiredError = false,
+                            portfolioErrorMessage = null,
                         )
                     }
                 }
@@ -151,7 +167,7 @@ class OnBoardingInterviewViewModel
 
                 OnBoardingInterviewStep.Portfolio -> {
                     if (readyPortfolioId == null) {
-                        reduce { copy(showPortfolioRequiredError = true) }
+                        reduce { copy(portfolioErrorMessage = MESSAGE_PORTFOLIO_REQUIRED) }
                     } else {
                         advanceStep()
                     }
@@ -295,11 +311,26 @@ class OnBoardingInterviewViewModel
                 copy(
                     portfolioFileName = intent.fileName,
                     isPortfolioProcessing = true,
-                    showPortfolioRequiredError = false,
-                    errorMessage = null,
+                    portfolioErrorMessage = null,
                 )
             }
             viewModelScope.launch {
+                val validationMessage =
+                    withContext(Dispatchers.IO) {
+                        validatePdf(context.contentResolver, Uri.fromFile(intent.file))
+                            .toErrorMessageOrNull()
+                    }
+                if (validationMessage != null) {
+                    reduce {
+                        copy(
+                            isPortfolioProcessing = false,
+                            portfolioFileName = null,
+                            portfolioErrorMessage = validationMessage,
+                        )
+                    }
+                    return@launch
+                }
+
                 uploadPortfolio(file = intent.file, fileName = intent.fileName)
                     .onSuccess { result -> pollPortfolioStatus(result.portfolioId) }
                     .onFailure { error ->
@@ -307,7 +338,7 @@ class OnBoardingInterviewViewModel
                             copy(
                                 isPortfolioProcessing = false,
                                 portfolioFileName = null,
-                                errorMessage = error.message,
+                                portfolioErrorMessage = error.message,
                             )
                         }
                     }
@@ -319,7 +350,10 @@ class OnBoardingInterviewViewModel
                 val status =
                     getPortfolioStatus(portfolioId).getOrElse { error ->
                         reduce {
-                            copy(isPortfolioProcessing = false, errorMessage = error.message)
+                            copy(
+                                isPortfolioProcessing = false,
+                                portfolioErrorMessage = error.message,
+                            )
                         }
                         return
                     }
@@ -337,7 +371,7 @@ class OnBoardingInterviewViewModel
                             copy(
                                 isPortfolioProcessing = false,
                                 portfolioFileName = null,
-                                errorMessage = "포트폴리오 처리에 실패했어요. 다시 업로드해 주세요.",
+                                portfolioErrorMessage = "포트폴리오 처리에 실패했어요. 다시 업로드해 주세요.",
                             )
                         }
                         return
@@ -351,7 +385,7 @@ class OnBoardingInterviewViewModel
             reduce {
                 copy(
                     isPortfolioProcessing = false,
-                    errorMessage = "포트폴리오 처리가 지연되고 있어요. 잠시 후 다시 시도해 주세요.",
+                    portfolioErrorMessage = "포트폴리오 처리가 지연되고 있어요. 잠시 후 다시 시도해 주세요.",
                 )
             }
         }
@@ -463,6 +497,33 @@ class OnBoardingInterviewViewModel
             reduce { copy(step = previous, errorMessage = null) }
         }
 
+        /** PDF 검증 결과를 사용자 메시지로 변환한다. [PdfValidationResult.Valid]이면 null. */
+        private fun PdfValidationResult.toErrorMessageOrNull(): String? =
+            when (this) {
+                PdfValidationResult.Valid -> {
+                    null
+                }
+
+                is PdfValidationResult.Invalid -> {
+                    when (reason) {
+                        PdfInvalidReason.INVALID_FILE_SIZE -> MESSAGE_PDF_SIZE
+
+                        PdfInvalidReason.INVALID_PAGE_COUNT -> MESSAGE_PDF_PAGE
+
+                        PdfInvalidReason.PASSWORD_REQUIRED -> MESSAGE_PDF_PASSWORD
+
+                        PdfInvalidReason.UNKNOWN_FILE_SIZE,
+                        PdfInvalidReason.NOT_SEEKABLE,
+                        PdfInvalidReason.INVALID_PDF_FORMAT,
+                        -> MESSAGE_PDF_CORRUPT
+                    }
+                }
+
+                is PdfValidationResult.Error -> {
+                    MESSAGE_PDF_CORRUPT
+                }
+            }
+
         private companion object {
             const val POLL_INTERVAL_MS = 3_000L
             const val MAX_POLL_ATTEMPTS = 40
@@ -473,5 +534,10 @@ class OnBoardingInterviewViewModel
             const val JD_TEXT_MIN_LENGTH = 200
             const val JD_TEXT_MAX_LENGTH = 3000
             const val MESSAGE_TEXT_TOO_SHORT = "공고 내용은 200자 이상으로 입력해 주세요"
+            const val MESSAGE_PORTFOLIO_REQUIRED = "포트폴리오를 업로드해주세요"
+            const val MESSAGE_PDF_SIZE = "파일이 너무 커요. 20MB 이하 PDF로 올려주세요"
+            const val MESSAGE_PDF_PAGE = "페이지가 너무 많아요. 30페이지 이하 PDF로 올려주세요"
+            const val MESSAGE_PDF_PASSWORD = "암호가 걸린 PDF는 열 수 없어요. 암호를 푼 PDF로 올려주세요"
+            const val MESSAGE_PDF_CORRUPT = "파일이 손상된 것 같아요. 파일을 확인하고 다시 시도해 주세요"
         }
     }

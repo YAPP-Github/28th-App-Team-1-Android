@@ -92,7 +92,8 @@ data class OnBoardingInterviewState(
     val jdTextError: String? = null,
     val portfolioFileName: String? = null,
     val showExistingPortfolioModal: Boolean = false,
-    val showPortfolioRequiredError: Boolean = false,
+    /** 포트폴리오 스텝 인라인 에러(필수 누락·PDF 검증 실패 등). null이면 숨긴다. */
+    val portfolioErrorMessage: String? = null,
     val isPortfolioProcessing: Boolean = false,
     val mainProjectText: String = "",
     val errorMessage: String? = null,

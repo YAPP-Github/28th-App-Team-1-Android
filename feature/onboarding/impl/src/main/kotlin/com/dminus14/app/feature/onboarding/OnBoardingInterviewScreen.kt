@@ -286,7 +286,7 @@ private fun OnBoardingInterviewStepContent(
                 fileName = state.portfolioFileName,
                 isProcessing = state.isPortfolioProcessing,
                 showExistingPortfolioModal = state.showExistingPortfolioModal,
-                showRequiredError = state.showPortfolioRequiredError,
+                errorMessage = state.portfolioErrorMessage,
                 onIntent = onIntent,
                 modifier = modifier,
             )
