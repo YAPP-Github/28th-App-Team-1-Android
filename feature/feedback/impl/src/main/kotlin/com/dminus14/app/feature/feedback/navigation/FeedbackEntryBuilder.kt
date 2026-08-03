@@ -9,29 +9,27 @@ import com.dminus14.app.feature.feedback.onboarding.FeedbackOnboardingScreen
 import com.dminus14.app.feature.feedback.review.FeedbackReviewScreen
 
 fun EntryProviderScope<Any>.feedbackEntryBuilder(
-    onFeedbackReady: () -> Unit,
-    onReviewReady: () -> Unit,
-    onReplayRequested: () -> Unit,
-    onExit: () -> Unit,
+    goTo: (Any) -> Unit,
+    goBack: () -> Unit,
 ) {
     entry<FeedbackOnboarding> { route ->
         FeedbackOnboardingScreen(
             token = route.token,
-            onFeedbackReady = onFeedbackReady,
-            onExit = onExit,
+            onFeedbackReady = { goTo(Feedback) },
+            onExit = goBack,
         )
     }
     entry<Feedback> {
         FeedbackScreen(
-            onReviewReady = onReviewReady,
-            onExit = onExit,
+            onReviewReady = { goTo(FeedbackReview) },
+            onExit = goBack,
         )
     }
     entry<FeedbackReview> {
         FeedbackReviewScreen(
-            onReplayRequested = onReplayRequested,
-            onCompleted = onExit,
-            onExit = onExit,
+            onReplayRequested = goBack,
+            onCompleted = goBack,
+            onExit = goBack,
         )
     }
 }

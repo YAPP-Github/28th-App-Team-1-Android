@@ -10,14 +10,17 @@ import org.junit.Test
 
 class NavigatorTest {
     @Test
-    fun `온보딩을 평가로 교체하고 검토 뒤로가기는 평가로 돌아간다`() {
+    fun `온보딩에서 평가와 검토로 이동하고 검토 뒤로가기는 평가로 돌아간다`() {
         val navigator = Navigator(FeedbackOnboarding("synthetic-token"))
 
-        navigator.replaceAll(Feedback)
+        navigator.goTo(Feedback)
         navigator.goTo(FeedbackReview)
         navigator.goBack()
 
-        assertEquals(listOf(Feedback), navigator.backStack)
+        assertEquals(
+            listOf(FeedbackOnboarding("synthetic-token"), Feedback),
+            navigator.backStack,
+        )
     }
 
     @Test

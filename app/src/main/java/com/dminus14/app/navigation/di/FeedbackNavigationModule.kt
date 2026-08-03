@@ -1,8 +1,6 @@
 package com.dminus14.app.navigation.di
 
 import androidx.navigation3.runtime.EntryProviderScope
-import com.dminus14.app.feature.feedback.api.Feedback
-import com.dminus14.app.feature.feedback.api.FeedbackReview
 import com.dminus14.app.feature.feedback.navigation.feedbackEntryBuilder
 import com.dminus14.app.navigation.Navigator
 import dagger.Module
@@ -19,10 +17,8 @@ object FeedbackNavigationModule {
     fun provideFeedbackEntryInstaller(navigator: Navigator): EntryProviderScope<Any>.() -> Unit =
         {
             feedbackEntryBuilder(
-                onFeedbackReady = { navigator.replaceAll(Feedback) },
-                onReviewReady = { navigator.goTo(FeedbackReview) },
-                onReplayRequested = navigator::goBack,
-                onExit = navigator::exit,
+                goTo = navigator::goTo,
+                goBack = navigator::goBack,
             )
         }
 }
