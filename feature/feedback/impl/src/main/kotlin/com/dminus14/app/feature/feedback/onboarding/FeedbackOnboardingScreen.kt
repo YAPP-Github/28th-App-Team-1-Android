@@ -144,7 +144,7 @@ fun FeedbackOnboardingContent(
                             .padding(horizontal = 40.dp),
                 ) {
                     Image(
-                        painter = painterResource(R.drawable.feedback),
+                        painter = painterResource(Res.drawable.feedback),
                         contentDescription = null,
                         modifier =
                             Modifier
