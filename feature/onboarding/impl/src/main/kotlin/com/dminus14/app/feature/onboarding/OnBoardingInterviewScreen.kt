@@ -273,6 +273,8 @@ private fun OnBoardingInterviewStepContent(
             OnBoardingJobDescriptionStep(
                 tab = state.jobDescriptionTab,
                 link = state.jobDescriptionLink,
+                linkStatus = state.jdLinkStatus,
+                linkSubText = state.jdLinkSubText,
                 text = state.jobDescriptionText,
                 onIntent = onIntent,
                 modifier = modifier,

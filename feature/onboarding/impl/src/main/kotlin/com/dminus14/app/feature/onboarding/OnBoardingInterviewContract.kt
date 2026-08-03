@@ -59,6 +59,21 @@ enum class JobDescriptionTab {
     Text,
 }
 
+/** JD 링크 입력 필드의 비동기 검증 상태. */
+enum class JdLinkStatus {
+    /** 입력 전(비어 있음) 또는 스킴을 아직 입력 중. */
+    Idle,
+
+    /** URL 검증 API 호출 중. */
+    Validating,
+
+    /** 검증 성공. */
+    Valid,
+
+    /** 포맷 오류 또는 검증 실패. */
+    Invalid,
+}
+
 /** [OnBoardingLoadingStepRow]의 진행 상태. */
 enum class OnBoardingLoadingStepStatus {
     Waiting,
@@ -70,13 +85,14 @@ data class OnBoardingInterviewState(
     val step: OnBoardingInterviewStep = OnBoardingInterviewStep.JobDescription,
     val jobDescriptionTab: JobDescriptionTab = JobDescriptionTab.Link,
     val jobDescriptionLink: String = "",
+    val jdLinkStatus: JdLinkStatus = JdLinkStatus.Idle,
+    val jdLinkSubText: String = "",
     val jobDescriptionText: String = "",
     val portfolioFileName: String? = null,
     val showExistingPortfolioModal: Boolean = false,
     val showPortfolioRequiredError: Boolean = false,
     val isPortfolioProcessing: Boolean = false,
     val mainProjectText: String = "",
-    val isBusy: Boolean = false,
     val errorMessage: String? = null,
     val loadingBasicInfo: OnBoardingLoadingStepStatus = OnBoardingLoadingStepStatus.Waiting,
     val loadingJd: OnBoardingLoadingStepStatus = OnBoardingLoadingStepStatus.Waiting,
