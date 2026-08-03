@@ -152,6 +152,13 @@ class FeedbackViewModelTest {
             val event = modal.await()
 
             assertTrue(viewModel.state.value.isPlaybackBlocked)
+            viewModel.onIntent(FeedbackIntent.RatingSelected(GuestFeedbackAxisCode.GAZE, 4))
+            assertEquals(
+                null,
+                viewModel.state.value.axes
+                    .first()
+                    .level,
+            )
             assertFalse(event.request.dismissible)
             event.complete(GlobalModalResult.Confirm)
             runCurrent()

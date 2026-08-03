@@ -20,7 +20,10 @@ import com.dminus14.app.domain.model.GuestFeedbackSubmission
 import com.dminus14.app.domain.usecase.SubmitGuestFeedbackUseCase
 import com.dminus14.app.feature.feedback.feedback.ratingOptions
 import com.dminus14.app.feature.feedback.feedback.title
+import com.dminus14.app.feature.feedback.session.CommentEditorState
+import com.dminus14.app.feature.feedback.session.GuestFeedbackCommentEditor
 import com.dminus14.app.feature.feedback.session.GuestFeedbackFlowSession
+import com.dminus14.app.feature.feedback.session.MAX_COMMENT_LENGTH
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -34,6 +37,7 @@ class FeedbackReviewViewModel
     ) : MviViewModel<FeedbackReviewIntent, FeedbackReviewState, FeedbackReviewEffect>(
             FeedbackReviewState(),
         ) {
+        private val commentEditor = GuestFeedbackCommentEditor(session)
         private var isConfirmationPending = false
 
         override fun onIntent(intent: FeedbackReviewIntent) {
@@ -114,41 +118,31 @@ class FeedbackReviewViewModel
         }
 
         private fun openCommentEditor(axis: GuestFeedbackAxisCode) {
-            val item = state.value.axes.firstOrNull { it.code == axis } ?: return
-            reduce {
-                copy(
-                    editingAxis = axis,
-                    editingValue = item.comment,
-                    isCommentEditorVisible = true,
-                )
-            }
+            val editorState =
+                commentEditor.open(
+                    axes = state.value.axes,
+                    axis = axis,
+                    getCode = { it.code },
+                    getComment = { it.comment },
+                ) ?: return
+            reduce { withEditorState(editorState) }
         }
 
         private fun confirmComment() {
-            val axis = state.value.editingAxis ?: return
-            val comment = state.value.editingValue
-            session.updateComment(axis, comment)
-            reduce {
-                copy(
-                    axes =
-                        axes.map { item ->
-                            if (item.code ==
-                                axis
-                            ) {
-                                item.copy(comment = comment)
-                            } else {
-                                item
-                            }
-                        },
-                    editingAxis = null,
-                    editingValue = "",
-                    isCommentEditorVisible = false,
-                )
-            }
+            val (newAxes, editorState) =
+                commentEditor.confirm(
+                    axes = state.value.axes,
+                    editingAxis = state.value.editingAxis,
+                    editingValue = state.value.editingValue,
+                    getCode = { it.code },
+                    updateComment = { item, comment -> item.copy(comment = comment) },
+                ) ?: return
+            reduce { copy(axes = newAxes).withEditorState(editorState) }
         }
 
         private fun dismissComment() {
-            reduce { copy(editingAxis = null, editingValue = "", isCommentEditorVisible = false) }
+            val editorState = commentEditor.dismiss()
+            reduce { withEditorState(editorState) }
         }
 
         private fun showSubmitConfirmation() {
@@ -186,25 +180,24 @@ class FeedbackReviewViewModel
                     GuestFeedbackRating(axis.code, level, draft.comment)
                 }
 
-            reduce {
-                copy(
-                    isSubmitting = true,
-                    editingAxis = null,
-                    editingValue = "",
-                    isCommentEditorVisible = false,
-                )
-            }
-            viewModelScope.launch {
-                submitGuestFeedbackUseCase(
-                    token = data.token,
-                    axes = data.axes,
-                    submission = GuestFeedbackSubmission(data.nickname, ratings),
-                ).onSuccess {
-                    session.clear()
-                    reduce { copy(isSubmitting = false) }
-                    sendEffect(FeedbackReviewEffect.ShowToast("피드백을 제출했어요."))
-                    sendEffect(FeedbackReviewEffect.SubmissionCompleted)
-                }.onFailure(::handleFailure)
+            if (ratings.size != data.axes.size) {
+                sendEffect(FeedbackReviewEffect.ReplayRequested)
+            } else {
+                reduce {
+                    copy(isSubmitting = true).withEditorState(CommentEditorState.Hidden)
+                }
+                viewModelScope.launch {
+                    submitGuestFeedbackUseCase(
+                        token = data.token,
+                        axes = data.axes,
+                        submission = GuestFeedbackSubmission(data.nickname, ratings),
+                    ).onSuccess {
+                        session.clear()
+                        reduce { copy(isSubmitting = false) }
+                        sendEffect(FeedbackReviewEffect.ShowToast("피드백을 제출했어요."))
+                        sendEffect(FeedbackReviewEffect.SubmissionCompleted)
+                    }.onFailure(::handleFailure)
+                }
             }
         }
 
@@ -287,5 +280,3 @@ class FeedbackReviewViewModel
             }
         }
     }
-
-private const val MAX_COMMENT_LENGTH = 100

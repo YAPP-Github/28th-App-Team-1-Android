@@ -6,7 +6,9 @@ import com.dminus14.app.core.common.modal.GlobalModalResult
 import com.dminus14.app.core.common.modal.showGlobalModal
 import com.dminus14.app.core.common.mvi.MviViewModel
 import com.dminus14.app.domain.model.GuestFeedbackAxisCode
+import com.dminus14.app.feature.feedback.session.GuestFeedbackCommentEditor
 import com.dminus14.app.feature.feedback.session.GuestFeedbackFlowSession
+import com.dminus14.app.feature.feedback.session.MAX_COMMENT_LENGTH
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -17,6 +19,8 @@ class FeedbackViewModel
     constructor(
         private val session: GuestFeedbackFlowSession,
     ) : MviViewModel<FeedbackIntent, FeedbackState, FeedbackEffect>(FeedbackState()) {
+        private val commentEditor = GuestFeedbackCommentEditor(session)
+
         override fun onIntent(intent: FeedbackIntent) {
             when (intent) {
                 FeedbackIntent.LoadSession -> {
@@ -82,23 +86,28 @@ class FeedbackViewModel
                     sendEffect(FeedbackEffect.ExitRequested)
                     return
                 }
-            reduce {
-                copy(
-                    requesterName = data.requesterName,
-                    videoUrl = data.videoUrl,
-                    axes =
-                        data.axes.map { axis ->
-                            val draft = data.ratings[axis.code]
-                            FeedbackAxisUiModel(
-                                code = axis.code,
-                                title = axis.code.title,
-                                level = draft?.level,
-                                comment = draft?.comment.orEmpty(),
-                            )
-                        },
-                    questionBoundaries = data.questionBoundaries,
-                    hasLoaded = true,
-                )
+
+            if (data.videoUrl.isBlank()) {
+                handlePlaybackFailure()
+            } else {
+                reduce {
+                    copy(
+                        requesterName = data.requesterName,
+                        videoUrl = data.videoUrl,
+                        axes =
+                            data.axes.map { axis ->
+                                val draft = data.ratings[axis.code]
+                                FeedbackAxisUiModel(
+                                    code = axis.code,
+                                    title = axis.code.title,
+                                    level = draft?.level,
+                                    comment = draft?.comment.orEmpty(),
+                                )
+                            },
+                        questionBoundaries = data.questionBoundaries,
+                        hasLoaded = true,
+                    )
+                }
             }
         }
 
@@ -127,41 +136,31 @@ class FeedbackViewModel
         }
 
         private fun openCommentEditor(axis: GuestFeedbackAxisCode) {
-            val item = state.value.axes.firstOrNull { it.code == axis } ?: return
-            reduce {
-                copy(
-                    editingAxis = axis,
-                    editingValue = item.comment,
-                    isCommentEditorVisible = true,
-                )
-            }
+            val editorState =
+                commentEditor.open(
+                    axes = state.value.axes,
+                    axis = axis,
+                    getCode = { it.code },
+                    getComment = { it.comment },
+                ) ?: return
+            reduce { withEditorState(editorState) }
         }
 
         private fun confirmComment() {
-            val axis = state.value.editingAxis ?: return
-            val comment = state.value.editingValue
-            session.updateComment(axis, comment)
-            reduce {
-                copy(
-                    axes =
-                        axes.map { item ->
-                            if (item.code ==
-                                axis
-                            ) {
-                                item.copy(comment = comment)
-                            } else {
-                                item
-                            }
-                        },
-                    editingAxis = null,
-                    editingValue = "",
-                    isCommentEditorVisible = false,
-                )
-            }
+            val (newAxes, editorState) =
+                commentEditor.confirm(
+                    axes = state.value.axes,
+                    editingAxis = state.value.editingAxis,
+                    editingValue = state.value.editingValue,
+                    getCode = { it.code },
+                    updateComment = { item, comment -> item.copy(comment = comment) },
+                ) ?: return
+            reduce { copy(axes = newAxes).withEditorState(editorState) }
         }
 
         private fun dismissComment() {
-            reduce { copy(editingAxis = null, editingValue = "", isCommentEditorVisible = false) }
+            val editorState = commentEditor.dismiss()
+            reduce { withEditorState(editorState) }
         }
 
         private fun review() {
@@ -171,6 +170,8 @@ class FeedbackViewModel
         }
 
         private fun confirmExit() {
+            if (state.value.isPlaybackBlocked) return
+
             viewModelScope.launch {
                 val result =
                     showGlobalModal(
@@ -191,7 +192,20 @@ class FeedbackViewModel
 
         private fun handlePlaybackFailure() {
             if (state.value.isPlaybackBlocked) return
-            reduce { copy(isPlaybackBlocked = true) }
+            val data = session.snapshot()
+            val axes =
+                data
+                    ?.axes
+                    ?.map { axis ->
+                        val draft = data.ratings[axis.code]
+                        FeedbackAxisUiModel(
+                            code = axis.code,
+                            title = axis.code.title,
+                            level = draft?.level,
+                            comment = draft?.comment.orEmpty(),
+                        )
+                    }.orEmpty()
+            reduce { copy(isPlaybackBlocked = true, axes = axes) }
             viewModelScope.launch {
                 val result =
                     showGlobalModal(
@@ -222,4 +236,3 @@ internal val GuestFeedbackAxisCode.title: String
 
 private const val MIN_RATING_LEVEL = 1
 private const val MAX_RATING_LEVEL = 4
-private const val MAX_COMMENT_LENGTH = 100

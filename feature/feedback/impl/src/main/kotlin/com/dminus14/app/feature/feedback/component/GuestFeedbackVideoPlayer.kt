@@ -52,7 +52,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 /** 영상 실행 상태와 Player 수명을 한 곳에서 소유하는 Feedback 전용 Composable이다. */
 @Composable
-@androidx.annotation.OptIn(UnstableApi::class)
+@OptIn(UnstableApi::class)
 @Suppress("LongMethod", "LongParameterList")
 fun GuestFeedbackVideoPlayer(
     videoUrl: String,
@@ -66,25 +66,8 @@ fun GuestFeedbackVideoPlayer(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val player =
-        remember(videoUrl) {
-            ExoPlayer.Builder(context).build().apply {
-                setMediaItem(MediaItem.fromUri(videoUrl))
-                prepare()
-            }
-        }
-    var isPlaying by remember(player) { mutableStateOf(false) }
-    var arePlaybackControlsVisible by remember(player) { mutableStateOf(false) }
-    var videoSize by remember(player) { mutableStateOf<VideoSize?>(null) }
-    var outputSize by remember(player) { mutableStateOf(IntSize.Zero) }
-    var introDismissRequested by remember(isIntroVisible) { mutableStateOf(false) }
-    val introAlpha by
-        animateFloatAsState(
-            targetValue = if (introDismissRequested) 0f else 1f,
-            animationSpec = tween(INTRO_FADE_MILLIS),
-            label = "guest-feedback-video-intro",
-        )
-
+    var videoSize by remember(videoUrl) { mutableStateOf<VideoSize?>(null) }
+    var outputSize by remember { mutableStateOf(IntSize.Zero) }
     val sharpFrameScale =
         calculateSharpFrameScale(
             inputWidth = videoSize?.width ?: 0,
@@ -93,12 +76,34 @@ fun GuestFeedbackVideoPlayer(
             outputHeight = outputSize.height,
         )
     val videoEffect =
-        remember(sharpFrameScale) {
+        remember(sharpFrameScale, videoSize?.width, videoSize?.height) {
             GuestFeedbackVideoPresentationEffect(
+                inputWidth = videoSize?.width ?: 0,
+                inputHeight = videoSize?.height ?: 0,
                 sharpFrameScaleX = sharpFrameScale.x,
                 sharpFrameScaleY = sharpFrameScale.y,
             )
         }
+    val player =
+        remember(videoUrl) {
+            ExoPlayer.Builder(context).build().also { player ->
+                configureAndPrepareGuestFeedbackPlayer(
+                    player = player,
+                    mediaItem = MediaItem.fromUri(videoUrl),
+                    showBlurredBackdrop = showBlurredBackdrop,
+                    videoEffect = videoEffect,
+                )
+            }
+        }
+    var isPlaying by remember(player) { mutableStateOf(false) }
+    var arePlaybackControlsVisible by remember(player) { mutableStateOf(false) }
+    var introDismissRequested by remember(isIntroVisible) { mutableStateOf(false) }
+    val introAlpha by
+        animateFloatAsState(
+            targetValue = if (introDismissRequested) 0f else 1f,
+            animationSpec = tween(INTRO_FADE_MILLIS),
+            label = "guest-feedback-video-intro",
+        )
 
     GuestFeedbackPlayerLifecycle(
         player = player,
@@ -218,6 +223,18 @@ fun GuestFeedbackVideoPlayer(
     }
 }
 
+@OptIn(UnstableApi::class)
+internal fun configureAndPrepareGuestFeedbackPlayer(
+    player: ExoPlayer,
+    mediaItem: MediaItem,
+    showBlurredBackdrop: Boolean,
+    videoEffect: GuestFeedbackVideoPresentationEffect,
+) {
+    player.setMediaItem(mediaItem)
+    player.setVideoEffects(if (showBlurredBackdrop) listOf(videoEffect) else emptyList())
+    player.prepare()
+}
+
 /** Player listener와 Lifecycle observer의 등록·해제를 Player 인스턴스 수명에 연결한다. */
 @Composable
 @OptIn(UnstableApi::class)
@@ -238,7 +255,7 @@ internal fun GuestFeedbackPlayerLifecycle(
     val currentOnVideoSizeChanged by rememberUpdatedState(onVideoSizeChanged)
     val currentOnFatalPlaybackError by rememberUpdatedState(onFatalPlaybackError)
 
-    DisposableEffect(player, lifecycleOwner) {
+    DisposableEffect(player) {
         val playerListener =
             object : Player.Listener {
                 override fun onIsPlayingChanged(value: Boolean) {
@@ -271,17 +288,23 @@ internal fun GuestFeedbackPlayerLifecycle(
                     }
                 }
             }
+        player.addListener(playerListener)
+
+        onDispose {
+            player.removeListener(playerListener)
+            player.release()
+        }
+    }
+
+    DisposableEffect(lifecycleOwner, player) {
         val lifecycleObserver =
             LifecycleEventObserver { _, event ->
                 if (event == Lifecycle.Event.ON_STOP) player.pause()
             }
-        player.addListener(playerListener)
         lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
 
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
-            player.removeListener(playerListener)
-            player.release()
         }
     }
 
@@ -432,17 +455,20 @@ private fun GuestFeedbackVideoPlayerWithControlsPreview() {
 }
 
 @Preview(
-    name = "재생 컨트롤 숨김",
+    name = "최초 안내 오버레이 표시",
     widthDp = 375,
     heightDp = 812,
 )
 @Composable
-private fun GuestFeedbackVideoPlayerWithoutControlsPreview() {
-    GuestFeedbackVideoPlayerPreviewContent(showControls = false)
+private fun GuestFeedbackVideoPlayerIntroPreview() {
+    GuestFeedbackVideoPlayerPreviewContent(showIntro = true)
 }
 
 @Composable
-private fun GuestFeedbackVideoPlayerPreviewContent(showControls: Boolean) {
+private fun GuestFeedbackVideoPlayerPreviewContent(
+    showControls: Boolean = false,
+    showIntro: Boolean = false,
+) {
     HilitTheme {
         Box(
             modifier =
@@ -461,6 +487,21 @@ private fun GuestFeedbackVideoPlayerPreviewContent(showControls: Boolean) {
                             onSeekForward = {},
                         ),
                 )
+            }
+            if (showIntro) {
+                Box(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.72f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = "홍길동 님의 태도도 함께 살펴봐 주세요",
+                        color = HilitTheme.colors.hilitWhite,
+                        style = HilitTheme.typography.head5,
+                    )
+                }
             }
         }
     }

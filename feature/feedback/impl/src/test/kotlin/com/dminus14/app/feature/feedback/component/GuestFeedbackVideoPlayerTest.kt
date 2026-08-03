@@ -86,4 +86,16 @@ class GuestFeedbackVideoPlayerTest {
             calculateSharpFrameScale(0, 0, 1_080, 1_920),
         )
     }
+
+    @Test
+    fun `저해상도 프레임은 짧은 변에 비례해 흐림 반경을 줄인다`() {
+        assertEquals(20f / 3f, calculateBlurSigmaPixels(360, 640), 0.0001f)
+        assertEquals(20f, calculateBlurSigmaPixels(1_080, 1_920), 0f)
+    }
+
+    @Test
+    fun `프레임 크기를 모르거나 기준보다 커도 안전한 흐림 범위를 사용한다`() {
+        assertEquals(1f, calculateBlurSigmaPixels(0, 0), 0f)
+        assertEquals(20f, calculateBlurSigmaPixels(2_160, 3_840), 0f)
+    }
 }

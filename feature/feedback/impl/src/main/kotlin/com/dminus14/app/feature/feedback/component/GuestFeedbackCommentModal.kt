@@ -23,6 +23,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.dminus14.app.feature.feedback.session.MAX_COMMENT_LENGTH
 import com.dminus14.designsystem.component.button.HilitFixedBottomButton
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
@@ -122,5 +123,3 @@ fun GuestFeedbackCommentModal(
         }
     }
 }
-
-private const val MAX_COMMENT_LENGTH = 100

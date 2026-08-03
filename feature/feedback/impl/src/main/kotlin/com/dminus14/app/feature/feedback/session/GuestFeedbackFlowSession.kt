@@ -63,6 +63,8 @@ class GuestFeedbackFlowSession
         fun clear() {
             current = null
         }
+
+        override fun toString(): String = "GuestFeedbackFlowData(redacted)"
     }
 
 data class GuestFeedbackFlowData(
@@ -78,4 +80,6 @@ data class GuestFeedbackFlowData(
 data class GuestFeedbackRatingDraft(
     val level: Int? = null,
     val comment: String = "",
-)
+) {
+    override fun toString(): String = "GuestFeedbackRatingDraft(redacted)"
+}

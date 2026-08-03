@@ -41,9 +41,9 @@ internal class FakeGuestFeedbackRepository(
         token: String,
         submission: GuestFeedbackSubmission,
     ) {
-        failure?.let { throw it }
         submitCount += 1
         submitGate?.await()
+        failure?.let { throw it }
         this.submission = submission
     }
 }

@@ -10,6 +10,7 @@ import com.dminus14.app.feature.feedback.MainDispatcherRule
 import com.dminus14.app.feature.feedback.api.FeedbackOnboarding
 import com.dminus14.app.feature.feedback.openEntry
 import com.dminus14.app.feature.feedback.session.GuestFeedbackFlowSession
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
@@ -68,10 +69,11 @@ class FeedbackOnboardingViewModelTest {
 
     @Test
     fun `빈 값과 줄바꿈과 열두 자 초과 별칭은 다음 진행을 차단한다`() {
-        listOf("", "합성\n지인", "가".repeat(13)).forEach { nickname ->
+        listOf("", "합성\n지인", "\n합성 지인", "합성 지인\r", "가".repeat(13)).forEach { nickname ->
             val state = FeedbackOnboardingState(nickname = nickname)
             assertFalse(state.canContinue)
         }
+        assertTrue(FeedbackOnboardingState(nickname = " 한 ").canContinue)
         assertTrue(FeedbackOnboardingState(nickname = "가".repeat(12)).canContinue)
     }
 
@@ -84,9 +86,18 @@ class FeedbackOnboardingViewModelTest {
     }
 
     @Test
+    fun `첫 뒤로가기는 종료하지 않고 2초 안의 두 번째 뒤로가기만 종료한다`() {
+        val firstBackPressedAt = 1_000L
+
+        assertFalse(shouldExitOnBack(firstBackPressedAt = null, now = firstBackPressedAt))
+        assertTrue(shouldExitOnBack(firstBackPressedAt, now = firstBackPressedAt + 2_000L))
+        assertFalse(shouldExitOnBack(firstBackPressedAt, now = firstBackPressedAt + 2_001L))
+    }
+
+    @Test
     fun `진입 준비 전과 로딩 중에는 시작과 별칭 확정을 차단한다`() =
         runTest {
-            val enterGate = kotlinx.coroutines.CompletableDeferred<Unit>()
+            val enterGate = CompletableDeferred<Unit>()
             val session = GuestFeedbackFlowSession()
             val viewModel =
                 FeedbackOnboardingViewModel(

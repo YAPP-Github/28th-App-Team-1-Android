@@ -5,6 +5,7 @@ import com.dminus14.app.core.common.mvi.MviIntent
 import com.dminus14.app.core.common.mvi.MviState
 import com.dminus14.app.domain.model.GuestFeedbackAxisCode
 import com.dminus14.app.domain.model.GuestFeedbackQuestionBoundary
+import com.dminus14.app.feature.feedback.session.CommentEditorState
 
 sealed interface FeedbackIntent : MviIntent {
     data object LoadSession : FeedbackIntent
@@ -58,6 +59,13 @@ data class FeedbackState(
     val canReview: Boolean
         get() = axes.isNotEmpty() && axes.all { it.level != null }
 }
+
+internal fun FeedbackState.withEditorState(editorState: CommentEditorState): FeedbackState =
+    copy(
+        editingAxis = editorState.editingAxis,
+        editingValue = editorState.editingValue,
+        isCommentEditorVisible = editorState.isCommentEditorVisible,
+    )
 
 data class FeedbackAxisUiModel(
     val code: GuestFeedbackAxisCode,

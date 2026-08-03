@@ -11,8 +11,8 @@ import javax.inject.Inject
  * 비회원 피드백 입력을 검증·정규화하고 한 번 확정 제출한다.
  *
  * 지정된 `1..5`개 항목을 중복이나 누락 없이 모두 평가해야 하며 단계는 `1..4`여야 한다. 별칭은
- * 양끝 공백을 제거한 뒤 줄바꿈 없이 `String.length` 1~12자여야 하고, 빈 코멘트는 빈 문자열로
- * 바꾼다.
+ * 원문에 줄바꿈이 없어야 하며 양끝 공백을 제거한 뒤 `String.length` 1~12자여야 한다. 빈 코멘트는
+ * 빈 문자열로 바꾼다.
  * 코멘트는 문자 종류를 제한하지 않으며 트리밍 후 Kotlin [String.length] 기준 최대 100이다.
  * 검증 실패 시 Repository를 호출하지 않고 coroutine 취소는 [Result] 실패로 감싸지 않는다.
  */
@@ -25,8 +25,8 @@ class SubmitGuestFeedbackUseCase
          * 진입 결과의 [axes]와 작성한 [submission]을 검증·정규화해 확정 제출한다.
          *
          * [token]은 트리밍 후 비어 있으면 거부한다. 지정 항목은 중복 없이 모두 평가해야 하고
-         * 단계는 `1..4`여야 한다. 별칭은 트리밍 후 줄바꿈 없이 1~12자여야 하고 빈 코멘트는 빈
-         * 문자열로 바꾸며
+         * 단계는 `1..4`여야 한다. 별칭 원문은 줄바꿈 없이, 트리밍 후 1~12자여야 한다. 빈 코멘트는
+         * 빈 문자열로 바꾸며
          * 코멘트는 문자 종류 제한 없이 트리밍 후 [String.length] 100까지 허용한다.
          */
         suspend operator fun invoke(
@@ -51,10 +51,8 @@ class SubmitGuestFeedbackUseCase
                     "평가 단계가 올바르지 않습니다.",
                 )
 
-                val nickname = submission.nickname.trim()
-                validate(nickname.isNotEmpty(), "별칭을 입력해야 합니다.")
-                validate('\n' !in nickname && '\r' !in nickname, "별칭에는 줄바꿈을 사용할 수 없습니다.")
-                validate(nickname.length <= MAX_NICKNAME_LENGTH, "별칭은 12자 이하여야 합니다.")
+                val nickname =
+                    GuestFeedbackValidationException.normalizeNickname(submission.nickname)
 
                 val normalizedSubmission =
                     submission.copy(
@@ -82,12 +80,11 @@ class SubmitGuestFeedbackUseCase
             if (!condition) throw GuestFeedbackValidationException(message)
         }
 
-        private companion object {
+        companion object {
             const val MIN_AXIS_COUNT = 1
             const val MAX_AXIS_COUNT = 5
             const val MIN_LEVEL = 1
             const val MAX_LEVEL = 4
-            const val MAX_NICKNAME_LENGTH = 12
             const val MAX_COMMENT_LENGTH = 100
         }
     }

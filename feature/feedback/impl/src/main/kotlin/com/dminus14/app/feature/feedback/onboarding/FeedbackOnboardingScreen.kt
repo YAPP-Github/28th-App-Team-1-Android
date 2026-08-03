@@ -31,7 +31,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.dminus14.app.feature.feedback.R
+import com.dminus14.app.core.resources.Res
+import com.dminus14.app.core.resources.feedback
+import com.dminus14.app.domain.exception.GuestFeedbackValidationException
 import com.dminus14.designsystem.component.button.HilitFixedBottomButton
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
@@ -40,6 +42,7 @@ import com.dminus14.designsystem.component.text.HilitText
 import com.dminus14.designsystem.component.text.withHilitTextHighlight
 import com.dminus14.designsystem.component.textfield.HilitBottomOutlinedTextField
 import com.dminus14.designsystem.theme.HilitTheme
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun FeedbackOnboardingScreen(
@@ -179,6 +182,7 @@ fun FeedbackOnboardingContent(
             onDismissRequest = { onIntent(FeedbackOnboardingIntent.NameEditorDismissed) },
             sheetState = sheetState,
             containerColor = HilitTheme.colors.hilitWhite,
+            dragHandle = null,
         ) {
             NameEditorBottomSheetContent(
                 state = state,
@@ -234,7 +238,13 @@ private fun NameEditorBottomSheetContent(
         ) {
             HilitBottomOutlinedTextField(
                 value = state.nickname,
-                onValueChange = { onIntent(FeedbackOnboardingIntent.NicknameChanged(it)) },
+                onValueChange = {
+                    onIntent(
+                        FeedbackOnboardingIntent.NicknameChanged(
+                            it.take(GuestFeedbackValidationException.MAX_NICKNAME_LENGTH),
+                        ),
+                    )
+                },
                 placeholder = "이름",
                 modifier = Modifier.semantics { contentDescription = "피드백 작성자 이름" },
             )
@@ -271,7 +281,7 @@ private fun OnboardingGuideRow(
             HilitIcon(
                 asset = icon,
                 tint = HilitTheme.colors.hilitGreen500,
-                contentDescription = "Profile",
+                contentDescription = null,
                 modifier = Modifier.size(24.dp),
             )
         }

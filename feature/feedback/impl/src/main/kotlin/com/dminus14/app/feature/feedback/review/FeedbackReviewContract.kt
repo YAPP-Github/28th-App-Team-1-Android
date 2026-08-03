@@ -4,6 +4,7 @@ import com.dminus14.app.core.common.mvi.MviEffect
 import com.dminus14.app.core.common.mvi.MviIntent
 import com.dminus14.app.core.common.mvi.MviState
 import com.dminus14.app.domain.model.GuestFeedbackAxisCode
+import com.dminus14.app.feature.feedback.session.CommentEditorState
 
 sealed interface FeedbackReviewIntent : MviIntent {
     data object LoadSession : FeedbackReviewIntent
@@ -37,6 +38,15 @@ data class FeedbackReviewState(
     val isSubmitting: Boolean = false,
     val hasLoaded: Boolean = false,
 ) : MviState
+
+internal fun FeedbackReviewState.withEditorState(
+    editorState: CommentEditorState,
+): FeedbackReviewState =
+    copy(
+        editingAxis = editorState.editingAxis,
+        editingValue = editorState.editingValue,
+        isCommentEditorVisible = editorState.isCommentEditorVisible,
+    )
 
 data class FeedbackReviewAxisUiModel(
     val code: GuestFeedbackAxisCode,

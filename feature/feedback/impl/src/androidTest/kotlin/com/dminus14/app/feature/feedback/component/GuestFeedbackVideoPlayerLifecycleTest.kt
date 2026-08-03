@@ -8,6 +8,7 @@ import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
+import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -17,6 +18,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import io.mockk.verifyOrder
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -26,9 +28,29 @@ class GuestFeedbackVideoPlayerLifecycleTest {
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun `블러 표시를 전환해도 플레이어를 해제하지 않고 화면 이탈 때 한 번 해제한다`() {
+    fun `초기 플레이어는 미디어와 영상 효과를 설정한 뒤 준비한다`() {
         val player = mockk<ExoPlayer>(relaxed = true)
-        val lifecycleOwner = TestLifecycleOwner()
+        val mediaItem = MediaItem.fromUri("https://example.invalid/synthetic.mp4")
+        val videoEffect = createVideoEffect()
+
+        configureAndPrepareGuestFeedbackPlayer(
+            player = player,
+            mediaItem = mediaItem,
+            showBlurredBackdrop = true,
+            videoEffect = videoEffect,
+        )
+
+        verifyOrder {
+            player.setMediaItem(mediaItem)
+            player.setVideoEffects(listOf(videoEffect))
+            player.prepare()
+        }
+    }
+
+    @Test
+    fun `블러와 수명 주기 소유자를 전환해도 화면 이탈 때만 플레이어를 한 번 해제한다`() {
+        val player = mockk<ExoPlayer>(relaxed = true)
+        var lifecycleOwner by mutableStateOf(TestLifecycleOwner())
         var showBlurredBackdrop by mutableStateOf(false)
         var isVisible by mutableStateOf(true)
 
@@ -44,11 +66,15 @@ class GuestFeedbackVideoPlayerLifecycleTest {
 
         composeRule.runOnIdle { showBlurredBackdrop = true }
         composeRule.runOnIdle { showBlurredBackdrop = false }
+        composeRule.runOnIdle { lifecycleOwner = TestLifecycleOwner() }
+        verify(exactly = 1) { player.addListener(any()) }
+        verify(exactly = 0) { player.removeListener(any()) }
         verify(exactly = 0) { player.release() }
 
         composeRule.runOnIdle { isVisible = false }
         composeRule.waitForIdle()
 
+        verify(exactly = 1) { player.removeListener(any()) }
         verify(exactly = 1) { player.release() }
     }
 
@@ -119,12 +145,21 @@ class GuestFeedbackVideoPlayerLifecycleTest {
             player = player,
             lifecycleOwner = lifecycleOwner,
             showBlurredBackdrop = showBlurredBackdrop,
-            videoEffect = GuestFeedbackVideoPresentationEffect(1f, 1f),
+            videoEffect = createVideoEffect(),
             onIsPlayingChanged = {},
             onVideoSizeChanged = {},
             onFatalPlaybackError = onFatalPlaybackError,
         )
     }
+
+    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+    private fun createVideoEffect() =
+        GuestFeedbackVideoPresentationEffect(
+            inputWidth = 1_080,
+            inputHeight = 1_920,
+            sharpFrameScaleX = 1f,
+            sharpFrameScaleY = 1f,
+        )
 
     private class TestLifecycleOwner : LifecycleOwner {
         val registry = LifecycleRegistry.createUnsafe(this)

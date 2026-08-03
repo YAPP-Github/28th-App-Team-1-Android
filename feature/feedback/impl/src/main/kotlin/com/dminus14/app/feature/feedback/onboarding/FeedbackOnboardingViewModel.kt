@@ -1,5 +1,6 @@
 package com.dminus14.app.feature.feedback.onboarding
 
+import android.os.SystemClock
 import androidx.lifecycle.viewModelScope
 import com.dminus14.app.core.common.event.GlobalAppEvent
 import com.dminus14.app.core.common.event.GlobalErrorHandler
@@ -27,7 +28,7 @@ class FeedbackOnboardingViewModel
     ) : MviViewModel<FeedbackOnboardingIntent, FeedbackOnboardingState, FeedbackOnboardingEffect>(
             FeedbackOnboardingState(),
         ) {
-        private var firstBackPressedAt = 0L
+        private var firstBackPressedAt: Long? = null
 
         override fun onIntent(intent: FeedbackOnboardingIntent) {
             when (intent) {
@@ -132,8 +133,8 @@ class FeedbackOnboardingViewModel
         }
 
         private fun handleBack() {
-            val now = System.currentTimeMillis()
-            if (now - firstBackPressedAt <= EXIT_INTERVAL_MILLIS) {
+            val now = SystemClock.elapsedRealtime()
+            if (shouldExitOnBack(firstBackPressedAt, now)) {
                 session.clear()
                 sendEffect(FeedbackOnboardingEffect.ExitRequested)
             } else {
@@ -203,8 +204,11 @@ class FeedbackOnboardingViewModel
                 sendEffect(FeedbackOnboardingEffect.ExitRequested)
             }
         }
-
-        private companion object {
-            const val EXIT_INTERVAL_MILLIS = 2_000L
-        }
     }
+
+internal fun shouldExitOnBack(
+    firstBackPressedAt: Long?,
+    now: Long,
+): Boolean = firstBackPressedAt?.let { now - it <= EXIT_INTERVAL_MILLIS } == true
+
+private const val EXIT_INTERVAL_MILLIS = 2_000L

@@ -145,6 +145,17 @@ class GuestFeedbackUseCaseTest {
         }
 
     @Test
+    fun `별칭 앞뒤 줄바꿈은 트리밍으로 제거하지 않고 제출을 거부한다`() =
+        runTest {
+            listOf("\n합성 지인", "합성 지인\n", "\r합성 지인", "합성 지인\r").forEach { nickname ->
+                assertRejected(
+                    axes = validAxes(),
+                    submission = validSubmission().copy(nickname = nickname),
+                )
+            }
+        }
+
+    @Test
     fun `지정 항목 수가 범위를 벗어나면 제출하지 않는다`() =
         runTest {
             val tooManyAxes = validAxes() + validAxes() + validAxes().first()

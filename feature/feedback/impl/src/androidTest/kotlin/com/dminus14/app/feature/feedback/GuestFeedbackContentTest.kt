@@ -63,6 +63,42 @@ class GuestFeedbackContentTest {
     }
 
     @Test
+    fun `온보딩 이름은 열두 자까지만 전달하고 다음 진행을 허용한다`() {
+        var receivedIntent: FeedbackOnboardingIntent? = null
+        var state by
+            mutableStateOf(
+                FeedbackOnboardingState(
+                    requesterName = "합성 요청자",
+                    loadState = FeedbackOnboardingLoadState.Ready,
+                    isNameEditorVisible = true,
+                ),
+            )
+        composeRule.setContent {
+            HilitTheme {
+                FeedbackOnboardingContent(
+                    state = state,
+                    onIntent = { intent ->
+                        receivedIntent = intent
+                        if (intent is FeedbackOnboardingIntent.NicknameChanged) {
+                            state = state.copy(nickname = intent.value)
+                        }
+                    },
+                )
+            }
+        }
+
+        composeRule
+            .onNodeWithContentDescription("피드백 작성자 이름")
+            .performTextInput("가".repeat(13))
+
+        assertEquals(
+            FeedbackOnboardingIntent.NicknameChanged("가".repeat(12)),
+            receivedIntent,
+        )
+        composeRule.onNodeWithText("다음").assertIsEnabled()
+    }
+
+    @Test
     fun `서버가 지정한 축만 순서대로 표시하고 선택을 전달한다`() {
         val received = mutableListOf<FeedbackIntent>()
         composeRule.setContent {
@@ -155,7 +191,7 @@ class GuestFeedbackContentTest {
 
     @Test
     fun `코멘트 입력은 백 자까지만 전달하고 다음과 닫기 동작을 구분한다`() {
-        var value = ""
+        var value by mutableStateOf("")
         var confirmCount = 0
         var dismissCount = 0
         composeRule.setContent {

@@ -3,6 +3,7 @@ package com.dminus14.app.feature.feedback.onboarding
 import com.dminus14.app.core.common.mvi.MviEffect
 import com.dminus14.app.core.common.mvi.MviIntent
 import com.dminus14.app.core.common.mvi.MviState
+import com.dminus14.app.domain.exception.GuestFeedbackValidationException
 
 sealed interface FeedbackOnboardingIntent : MviIntent {
     data class Load(
@@ -29,13 +30,7 @@ data class FeedbackOnboardingState(
     val isNameEditorVisible: Boolean = false,
 ) : MviState {
     val canContinue: Boolean
-        get() {
-            val normalized = nickname.trim()
-            return normalized.isNotEmpty() &&
-                normalized.length <= 12 &&
-                '\n' !in normalized &&
-                '\r' !in normalized
-        }
+        get() = GuestFeedbackValidationException.isNicknameValid(nickname)
 }
 
 enum class FeedbackOnboardingLoadState {

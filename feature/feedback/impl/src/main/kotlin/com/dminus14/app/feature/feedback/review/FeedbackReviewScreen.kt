@@ -281,7 +281,6 @@ private fun FeedbackReviewCard(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // if (axis.isPositive) TagColorType.Blue else TagColorType.Red
             HilitText(
                 text =
                     buildAnnotatedString {
