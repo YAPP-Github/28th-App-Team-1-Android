@@ -5,9 +5,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -30,7 +28,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -68,18 +65,21 @@ fun GuestFeedbackVideoPlayer(
     val lifecycleOwner = LocalLifecycleOwner.current
     var videoSize by remember(videoUrl) { mutableStateOf<VideoSize?>(null) }
     var outputSize by remember { mutableStateOf(IntSize.Zero) }
+
+    val inputWidth = videoSize?.width ?: 0
+    val inputHeight = videoSize?.height ?: 0
     val sharpFrameScale =
         calculateSharpFrameScale(
-            inputWidth = videoSize?.width ?: 0,
-            inputHeight = videoSize?.height ?: 0,
+            inputWidth = inputWidth,
+            inputHeight = inputHeight,
             outputWidth = outputSize.width,
             outputHeight = outputSize.height,
         )
     val videoEffect =
-        remember(sharpFrameScale, videoSize?.width, videoSize?.height) {
+        remember(sharpFrameScale, inputWidth, inputHeight) {
             GuestFeedbackVideoPresentationEffect(
-                inputWidth = videoSize?.width ?: 0,
-                inputHeight = videoSize?.height ?: 0,
+                inputWidth = inputWidth,
+                inputHeight = inputHeight,
                 sharpFrameScaleX = sharpFrameScale.x,
                 sharpFrameScaleY = sharpFrameScale.y,
             )
@@ -115,20 +115,19 @@ fun GuestFeedbackVideoPlayer(
         onFatalPlaybackError = onFatalPlaybackError,
     )
 
-    LaunchedEffect(isIntroVisible, introDismissRequested) {
-        if (!isIntroVisible) {
-            player.play()
-            return@LaunchedEffect
-        }
-        if (!introDismissRequested) {
-            delay(INTRO_VISIBLE_MILLIS.milliseconds)
-            introDismissRequested = true
-            return@LaunchedEffect
-        }
-        delay(INTRO_FADE_MILLIS.milliseconds)
-        player.play()
-        onIntroCompleted()
-    }
+    GuestFeedbackIntroController(
+        player = player,
+        isIntroVisible = isIntroVisible,
+        introDismissRequested = introDismissRequested,
+        onDismissRequested = { introDismissRequested = true },
+        onIntroCompleted = onIntroCompleted,
+    )
+
+    val controlActions =
+        rememberVideoControlActions(
+            player = player,
+            onDismiss = { arePlaybackControlsVisible = false },
+        )
 
     Box(
         modifier =
@@ -147,79 +146,138 @@ fun GuestFeedbackVideoPlayer(
         )
 
         if (showBlurredBackdrop) {
-            Box(
+            GuestFeedbackVideoExpandButton(
+                onExpand = onExpand,
                 modifier =
                     Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(end = 16.dp, bottom = VIDEO_CONTROLS_BOTTOM_PADDING)
-                        .size(30.dp)
-                        .background(HilitTheme.colors.gray700)
-                        .clickable(
-                            role = Role.Button,
-                            onClick = onExpand,
-                        ).semantics {
-                            role = Role.Button
-                            contentDescription = "영상 확대"
-                        },
-                contentAlignment = Alignment.Center,
-            ) {
-                HilitIcon(
-                    asset = HilitIconAsset.Expand,
-                    contentDescription = null,
-                    tint = HilitTheme.colors.hilitWhite,
-                    modifier = Modifier.size(16.dp),
-                )
-            }
+                        .padding(end = 16.dp, bottom = VIDEO_CONTROLS_BOTTOM_PADDING),
+            )
         }
 
         if (arePlaybackControlsVisible && !isIntroVisible) {
             GuestFeedbackVideoControls(
                 isPlaying = isPlaying,
-                actions =
-                    VideoControlActions(
-                        onDismiss = { arePlaybackControlsVisible = false },
-                        onSeekBackward = {
-                            player.seekTo(
-                                seekPositionAfterOffset(
-                                    currentPositionMillis = player.currentPosition,
-                                    durationMillis = player.duration,
-                                    offsetMillis = -VIDEO_SEEK_OFFSET_MILLIS,
-                                ),
-                            )
-                        },
-                        onTogglePlayback = {
-                            if (player.isPlaying) player.pause() else player.play()
-                        },
-                        onSeekForward = {
-                            player.seekTo(
-                                seekPositionAfterOffset(
-                                    currentPositionMillis = player.currentPosition,
-                                    durationMillis = player.duration,
-                                    offsetMillis = VIDEO_SEEK_OFFSET_MILLIS,
-                                ),
-                            )
-                        },
-                    ),
+                actions = controlActions,
             )
         }
 
         if (isIntroVisible) {
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .alpha(introAlpha)
-                        .background(Color.Black.copy(alpha = 0.72f))
-                        .clickable { introDismissRequested = true },
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = "$requesterName 님의 태도도 함께 살펴봐 주세요",
-                    color = HilitTheme.colors.hilitWhite,
-                    style = HilitTheme.typography.head5,
-                )
-            }
+            GuestFeedbackVideoIntroOverlay(
+                requesterName = requesterName,
+                introAlpha = introAlpha,
+                onDismiss = { introDismissRequested = true },
+            )
         }
+    }
+}
+
+@Composable
+private fun GuestFeedbackIntroController(
+    player: ExoPlayer,
+    isIntroVisible: Boolean,
+    introDismissRequested: Boolean,
+    onDismissRequested: () -> Unit,
+    onIntroCompleted: () -> Unit,
+) {
+    LaunchedEffect(isIntroVisible, introDismissRequested) {
+        if (!isIntroVisible) {
+            player.play()
+            return@LaunchedEffect
+        }
+        if (!introDismissRequested) {
+            delay(INTRO_VISIBLE_MILLIS.milliseconds)
+            onDismissRequested()
+            return@LaunchedEffect
+        }
+        delay(INTRO_FADE_MILLIS.milliseconds)
+        player.play()
+        onIntroCompleted()
+    }
+}
+
+@Composable
+@OptIn(UnstableApi::class)
+private fun rememberVideoControlActions(
+    player: ExoPlayer,
+    onDismiss: () -> Unit,
+): VideoControlActions =
+    remember(player, onDismiss) {
+        VideoControlActions(
+            onDismiss = onDismiss,
+            onSeekBackward = {
+                player.seekTo(
+                    seekPositionAfterOffset(
+                        currentPositionMillis = player.currentPosition,
+                        durationMillis = player.duration,
+                        offsetMillis = -VIDEO_SEEK_OFFSET_MILLIS,
+                    ),
+                )
+            },
+            onTogglePlayback = {
+                if (player.isPlaying) player.pause() else player.play()
+            },
+            onSeekForward = {
+                player.seekTo(
+                    seekPositionAfterOffset(
+                        currentPositionMillis = player.currentPosition,
+                        durationMillis = player.duration,
+                        offsetMillis = VIDEO_SEEK_OFFSET_MILLIS,
+                    ),
+                )
+            },
+        )
+    }
+
+@Composable
+private fun GuestFeedbackVideoExpandButton(
+    onExpand: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier =
+            modifier
+                .size(30.dp)
+                .background(HilitTheme.colors.gray700)
+                .clickable(
+                    role = Role.Button,
+                    onClick = onExpand,
+                ).semantics {
+                    role = Role.Button
+                    contentDescription = "영상 확대"
+                },
+        contentAlignment = Alignment.Center,
+    ) {
+        HilitIcon(
+            asset = HilitIconAsset.Expand,
+            contentDescription = null,
+            tint = HilitTheme.colors.hilitWhite,
+            modifier = Modifier.size(16.dp),
+        )
+    }
+}
+
+@Composable
+internal fun GuestFeedbackVideoIntroOverlay(
+    requesterName: String,
+    introAlpha: Float,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .alpha(introAlpha)
+                .background(Color.Black.copy(alpha = 0.72f))
+                .clickable(onClick = onDismiss),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = "$requesterName 님의 태도도 함께 살펴봐 주세요",
+            color = HilitTheme.colors.hilitWhite,
+            style = HilitTheme.typography.head5,
+        )
     }
 }
 
@@ -319,101 +377,6 @@ internal fun GuestFeedbackPlayerLifecycle(
     }
 }
 
-internal data class VideoControlActions(
-    val onDismiss: () -> Unit,
-    val onSeekBackward: () -> Unit,
-    val onTogglePlayback: () -> Unit,
-    val onSeekForward: () -> Unit,
-)
-
-@Composable
-internal fun GuestFeedbackVideoControls(
-    isPlaying: Boolean,
-    actions: VideoControlActions,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(HilitTheme.colors.hilitBlack800.copy(alpha = VIDEO_OVERLAY_ALPHA))
-                .clickable(onClick = actions.onDismiss),
-        contentAlignment = Alignment.Center,
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(VIDEO_CONTROL_SPACING),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            SeekVideoControlButton(
-                asset = HilitIconAsset.SkipLeft,
-                contentDescription = "10초 전으로 이동",
-                onClick = actions.onSeekBackward,
-            )
-            PlaybackVideoControlButton(
-                isPlaying = isPlaying,
-                onClick = actions.onTogglePlayback,
-            )
-            SeekVideoControlButton(
-                asset = HilitIconAsset.SkipRight,
-                contentDescription = "10초 후로 이동",
-                onClick = actions.onSeekForward,
-            )
-        }
-    }
-}
-
-@Composable
-private fun SeekVideoControlButton(
-    asset: HilitIconAsset,
-    contentDescription: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier =
-            modifier
-                .size(SEEK_BUTTON_SIZE)
-                .clickable(
-                    role = Role.Button,
-                    onClick = onClick,
-                ),
-        contentAlignment = Alignment.Center,
-    ) {
-        HilitIcon(
-            asset = asset,
-            contentDescription = contentDescription,
-            tint = HilitTheme.colors.hilitWhite,
-            modifier = Modifier.size(VIDEO_CONTROL_ICON_SIZE),
-        )
-    }
-}
-
-@Composable
-private fun PlaybackVideoControlButton(
-    isPlaying: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier =
-            modifier
-                .size(PLAYBACK_BUTTON_SIZE)
-                .background(HilitTheme.colors.hilitGreen500)
-                .clickable(
-                    role = Role.Button,
-                    onClick = onClick,
-                ),
-        contentAlignment = Alignment.Center,
-    ) {
-        HilitIcon(
-            asset = if (isPlaying) HilitIconAsset.Pause else HilitIconAsset.Play,
-            contentDescription = if (isPlaying) "일시정지" else "재생",
-            tint = HilitTheme.colors.hilitGreen800,
-            modifier = Modifier.size(VIDEO_CONTROL_ICON_SIZE),
-        )
-    }
-}
-
 internal fun seekPositionAfterOffset(
     currentPositionMillis: Long,
     durationMillis: Long,
@@ -426,13 +389,8 @@ internal fun seekPositionAfterOffset(
 
 private const val INTRO_VISIBLE_MILLIS = 2_000L
 private const val INTRO_FADE_MILLIS = 300
-private const val VIDEO_OVERLAY_ALPHA = 0.65f
 private const val VIDEO_SEEK_OFFSET_MILLIS = 10_000L
 private val VIDEO_CONTROLS_BOTTOM_PADDING = 76.dp
-private val SEEK_BUTTON_SIZE = 44.dp
-private val PLAYBACK_BUTTON_SIZE = 74.dp
-private val VIDEO_CONTROL_ICON_SIZE = 34.dp
-private val VIDEO_CONTROL_SPACING = 46.dp
 
 @OptIn(UnstableApi::class)
 internal fun shouldRecoverVideoEffect(
@@ -443,66 +401,3 @@ internal fun shouldRecoverVideoEffect(
     showBlurredBackdrop &&
         !didRecoverVideoEffect &&
         errorCode == PlaybackException.ERROR_CODE_VIDEO_FRAME_PROCESSING_FAILED
-
-@Preview(
-    name = "재생 컨트롤 표시",
-    widthDp = 375,
-    heightDp = 812,
-)
-@Composable
-private fun GuestFeedbackVideoPlayerWithControlsPreview() {
-    GuestFeedbackVideoPlayerPreviewContent(showControls = true)
-}
-
-@Preview(
-    name = "최초 안내 오버레이 표시",
-    widthDp = 375,
-    heightDp = 812,
-)
-@Composable
-private fun GuestFeedbackVideoPlayerIntroPreview() {
-    GuestFeedbackVideoPlayerPreviewContent(showIntro = true)
-}
-
-@Composable
-private fun GuestFeedbackVideoPlayerPreviewContent(
-    showControls: Boolean = false,
-    showIntro: Boolean = false,
-) {
-    HilitTheme {
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .background(HilitTheme.colors.gray700),
-        ) {
-            if (showControls) {
-                GuestFeedbackVideoControls(
-                    isPlaying = true,
-                    actions =
-                        VideoControlActions(
-                            onDismiss = {},
-                            onSeekBackward = {},
-                            onTogglePlayback = {},
-                            onSeekForward = {},
-                        ),
-                )
-            }
-            if (showIntro) {
-                Box(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.72f)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = "홍길동 님의 태도도 함께 살펴봐 주세요",
-                        color = HilitTheme.colors.hilitWhite,
-                        style = HilitTheme.typography.head5,
-                    )
-                }
-            }
-        }
-    }
-}
