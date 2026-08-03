@@ -93,9 +93,9 @@ internal fun GuestFeedbackAxisCode.ratingOptions(): List<FeedbackRatingOption> {
         when (this) {
             GuestFeedbackAxisCode.GAZE -> listOf("잘 맞춤", "꽤 맞춤", "가끔 피함", "자주 피함")
             GuestFeedbackAxisCode.EXPRESSION -> listOf("안정됨", "꽤 안정됨", "가끔 굳음", "자주 굳음")
-            GuestFeedbackAxisCode.POSTURE -> listOf("반듯함", "꽤 반듯함", "가끔 흔들림", "자주 흔들림")
-            GuestFeedbackAxisCode.GESTURE -> listOf("잘 어울림", "꽤 어울림", "가끔 산만함", "자주 산만함")
-            GuestFeedbackAxisCode.VOICE -> listOf("잘 들림", "꽤 들림", "가끔 안 들림", "자주 안 들림")
+            GuestFeedbackAxisCode.POSTURE -> listOf("반듯함", "꽤 반듯함", "가끔 산만", "매우 산만")
+            GuestFeedbackAxisCode.GESTURE -> listOf("잘 어울림", "꽤 어울림", "가끔 산만", "매우 산만")
+            GuestFeedbackAxisCode.VOICE -> listOf("잘 들림", "꽤 들림", "꽤 안 들림", "안 들림")
         }
     return labels.mapIndexed {
         index,

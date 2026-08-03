@@ -125,15 +125,15 @@ class FeedbackViewModelTest {
             GuestFeedbackAxisCode.EXPRESSION.ratingOptions().map { it.label },
         )
         assertEquals(
-            listOf("반듯함", "꽤 반듯함", "가끔 흔들림", "자주 흔들림"),
+            listOf("반듯함", "꽤 반듯함", "가끔 산만", "매우 산만"),
             GuestFeedbackAxisCode.POSTURE.ratingOptions().map { it.label },
         )
         assertEquals(
-            listOf("잘 어울림", "꽤 어울림", "가끔 산만함", "자주 산만함"),
+            listOf("잘 어울림", "꽤 어울림", "가끔 산만", "매우 산만"),
             GuestFeedbackAxisCode.GESTURE.ratingOptions().map { it.label },
         )
         assertEquals(
-            listOf("잘 들림", "꽤 들림", "가끔 안 들림", "자주 안 들림"),
+            listOf("잘 들림", "꽤 들림", "꽤 안 들림", "안 들림"),
             GuestFeedbackAxisCode.VOICE.ratingOptions().map { it.label },
         )
     }

@@ -36,7 +36,7 @@ class FeedbackReviewViewModelTest {
         viewModel.onIntent(FeedbackReviewIntent.LoadSession)
 
         assertEquals(
-            listOf("잘 맞춤", "자주 안 들림"),
+            listOf("잘 맞춤", "안 들림"),
             viewModel.state.value.axes
                 .map { it.levelLabel },
         )
