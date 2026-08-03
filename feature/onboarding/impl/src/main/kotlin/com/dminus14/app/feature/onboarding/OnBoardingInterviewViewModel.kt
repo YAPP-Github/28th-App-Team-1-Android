@@ -130,7 +130,7 @@ class OnBoardingInterviewViewModel
                 }
 
                 is OnBoardingInterviewIntent.MainProjectTextChange -> {
-                    reduce { copy(mainProjectText = intent.value) }
+                    reduce { copy(mainProjectText = intent.value, mainProjectError = null) }
                 }
             }
         }
@@ -301,6 +301,19 @@ class OnBoardingInterviewViewModel
         }
 
         /**
+         * 집중 프로젝트는 선택 입력이라 비어 있으면 그냥 넘어가고, 입력했다면 최소 10자를
+         * 만족해야 다음 스텝으로 진행한다. (최대 300자는 입력 필드에서 캡핑된다.)
+         */
+        private fun submitMainProject() {
+            val content = state.value.mainProjectText
+            if (content.isNotEmpty() && content.length < FREETEXT_MIN_LENGTH) {
+                reduce { copy(mainProjectError = MESSAGE_FREETEXT_TOO_SHORT) }
+                return
+            }
+            advanceStep()
+        }
+
+        /**
          * 업로드했거나 선택한 포트폴리오를 서버에서 삭제한다. 삭제는 파괴적·rate-limited라
          * 서버 성공을 확인한 뒤에만 로컬 상태를 정리하고, 실패하면 인라인 에러로 노출한다.
          */
@@ -443,10 +456,7 @@ class OnBoardingInterviewViewModel
                         careerYears = years,
                         jdUrl = jdUrl,
                         jdText = jdText,
-                        freeText =
-                            state.value.mainProjectText
-                                .trim()
-                                .takeIf { it.isNotEmpty() },
+                        freeText = state.value.mainProjectText.takeIf { it.isNotEmpty() },
                     )
                 makeInterviewSession(request)
                     .onSuccess { result ->
@@ -556,6 +566,8 @@ class OnBoardingInterviewViewModel
             const val JD_TEXT_MIN_LENGTH = 200
             const val JD_TEXT_MAX_LENGTH = 3000
             const val MESSAGE_TEXT_TOO_SHORT = "공고 내용은 200자 이상으로 입력해 주세요"
+            const val FREETEXT_MIN_LENGTH = 10
+            const val MESSAGE_FREETEXT_TOO_SHORT = "집중 프로젝트 설명은 10자 이상 입력해 주세요"
             const val MESSAGE_PORTFOLIO_REQUIRED = "포트폴리오를 업로드해주세요"
             const val MESSAGE_PDF_SIZE = "파일이 너무 커요. 20MB 이하 PDF로 올려주세요"
             const val MESSAGE_PDF_PAGE = "페이지가 너무 많아요. 30페이지 이하 PDF로 올려주세요"

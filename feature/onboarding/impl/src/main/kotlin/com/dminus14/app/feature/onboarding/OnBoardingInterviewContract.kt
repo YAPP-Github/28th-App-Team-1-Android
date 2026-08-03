@@ -96,6 +96,8 @@ data class OnBoardingInterviewState(
     val portfolioErrorMessage: String? = null,
     val isPortfolioProcessing: Boolean = false,
     val mainProjectText: String = "",
+    /** 집중 프로젝트 입력의 검증 에러 메시지. 표기 방식은 디자이너 협의 예정이라 저장만 한다. */
+    val mainProjectError: String? = null,
     val errorMessage: String? = null,
     val loadingBasicInfo: OnBoardingLoadingStepStatus = OnBoardingLoadingStepStatus.Waiting,
     val loadingJd: OnBoardingLoadingStepStatus = OnBoardingLoadingStepStatus.Waiting,
