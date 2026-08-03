@@ -70,11 +70,14 @@ fun OnBoardingPortfolioStep(
                 color = HilitTheme.colors.hilitBlack800,
                 modifier = Modifier.fillMaxWidth(),
             )
-            
-            FileUploadGuide(
-                onClick = { onIntent(OnBoardingInterviewIntent.ClickPortfolioUpload) },
-                modifier = Modifier.padding(top = LabelToUploadSpacing),
-            )
+
+            // 업로드된(또는 처리 중) 포트폴리오가 있으면 업로드 가이드는 숨긴다.
+            if (fileName == null && !isProcessing) {
+                FileUploadGuide(
+                    onClick = { onIntent(OnBoardingInterviewIntent.ClickPortfolioUpload) },
+                    modifier = Modifier.padding(top = LabelToUploadSpacing),
+                )
+            }
 
             if (errorMessage != null) {
                 OnBoardingPortfolioRequiredError(
@@ -141,8 +144,7 @@ private fun OnBoardingPortfolioRequiredError(
                     width = RequiredErrorBorderWidth,
                     color = HilitTheme.colors.error300,
                     shape = RectangleShape,
-                )
-                .padding(
+                ).padding(
                     horizontal = RequiredErrorHorizontalPadding,
                     vertical = RequiredErrorVerticalPadding,
                 ),
