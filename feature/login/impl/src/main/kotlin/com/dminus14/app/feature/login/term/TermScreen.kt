@@ -116,10 +116,7 @@ private fun TermContent(
         TermAgreementList(
             state = state,
             onIntent = onIntent,
-            modifier =
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
+            modifier = Modifier.weight(1f),
         )
 
         HilitFixedBottomButton(
@@ -148,6 +145,7 @@ private fun TermAgreementList(
     Column(
         modifier =
             modifier
+                .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = TermScreenHorizontalPadding),
     ) {
@@ -229,6 +227,21 @@ private fun TermContentCheckedPreview() {
             state =
                 TermState(
                     terms = PreviewTerms.map { it.copy(isChecked = true) },
+                ),
+            onIntent = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 375, heightDp = 812)
+@Composable
+private fun TermDetailPreview() {
+    HilitTheme {
+        TermContent(
+            state =
+                TermState(
+                    terms = PreviewTerms.map { it.copy(isChecked = true) },
+                    visibleTermDetailIndex = 1,
                 ),
             onIntent = {},
         )

@@ -9,6 +9,10 @@ class TermViewModel
     @Inject
     constructor() :
     MviViewModel<TermIntent, TermState, TermEffect>(TermState()) {
+        internal constructor(initialState: TermState) : this() {
+            reduce { initialState }
+        }
+
         override fun onIntent(intent: TermIntent) {
             when (intent) {
                 TermIntent.Load -> {}
@@ -35,7 +39,7 @@ class TermViewModel
 
                 TermIntent.ClickAgree -> {
                     if (state.value.canSubmit) {
-                        // 약관 동의 및 권한 상태 확인 후 다음 화면으로 이동 예정
+                        sendEffect(TermEffect.Agreed)
                     }
                 }
             }

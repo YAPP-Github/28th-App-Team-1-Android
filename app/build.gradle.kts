@@ -45,6 +45,7 @@ dependencies {
     implementation(project(":data"))
     implementation(project(":feature:login:impl"))
     implementation(project(":feature:home:impl"))
+    implementation(project(":feature:feedback:impl"))
     implementation(project(":core:common"))
     implementation(project(":designsystem"))
     implementation(project(":feature:main:impl"))

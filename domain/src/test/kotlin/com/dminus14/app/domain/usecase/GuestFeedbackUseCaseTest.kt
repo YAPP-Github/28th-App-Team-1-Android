@@ -115,9 +115,9 @@ class GuestFeedbackUseCaseTest {
         }
 
     @Test
-    fun `별칭이 없거나 공백뿐이면 익명의 지인으로 제출한다`() =
+    fun `별칭은 트리밍 후 한 자부터 열두 자까지 제출한다`() =
         runTest {
-            listOf<String?>(null, "", " \n\t").forEach { nickname ->
+            listOf(" 한 ", "가".repeat(12)).forEach { nickname ->
                 val repository = FakeGuestFeedbackRepository()
                 val submission = validSubmission().copy(nickname = nickname)
 
@@ -129,7 +129,29 @@ class GuestFeedbackUseCaseTest {
                     )
 
                 assertTrue(result.isSuccess)
-                assertEquals("익명의 지인", repository.submittedSubmission?.nickname)
+                assertEquals(nickname.trim(), repository.submittedSubmission?.nickname)
+            }
+        }
+
+    @Test
+    fun `별칭이 비거나 줄바꿈을 포함하거나 열두 자를 넘으면 제출하지 않는다`() =
+        runTest {
+            listOf("", " \t", "합성\n지인", "가".repeat(13)).forEach { nickname ->
+                assertRejected(
+                    axes = validAxes(),
+                    submission = validSubmission().copy(nickname = nickname),
+                )
+            }
+        }
+
+    @Test
+    fun `별칭 앞뒤 줄바꿈은 트리밍으로 제거하지 않고 제출을 거부한다`() =
+        runTest {
+            listOf("\n합성 지인", "합성 지인\n", "\r합성 지인", "합성 지인\r").forEach { nickname ->
+                assertRejected(
+                    axes = validAxes(),
+                    submission = validSubmission().copy(nickname = nickname),
+                )
             }
         }
 
