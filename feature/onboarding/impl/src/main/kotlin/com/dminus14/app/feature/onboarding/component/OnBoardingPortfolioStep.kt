@@ -45,6 +45,7 @@ private val RequiredErrorIconTextGap = 8.dp
 @Composable
 fun OnBoardingPortfolioStep(
     fileName: String?,
+    isProcessing: Boolean,
     showExistingPortfolioModal: Boolean,
     showRequiredError: Boolean,
     onIntent: (OnBoardingInterviewIntent) -> Unit,
@@ -82,10 +83,15 @@ fun OnBoardingPortfolioStep(
             }
 
             PdfUpload(
-                type = if (fileName != null) PdfUploadType.Completed else PdfUploadType.Ready,
+                type =
+                    when {
+                        isProcessing -> PdfUploadType.Processing
+                        fileName != null -> PdfUploadType.Completed
+                        else -> PdfUploadType.Ready
+                    },
                 fileName = fileName.orEmpty(),
                 onCloseClick =
-                    if (fileName != null) {
+                    if (fileName != null && !isProcessing) {
                         { onIntent(OnBoardingInterviewIntent.ClickPortfolioRemove) }
                     } else {
                         null
@@ -158,6 +164,7 @@ private fun OnBoardingPortfolioStepEmptyPreview() {
     HilitTheme {
         OnBoardingPortfolioStep(
             fileName = null,
+            isProcessing = false,
             showExistingPortfolioModal = false,
             showRequiredError = false,
             onIntent = {},
@@ -171,6 +178,7 @@ private fun OnBoardingPortfolioStepUploadedPreview() {
     HilitTheme {
         OnBoardingPortfolioStep(
             fileName = "포트폴리오.pdf",
+            isProcessing = false,
             showExistingPortfolioModal = false,
             showRequiredError = false,
             onIntent = {},
@@ -184,6 +192,7 @@ private fun OnBoardingPortfolioStepRequiredErrorPreview() {
     HilitTheme {
         OnBoardingPortfolioStep(
             fileName = null,
+            isProcessing = false,
             showExistingPortfolioModal = false,
             showRequiredError = true,
             onIntent = {},
@@ -197,6 +206,7 @@ private fun OnBoardingPortfolioStepModalPreview() {
     HilitTheme {
         OnBoardingPortfolioStep(
             fileName = null,
+            isProcessing = false,
             showExistingPortfolioModal = true,
             showRequiredError = false,
             onIntent = {},

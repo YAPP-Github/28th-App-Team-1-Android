@@ -36,6 +36,9 @@ private const val DECORATION_ROTATION_DEGREES = 6f
 
 @Composable
 fun OnBoardingPreloadStep(
+    basicInfoStatus: OnBoardingLoadingStepStatus,
+    jdStatus: OnBoardingLoadingStepStatus,
+    portfolioStatus: OnBoardingLoadingStepStatus,
     onIntent: (OnBoardingInterviewIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -86,28 +89,38 @@ fun OnBoardingPreloadStep(
                         .fillMaxWidth(),
             )
 
-            OnBoardingPreloadSteps(modifier = Modifier.padding(top = SubtitleToStepsSpacing))
+            OnBoardingPreloadSteps(
+                basicInfoStatus = basicInfoStatus,
+                jdStatus = jdStatus,
+                portfolioStatus = portfolioStatus,
+                modifier = Modifier.padding(top = SubtitleToStepsSpacing),
+            )
         }
     }
 }
 
 @Composable
-private fun OnBoardingPreloadSteps(modifier: Modifier = Modifier) {
+private fun OnBoardingPreloadSteps(
+    basicInfoStatus: OnBoardingLoadingStepStatus,
+    jdStatus: OnBoardingLoadingStepStatus,
+    portfolioStatus: OnBoardingLoadingStepStatus,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(StepRowSpacing),
     ) {
         OnBoardingLoadingStepRow(
             text = "기본정보 분석 중",
-            status = OnBoardingLoadingStepStatus.InProgress,
+            status = basicInfoStatus,
         )
         OnBoardingLoadingStepRow(
             text = "채용 정보 분석 중",
-            status = OnBoardingLoadingStepStatus.Waiting,
+            status = jdStatus,
         )
         OnBoardingLoadingStepRow(
             text = "나의 포폴 분석 중",
-            status = OnBoardingLoadingStepStatus.Waiting,
+            status = portfolioStatus,
         )
     }
 }
@@ -135,6 +148,11 @@ private fun PreloadDecoration(modifier: Modifier = Modifier) {
 @Composable
 private fun OnBoardingPreloadStepPreview() {
     HilitTheme {
-        OnBoardingPreloadStep(onIntent = {})
+        OnBoardingPreloadStep(
+            basicInfoStatus = OnBoardingLoadingStepStatus.Completed,
+            jdStatus = OnBoardingLoadingStepStatus.InProgress,
+            portfolioStatus = OnBoardingLoadingStepStatus.Waiting,
+            onIntent = {},
+        )
     }
 }

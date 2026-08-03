@@ -1,6 +1,11 @@
 package com.dminus14.app.feature.onboarding
 
+import android.content.Context
+import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -15,7 +20,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -30,13 +37,17 @@ import com.dminus14.designsystem.component.topbar.HilitIconTopBar
 import com.dminus14.designsystem.component.topbar.HilitTextTopBar
 import com.dminus14.designsystem.component.topbar.TopBarType
 import com.dminus14.designsystem.theme.HilitTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 
 private val ContentHorizontalPadding = 20.dp
 private val ProgressBarHorizontalPadding = 20.dp
 private val ProgressBarVerticalPadding = 4.dp
 private const val PROGRESS_MAX_STEP = 3
+private const val MIME_PDF = "application/pdf"
 
-@Suppress("UnusedParameter") // onNavigate: 인터뷰 완료 후 이동할 목적지가 정해지면 연결 예정
 @Composable
 fun OnBoardingInterviewScreen(
     onNavigate: (Any) -> Unit,
@@ -45,6 +56,24 @@ fun OnBoardingInterviewScreen(
     viewModel: OnBoardingInterviewViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val portfolioPickerLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            uri ?: return@rememberLauncherForActivityResult
+            scope.launch {
+                val picked = withContext(Dispatchers.IO) { copyPdfToCache(context, uri) }
+                if (picked != null) {
+                    viewModel.onIntent(
+                        OnBoardingInterviewIntent.PortfolioFileSelected(
+                            file = picked.file,
+                            fileName = picked.name,
+                        ),
+                    )
+                }
+            }
+        }
 
     LaunchedEffect(Unit) {
         viewModel.onIntent(OnBoardingInterviewIntent.Load)
@@ -53,7 +82,17 @@ fun OnBoardingInterviewScreen(
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                OnBoardingInterviewEffect.CloseRequested -> onClose()
+                OnBoardingInterviewEffect.CloseRequested -> {
+                    onClose()
+                }
+
+                OnBoardingInterviewEffect.LaunchPortfolioPicker -> {
+                    portfolioPickerLauncher.launch(arrayOf(MIME_PDF))
+                }
+
+                is OnBoardingInterviewEffect.NavigateToResult -> {
+                    onNavigate(effect.sessionId)
+                }
             }
         }
     }
@@ -65,6 +104,35 @@ fun OnBoardingInterviewScreen(
     )
 }
 
+private data class PickedPdf(
+    val file: File,
+    val name: String,
+)
+
+/** SAF로 고른 PDF를 앱 캐시로 복사한다. 업로드 UseCase는 [File]을 요구하기 때문이다. */
+private fun copyPdfToCache(
+    context: Context,
+    uri: Uri,
+): PickedPdf? {
+    val resolver = context.contentResolver
+    val name = resolver.queryDisplayName(uri) ?: "portfolio.pdf"
+    return runCatching {
+        val target = File(context.cacheDir, name)
+        val copied =
+            resolver.openInputStream(uri)?.use { input ->
+                target.outputStream().use { output -> input.copyTo(output) }
+                true
+            } ?: false
+        if (copied) PickedPdf(file = target, name = name) else null
+    }.getOrNull()
+}
+
+private fun android.content.ContentResolver.queryDisplayName(uri: Uri): String? =
+    query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+        val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+        if (index >= 0 && cursor.moveToFirst()) cursor.getString(index) else null
+    }
+
 @Suppress("UnusedParameter")
 @Composable
 private fun OnBoardingInterviewContent(
@@ -73,7 +141,13 @@ private fun OnBoardingInterviewContent(
     modifier: Modifier = Modifier,
 ) {
     if (state.step == OnBoardingInterviewStep.Preload) {
-        OnBoardingPreloadStep(onIntent = onIntent, modifier = modifier)
+        OnBoardingPreloadStep(
+            basicInfoStatus = state.loadingBasicInfo,
+            jdStatus = state.loadingJd,
+            portfolioStatus = state.loadingPortfolio,
+            onIntent = onIntent,
+            modifier = modifier,
+        )
         return
     }
 
@@ -208,6 +282,7 @@ private fun OnBoardingInterviewStepContent(
         OnBoardingInterviewStep.Portfolio -> {
             OnBoardingPortfolioStep(
                 fileName = state.portfolioFileName,
+                isProcessing = state.isPortfolioProcessing,
                 showExistingPortfolioModal = state.showExistingPortfolioModal,
                 showRequiredError = state.showPortfolioRequiredError,
                 onIntent = onIntent,

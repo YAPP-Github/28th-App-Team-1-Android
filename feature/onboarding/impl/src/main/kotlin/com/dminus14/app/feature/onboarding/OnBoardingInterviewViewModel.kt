@@ -1,29 +1,63 @@
 package com.dminus14.app.feature.onboarding
 
+import androidx.lifecycle.viewModelScope
 import com.dminus14.app.core.common.mvi.MviViewModel
+import com.dminus14.app.domain.model.InterviewSessionRequest
+import com.dminus14.app.domain.model.InterviewSessionStatusType
+import com.dminus14.app.domain.model.PortfolioStatus
+import com.dminus14.app.domain.usecase.CheckUserProfileUseCase
+import com.dminus14.app.domain.usecase.GetInterviewSessionUseCase
+import com.dminus14.app.domain.usecase.GetPortfolioIdUseCase
+import com.dminus14.app.domain.usecase.GetPortfolioStatusUseCase
+import com.dminus14.app.domain.usecase.MakeInterviewSessionUseCase
+import com.dminus14.app.domain.usecase.UploadPortfolioUseCase
+import com.dminus14.app.domain.usecase.ValidateJdUrlUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class OnBoardingInterviewViewModel
     @Inject
-    constructor() :
-    MviViewModel<OnBoardingInterviewIntent, OnBoardingInterviewState, OnBoardingInterviewEffect>(
+    constructor(
+        private val checkUserProfile: CheckUserProfileUseCase,
+        private val getPortfolioId: GetPortfolioIdUseCase,
+        private val uploadPortfolio: UploadPortfolioUseCase,
+        private val getPortfolioStatus: GetPortfolioStatusUseCase,
+        private val validateJdUrl: ValidateJdUrlUseCase,
+        private val makeInterviewSession: MakeInterviewSessionUseCase,
+        private val getInterviewSession: GetInterviewSessionUseCase,
+    ) : MviViewModel<
+            OnBoardingInterviewIntent,
+            OnBoardingInterviewState,
+            OnBoardingInterviewEffect,
+        >(
             OnBoardingInterviewState(),
         ) {
+        private var jobRole: String? = null
+        private var careerYears: Int? = null
+        private var readyPortfolioId: String? = null
+        private var existingPortfolioId: String? = null
+        private var existingPortfolioFileName: String? = null
+        private var jdUrl: String? = null
+        private var jdText: String? = null
+
         override fun onIntent(intent: OnBoardingInterviewIntent) {
             when (intent) {
                 OnBoardingInterviewIntent.Load -> {
-                    Unit
+                    load()
                 }
 
                 OnBoardingInterviewIntent.ClickClose -> {
                     sendEffect(OnBoardingInterviewEffect.CloseRequested)
                 }
 
-                OnBoardingInterviewIntent.ClickSkip,
-                OnBoardingInterviewIntent.ClickContinue,
-                -> {
+                OnBoardingInterviewIntent.ClickSkip -> {
+                    advanceStep()
+                }
+
+                OnBoardingInterviewIntent.ClickContinue -> {
                     onContinueClick()
                 }
 
@@ -44,17 +78,23 @@ class OnBoardingInterviewViewModel
                 }
 
                 OnBoardingInterviewIntent.ClickPortfolioUpload -> {
-                    reduce { copy(showExistingPortfolioModal = true) }
+                    if (existingPortfolioId != null) {
+                        reduce { copy(showExistingPortfolioModal = true) }
+                    } else {
+                        sendEffect(OnBoardingInterviewEffect.LaunchPortfolioPicker)
+                    }
                 }
 
                 OnBoardingInterviewIntent.ClickPortfolioRemove -> {
-                    reduce { copy(portfolioFileName = null) }
+                    readyPortfolioId = null
+                    reduce { copy(portfolioFileName = null, isPortfolioProcessing = false) }
                 }
 
                 OnBoardingInterviewIntent.ClickPortfolioUseExisting -> {
+                    readyPortfolioId = existingPortfolioId
                     reduce {
                         copy(
-                            portfolioFileName = EXISTING_PORTFOLIO_FILE_NAME,
+                            portfolioFileName = existingPortfolioFileName,
                             showExistingPortfolioModal = false,
                             showPortfolioRequiredError = false,
                         )
@@ -62,13 +102,12 @@ class OnBoardingInterviewViewModel
                 }
 
                 OnBoardingInterviewIntent.ClickPortfolioUploadNew -> {
-                    reduce {
-                        copy(
-                            portfolioFileName = NEW_PORTFOLIO_FILE_NAME,
-                            showExistingPortfolioModal = false,
-                            showPortfolioRequiredError = false,
-                        )
-                    }
+                    reduce { copy(showExistingPortfolioModal = false) }
+                    sendEffect(OnBoardingInterviewEffect.LaunchPortfolioPicker)
+                }
+
+                is OnBoardingInterviewIntent.PortfolioFileSelected -> {
+                    startPortfolioUpload(intent)
                 }
 
                 is OnBoardingInterviewIntent.MainProjectTextChange -> {
@@ -77,27 +116,243 @@ class OnBoardingInterviewViewModel
             }
         }
 
+        private fun load() {
+            viewModelScope.launch {
+                checkUserProfile()
+                    .onSuccess { profile ->
+                        jobRole = profile.jobRole
+                        careerYears = profile.careerYears
+                    }.onFailure { error ->
+                        reduce { copy(errorMessage = error.message) }
+                    }
+
+                getPortfolioId()
+                    .onSuccess { portfolio ->
+                        existingPortfolioId = portfolio?.portfolioId
+                        existingPortfolioFileName = portfolio?.fileName
+                    }
+            }
+        }
+
         private fun onContinueClick() {
+            when (state.value.step) {
+                OnBoardingInterviewStep.JobDescription -> {
+                    submitJobDescription()
+                }
+
+                OnBoardingInterviewStep.Portfolio -> {
+                    if (readyPortfolioId == null) {
+                        reduce { copy(showPortfolioRequiredError = true) }
+                    } else {
+                        advanceStep()
+                    }
+                }
+
+                OnBoardingInterviewStep.MainProject -> {
+                    advanceStep()
+                }
+
+                OnBoardingInterviewStep.Preload -> {
+                    Unit
+                }
+            }
+        }
+
+        private fun submitJobDescription() {
             val current = state.value
-            if (current.step == OnBoardingInterviewStep.Portfolio &&
-                current.portfolioFileName == null
-            ) {
-                reduce { copy(showPortfolioRequiredError = true) }
+            if (current.jobDescriptionTab == JobDescriptionTab.Text) {
+                jdText = current.jobDescriptionText.trim().takeIf { it.isNotEmpty() }
+                jdUrl = null
+                advanceStep()
                 return
             }
 
-            val nextStep =
-                when (current.step) {
-                    OnBoardingInterviewStep.JobDescription -> OnBoardingInterviewStep.Portfolio
-                    OnBoardingInterviewStep.Portfolio -> OnBoardingInterviewStep.MainProject
-                    OnBoardingInterviewStep.MainProject -> OnBoardingInterviewStep.Preload
-                    OnBoardingInterviewStep.Preload -> return
+            val link = current.jobDescriptionLink.trim()
+            if (link.isEmpty()) {
+                jdUrl = null
+                jdText = null
+                advanceStep()
+                return
+            }
+
+            reduce { copy(isBusy = true, errorMessage = null) }
+            viewModelScope.launch {
+                validateJdUrl(link)
+                    .onSuccess { result ->
+                        if (result.valid) {
+                            jdUrl = link
+                            jdText = null
+                            reduce { copy(isBusy = false) }
+                            advanceStep()
+                        } else {
+                            reduce {
+                                copy(
+                                    isBusy = false,
+                                    jobDescriptionTab = JobDescriptionTab.Text,
+                                    errorMessage =
+                                        result.message
+                                            ?: "링크를 확인할 수 없어요. 내용을 직접 입력해 주세요.",
+                                )
+                            }
+                        }
+                    }.onFailure { error ->
+                        reduce { copy(isBusy = false, errorMessage = error.message) }
+                    }
+            }
+        }
+
+        private fun startPortfolioUpload(intent: OnBoardingInterviewIntent.PortfolioFileSelected) {
+            reduce {
+                copy(
+                    portfolioFileName = intent.fileName,
+                    isPortfolioProcessing = true,
+                    showPortfolioRequiredError = false,
+                    errorMessage = null,
+                )
+            }
+            viewModelScope.launch {
+                uploadPortfolio(file = intent.file, fileName = intent.fileName)
+                    .onSuccess { result -> pollPortfolioStatus(result.portfolioId) }
+                    .onFailure { error ->
+                        reduce {
+                            copy(
+                                isPortfolioProcessing = false,
+                                portfolioFileName = null,
+                                errorMessage = error.message,
+                            )
+                        }
+                    }
+            }
+        }
+
+        private suspend fun pollPortfolioStatus(portfolioId: String) {
+            repeat(MAX_POLL_ATTEMPTS) {
+                val status =
+                    getPortfolioStatus(portfolioId).getOrElse { error ->
+                        reduce {
+                            copy(isPortfolioProcessing = false, errorMessage = error.message)
+                        }
+                        return
+                    }
+                when (status.status) {
+                    PortfolioStatus.READY -> {
+                        readyPortfolioId = portfolioId
+                        reduce { copy(isPortfolioProcessing = false) }
+                        return
+                    }
+
+                    PortfolioStatus.FAILED_FILE,
+                    PortfolioStatus.FAILED_SYSTEM,
+                    -> {
+                        reduce {
+                            copy(
+                                isPortfolioProcessing = false,
+                                portfolioFileName = null,
+                                errorMessage = "포트폴리오 처리에 실패했어요. 다시 업로드해 주세요.",
+                            )
+                        }
+                        return
+                    }
+
+                    else -> {
+                        delay(POLL_INTERVAL_MS)
+                    }
                 }
-            reduce { copy(step = nextStep) }
+            }
+            reduce {
+                copy(
+                    isPortfolioProcessing = false,
+                    errorMessage = "포트폴리오 처리가 지연되고 있어요. 잠시 후 다시 시도해 주세요.",
+                )
+            }
+        }
+
+        private fun advanceStep() {
+            val next =
+                when (state.value.step) {
+                    OnBoardingInterviewStep.JobDescription -> OnBoardingInterviewStep.Portfolio
+                    OnBoardingInterviewStep.MainProject -> OnBoardingInterviewStep.Preload
+                    else -> return
+                }
+            reduce { copy(step = next, errorMessage = null) }
+            if (next == OnBoardingInterviewStep.Preload) {
+                startPreload()
+            }
+        }
+
+        private fun startPreload() {
+            val role = jobRole
+            val years = careerYears
+            val portfolioId = readyPortfolioId
+            if (role == null || years == null || portfolioId == null) {
+                reduce { copy(errorMessage = "필요한 정보를 불러오지 못했어요. 다시 시도해 주세요.") }
+                return
+            }
+
+            reduce { copy(loadingBasicInfo = OnBoardingLoadingStepStatus.InProgress) }
+            viewModelScope.launch {
+                val request =
+                    InterviewSessionRequest(
+                        portfolioId = portfolioId,
+                        jobRole = role,
+                        careerYears = years,
+                        jdUrl = jdUrl,
+                        jdText = jdText,
+                        freeText =
+                            state.value.mainProjectText
+                                .trim()
+                                .takeIf { it.isNotEmpty() },
+                    )
+                makeInterviewSession(request)
+                    .onSuccess { result ->
+                        reduce {
+                            copy(
+                                loadingBasicInfo = OnBoardingLoadingStepStatus.Completed,
+                                loadingJd = OnBoardingLoadingStepStatus.InProgress,
+                                loadingPortfolio = OnBoardingLoadingStepStatus.InProgress,
+                            )
+                        }
+                        pollInterviewSession(result.sessionId)
+                    }.onFailure { error ->
+                        reduce { copy(errorMessage = error.message) }
+                    }
+            }
+        }
+
+        private suspend fun pollInterviewSession(sessionId: Long) {
+            repeat(MAX_POLL_ATTEMPTS) {
+                val status =
+                    getInterviewSession(sessionId).getOrElse { error ->
+                        reduce { copy(errorMessage = error.message) }
+                        return
+                    }
+                when (status.status) {
+                    InterviewSessionStatusType.READY -> {
+                        reduce {
+                            copy(
+                                loadingJd = OnBoardingLoadingStepStatus.Completed,
+                                loadingPortfolio = OnBoardingLoadingStepStatus.Completed,
+                            )
+                        }
+                        sendEffect(OnBoardingInterviewEffect.NavigateToResult(sessionId))
+                        return
+                    }
+
+                    InterviewSessionStatusType.FAILED -> {
+                        reduce { copy(errorMessage = "면접 준비에 실패했어요. 다시 시도해 주세요.") }
+                        return
+                    }
+
+                    else -> {
+                        delay(POLL_INTERVAL_MS)
+                    }
+                }
+            }
+            reduce { copy(errorMessage = "면접 준비가 지연되고 있어요. 잠시 후 다시 시도해 주세요.") }
         }
 
         private fun onPreviousClick() {
-            val previousStep =
+            val previous =
                 when (state.value.step) {
                     OnBoardingInterviewStep.JobDescription -> {
                         sendEffect(OnBoardingInterviewEffect.CloseRequested)
@@ -116,11 +371,11 @@ class OnBoardingInterviewViewModel
                         OnBoardingInterviewStep.MainProject
                     }
                 }
-            reduce { copy(step = previousStep) }
+            reduce { copy(step = previous, errorMessage = null) }
         }
 
         private companion object {
-            const val EXISTING_PORTFOLIO_FILE_NAME = "기존_포트폴리오.pdf"
-            const val NEW_PORTFOLIO_FILE_NAME = "포트폴리오.pdf"
+            const val POLL_INTERVAL_MS = 3_000L
+            const val MAX_POLL_ATTEMPTS = 40
         }
     }

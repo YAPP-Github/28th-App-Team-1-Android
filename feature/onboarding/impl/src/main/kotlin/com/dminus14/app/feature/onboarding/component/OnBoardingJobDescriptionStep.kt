@@ -98,7 +98,7 @@ private fun OnBoardingJobDescriptionField(
                 },
                 type = linkFieldType,
                 placeholder = "https://www.hilit.com/",
-                subText = "서브 텍스트를 입력해주세요",
+                subText = "",
                 onClearClick = { onIntent(OnBoardingInterviewIntent.JobDescriptionLinkChange("")) },
                 modifier = modifier,
             )
