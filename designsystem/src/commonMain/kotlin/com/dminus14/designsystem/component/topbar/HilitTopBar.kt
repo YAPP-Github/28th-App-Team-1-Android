@@ -58,29 +58,26 @@ fun HilitTopBar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column (
+            Column(
                 modifier = Modifier.width(40.dp),
                 horizontalAlignment = Alignment.Start,
             ) {
-
                 leading?.invoke()
             }
 
-
-            Column (
+            Column(
                 modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 title?.invoke()
             }
 
-            Column (
+            Column(
                 modifier = Modifier.width(40.dp),
                 horizontalAlignment = Alignment.End,
             ) {
                 trailing?.invoke()
             }
-
         }
     }
 }
