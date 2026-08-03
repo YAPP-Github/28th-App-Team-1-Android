@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.dminus14.catalog.controls.CatalogControls
 import com.dminus14.designsystem.component.modal.HilitModal
+import com.dminus14.designsystem.theme.HilitTheme
 
 @CatalogControls
 @Composable
@@ -19,16 +20,18 @@ internal fun HilitModalCatalogAdapter(
     dismissible: Boolean,
 ) {
     CatalogModalPreview { closeModal ->
-        HilitModal(
-            title = title,
-            message = message,
-            confirmText = confirmText,
-            cancelText = null,
-            dismissible = dismissible,
-            onConfirm = closeModal,
-            onCancel = closeModal,
-            onDismiss = closeModal,
-        )
+        HilitTheme {
+            HilitModal(
+                title = title,
+                message = message,
+                confirmText = confirmText,
+                cancelText = null,
+                dismissible = dismissible,
+                onConfirm = closeModal,
+                onCancel = closeModal,
+                onDismiss = closeModal,
+            )
+        }
     }
 }
 
@@ -42,16 +45,18 @@ internal fun HilitModalWithCancelCatalogAdapter(
     dismissible: Boolean,
 ) {
     CatalogModalPreview { closeModal ->
-        HilitModal(
-            title = title,
-            message = message,
-            confirmText = confirmText,
-            cancelText = cancelText,
-            dismissible = dismissible,
-            onConfirm = closeModal,
-            onCancel = closeModal,
-            onDismiss = closeModal,
-        )
+        HilitTheme {
+            HilitModal(
+                title = title,
+                message = message,
+                confirmText = confirmText,
+                cancelText = cancelText,
+                dismissible = dismissible,
+                onConfirm = closeModal,
+                onCancel = closeModal,
+                onDismiss = closeModal,
+            )
+        }
     }
 }
 

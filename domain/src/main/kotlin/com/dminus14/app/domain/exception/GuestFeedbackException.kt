@@ -7,8 +7,34 @@ class GuestFeedbackValidationException(
         errCode = ERROR_CODE,
         message = message,
     ) {
-    private companion object {
-        const val ERROR_CODE = "GUEST_FEEDBACK_VALIDATION_ERROR"
+    companion object {
+        const val MAX_NICKNAME_LENGTH = 12
+
+        /** 별칭 원문의 줄바꿈을 거부하고 양끝 공백을 제거한 1~12자 값을 반환한다. */
+        fun normalizeNickname(nickname: String): String {
+            val normalized = nickname.trim()
+            val validationMessage =
+                when {
+                    '\n' in nickname || '\r' in nickname -> "별칭에는 줄바꿈을 사용할 수 없습니다."
+                    normalized.isEmpty() -> "별칭을 입력해야 합니다."
+                    normalized.length > MAX_NICKNAME_LENGTH -> "별칭은 12자 이하여야 합니다."
+                    else -> null
+                }
+            if (validationMessage != null) {
+                throw GuestFeedbackValidationException(validationMessage)
+            }
+            return normalized
+        }
+
+        fun isNicknameValid(nickname: String): Boolean =
+            try {
+                normalizeNickname(nickname)
+                true
+            } catch (_: GuestFeedbackValidationException) {
+                false
+            }
+
+        private const val ERROR_CODE = "GUEST_FEEDBACK_VALIDATION_ERROR"
     }
 }
 

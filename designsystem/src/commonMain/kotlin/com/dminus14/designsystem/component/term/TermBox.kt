@@ -71,7 +71,7 @@ fun TermBox(
                 },
             contentDescription = null,
             modifier =
-                modifier
+                Modifier
                     .size(TermBoxCheckboxSize)
                     .clickable(
                         interactionSource = null,

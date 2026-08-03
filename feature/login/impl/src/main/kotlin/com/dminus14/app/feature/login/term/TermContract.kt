@@ -41,8 +41,14 @@ data class TermState(
     val isAllChecked: Boolean
         get() = terms.isNotEmpty() && terms.all(TermDetailContent::isChecked)
 
+    val isEssentialAllChecked: Boolean
+        get() =
+            terms.filter(TermDetailContent::isEssential).let { essentials ->
+                essentials.isNotEmpty() && essentials.all(TermDetailContent::isChecked)
+            }
+
     val canSubmit: Boolean
-        get() = isAllChecked && !isLoading
+        get() = isEssentialAllChecked && !isLoading
 
     val visibleTermDetail: TermDetailContent?
         get() = visibleTermDetailIndex?.let(terms::getOrNull)

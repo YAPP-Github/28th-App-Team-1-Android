@@ -113,64 +113,11 @@ private fun TermContent(
             },
         )
 
-        Column(
-            modifier =
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = TermScreenHorizontalPadding),
-        ) {
-            Spacer(modifier = Modifier.height(TermScreenTitleTopSpacing))
-            Text(
-                text = "Hilit 서비스 약관에\n동의해주세요",
-                style = HilitTheme.typography.head4,
-                color = HilitTheme.colors.gray900,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(modifier = Modifier.height(TermScreenTitleBottomSpacing))
-
-            Column(
-                verticalArrangement = Arrangement.spacedBy(TermScreenSectionSpacing),
-            ) {
-                TermBox(
-                    type = TermBoxType.AllAgree,
-                    text = "모두 동의합니다.",
-                    checked = state.isAllChecked,
-                    onClick = { onIntent(TermIntent.ClickAllAgree) },
-                )
-
-                HorizontalDivider(
-                    modifier = Modifier.fillMaxWidth(),
-                    thickness = TermScreenDividerThickness,
-                    color = HilitTheme.colors.gray800,
-                )
-
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(TermScreenItemSpacing),
-                ) {
-                    state.terms.forEachIndexed { index, term ->
-                        val hasDetail = term.body.isNotBlank()
-                        TermBox(
-                            type =
-                                if (term.hasContent()) {
-                                    TermBoxType.Term
-                                } else {
-                                    TermBoxType.Text
-                                },
-                            text = term.title,
-                            checked = term.isChecked,
-                            onClick = { onIntent(TermIntent.ClickTerm(index)) },
-                            onViewClick = {
-                                if (hasDetail) {
-                                    onIntent(TermIntent.ClickViewTerm(index))
-                                }
-                            },
-                        )
-                    }
-                }
-            }
-        }
+        TermAgreementList(
+            state = state,
+            onIntent = onIntent,
+            modifier = Modifier.weight(1f),
+        )
 
         HilitFixedBottomButton(
             text = "동의하고 시작하기",
@@ -186,6 +133,71 @@ private fun TermContent(
             body = term.body,
             onDismissRequest = { onIntent(TermIntent.DismissTermDetail) },
         )
+    }
+}
+
+@Composable
+private fun TermAgreementList(
+    state: TermState,
+    onIntent: (TermIntent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = TermScreenHorizontalPadding),
+    ) {
+        Spacer(modifier = Modifier.height(TermScreenTitleTopSpacing))
+        Text(
+            text = "Hilit 서비스 약관에\n동의해주세요",
+            style = HilitTheme.typography.head4,
+            color = HilitTheme.colors.gray900,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(modifier = Modifier.height(TermScreenTitleBottomSpacing))
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(TermScreenSectionSpacing),
+        ) {
+            TermBox(
+                type = TermBoxType.AllAgree,
+                text = "모두 동의합니다.",
+                checked = state.isAllChecked,
+                onClick = { onIntent(TermIntent.ClickAllAgree) },
+            )
+
+            HorizontalDivider(
+                modifier = Modifier.fillMaxWidth(),
+                thickness = TermScreenDividerThickness,
+                color = HilitTheme.colors.gray800,
+            )
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(TermScreenItemSpacing),
+            ) {
+                state.terms.forEachIndexed { index, term ->
+                    val hasDetail = term.body.isNotBlank()
+                    TermBox(
+                        type =
+                            if (term.hasContent()) {
+                                TermBoxType.Term
+                            } else {
+                                TermBoxType.Text
+                            },
+                        text = term.title,
+                        checked = term.isChecked,
+                        onClick = { onIntent(TermIntent.ClickTerm(index)) },
+                        onViewClick = {
+                            if (hasDetail) {
+                                onIntent(TermIntent.ClickViewTerm(index))
+                            }
+                        },
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -215,6 +227,21 @@ private fun TermContentCheckedPreview() {
             state =
                 TermState(
                     terms = PreviewTerms.map { it.copy(isChecked = true) },
+                ),
+            onIntent = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 375, heightDp = 812)
+@Composable
+private fun TermDetailPreview() {
+    HilitTheme {
+        TermContent(
+            state =
+                TermState(
+                    terms = PreviewTerms.map { it.copy(isChecked = true) },
+                    visibleTermDetailIndex = 1,
                 ),
             onIntent = {},
         )
