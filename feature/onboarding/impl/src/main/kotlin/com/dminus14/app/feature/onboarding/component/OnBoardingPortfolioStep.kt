@@ -71,7 +71,7 @@ fun OnBoardingPortfolioStep(
             )
 
             FileUploadGuide(
-                onClick = { onIntent(OnBoardingInterviewIntent.PortfolioUploadClick) },
+                onClick = { onIntent(OnBoardingInterviewIntent.ClickPortfolioUpload) },
                 modifier = Modifier.padding(top = LabelToUploadSpacing),
             )
 
@@ -86,7 +86,7 @@ fun OnBoardingPortfolioStep(
                 fileName = fileName.orEmpty(),
                 onCloseClick =
                     if (fileName != null) {
-                        { onIntent(OnBoardingInterviewIntent.PortfolioRemoveClick) }
+                        { onIntent(OnBoardingInterviewIntent.ClickPortfolioRemove) }
                     } else {
                         null
                     },
@@ -112,8 +112,8 @@ private fun OnBoardingExistingPortfolioModal(onIntent: (OnBoardingInterviewInten
                 leftText = "새로 업로드",
                 rightText = "기존 포트폴리오 사용",
                 type = HilitFixedBottomDualButtonType.Default,
-                onLeftClick = { onIntent(OnBoardingInterviewIntent.PortfolioUploadNewClick) },
-                onRightClick = { onIntent(OnBoardingInterviewIntent.PortfolioUseExistingClick) },
+                onLeftClick = { onIntent(OnBoardingInterviewIntent.ClickPortfolioUploadNew) },
+                onRightClick = { onIntent(OnBoardingInterviewIntent.ClickPortfolioUseExisting) },
             )
         },
     )

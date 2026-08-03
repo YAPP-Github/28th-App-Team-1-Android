@@ -7,13 +7,13 @@ import com.dminus14.app.core.common.mvi.MviState
 sealed interface OnBoardingInterviewIntent : MviIntent {
     data object Load : OnBoardingInterviewIntent
 
-    data object CloseClick : OnBoardingInterviewIntent
+    data object ClickClose : OnBoardingInterviewIntent
 
-    data object SkipClick : OnBoardingInterviewIntent
+    data object ClickSkip : OnBoardingInterviewIntent
 
-    data object ContinueClick : OnBoardingInterviewIntent
+    data object ClickContinue : OnBoardingInterviewIntent
 
-    data object PreviousClick : OnBoardingInterviewIntent
+    data object ClickPrevious : OnBoardingInterviewIntent
 
     data class JobDescriptionTabChange(
         val index: Int,
@@ -27,13 +27,13 @@ sealed interface OnBoardingInterviewIntent : MviIntent {
         val value: String,
     ) : OnBoardingInterviewIntent
 
-    data object PortfolioUploadClick : OnBoardingInterviewIntent
+    data object ClickPortfolioUpload : OnBoardingInterviewIntent
 
-    data object PortfolioRemoveClick : OnBoardingInterviewIntent
+    data object ClickPortfolioRemove : OnBoardingInterviewIntent
 
-    data object PortfolioUseExistingClick : OnBoardingInterviewIntent
+    data object ClickPortfolioUseExisting : OnBoardingInterviewIntent
 
-    data object PortfolioUploadNewClick : OnBoardingInterviewIntent
+    data object ClickPortfolioUploadNew : OnBoardingInterviewIntent
 
     data class MainProjectTextChange(
         val value: String,

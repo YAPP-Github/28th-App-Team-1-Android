@@ -17,17 +17,17 @@ class OnBoardingInterviewViewModel
                     Unit
                 }
 
-                OnBoardingInterviewIntent.CloseClick -> {
+                OnBoardingInterviewIntent.ClickClose -> {
                     sendEffect(OnBoardingInterviewEffect.CloseRequested)
                 }
 
-                OnBoardingInterviewIntent.SkipClick,
-                OnBoardingInterviewIntent.ContinueClick,
+                OnBoardingInterviewIntent.ClickSkip,
+                OnBoardingInterviewIntent.ClickContinue,
                 -> {
                     onContinueClick()
                 }
 
-                OnBoardingInterviewIntent.PreviousClick -> {
+                OnBoardingInterviewIntent.ClickPrevious -> {
                     onPreviousClick()
                 }
 
@@ -43,15 +43,15 @@ class OnBoardingInterviewViewModel
                     reduce { copy(jobDescriptionText = intent.value) }
                 }
 
-                OnBoardingInterviewIntent.PortfolioUploadClick -> {
+                OnBoardingInterviewIntent.ClickPortfolioUpload -> {
                     reduce { copy(showExistingPortfolioModal = true) }
                 }
 
-                OnBoardingInterviewIntent.PortfolioRemoveClick -> {
+                OnBoardingInterviewIntent.ClickPortfolioRemove -> {
                     reduce { copy(portfolioFileName = null) }
                 }
 
-                OnBoardingInterviewIntent.PortfolioUseExistingClick -> {
+                OnBoardingInterviewIntent.ClickPortfolioUseExisting -> {
                     reduce {
                         copy(
                             portfolioFileName = EXISTING_PORTFOLIO_FILE_NAME,
@@ -61,7 +61,7 @@ class OnBoardingInterviewViewModel
                     }
                 }
 
-                OnBoardingInterviewIntent.PortfolioUploadNewClick -> {
+                OnBoardingInterviewIntent.ClickPortfolioUploadNew -> {
                     reduce {
                         copy(
                             portfolioFileName = NEW_PORTFOLIO_FILE_NAME,
