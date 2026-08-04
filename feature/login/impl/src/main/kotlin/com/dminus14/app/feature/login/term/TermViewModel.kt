@@ -11,10 +11,12 @@ import com.dminus14.app.domain.exception.InvalidConsentItemException
 import com.dminus14.app.domain.exception.NetworkUnavailableException
 import com.dminus14.app.domain.exception.RequiredConsentMissingException
 import com.dminus14.app.domain.exception.ServerException
+import com.dminus14.app.domain.exception.UserNotFoundException
 import com.dminus14.app.domain.exception.ValidationException
 import com.dminus14.app.domain.model.ConsentPendingStatus
 import com.dminus14.app.domain.model.ConsentSubmission
 import com.dminus14.app.domain.model.ConsentSubmissionItem
+import com.dminus14.app.domain.usecase.CheckUserProfileUseCase
 import com.dminus14.app.domain.usecase.GetConsentDocumentUseCase
 import com.dminus14.app.domain.usecase.GetPendingConsentListUseCase
 import com.dminus14.app.domain.usecase.SubmitConsentUseCase
@@ -29,6 +31,7 @@ constructor(
     private val getPendingConsentList: GetPendingConsentListUseCase,
     private val getConsentDocument: GetConsentDocumentUseCase,
     private val submitConsent: SubmitConsentUseCase,
+    private val checkUserProfile: CheckUserProfileUseCase,
     private val permissionManager: PermissionManager,
 ) : MviViewModel<TermIntent, TermState, TermEffect>(TermState()) {
     /** 테스트 전용: 초기 State를 주입한다. UseCase는 실제 fake로 넘겨야 한다. */
@@ -36,9 +39,16 @@ constructor(
         getPendingConsentList: GetPendingConsentListUseCase,
         getConsentDocument: GetConsentDocumentUseCase,
         submitConsent: SubmitConsentUseCase,
+        checkUserProfile: CheckUserProfileUseCase,
         permissionManager: PermissionManager,
         initialState: TermState,
-    ) : this(getPendingConsentList, getConsentDocument, submitConsent, permissionManager) {
+    ) : this(
+        getPendingConsentList,
+        getConsentDocument,
+        submitConsent,
+        checkUserProfile,
+        permissionManager,
+    ) {
         reduce { initialState }
     }
 
@@ -160,17 +170,33 @@ constructor(
 
     /**
      * 약관 제출 성공 후 권한 동의 여부를 확인해 다음 화면을 분기한다.
-     * 권한이 이미 허용돼 있으면 GrantPerm, 아니면 DeniedPerm(권한 동의 화면)으로 보낸다.
+     * 권한이 이미 허용돼 있으면 프로필을 조회하고, 아니면 DeniedPerm(권한 동의 화면)으로 보낸다.
      */
-    private fun checkPermissionConsent() {
+    private suspend fun checkPermissionConsent() {
         val isGrantPerm = permissionManager.isGranted(AppPermission.CAMERA) &&
             permissionManager.isGranted(AppPermission.RECORD_AUDIO)
 
         if (isGrantPerm) {
-            // 프로필 조회 추가
+            routeByProfile()
         } else {
             sendEffect(TermEffect.DeniedPerm)
         }
+    }
+
+    /**
+     * 프로필 등록 여부에 따라 이동을 분기한다.
+     * 프로필이 있으면 홈(ExistProfile), 미등록(UserNotFound)이면 온보딩(NonExistProfile)으로 보낸다.
+     */
+    private suspend fun routeByProfile() {
+        checkUserProfile()
+            .onSuccess {
+                sendEffect(TermEffect.ExistProfile)
+            }.onFailure { error ->
+                when (error) {
+                    is UserNotFoundException -> sendEffect(TermEffect.NonExistProfile)
+                    else -> handleLoadFailure(error)
+                }
+            }
     }
 
     // 아래 에러 처리 사항은 임시입니다. 공통 처리 기획자 문의 모든 ViewModel 일괄 수정 예정

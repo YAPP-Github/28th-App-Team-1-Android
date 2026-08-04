@@ -30,6 +30,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dminus14.app.domain.model.ConsentItem
 import com.dminus14.app.domain.model.ConsentItemCode
+import com.dminus14.app.feature.home.api.Home
 import com.dminus14.app.feature.login.api.Onboarding
 import com.dminus14.app.feature.login.api.PermissionConsent
 import com.dminus14.app.feature.login.component.TermBottomSheet
@@ -74,6 +75,14 @@ fun TermScreen(
 
                 TermEffect.DeniedPerm -> {
                     onNavigate(PermissionConsent)
+                }
+
+                TermEffect.ExistProfile -> {
+                    onNavigate(Home)
+                }
+
+                TermEffect.NonExistProfile -> {
+                    onNavigate(Onboarding)
                 }
 
                 is TermEffect.ShowToast -> {

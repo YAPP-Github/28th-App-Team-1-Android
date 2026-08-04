@@ -61,6 +61,12 @@ sealed interface TermEffect : MviEffect {
 
     data object DeniedPerm : TermEffect
 
+    /** 프로필이 이미 등록돼 있어 홈으로 이동한다. */
+    data object ExistProfile : TermEffect
+
+    /** 프로필이 없어 온보딩으로 이동한다. */
+    data object NonExistProfile : TermEffect
+
     /** 제출 실패 등 사용자에게 안내할 1회성 Toast를 표시한다. */
     data class ShowToast(
         val message: String,
