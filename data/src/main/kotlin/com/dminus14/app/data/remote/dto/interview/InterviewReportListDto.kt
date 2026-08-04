@@ -5,14 +5,7 @@ import com.dminus14.app.domain.model.InterviewReportListItem
 import com.dminus14.app.domain.model.InterviewReportStatus
 import com.google.gson.annotations.SerializedName
 
-/**
- * GET api/v1/interview/sessions
- */
-data class InterviewReportListRequestDto(
-    @SerializedName("dummy")
-    val dummy: String? = null,
-)
-
+/** GET api/v1/interview/sessions */
 data class InterviewReportListResponseDto(
     @SerializedName("reports")
     val reports: List<InterviewReportListItemDto>,

@@ -1,33 +1,22 @@
 package com.dminus14.designsystem.component.fileupload
 
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -47,6 +36,7 @@ enum class PdfUploadType {
     Ready,
     Processing,
     Completed,
+    Failed,
 }
 
 private val PdfUploadShape = RectangleShape
@@ -67,32 +57,34 @@ private val PdfUploadReadyMinHeight = 64.dp
 private val PdfUploadDashOn = 6.dp
 private val PdfUploadDashOff = 4.dp
 
-/** Figma processing 인디케이터 너비 (`2280:10276`, 54/335) */
-private val PdfUploadIndeterminateSegmentWidth = 54.dp
 private const val PDF_UPLOAD_READY_DEFAULT_TEXT = "아직 첨부된 포트폴리오가 없어요"
-private const val PDF_UPLOAD_BUTTON_DEFAULT_TEXT = "버튼"
-private const val PDF_UPLOAD_INDETERMINATE_ANIM_DURATION_MS = 1_200
+private const val PDF_UPLOAD_PROGRESS_MIN = 0f
+private const val PDF_UPLOAD_PROGRESS_MAX = 100f
 
 /**
  * PDF 업로드 상태 표시 영역.
  *
  * Figma: FileUpload status=empty / processing / completed (`443:9714`)
  *
- * @param type Ready(미첨부) / Processing / Completed
+ * @param type Ready(미첨부) / Processing / Completed / Failed
  * @param modifier 외부 레이아웃 Modifier
  * @param fileName Processing·Completed에서 표시할 파일명
+ * @param progress Processing 진행도(0f~100f). 범위를 벗어나면 최솟값·최댓값으로 보정한다
  * @param onCloseClick 닫기(제거) 클릭. null이면 닫기 아이콘을 표시하지 않는다
- * @param buttonText Completed 우측 mini 버튼 문구
- * @param onButtonClick Completed 우측 mini 버튼 클릭. null이면 버튼을 표시하지 않는다
+ * @param onInfoClick Failed 정보 아이콘 클릭. null이면 아이콘은 비활성으로 표시한다
+ * @param retryText Failed 우측 재시도 버튼 문구
+ * @param onRetryClick Failed 우측 재시도 버튼 클릭. null이면 버튼을 표시하지 않는다
  */
 @Composable
 fun PdfUpload(
     type: PdfUploadType,
     modifier: Modifier = Modifier,
     fileName: String = "",
+    progress: Float,
     onCloseClick: (() -> Unit)? = null,
-    buttonText: String = PDF_UPLOAD_BUTTON_DEFAULT_TEXT,
-    onButtonClick: (() -> Unit)? = null,
+    onInfoClick: (() -> Unit)? = null,
+    retryText: String = "다시 올리기",
+    onRetryClick: (() -> Unit)? = null,
 ) {
     when (type) {
         PdfUploadType.Ready -> {
@@ -101,13 +93,16 @@ fun PdfUpload(
 
         PdfUploadType.Processing,
         PdfUploadType.Completed,
+        PdfUploadType.Failed,
         -> {
             PdfUploadFilled(
                 fileName = fileName,
                 type = type,
+                progress = progress,
                 onCloseClick = onCloseClick,
-                buttonText = buttonText,
-                onButtonClick = onButtonClick,
+                onInfoClick = onInfoClick,
+                retryText = retryText,
+                onRetryClick = onRetryClick,
                 modifier = modifier,
             )
         }
@@ -149,24 +144,30 @@ private fun PdfUploadReady(modifier: Modifier = Modifier) {
 private fun PdfUploadFilled(
     fileName: String,
     type: PdfUploadType,
+    progress: Float,
     onCloseClick: (() -> Unit)?,
-    buttonText: String,
-    onButtonClick: (() -> Unit)?,
+    onInfoClick: (() -> Unit)?,
+    retryText: String,
+    onRetryClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val isCompleted = type == PdfUploadType.Completed
+    val isFailed = type == PdfUploadType.Failed
     val statusText =
-        if (isCompleted) {
-            "Completed!"
-        } else {
-            "Processing..."
+        when {
+            isCompleted -> "Completed!"
+            isFailed -> "업로드 실패"
+            else -> "Processing..."
         }
     val statusColor =
-        if (isCompleted) {
-            HilitTheme.colors.hilitGreen800
-        } else {
-            HilitTheme.colors.gray400
+        when {
+            isCompleted -> HilitTheme.colors.hilitGreen800
+            isFailed -> HilitTheme.colors.error500
+            else -> HilitTheme.colors.gray400
         }
+    val infoClickHandler = onInfoClick?.takeIf { isFailed }
+    val infoTint =
+        if (infoClickHandler != null) HilitTheme.colors.error500 else HilitTheme.colors.gray200
 
     Column(
         modifier =
@@ -218,14 +219,34 @@ private fun PdfUploadFilled(
                             style = HilitTheme.typography.body9,
                             color = statusColor,
                         )
-                        HilitIcon(
-                            asset = HilitIconAsset.Info,
-                            contentDescription = null,
-                            tint = HilitTheme.colors.gray200,
-                            modifier =
-                                Modifier
-                                    .size(PdfUploadCloseSize),
-                        )
+                        if (isFailed) {
+                            HilitIcon(
+                                asset = HilitIconAsset.Info,
+                                contentDescription =
+                                    if (infoClickHandler !=
+                                        null
+                                    ) {
+                                        "업로드 실패 안내"
+                                    } else {
+                                        null
+                                    },
+                                tint = infoTint,
+                                modifier =
+                                    Modifier
+                                        .size(PdfUploadCloseSize)
+                                        .then(
+                                            if (infoClickHandler != null) {
+                                                Modifier.clickable(
+                                                    indication = null,
+                                                    interactionSource = null,
+                                                    onClick = infoClickHandler,
+                                                )
+                                            } else {
+                                                Modifier
+                                            },
+                                        ),
+                            )
+                        }
                     }
                 }
 
@@ -246,17 +267,22 @@ private fun PdfUploadFilled(
                 }
             }
 
-            onButtonClick
-                ?.takeIf { isCompleted }
+            onRetryClick
+                ?.takeIf { isFailed }
                 ?.let { onClick ->
                     PdfUploadActionButton(
-                        text = buttonText,
+                        text = retryText,
+                        icon = HilitIconAsset.Undo,
                         onClick = onClick,
                     )
                 }
         }
 
-        PdfUploadProgress(isCompleted = isCompleted)
+        if (!isFailed) {
+            PdfUploadProgress(
+                progress = if (isCompleted) PDF_UPLOAD_PROGRESS_MAX else progress,
+            )
+        }
     }
 }
 
@@ -264,6 +290,7 @@ private fun PdfUploadFilled(
 @Composable
 private fun PdfUploadActionButton(
     text: String,
+    icon: HilitIconAsset,
     onClick: () -> Unit,
 ) {
     Row(
@@ -281,7 +308,7 @@ private fun PdfUploadActionButton(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         HilitIcon(
-            asset = HilitIconAsset.Video,
+            asset = icon,
             contentDescription = null,
             tint = HilitTheme.colors.hilitBlack800,
             modifier = Modifier.size(PdfUploadButtonIconSize),
@@ -322,51 +349,22 @@ private fun PdfFileBadge() {
 }
 
 @Composable
-private fun PdfUploadProgress(isCompleted: Boolean) {
-    if (isCompleted) {
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .height(PdfUploadProgressHeight)
-                    .background(HilitTheme.colors.hilitGreen500),
-        )
-        return
-    }
+private fun PdfUploadProgress(progress: Float) {
+    val progressFraction =
+        progress.coerceIn(PDF_UPLOAD_PROGRESS_MIN, PDF_UPLOAD_PROGRESS_MAX) /
+            PDF_UPLOAD_PROGRESS_MAX
 
-    val transition = rememberInfiniteTransition(label = "pdfUploadIndeterminate")
-    val offsetFraction by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec =
-            infiniteRepeatable(
-                animation =
-                    tween(
-                        durationMillis = PDF_UPLOAD_INDETERMINATE_ANIM_DURATION_MS,
-                        easing = FastOutSlowInEasing,
-                    ),
-                repeatMode = RepeatMode.Reverse,
-            ),
-        label = "pdfUploadIndeterminateOffset",
-    )
-
-    BoxWithConstraints(
+    Box(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .height(PdfUploadProgressHeight)
-                .clipToBounds()
                 .background(HilitTheme.colors.gray200),
     ) {
-        val segmentWidth =
-            PdfUploadIndeterminateSegmentWidth.coerceAtMost(maxWidth)
-        val maxOffset = (maxWidth - segmentWidth).coerceAtLeast(0.dp)
-
         Box(
             modifier =
                 Modifier
-                    .offset(x = maxOffset * offsetFraction)
-                    .width(segmentWidth)
+                    .fillMaxWidth(progressFraction)
                     .fillMaxHeight()
                     .background(HilitTheme.colors.hilitGreen500),
         )
@@ -414,17 +412,28 @@ private fun PdfUploadPreview() {
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            PdfUpload(type = PdfUploadType.Ready)
+            PdfUpload(
+                type = PdfUploadType.Ready,
+                progress = 0f,
+            )
             PdfUpload(
                 type = PdfUploadType.Processing,
                 fileName = "홍길동 자기소개서_SK프롬티어 기업....pdf",
+                progress = 50f,
                 onCloseClick = {},
             )
             PdfUpload(
                 type = PdfUploadType.Completed,
                 fileName = "홍길동 자기소개서_SK프롬티어 기업....pdf",
+                progress = 100f,
                 onCloseClick = {},
-                onButtonClick = {},
+            )
+            PdfUpload(
+                type = PdfUploadType.Failed,
+                fileName = "샘플 포트폴리오.pdf",
+                progress = 0f,
+                onInfoClick = {},
+                onRetryClick = {},
             )
         }
     }

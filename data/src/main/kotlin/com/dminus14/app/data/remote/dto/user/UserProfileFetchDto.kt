@@ -1,12 +1,10 @@
+@file:Suppress("MatchingDeclarationName", "ktlint:standard:filename")
+
 package com.dminus14.app.data.remote.dto.user
 
 import com.google.gson.annotations.SerializedName
 
-data class UserProfileFetchRequestDto(
-    @SerializedName("unused")
-    val unused: Unit? = null,
-)
-
+/** GET api/v1/users/me/profile */
 data class UserProfileFetchResponseDto(
     @SerializedName("userId")
     val userId: String? = null,

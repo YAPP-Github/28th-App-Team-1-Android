@@ -64,10 +64,11 @@ Intent는 사용자 행동 또는 UI lifecycle event만 표현하고 ViewModel�
 sealed interface SampleIntent {
     data object Load : SampleIntent
     data object Refresh : SampleIntent
-    data class ItemClicked(val id: Long) : SampleIntent
+    data class ClickItem(val id: Long) : SampleIntent
 }
 ```
 
+- Intent 구현 시, 네이밍 컨벤션은 "V + O"(동사 + 목적어, 예: `ClickClose`, `ClickItem`, `ToggleReport`)의 형태로 작성한다.
 - State 전체를 Intent에 담지 않는다.
 - 처리에 필요한 최소 값만 전달한다.
 - 이름은 사용자의 행동이나 lifecycle event가 드러나게 작성한다.
@@ -134,7 +135,7 @@ class SampleViewModel(...) : ViewModel() {
         when (intent) {
             SampleIntent.Load -> load()
             SampleIntent.Refresh -> load()
-            is SampleIntent.ItemClicked -> select(intent.id)
+            is SampleIntent.ClickItem -> select(intent.id)
         }
     }
 
@@ -197,6 +198,7 @@ fun SampleContent(
 
 - Screen은 State 구독, Intent 전달과 Effect 수집을 담당한다.
 - Content는 전달된 값과 callback만으로 UI를 렌더링한다.
+- Figma MCP 서버를 통해 참조/가져온 디자인을 바탕으로 Composable UI(Screen, Content, Component)를 구현할 경우, KDoc 최상단에 해당 Figma 노드 ID/번호(예: `Figma Node: 1234:5678`)를 반드시 병기한다.
 - 필요한 최초 로드는 `LaunchedEffect(Unit)`에서 `Load` Intent로 전달한다.
 - Content는 Hilt, Android Lifecycle, Navigation, network, file access와 실제 사용자 데이터에
   의존하지 않는다.

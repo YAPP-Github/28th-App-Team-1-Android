@@ -5,14 +5,7 @@ import com.dminus14.app.domain.model.InterviewSessionStatusType
 import com.dminus14.app.domain.model.SummaryQuestion
 import com.google.gson.annotations.SerializedName
 
-/**
- * GET api/v1/interview/sessions/{sessionId}/status
- */
-data class InterviewSessionStatusRequestDto(
-    @SerializedName("dummy")
-    val dummy: String? = null,
-)
-
+/** GET api/v1/interview/sessions/{sessionId}/status */
 data class InterviewSessionStatusResponseDto(
     @SerializedName("sessionId")
     val sessionId: Long? = null,

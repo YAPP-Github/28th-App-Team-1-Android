@@ -1,16 +1,11 @@
+@file:Suppress("MatchingDeclarationName", "ktlint:standard:filename")
+
 package com.dminus14.app.data.remote.dto.interview
 
 import com.dminus14.app.domain.model.InterviewResumeConfirm
 import com.google.gson.annotations.SerializedName
 
-/**
- * POST api/v1/interview/sessions/{sessionId}/resume
- */
-data class InterviewResumeConfirmRequestDto(
-    @SerializedName("dummy")
-    val dummy: String? = null,
-)
-
+/** POST api/v1/interview/sessions/{sessionId}/resume */
 data class InterviewResumeConfirmResponseDto(
     @SerializedName("nextQuestion")
     val nextQuestion: NextQuestionDto?,

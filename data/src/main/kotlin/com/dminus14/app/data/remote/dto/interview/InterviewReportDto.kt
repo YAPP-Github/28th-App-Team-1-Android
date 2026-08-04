@@ -12,14 +12,7 @@ import com.dminus14.app.domain.model.ReportScript
 import com.dminus14.app.domain.model.ScriptSegment
 import com.google.gson.annotations.SerializedName
 
-/**
- * GET api/v1/interview/sessions/{sessionId}/report
- */
-data class InterviewReportRequestDto(
-    @SerializedName("dummy")
-    val dummy: String? = null,
-)
-
+/** GET api/v1/interview/sessions/{sessionId}/report */
 data class InterviewReportResponseDto(
     @SerializedName("status")
     val status: String,
