@@ -125,11 +125,7 @@ class SplashViewModel
             checkUserProfileUseCase()
                 .onSuccess { profile ->
                     reduce { copy(isLoading = false, showKakaoLoginButton = false) }
-                    if (profile.requiresOnboarding) {
-                        sendEffect(SplashEffect.RequireOnboarding)
-                    } else {
-                        sendEffect(SplashEffect.Ready)
-                    }
+                    sendEffect(SplashEffect.Ready)
                 }.onFailure { error ->
                     when (error) {
                         is UserNotFoundException -> {
