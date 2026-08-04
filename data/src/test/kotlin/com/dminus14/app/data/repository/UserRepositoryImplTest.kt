@@ -31,13 +31,15 @@ class UserRepositoryImplTest {
     fun `프로필 조회 응답을 null 손실 없이 도메인 모델로 반환한다`() =
         runBlocking {
             val dataSource =
-                FakeUserRemoteDataSource(profileResponse = UserProfileFetchResponseDto())
+                FakeUserRemoteDataSource(
+                    profileResponse = UserProfileFetchResponseDto(name = "합성 사용자"),
+                )
             val repository = UserRepositoryImpl(dataSource)
 
             val actual = repository.getUserProfile()
 
             assertEquals(
-                UserProfile(null, null, null, null, null, null, null),
+                UserProfile("합성 사용자", null, null, null, null, null, null),
                 actual,
             )
             assertEquals(1, dataSource.profileCallCount)
@@ -48,13 +50,13 @@ class UserRepositoryImplTest {
         runBlocking {
             val dataSource = FakeUserRemoteDataSource()
             val repository = UserRepositoryImpl(dataSource)
-            val update = UserProfileUpdate(name = null, jobRole = "BACKEND", careerYears = 3)
+            val update = UserProfileUpdate(name = "합성 사용자", jobRole = "BACKEND", careerYears = 3)
 
             val actual = repository.updateUserProfile(update)
 
             assertSame(Unit, actual)
             assertEquals(
-                UserProfileUpdateRequestDto(name = null, jobRole = "BACKEND", careerYears = 3),
+                UserProfileUpdateRequestDto(name = "합성 사용자", jobRole = "BACKEND", careerYears = 3),
                 dataSource.updateRequest,
             )
         }
@@ -90,7 +92,7 @@ class UserRepositoryImplTest {
                 val actual =
                     captureFailure {
                         repository.updateUserProfile(
-                            UserProfileUpdate(null, "BACKEND", 3),
+                            UserProfileUpdate("합성 사용자", "BACKEND", 3),
                         )
                     }
 
@@ -159,7 +161,8 @@ class UserRepositoryImplTest {
         }
 
     private class FakeUserRemoteDataSource(
-        private val profileResponse: UserProfileFetchResponseDto = UserProfileFetchResponseDto(),
+        private val profileResponse: UserProfileFetchResponseDto =
+            UserProfileFetchResponseDto(name = "합성 사용자"),
         private val profileFailure: Throwable? = null,
         private val updateFailure: Throwable? = null,
         private val withdrawalFailure: Throwable? = null,

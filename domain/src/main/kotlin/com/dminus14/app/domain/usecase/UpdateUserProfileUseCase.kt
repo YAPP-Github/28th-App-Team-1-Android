@@ -14,9 +14,9 @@ class UpdateUserProfileUseCase
     ) {
         suspend operator fun invoke(update: UserProfileUpdate): Result<Unit> =
             runCatchingCancellable {
-                val normalizedName = update.name?.trim()
+                val normalizedName = update.name.trim()
                 validate(
-                    normalizedName == null || normalizedName.length in NAME_LENGTH_RANGE,
+                    normalizedName.length in NAME_LENGTH_RANGE,
                     "이름은 1자 이상 5자 이하로 입력해 주세요.",
                 )
                 val normalizedJobRole = update.jobRole.trim()

@@ -35,7 +35,7 @@ class UserUseCaseTest {
             val result =
                 useCase(
                     UserProfileUpdate(
-                        name = "  합성 사용자  ",
+                        name = "  홍길동  ",
                         jobRole = "  BACKEND  ",
                         careerYears = 3,
                     ),
@@ -43,21 +43,9 @@ class UserUseCaseTest {
 
             assertTrue(result.isSuccess)
             assertEquals(
-                UserProfileUpdate("합성 사용자", "BACKEND", 3),
+                UserProfileUpdate("홍길동", "BACKEND", 3),
                 repository.update,
             )
-        }
-
-    @Test
-    fun `프로필 수정 시 null 이름을 변경 없이 저장소에 전달한다`() =
-        runTest {
-            val repository = FakeUserRepository()
-            val useCase = UpdateUserProfileUseCase(repository)
-
-            val result = useCase(UserProfileUpdate(null, "BACKEND", 3))
-
-            assertTrue(result.isSuccess)
-            assertEquals(null, repository.update?.name)
         }
 
     @Test
@@ -66,10 +54,10 @@ class UserUseCaseTest {
             val invalidUpdates =
                 listOf(
                     UserProfileUpdate("   ", "BACKEND", 3),
-                    UserProfileUpdate("가".repeat(21), "BACKEND", 3),
-                    UserProfileUpdate("합성 사용자", "   ", 3),
-                    UserProfileUpdate("합성 사용자", "BACKEND", -1),
-                    UserProfileUpdate("합성 사용자", "BACKEND", 11),
+                    UserProfileUpdate("가".repeat(6), "BACKEND", 3),
+                    UserProfileUpdate("홍길동", "   ", 3),
+                    UserProfileUpdate("홍길동", "BACKEND", -1),
+                    UserProfileUpdate("홍길동", "BACKEND", 11),
                 )
 
             invalidUpdates.forEach { update ->
@@ -149,7 +137,7 @@ class UserUseCaseTest {
         }
 
     private class FakeUserRepository(
-        val profile: UserProfile = UserProfile(null, null, null, null, null, null, null),
+        val profile: UserProfile = UserProfile("홍길동", null, null, null, null, null, null),
         private val withdrawalFailure: Throwable? = null,
         private val calls: MutableList<String> = mutableListOf(),
     ) : UserRepository {

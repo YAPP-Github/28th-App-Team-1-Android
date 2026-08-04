@@ -65,7 +65,7 @@ class SplashViewModelTest {
         }
 
     @Test
-    fun `Load 시 세션과 동의 최신이지만 이름이 없으면 RequireOnboarding Effect를 발행한다`() =
+    fun `Load 시 세션과 동의 최신이지만 프로필이 없으면 RequireOnboarding Effect를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -74,7 +74,8 @@ class SplashViewModelTest {
                     createViewModel(
                         session = sampleSession,
                         pendingResult = Result.success(upToDatePending),
-                        profileResult = Result.success(sampleUserProfileWithoutName),
+                        profileResult =
+                            Result.failure(UserNotFoundException(errCode = "USER_NOT_FOUND")),
                     )
                 val effect = async { viewModel.effect.first() }
 
@@ -312,7 +313,7 @@ class SplashViewModelTest {
         }
 
     @Test
-    fun `카카오 로그인 성공 후 동의 최신이지만 이름이 없으면 RequireOnboarding Effect를 발행한다`() =
+    fun `카카오 로그인 성공 후 동의 최신이지만 프로필이 없으면 RequireOnboarding Effect를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -321,7 +322,8 @@ class SplashViewModelTest {
                     createViewModel(
                         session = null,
                         pendingResult = Result.success(upToDatePending),
-                        profileResult = Result.success(sampleUserProfileWithoutName),
+                        profileResult =
+                            Result.failure(UserNotFoundException(errCode = "USER_NOT_FOUND")),
                         loginResult = Result.success(sampleSession),
                     )
                 val effect = async { viewModel.effect.first() }
@@ -537,11 +539,6 @@ class SplashViewModelTest {
                 jobRoleLabel = "백엔드",
                 careerYears = 1,
                 remainingTicketCount = 3,
-            )
-
-        val sampleUserProfileWithoutName =
-            sampleUserProfile.copy(
-                name = null,
             )
 
         val upToDatePending =

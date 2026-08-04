@@ -33,7 +33,7 @@ class UserRemoteDataSourceTest {
         runBlocking {
             val api = FakeUserApi()
             val dataSource = UserRemoteDataSourceImpl(api)
-            val request = UserProfileUpdateRequestDto(null, "BACKEND", 3)
+            val request = UserProfileUpdateRequestDto("합성 사용자", "BACKEND", 3)
 
             val actual = dataSource.updateUserProfile(request)
 
@@ -49,7 +49,9 @@ class UserRemoteDataSourceTest {
 
             val actual =
                 captureFailure {
-                    dataSource.updateUserProfile(UserProfileUpdateRequestDto(null, "BACKEND", 3))
+                    dataSource.updateUserProfile(
+                        UserProfileUpdateRequestDto("합성 사용자", "BACKEND", 3),
+                    )
                 }
 
             assertTrue(actual is ServerException)
@@ -99,7 +101,8 @@ class UserRemoteDataSourceTest {
         }
 
     private class FakeUserApi(
-        val profileResponse: UserProfileFetchResponseDto = UserProfileFetchResponseDto(),
+        val profileResponse: UserProfileFetchResponseDto =
+            UserProfileFetchResponseDto(name = "합성 사용자"),
         private val updateResponse: UserProfileUpdateResponseDto =
             UserProfileUpdateResponseDto(success = true),
         private val withdrawalResponse: Response<Unit> = Response.success<Unit>(204, null),

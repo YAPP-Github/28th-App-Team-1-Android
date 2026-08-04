@@ -39,11 +39,11 @@ class UserMapperTest {
 
     @Test
     fun `프로필 조회 응답의 null을 기본값으로 바꾸지 않는다`() {
-        val actual = UserProfileFetchResponseDto().toDomain()
+        val actual = UserProfileFetchResponseDto(name = "합성 사용자").toDomain()
 
         assertEquals(
             UserProfile(
-                name = null,
+                name = "합성 사용자",
                 email = null,
                 provider = null,
                 jobRole = null,
@@ -57,11 +57,11 @@ class UserMapperTest {
 
     @Test
     fun `프로필 수정 도메인 입력을 요청 DTO로 변환한다`() {
-        val update = UserProfileUpdate(name = null, jobRole = "BACKEND", careerYears = 3)
+        val update = UserProfileUpdate(name = "합성 사용자", jobRole = "BACKEND", careerYears = 3)
 
         val actual = update.toDto()
 
-        assertEquals(null, actual.name)
+        assertEquals("합성 사용자", actual.name)
         assertEquals("BACKEND", actual.jobRole)
         assertEquals(3, actual.careerYears)
     }
