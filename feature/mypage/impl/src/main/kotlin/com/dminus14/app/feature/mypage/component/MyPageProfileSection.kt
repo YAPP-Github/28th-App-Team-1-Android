@@ -117,12 +117,12 @@ internal fun MyPageProfileSection(
                     )
                     HilitIcon(
                         asset = HilitIconAsset.Info,
-                        contentDescription = null,
+                        contentDescription = "남은 면접 티켓 개수",
                         tint = HilitTheme.colors.gray200,
                         modifier =
                             Modifier
                                 .size(16.dp)
-                                .clickable { onTicketInfoClick() },
+                                .clickable(role = Role.Button, onClick = onTicketInfoClick),
                     )
                 }
                 HilitTag(
