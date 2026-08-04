@@ -4,11 +4,18 @@ import androidx.lifecycle.viewModelScope
 import com.dminus14.app.core.common.event.GlobalAppEvent
 import com.dminus14.app.core.common.event.GlobalErrorHandler
 import com.dminus14.app.core.common.mvi.MviViewModel
+import com.dminus14.app.domain.exception.ConsentVersionMismatchException
+import com.dminus14.app.domain.exception.InvalidConsentItemException
 import com.dminus14.app.domain.exception.NetworkUnavailableException
+import com.dminus14.app.domain.exception.RequiredConsentMissingException
 import com.dminus14.app.domain.exception.ServerException
+import com.dminus14.app.domain.exception.ValidationException
 import com.dminus14.app.domain.model.ConsentPendingStatus
+import com.dminus14.app.domain.model.ConsentSubmission
+import com.dminus14.app.domain.model.ConsentSubmissionItem
 import com.dminus14.app.domain.usecase.GetConsentDocumentUseCase
 import com.dminus14.app.domain.usecase.GetPendingConsentListUseCase
+import com.dminus14.app.domain.usecase.SubmitConsentUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -19,13 +26,15 @@ class TermViewModel
 constructor(
     private val getPendingConsentList: GetPendingConsentListUseCase,
     private val getConsentDocument: GetConsentDocumentUseCase,
+    private val submitConsent: SubmitConsentUseCase,
 ) : MviViewModel<TermIntent, TermState, TermEffect>(TermState()) {
     /** 테스트 전용: 초기 State를 주입한다. UseCase는 실제 fake로 넘겨야 한다. */
     internal constructor(
         getPendingConsentList: GetPendingConsentListUseCase,
         getConsentDocument: GetConsentDocumentUseCase,
+        submitConsent: SubmitConsentUseCase,
         initialState: TermState,
-    ) : this(getPendingConsentList, getConsentDocument) {
+    ) : this(getPendingConsentList, getConsentDocument, submitConsent) {
         reduce { initialState }
     }
 
@@ -55,15 +64,13 @@ constructor(
                 reduce {
                     copy(
                         visibleTermDetailIndex = null,
-                        visibleTermDetail = null
+                        visibleTermDetail = null,
                     )
                 }
             }
 
             TermIntent.ClickAgree -> {
-                if (state.value.canSubmit) {
-                    sendEffect(TermEffect.Agreed)
-                }
+                submit()
             }
         }
     }
@@ -93,6 +100,56 @@ constructor(
                     }
                 }.onFailure { error ->
                     handleLoadFailure(error)
+                }
+        }
+    }
+
+    /**
+     * 현재 체크 상태를 그대로 서버에 제출한다. 필수·선택 항목을 모두 담되 항목별 `agreed`에
+     * 체크 여부를 실어 보낸다(선택 항목의 거부 이력도 서버에 저장된다). `version`은 pending에서
+     * 내려준 값을 그대로 사용한다. 최초 성공 제출 시 서버가 무료 이용권 3회를 부여한다.
+     */
+    private fun submit() {
+        if (!state.value.canSubmit) return
+        reduce { copy(isLoading = true, errorMessage = null) }
+        val submission =
+            ConsentSubmission(
+                items =
+                    state.value.terms.map { term ->
+                        ConsentSubmissionItem(
+                            rawCode = term.rawCode,
+                            version = term.version,
+                            agreed = term.isChecked,
+                        )
+                    },
+            )
+        viewModelScope.launch {
+            submitConsent(submission)
+                .onSuccess {
+                    reduce { copy(isLoading = false) }
+                    sendEffect(TermEffect.Agreed)
+                }.onFailure { error ->
+                    when (error) {
+                        // 버전 불일치는 목록을 재조회한다. loadPending()의 isLoading 가드 때문에
+                        // 재조회 전에 제출 로딩을 먼저 해제한다.
+                        is ConsentVersionMismatchException -> {
+                            reduce { copy(isLoading = false) }
+                            sendEffect(TermEffect.ShowToast(error.message.orEmpty()))
+                            loadPending()
+                        }
+
+                        // 사용자가 조치 가능한 입력 오류는 Toast로 안내한다.
+                        is RequiredConsentMissingException,
+                        is InvalidConsentItemException,
+                        is ValidationException,
+                            -> {
+                            reduce { copy(isLoading = false) }
+                            sendEffect(TermEffect.ShowToast(error.message.orEmpty()))
+                        }
+
+                        // 그 외 전송·서버·알 수 없는 오류는 공통 처리로 위임한다.
+                        else -> handleLoadFailure(error)
+                    }
                 }
         }
     }

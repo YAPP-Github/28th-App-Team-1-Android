@@ -60,4 +60,9 @@ sealed interface TermEffect : MviEffect {
     data object GrantPerm : TermEffect
 
     data object DeniedPerm : TermEffect
+
+    /** 제출 실패 등 사용자에게 안내할 1회성 Toast를 표시한다. */
+    data class ShowToast(
+        val message: String,
+    ) : TermEffect
 }
