@@ -29,8 +29,6 @@ data class TermState(
     val terms: List<ConsentItem> = emptyList(),
     val visibleTermDetailIndex: Int? = null,
     val isLoading: Boolean = false,
-    /** 로드/문서 조회 실패 시 사용자에게 보여줄 메시지. 표기 위치는 디자이너 협의 예정. */
-    val errorMessage: String? = null,
     val visibleTermDetail: TermDetailContent? = null,
 ) : MviState {
     val isAllChecked: Boolean

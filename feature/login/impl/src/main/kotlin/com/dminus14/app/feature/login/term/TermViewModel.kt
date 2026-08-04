@@ -91,7 +91,7 @@ constructor(
 
     private fun loadPending() {
         if (state.value.isLoading) return
-        reduce { copy(isLoading = true, errorMessage = null) }
+        reduce { copy(isLoading = true) }
         viewModelScope.launch {
             getPendingConsentList()
                 .onSuccess { pending ->
@@ -125,7 +125,7 @@ constructor(
      */
     private fun submit() {
         if (!state.value.canSubmit) return
-        reduce { copy(isLoading = true, errorMessage = null) }
+        reduce { copy(isLoading = true) }
         val submission =
             ConsentSubmission(
                 items =
@@ -250,7 +250,7 @@ constructor(
         if (!term.hasDocument) return
         if (state.value.isLoading) return
 
-        reduce { copy(isLoading = true, errorMessage = null) }
+        reduce { copy(isLoading = true) }
 
         viewModelScope.launch {
             getConsentDocument(rawCode = term.rawCode, version = term.version)
@@ -266,7 +266,7 @@ constructor(
                         )
                     }
                 }.onFailure { error ->
-                    reduce { copy(isLoading = false, errorMessage = error.message) }
+                    handleLoadFailure(error)
                 }
         }
     }
