@@ -78,7 +78,7 @@ class MyPageViewModelTest {
 
             cases.forEach { (intent, expected) ->
                 val viewModel = MyPageViewModel()
-                val effect = async { viewModel.effect.first() }
+                val effect = async(start = CoroutineStart.UNDISPATCHED) { viewModel.effect.first() }
                 viewModel.onIntent(intent)
                 assertEquals(MyPageEffect.ShowModal(expected), effect.await())
             }
@@ -97,7 +97,7 @@ class MyPageViewModelTest {
 
             cases.forEach { (intent, expected) ->
                 val viewModel = MyPageViewModel()
-                val effect = async { viewModel.effect.first() }
+                val effect = async(start = CoroutineStart.UNDISPATCHED) { viewModel.effect.first() }
                 viewModel.onIntent(intent)
                 assertEquals(expected, effect.await())
             }
