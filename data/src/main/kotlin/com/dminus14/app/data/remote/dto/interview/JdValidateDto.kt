@@ -1,8 +1,11 @@
-package com.dminus14.app.data.remote.dto
+package com.dminus14.app.data.remote.dto.interview
 
 import com.dminus14.app.domain.model.JdValidationResult
 import com.google.gson.annotations.SerializedName
 
+/**
+ * POST api/v1/jd/validate
+ */
 data class JdValidateRequestDto(
     @SerializedName("jdUrl")
     val jdUrl: String,
