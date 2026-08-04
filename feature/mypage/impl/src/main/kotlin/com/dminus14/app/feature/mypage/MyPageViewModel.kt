@@ -14,65 +14,65 @@ class MyPageViewModel internal constructor(
     @Suppress("CyclomaticComplexMethod")
     override fun onIntent(intent: MyPageIntent) {
         when (intent) {
-            MyPageIntent.CloseClicked -> {
+            MyPageIntent.ClickClose -> {
                 sendEffect(MyPageEffect.CloseRequested)
             }
 
-            MyPageIntent.UploadClicked,
-            MyPageIntent.UploadRetryClicked,
+            MyPageIntent.ClickUpload,
+            MyPageIntent.ClickUploadRetry,
             -> {
                 sendEffect(MyPageEffect.PortfolioSelectionRequested)
             }
 
-            MyPageIntent.UploadCancelClicked -> {
+            MyPageIntent.ClickUploadCancel -> {
                 cancelUpload()
             }
 
-            MyPageIntent.UploadFailureInfoClicked -> {
+            MyPageIntent.ClickUploadFailureInfo -> {
                 toggleUploadFailureTooltip()
             }
 
-            MyPageIntent.UploadFailureTooltipDismissed -> {
+            MyPageIntent.DismissUploadFailureTooltip -> {
                 dismissUploadFailureTooltip()
             }
 
-            MyPageIntent.PortfolioDeleteClicked -> {
+            MyPageIntent.ClickPortfolioDelete -> {
                 showModal(MyPageModalType.PortfolioDelete)
             }
 
-            MyPageIntent.PortfolioReuploadClicked -> {
+            MyPageIntent.ClickPortfolioReupload -> {
                 showModal(
                     MyPageModalType.PortfolioReupload,
                 )
             }
 
-            MyPageIntent.LogoutClicked -> {
+            MyPageIntent.ClickLogout -> {
                 showModal(MyPageModalType.Logout)
             }
 
-            MyPageIntent.ModalClosed,
-            MyPageIntent.TicketInfoClicked,
+            MyPageIntent.CloseModal,
+            MyPageIntent.ClickTicketInfo,
             -> {
                 Unit
             }
 
-            is MyPageIntent.ReportToggleClicked -> {
+            is MyPageIntent.ToggleReport -> {
                 toggleReport(intent.id)
             }
 
-            MyPageIntent.ProfileEditClicked -> {
+            MyPageIntent.ClickProfileEdit -> {
                 sendEffect(MyPageEffect.ProfileEditRequested)
             }
 
-            MyPageIntent.ReportViewClicked -> {
+            MyPageIntent.ClickReportView -> {
                 sendEffect(MyPageEffect.ReportViewRequested)
             }
 
-            MyPageIntent.GuestFeedbackClicked -> {
+            MyPageIntent.ClickGuestFeedback -> {
                 sendEffect(MyPageEffect.GuestFeedbackRequested)
             }
 
-            MyPageIntent.WithdrawalClicked -> {
+            MyPageIntent.ClickWithdrawal -> {
                 sendEffect(MyPageEffect.WithdrawalRequested)
             }
         }

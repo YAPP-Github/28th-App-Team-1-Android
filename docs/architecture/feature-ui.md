@@ -64,10 +64,11 @@ Intent는 사용자 행동 또는 UI lifecycle event만 표현하고 ViewModel�
 sealed interface SampleIntent {
     data object Load : SampleIntent
     data object Refresh : SampleIntent
-    data class ItemClicked(val id: Long) : SampleIntent
+    data class ClickItem(val id: Long) : SampleIntent
 }
 ```
 
+- Intent 구현 시, 네이밍 컨벤션은 "V + O"(동사 + 목적어, 예: `ClickClose`, `ClickItem`, `ToggleReport`)의 형태로 작성한다.
 - State 전체를 Intent에 담지 않는다.
 - 처리에 필요한 최소 값만 전달한다.
 - 이름은 사용자의 행동이나 lifecycle event가 드러나게 작성한다.

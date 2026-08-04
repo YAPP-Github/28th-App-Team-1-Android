@@ -1,5 +1,6 @@
 package com.dminus14.app.feature.mypage
 
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -28,7 +29,7 @@ class MyPageViewModelTest {
                 MyPageState(portfolioState = MyPagePortfolioState.Uploading("샘플 포트폴리오.pdf")),
             )
 
-        viewModel.onIntent(MyPageIntent.UploadCancelClicked)
+        viewModel.onIntent(MyPageIntent.ClickUploadCancel)
 
         assertEquals(MyPagePortfolioState.Empty, viewModel.state.value.portfolioState)
     }
@@ -47,7 +48,7 @@ class MyPageViewModelTest {
                 ),
             )
 
-        viewModel.onIntent(MyPageIntent.UploadCancelClicked)
+        viewModel.onIntent(MyPageIntent.ClickUploadCancel)
 
         assertEquals(MyPagePortfolioState.Uploaded(previous), viewModel.state.value.portfolioState)
     }
@@ -59,10 +60,10 @@ class MyPageViewModelTest {
                 MyPageState(portfolioState = MyPagePortfolioState.Failed("샘플 포트폴리오.pdf")),
             )
 
-        viewModel.onIntent(MyPageIntent.UploadFailureInfoClicked)
+        viewModel.onIntent(MyPageIntent.ClickUploadFailureInfo)
         assertTrue(viewModel.state.value.isUploadFailureTooltipVisible)
 
-        viewModel.onIntent(MyPageIntent.UploadFailureTooltipDismissed)
+        viewModel.onIntent(MyPageIntent.DismissUploadFailureTooltip)
         assertFalse(viewModel.state.value.isUploadFailureTooltipVisible)
     }
 
@@ -71,9 +72,9 @@ class MyPageViewModelTest {
         runTest {
             val cases =
                 listOf(
-                    MyPageIntent.PortfolioReuploadClicked to MyPageModalType.PortfolioReupload,
-                    MyPageIntent.PortfolioDeleteClicked to MyPageModalType.PortfolioDelete,
-                    MyPageIntent.LogoutClicked to MyPageModalType.Logout,
+                    MyPageIntent.ClickPortfolioReupload to MyPageModalType.PortfolioReupload,
+                    MyPageIntent.ClickPortfolioDelete to MyPageModalType.PortfolioDelete,
+                    MyPageIntent.ClickLogout to MyPageModalType.Logout,
                 )
 
             cases.forEach { (intent, expected) ->
@@ -89,10 +90,10 @@ class MyPageViewModelTest {
         runTest {
             val cases =
                 listOf(
-                    MyPageIntent.ProfileEditClicked to MyPageEffect.ProfileEditRequested,
-                    MyPageIntent.ReportViewClicked to MyPageEffect.ReportViewRequested,
-                    MyPageIntent.GuestFeedbackClicked to MyPageEffect.GuestFeedbackRequested,
-                    MyPageIntent.WithdrawalClicked to MyPageEffect.WithdrawalRequested,
+                    MyPageIntent.ClickProfileEdit to MyPageEffect.ProfileEditRequested,
+                    MyPageIntent.ClickReportView to MyPageEffect.ReportViewRequested,
+                    MyPageIntent.ClickGuestFeedback to MyPageEffect.GuestFeedbackRequested,
+                    MyPageIntent.ClickWithdrawal to MyPageEffect.WithdrawalRequested,
                 )
 
             cases.forEach { (intent, expected) ->

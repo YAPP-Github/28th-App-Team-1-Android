@@ -6,39 +6,39 @@ import com.dminus14.app.core.common.mvi.MviIntent
 import com.dminus14.app.core.common.mvi.MviState
 
 sealed interface MyPageIntent : MviIntent {
-    data object CloseClicked : MyPageIntent
+    data object ClickClose : MyPageIntent
 
-    data object UploadClicked : MyPageIntent
+    data object ClickUpload : MyPageIntent
 
-    data object UploadCancelClicked : MyPageIntent
+    data object ClickUploadCancel : MyPageIntent
 
-    data object UploadRetryClicked : MyPageIntent
+    data object ClickUploadRetry : MyPageIntent
 
-    data object UploadFailureInfoClicked : MyPageIntent
+    data object ClickUploadFailureInfo : MyPageIntent
 
-    data object UploadFailureTooltipDismissed : MyPageIntent
+    data object DismissUploadFailureTooltip : MyPageIntent
 
-    data object PortfolioDeleteClicked : MyPageIntent
+    data object ClickPortfolioDelete : MyPageIntent
 
-    data object PortfolioReuploadClicked : MyPageIntent
+    data object ClickPortfolioReupload : MyPageIntent
 
-    data object ModalClosed : MyPageIntent
+    data object CloseModal : MyPageIntent
 
-    data class ReportToggleClicked(
+    data class ToggleReport(
         val id: String,
     ) : MyPageIntent
 
-    data object ProfileEditClicked : MyPageIntent
+    data object ClickProfileEdit : MyPageIntent
 
-    data object TicketInfoClicked : MyPageIntent
+    data object ClickTicketInfo : MyPageIntent
 
-    data object LogoutClicked : MyPageIntent
+    data object ClickLogout : MyPageIntent
 
-    data object WithdrawalClicked : MyPageIntent
+    data object ClickWithdrawal : MyPageIntent
 
-    data object ReportViewClicked : MyPageIntent
+    data object ClickReportView : MyPageIntent
 
-    data object GuestFeedbackClicked : MyPageIntent
+    data object ClickGuestFeedback : MyPageIntent
 }
 
 @Immutable
