@@ -146,7 +146,7 @@ fun MyPageContent(
     }
 
     modalType?.let { type ->
-        MyPageModal(type = type, onClose = { onIntent(MyPageIntent.ModalClosed) })
+        MyPageModal(type = type, onConfirm = {}, onClose = { onIntent(MyPageIntent.ModalClosed) })
     }
 }
 
