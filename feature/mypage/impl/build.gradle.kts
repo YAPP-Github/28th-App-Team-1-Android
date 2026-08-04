@@ -11,4 +11,6 @@ dependencies {
 
     implementation(project(":core:common"))
     implementation(project(":designsystem"))
+
+    testImplementation(libs.kotlinx.coroutines.test)
 }
