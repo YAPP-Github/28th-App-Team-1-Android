@@ -174,8 +174,9 @@ private fun PdfUploadFilled(
             isFailed -> HilitTheme.colors.error500
             else -> HilitTheme.colors.gray400
         }
+    val isInfoEnabled = isFailed && onInfoClick != null
     val infoTint =
-        if (isFailed) HilitTheme.colors.error500 else HilitTheme.colors.gray200
+        if (isInfoEnabled) HilitTheme.colors.error500 else HilitTheme.colors.gray200
 
     Column(
         modifier =
@@ -230,13 +231,13 @@ private fun PdfUploadFilled(
                         if (isFailed) {
                             HilitIcon(
                                 asset = HilitIconAsset.Info,
-                                contentDescription = if (isFailed) "업로드 실패 안내" else null,
+                                contentDescription = if (isInfoEnabled) "업로드 실패 안내" else null,
                                 tint = infoTint,
                                 modifier =
                                     Modifier
                                         .size(PdfUploadCloseSize)
                                         .then(
-                                            if (isFailed && onInfoClick != null) {
+                                            if (isInfoEnabled) {
                                                 Modifier.clickable(
                                                     indication = null,
                                                     interactionSource = null,
