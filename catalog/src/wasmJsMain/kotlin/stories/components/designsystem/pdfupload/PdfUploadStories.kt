@@ -30,7 +30,6 @@ internal val PdfUploadStories =
                                 type = PdfUploadType.Processing,
                                 fileName = "{파일명}.pdf",
                                 progress = 50f,
-                                buttonText = "버튼",
                             ),
                     )
                 },
