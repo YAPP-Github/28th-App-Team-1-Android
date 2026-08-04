@@ -17,7 +17,8 @@ import com.dminus14.designsystem.theme.HilitColors
 import com.dminus14.designsystem.theme.HilitTheme
 
 enum class TagColorType {
-    Black,
+    BlackGreen,
+    BlackWhite,
     Gray,
     Green,
     Red,
@@ -48,6 +49,12 @@ fun HilitTag(
             TagType.Small -> 0.dp
             TagType.Large -> 4.dp
         }
+    val textStyle =
+        if (tagType == TagType.Small) {
+            HilitTheme.typography.body5
+        } else {
+            HilitTheme.typography.body6
+        }
 
     Box(
         modifier =
@@ -63,7 +70,7 @@ fun HilitTag(
     ) {
         Text(
             text = text,
-            style = HilitTheme.typography.body6,
+            style = textStyle,
             color = color.contentColor,
         )
     }
@@ -75,10 +82,17 @@ private fun tagColors(
     colors: HilitColors,
 ): TagColorSet =
     when (type) {
-        TagColorType.Black -> {
+        TagColorType.BlackGreen -> {
             TagColorSet(
                 backgroundColor = colors.hilitBlack800,
                 contentColor = colors.hilitGreen500,
+            )
+        }
+
+        TagColorType.BlackWhite -> {
+            TagColorSet(
+                backgroundColor = colors.hilitBlack800,
+                contentColor = colors.hilitWhite,
             )
         }
 
@@ -124,7 +138,11 @@ private fun HilitTagPreview() {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                HilitTag(colorType = TagColorType.Black, tagType = TagType.Small, text = "Black")
+                HilitTag(
+                    colorType = TagColorType.BlackGreen,
+                    tagType = TagType.Small,
+                    text = "Black",
+                )
                 HilitTag(colorType = TagColorType.Gray, tagType = TagType.Small, text = "Gray")
                 HilitTag(colorType = TagColorType.Green, tagType = TagType.Small, text = "Green")
                 HilitTag(colorType = TagColorType.Red, tagType = TagType.Small, text = "Red")
@@ -139,7 +157,11 @@ private fun HilitTagPreview() {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                HilitTag(colorType = TagColorType.Black, tagType = TagType.Large, text = "Black")
+                HilitTag(
+                    colorType = TagColorType.BlackGreen,
+                    tagType = TagType.Large,
+                    text = "Black",
+                )
                 HilitTag(colorType = TagColorType.Gray, tagType = TagType.Large, text = "Gray")
                 HilitTag(colorType = TagColorType.Green, tagType = TagType.Large, text = "Green")
                 HilitTag(colorType = TagColorType.Red, tagType = TagType.Large, text = "Red")

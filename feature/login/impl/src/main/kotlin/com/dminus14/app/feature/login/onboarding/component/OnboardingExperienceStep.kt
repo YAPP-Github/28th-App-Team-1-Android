@@ -66,7 +66,7 @@ private fun ExperienceHeader() {
 
     Column(modifier = Modifier.fillMaxWidth()) {
         HilitTag(
-            colorType = TagColorType.Black,
+            colorType = TagColorType.BlackGreen,
             tagType = TagType.Small,
             text = "필수",
         )
