@@ -40,8 +40,16 @@ fun PermissionConsentScreen(
     val requestPermissions =
         viewModel.permissionManager.rememberSequentialPermissionRequester(
             permissions = listOf(AppPermission.CAMERA, AppPermission.RECORD_AUDIO),
-            onAllGranted = { viewModel.onIntent(PermissionConsentIntent.PermissionResult(allGranted = true)) },
-            onAnyDenied = { viewModel.onIntent(PermissionConsentIntent.PermissionResult(allGranted = false)) },
+            onAllGranted = {
+                viewModel.onIntent(
+                    PermissionConsentIntent.PermissionResult(allGranted = true),
+                )
+            },
+            onAnyDenied = {
+                viewModel.onIntent(
+                    PermissionConsentIntent.PermissionResult(allGranted = false),
+                )
+            },
         )
 
     LaunchedEffect(Unit) {

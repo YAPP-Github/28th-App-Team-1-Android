@@ -47,7 +47,9 @@ fun PermissionManager.rememberSequentialPermissionRequester(
                         onAllGranted()
                     }
 
-                    else -> index += 1
+                    else -> {
+                        index += 1
+                    }
                 }
             },
         )
@@ -63,6 +65,7 @@ fun PermissionManager.rememberSequentialPermissionRequester(
         when {
             // 이미 전부 허용된 경우 다이얼로그 없이 즉시 통과한다.
             permissions.all { isGranted(it) } -> onAllGranted()
+
             else -> index = 0
         }
     }

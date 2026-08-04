@@ -63,7 +63,9 @@ class PermissionConsentViewModel
                             }
 
                             // 그 외 전송·서버·알 수 없는 오류는 공통 처리로 위임한다.
-                            else -> handleCommonError(error)
+                            else -> {
+                                handleCommonError(error)
+                            }
                         }
                     }
             }
