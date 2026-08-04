@@ -32,7 +32,12 @@ class OnBoardingInterviewViewModel
                 }
 
                 is OnBoardingInterviewIntent.JobDescriptionTabChange -> {
-                    reduce { copy(jobDescriptionTab = JobDescriptionTab.entries[intent.index]) }
+                    reduce {
+                        copy(
+                            jobDescriptionTab = JobDescriptionTab.entries.getOrNull(intent.index)
+                                ?: state.value.jobDescriptionTab
+                        )
+                    }
                 }
 
                 is OnBoardingInterviewIntent.JobDescriptionLinkChange -> {
