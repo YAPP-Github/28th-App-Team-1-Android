@@ -52,7 +52,12 @@ constructor(
             }
 
             TermIntent.DismissTermDetail -> {
-                reduce { copy(visibleTermDetailIndex = null) }
+                reduce {
+                    copy(
+                        visibleTermDetailIndex = null,
+                        visibleTermDetail = null
+                    )
+                }
             }
 
             TermIntent.ClickAgree -> {
