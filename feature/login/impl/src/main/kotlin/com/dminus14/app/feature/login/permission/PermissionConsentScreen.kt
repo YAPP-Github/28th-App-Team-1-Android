@@ -19,6 +19,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dminus14.app.core.permission.AppPermission
+import com.dminus14.app.core.permission.rememberSequentialPermissionRequester
+import com.dminus14.app.feature.home.api.Home
 import com.dminus14.app.feature.login.api.Onboarding
 import com.dminus14.app.feature.login.api.PermissionConsentDenied
 import com.dminus14.designsystem.component.button.HilitFixedBottomDualButton
@@ -34,11 +37,20 @@ fun PermissionConsentScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
+    val requestPermissions =
+        viewModel.permissionManager.rememberSequentialPermissionRequester(
+            permissions = listOf(AppPermission.CAMERA, AppPermission.RECORD_AUDIO),
+            onAllGranted = { viewModel.onIntent(PermissionConsentIntent.PermissionResult(allGranted = true)) },
+            onAnyDenied = { viewModel.onIntent(PermissionConsentIntent.PermissionResult(allGranted = false)) },
+        )
+
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                PermissionConsentEffect.LaterSelected -> onNavigate(PermissionConsentDenied)
-                PermissionConsentEffect.AllowSelected -> onNavigate(Onboarding)
+                PermissionConsentEffect.RequestPermissions -> requestPermissions()
+                PermissionConsentEffect.NavigateHome -> onNavigate(Home)
+                PermissionConsentEffect.NavigateOnboarding -> onNavigate(Onboarding)
+                PermissionConsentEffect.NavigateDenied -> onNavigate(PermissionConsentDenied)
             }
         }
     }
