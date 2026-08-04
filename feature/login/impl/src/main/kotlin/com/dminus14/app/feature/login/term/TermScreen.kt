@@ -61,16 +61,8 @@ fun TermScreen(
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                TermEffect.Agreed -> {
-                    onNavigate(Onboarding)
-                }
-
                 TermEffect.Closed -> {
                     onClose()
-                }
-
-                TermEffect.GrantPerm -> {
-                    onNavigate(Onboarding)
                 }
 
                 TermEffect.DeniedPerm -> {

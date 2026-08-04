@@ -75,12 +75,7 @@ constructor(
             }
 
             TermIntent.DismissTermDetail -> {
-                reduce {
-                    copy(
-                        visibleTermDetailIndex = null,
-                        visibleTermDetail = null,
-                    )
-                }
+                reduce { copy(visibleTermDetail = null) }
             }
 
             TermIntent.ClickAgree -> {
@@ -108,8 +103,9 @@ constructor(
                             }
                         }
 
+                        // 재동의가 필요 없는 상태. 정상 진입 시엔 도달하지 않으므로 로딩만 해제한다.
                         ConsentPendingStatus.UP_TO_DATE -> {
-                            // 프로필상태 확인
+                            reduce { copy(isLoading = false) }
                         }
                     }
                 }.onFailure { error ->
@@ -240,8 +236,8 @@ constructor(
     }
 
     /**
-     * ClickViewTerm(index)로 본문을 조회한다. 로컬 body가 이미 있으면 즉시 시트를 열고,
-     * 서버 문서가 있으면(hasDocument=true) rawCode·version으로 조회한 뒤 body를 채우고 시트를 연다.
+     * ClickViewTerm(index) 항목의 본문 문서를 서버에서 조회해 상세 시트를 연다.
+     * 문서가 없는 항목(hasDocument=false)이거나 다른 요청이 진행 중이면 무시한다.
      */
     @Suppress("detekt:ReturnCount") // 가드 절이 중첩보다 명확하다.
     private fun openTermDetail(index: Int) {
@@ -258,7 +254,6 @@ constructor(
                     reduce {
                         copy(
                             isLoading = false,
-                            visibleTermDetailIndex = index,
                             visibleTermDetail = TermDetailContent(
                                 title = document.title,
                                 content = document.contentMarkdown,
