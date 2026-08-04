@@ -76,6 +76,7 @@ Feature 내부에서만 사용하는 UI와 extension은 Feature 안에 둔다. �
 
 - Domain Repository Interface를 구현한다.
 - API Interface, Request/Response DTO와 RemoteDataSource를 정의한다.
+- API Interface 메서드 및 분리된 DTO 클래스 구현 시, KDoc 최상단에 해당 API의 엔드포인트(예: `POST api/v1/feature/action`)를 반드시 병기한다.
 - Room Entity, DAO, Database와 DataStore 접근을 정의한다.
 - data-layer Hilt Module을 정의한다.
 - 외부 Exception을 프로젝트 오류 모델로 변환하거나 상위로 전파한다.
