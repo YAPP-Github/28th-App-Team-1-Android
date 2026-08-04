@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -115,7 +116,7 @@ private fun ReportCard(
                     )
                     Text(
                         report.createdAt,
-                        style = HilitTheme.typography.body9,
+                        style = HilitTheme.typography.body10,
                         color = HilitTheme.colors.gray400,
                     )
                 }
@@ -163,6 +164,22 @@ private fun ReportCard(
                         label = "JD",
                         value = report.jobDescription,
                     )
+                }
+                if (report.status == MyPageReportStatus.Failed) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .background(color = HilitTheme.colors.error200)
+                                .padding(horizontal = 4.dp),
+                    ) {
+                        Text(
+                            text = "레포트 생성에 실패했어요 · 횟수는 차감되지 않았어요",
+                            style = HilitTheme.typography.body6,
+                            color = HilitTheme.colors.error500,
+                        )
+                    }
                 }
                 if (report.status == MyPageReportStatus.Completed) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -165,7 +165,7 @@ private fun UploadedPortfolioCard(
                 .clickable(role = Role.Button, onClick = onReuploadClick)
                 .padding(14.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.Top,
     ) {
         Box(
             Modifier
@@ -189,7 +189,7 @@ private fun UploadedPortfolioCard(
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                "${portfolio.uploadedAt} · ${portfolio.fileSize}",
+                "${portfolio.uploadedAt} | ${portfolio.fileSize}",
                 style = HilitTheme.typography.body9,
                 color = HilitTheme.colors.gray400,
             )
@@ -231,7 +231,7 @@ private fun UploadErrorNotice() {
     }
 }
 
-private const val UPLOAD_CONSTRAINT_TEXT = "최대 20MB, 30쪽 이내의 PDF 파일 1개만 가능합니다"
+private const val UPLOAD_CONSTRAINT_TEXT = "최대 20MB, 30쪽 이내의 PDF 파일 1개만 가능해요"
 private const val UPLOAD_FAILURE_TOOLTIP_DURATION_MS = 3_000L
 
 @Preview(showBackground = true, widthDp = 375)
@@ -240,6 +240,34 @@ private fun MyPagePortfolioSectionPreview() {
     HilitTheme {
         MyPagePortfolioSection(
             portfolioState = MyPagePortfolioState.Failed(fileName = "sample_portfolio.pdf"),
+            progress = 0f,
+            isUploadFailureTooltipVisible = true,
+            onUploadClick = {},
+            onUploadCancelClick = {},
+            onUploadRetryClick = {},
+            onUploadFailureInfoClick = {},
+            onUploadFailureTooltipDismiss = {},
+            onPortfolioDeleteClick = {},
+            onPortfolioReuploadClick = {},
+            modifier = Modifier.padding(20.dp),
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 375)
+@Composable
+private fun MyPagePortfolioSectionSuccessPreview() {
+    HilitTheme {
+        MyPagePortfolioSection(
+            portfolioState =
+                MyPagePortfolioState.Uploaded(
+                    portfolio =
+                        MyPagePortfolioUiModel(
+                            fileName = "portfolio.pdf",
+                            uploadedAt = "2000.01.01 00:00",
+                            fileSize = "20.3 MB",
+                        ),
+                ),
             progress = 0f,
             isUploadFailureTooltipVisible = true,
             onUploadClick = {},

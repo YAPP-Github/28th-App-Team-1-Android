@@ -58,7 +58,6 @@ private val PdfUploadDashOn = 6.dp
 private val PdfUploadDashOff = 4.dp
 
 private const val PDF_UPLOAD_READY_DEFAULT_TEXT = "아직 첨부된 포트폴리오가 없어요"
-private const val PDF_UPLOAD_BUTTON_DEFAULT_TEXT = "버튼"
 private const val PDF_UPLOAD_PROGRESS_MIN = 0f
 private const val PDF_UPLOAD_PROGRESS_MAX = 100f
 
@@ -72,8 +71,6 @@ private const val PDF_UPLOAD_PROGRESS_MAX = 100f
  * @param fileName Processing·Completed에서 표시할 파일명
  * @param progress Processing 진행도(0f~100f). 범위를 벗어나면 최솟값·최댓값으로 보정한다
  * @param onCloseClick 닫기(제거) 클릭. null이면 닫기 아이콘을 표시하지 않는다
- * @param buttonText Completed 우측 mini 버튼 문구
- * @param onButtonClick Completed 우측 mini 버튼 클릭. null이면 버튼을 표시하지 않는다
  * @param onInfoClick Failed 정보 아이콘 클릭. null이면 아이콘은 비활성으로 표시한다
  * @param retryText Failed 우측 재시도 버튼 문구
  * @param onRetryClick Failed 우측 재시도 버튼 클릭. null이면 버튼을 표시하지 않는다
@@ -85,8 +82,6 @@ fun PdfUpload(
     fileName: String = "",
     progress: Float,
     onCloseClick: (() -> Unit)? = null,
-    buttonText: String = PDF_UPLOAD_BUTTON_DEFAULT_TEXT,
-    onButtonClick: (() -> Unit)? = null,
     onInfoClick: (() -> Unit)? = null,
     retryText: String = "다시 올리기",
     onRetryClick: (() -> Unit)? = null,
@@ -105,8 +100,6 @@ fun PdfUpload(
                 type = type,
                 progress = progress,
                 onCloseClick = onCloseClick,
-                buttonText = buttonText,
-                onButtonClick = onButtonClick,
                 onInfoClick = onInfoClick,
                 retryText = retryText,
                 onRetryClick = onRetryClick,
@@ -153,8 +146,6 @@ private fun PdfUploadFilled(
     type: PdfUploadType,
     progress: Float,
     onCloseClick: (() -> Unit)?,
-    buttonText: String,
-    onButtonClick: (() -> Unit)?,
     onInfoClick: (() -> Unit)?,
     retryText: String,
     onRetryClick: (() -> Unit)?,
@@ -276,15 +267,6 @@ private fun PdfUploadFilled(
                 }
             }
 
-            onButtonClick
-                ?.takeIf { isCompleted }
-                ?.let { onClick ->
-                    PdfUploadActionButton(
-                        text = buttonText,
-                        onClick = onClick,
-                    )
-                }
-
             onRetryClick
                 ?.takeIf { isFailed }
                 ?.let { onClick ->
@@ -308,7 +290,7 @@ private fun PdfUploadFilled(
 @Composable
 private fun PdfUploadActionButton(
     text: String,
-    icon: HilitIconAsset = HilitIconAsset.Video,
+    icon: HilitIconAsset,
     onClick: () -> Unit,
 ) {
     Row(
@@ -445,7 +427,6 @@ private fun PdfUploadPreview() {
                 fileName = "홍길동 자기소개서_SK프롬티어 기업....pdf",
                 progress = 100f,
                 onCloseClick = {},
-                onButtonClick = {},
             )
             PdfUpload(
                 type = PdfUploadType.Failed,

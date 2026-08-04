@@ -71,7 +71,7 @@ enum class HilitIconAsset(
     Script("script", 24.dp, Res.drawable.script),
     AppleLogo("apple_logo", 24.dp, Res.drawable.apple_logo, preservesOriginalColors = true),
     KakaoLogo("kakao_logo", 24.dp, Res.drawable.kakao_logo, preservesOriginalColors = true),
-    HilitLogo("hiiii_logo", 24.dp, Res.drawable.hiiii_logo, preservesOriginalColors = true),
+    HilitLogo("hilit_logo", 24.dp, Res.drawable.hiiii_logo, preservesOriginalColors = true),
     CheckboxCheck(
         "checkbox_check",
         24.dp,

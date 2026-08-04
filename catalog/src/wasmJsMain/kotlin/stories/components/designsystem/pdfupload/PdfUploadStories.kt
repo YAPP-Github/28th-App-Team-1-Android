@@ -61,7 +61,6 @@ internal val PdfUploadStories =
                             fileName = "{파일명}.pdf",
                             progress = 100f,
                             onCloseClick = {},
-                            onButtonClick = {},
                         )
                         PdfUpload(
                             type = PdfUploadType.Failed,

@@ -49,12 +49,11 @@ internal fun MyPageProfileSection(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (profile == null) {
                     EmptyText()
                 } else {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(
                             text = profile.name,
                             color = HilitTheme.colors.hilitBlack800,
@@ -81,7 +80,7 @@ internal fun MyPageProfileSection(
                     modifier =
                         Modifier
                             .size(
-                                24.dp,
+                                16.dp,
                             ).clickable(role = Role.Button, onClick = onProfileEditClick),
                 )
             }
@@ -98,7 +97,7 @@ internal fun MyPageProfileSection(
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     HilitIcon(
                         asset = HilitIconAsset.Coupon,
@@ -135,9 +134,9 @@ internal fun MyPageProfileSection(
                     .fillMaxWidth()
                     .background(HilitTheme.colors.gray50)
                     .border(1.dp, HilitTheme.colors.gray100)
-                    .padding(14.dp),
+                    .padding(horizontal = 14.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (socialAccount == null) {
                 EmptyText(modifier = Modifier.weight(1f))
@@ -145,18 +144,18 @@ internal fun MyPageProfileSection(
                 HilitIcon(
                     asset = HilitIconAsset.KakaoLogo,
                     contentDescription = socialAccount.provider,
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(16.dp),
                 )
                 Text(
                     text = socialAccount.displayAccount,
                     modifier = Modifier.weight(1f),
-                    style = HilitTheme.typography.body6,
+                    style = HilitTheme.typography.body7,
                     color = HilitTheme.colors.gray700,
                 )
             }
             Text(
                 text = "로그아웃",
-                style = HilitTheme.typography.body6,
+                style = HilitTheme.typography.body5,
                 color = HilitTheme.colors.gray500,
                 modifier =
                     Modifier
