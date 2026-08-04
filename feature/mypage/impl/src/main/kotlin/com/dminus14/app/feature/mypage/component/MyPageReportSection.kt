@@ -197,13 +197,13 @@ private fun ReportMetadataRow(
         Text(
             text = label,
             modifier = Modifier.width(70.dp),
-            style = HilitTheme.typography.body9,
+            style = HilitTheme.typography.body7,
             color = HilitTheme.colors.gray400,
         )
         Text(
             text = value,
             modifier = Modifier.weight(1f),
-            style = HilitTheme.typography.body9,
+            style = HilitTheme.typography.body6,
             color = HilitTheme.colors.gray700,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
