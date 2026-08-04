@@ -29,6 +29,7 @@ Multiplatform 코드로 작성한다.
 
 - 현재 렌더링에 필요한 값을 매개변수로 받는다.
 - 사용자 동작은 callback으로 전달한다.
+- Figma MCP 서버로부터 가져온 디자인을 바탕으로 공용 Composable을 구현할 경우, KDoc 최상단에 해당 Figma 노드 ID/번호(예: `Figma Node: 1234:5678`)를 반드시 병기한다.
 - 지속되는 화면 상태, 비동기 작업, 입력 검증과 비즈니스 정책은 호출자가 소유한다.
 - `ViewModel`, `StateFlow`, `Flow`, Android Lifecycle 타입과 호출자 소유 mutable state container를
   공개 UI API로 받지 않는다.
