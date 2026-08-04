@@ -149,7 +149,7 @@ class OnboardingViewModel
             val current = state.value
             val selectedJob =
                 current.selectedJobIndex?.let { current.jobs.getOrNull(it) } ?: return
-            val careerYears = careerYearsFromIndex(current.selectedExperienceIndex)
+            val careerYears = current.selectedExperienceIndex
 
             reduce { copy(isSubmitting = true, errorMessage = null) }
             viewModelScope.launch {
@@ -163,40 +163,38 @@ class OnboardingViewModel
                     reduce { copy(isSubmitting = false) }
                     sendEffect(OnboardingEffect.Completed)
                 }.onFailure { error ->
-                    handleSubmitError(error)
-                }
-            }
-        }
+                    when (error) {
+                        is NameAlreadyTakenException -> {
+                            reduce {
+                                copy(
+                                    step = OnboardingStep.Naming,
+                                    isSubmitting = false,
+                                    errorMessage = error.message,
+                                ).withContinueEnabled()
+                            }
+                        }
 
-        private suspend fun handleSubmitError(error: Throwable) {
-            when (error) {
-                is NameAlreadyTakenException -> {
-                    reduce {
-                        copy(
-                            step = OnboardingStep.Naming,
-                            isSubmitting = false,
-                            errorMessage = error.message,
-                        ).withContinueEnabled()
+                        is InvalidJobRoleException -> {
+                            reduce {
+                                copy(
+                                    step = OnboardingStep.JobSelection,
+                                    isSubmitting = false,
+                                    errorMessage = error.message,
+                                ).withContinueEnabled()
+                            }
+                        }
+
+                        is ValidationException -> {
+                            reduce {
+                                copy(isSubmitting = false, errorMessage = error.message)
+                            }
+                        }
+
+                        else -> {
+                            handleCommonError(error)
+                        }
                     }
                 }
-
-                is InvalidJobRoleException -> {
-                    reduce {
-                        copy(
-                            step = OnboardingStep.JobSelection,
-                            isSubmitting = false,
-                            errorMessage = error.message,
-                        ).withContinueEnabled()
-                    }
-                }
-
-                is ValidationException -> {
-                    reduce {
-                        copy(isSubmitting = false, errorMessage = error.message)
-                    }
-                }
-
-                else -> handleCommonError(error)
             }
         }
 
@@ -248,18 +246,6 @@ class OnboardingViewModel
 
         private fun isValidNickname(name: String): Boolean =
             sanitizeNickname(name) == name && name.isNotBlank()
-
-        /**
-         * 화면의 연차 옵션 인덱스를 서버 careerYears(Int)로 매핑한다.
-         *
-         * - 0("경력 없음"), 1("신입") → 0
-         * - 2("1년 이상") → 1, …, 11("10년 이상") → 10
-         */
-        private fun careerYearsFromIndex(index: Int): Int =
-            when (index) {
-                0, 1 -> 0
-                else -> index - 1
-            }
 
         private companion object {
             private const val NICKNAME_MAX_LENGTH = 5
