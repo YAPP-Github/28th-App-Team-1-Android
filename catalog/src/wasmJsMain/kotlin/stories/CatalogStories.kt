@@ -8,6 +8,7 @@ import stories.components.designsystem.hilitbottomsheet.HilitBottomSheetStories
 import stories.components.designsystem.hilitchip.HilitChipStories
 import stories.components.designsystem.hilitfixedbottombutton.HilitFixedBottomButtonStories
 import stories.components.designsystem.hilitfixedbottomdualbutton.HilitFixedBottomDualButtonStories
+import stories.components.designsystem.hilitglobalmodal.HilitGlobalModalStories
 import stories.components.designsystem.hilitjdtextfield.HilitJDTextFieldStories
 import stories.components.designsystem.hilitloadingindicator.HilitLoadingIndicatorStories
 import stories.components.designsystem.hilitmediumbutton.HilitMediumButtonStories
@@ -54,6 +55,7 @@ internal val CatalogStories: List<StoryGroup> =
         HilitTextHighlightStories,
         HilitToggleStories,
         HilitBottomOutlinedTextFieldStories,
+        HilitGlobalModalStories,
         HilitModalStories,
         HilitWheelPickerStories,
         HilitProgressBarStories,

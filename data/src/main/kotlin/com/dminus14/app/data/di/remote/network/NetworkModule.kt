@@ -1,9 +1,5 @@
 package com.dminus14.app.data.di.remote.network
 
-import com.dminus14.app.data.remote.api.AuthApi
-import com.dminus14.app.data.remote.api.ConsentApi
-import com.dminus14.app.data.remote.api.GuestFeedbackApi
-import com.dminus14.app.data.remote.api.UserApi
 import com.dminus14.app.data.remote.authenticator.TokenAuthenticator
 import com.dminus14.app.data.remote.config.NetworkConfig
 import com.dminus14.app.data.remote.interceptor.InsertAuthorizationInterceptor
@@ -78,14 +74,6 @@ object NetworkModule {
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
 
-    @Provides
-    @Singleton
-    fun provideUserApi(retrofit: Retrofit): UserApi = retrofit.create(UserApi::class.java)
-
-    @Provides
-    @Singleton
-    fun provideConsentApi(retrofit: Retrofit): ConsentApi = retrofit.create(ConsentApi::class.java)
-
     /**
      * `AuthApi`(로그인/토큰 재발급) 전용 OkHttpClient.
      *
@@ -122,12 +110,6 @@ object NetworkModule {
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
 
-    @Provides
-    @Singleton
-    fun provideAuthApi(
-        @AuthRetrofit retrofit: Retrofit,
-    ): AuthApi = retrofit.create(AuthApi::class.java)
-
     /**
      * Guest Feedback 요청에 설치 ID만 추가하는 비회원 전용 HTTP client를 제공한다.
      *
@@ -163,11 +145,4 @@ object NetworkModule {
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
-
-    /** Guest Retrofit으로 비회원 피드백 API 구현을 생성한다. */
-    @Provides
-    @Singleton
-    fun provideGuestFeedbackApi(
-        @GuestRetrofit retrofit: Retrofit,
-    ): GuestFeedbackApi = retrofit.create(GuestFeedbackApi::class.java)
 }

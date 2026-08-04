@@ -112,7 +112,7 @@ fun BubbleField(
     val bodyWidthModifier =
         when (type) {
             BubbleFieldType.Small -> Modifier.widthIn(min = SmallMinWidth)
-            BubbleFieldType.Big -> Modifier.fillMaxWidth()
+            BubbleFieldType.Big -> Modifier.widthIn(min = BigMinWidth)
         }
 
     Column(

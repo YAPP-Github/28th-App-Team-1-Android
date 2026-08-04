@@ -8,28 +8,41 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.dminus14.catalog.controls.CatalogControls
+import com.dminus14.designsystem.component.button.HilitFixedBottomDualButton
+import com.dminus14.designsystem.component.button.HilitFixedBottomDualButtonType
+import com.dminus14.designsystem.component.modal.HilitBookIllustration
 import com.dminus14.designsystem.component.modal.HilitModal
+import com.dminus14.designsystem.component.modal.HilitModalType
 import com.dminus14.designsystem.theme.HilitTheme
 
 @CatalogControls
 @Composable
 internal fun HilitModalCatalogAdapter(
+    type: HilitModalType,
     title: String,
-    message: String,
+    subtitle: String,
+    infoText: String,
     confirmText: String,
+    showGraphic: Boolean,
     dismissible: Boolean,
 ) {
     CatalogModalPreview { closeModal ->
         HilitTheme {
             HilitModal(
+                type = type,
                 title = title,
-                message = message,
+                subtitle = subtitle.takeIf { it.isNotEmpty() },
+                infoText = infoText.takeIf { it.isNotEmpty() },
                 confirmText = confirmText,
-                cancelText = null,
                 dismissible = dismissible,
                 onConfirm = closeModal,
-                onCancel = closeModal,
                 onDismiss = closeModal,
+                graphic =
+                    if (showGraphic) {
+                        { HilitBookIllustration() }
+                    } else {
+                        null
+                    },
             )
         }
     }
@@ -37,24 +50,29 @@ internal fun HilitModalCatalogAdapter(
 
 @CatalogControls
 @Composable
-internal fun HilitModalWithCancelCatalogAdapter(
+internal fun HilitModalDualButtonCatalogAdapter(
     title: String,
-    message: String,
-    confirmText: String,
-    cancelText: String,
+    leftText: String,
+    rightText: String,
     dismissible: Boolean,
 ) {
     CatalogModalPreview { closeModal ->
         HilitTheme {
             HilitModal(
+                type = HilitModalType.InvisibleInfo,
                 title = title,
-                message = message,
-                confirmText = confirmText,
-                cancelText = cancelText,
                 dismissible = dismissible,
-                onConfirm = closeModal,
-                onCancel = closeModal,
                 onDismiss = closeModal,
+                graphic = { HilitBookIllustration() },
+                buttons = {
+                    HilitFixedBottomDualButton(
+                        leftText = leftText,
+                        rightText = rightText,
+                        type = HilitFixedBottomDualButtonType.Default,
+                        onLeftClick = closeModal,
+                        onRightClick = closeModal,
+                    )
+                },
             )
         }
     }
