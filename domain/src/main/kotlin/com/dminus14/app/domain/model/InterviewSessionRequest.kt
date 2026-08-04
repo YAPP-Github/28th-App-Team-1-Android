@@ -7,8 +7,6 @@ package com.dminus14.app.domain.model
  */
 data class InterviewSessionRequest(
     val portfolioId: String,
-    val jobRole: String,
-    val careerYears: Int,
     val jdUrl: String? = null,
     val jdText: String? = null,
     val freeText: String? = null,

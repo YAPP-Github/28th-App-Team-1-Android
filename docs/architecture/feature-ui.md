@@ -198,6 +198,7 @@ fun SampleContent(
 
 - Screen은 State 구독, Intent 전달과 Effect 수집을 담당한다.
 - Content는 전달된 값과 callback만으로 UI를 렌더링한다.
+- Figma MCP 서버를 통해 참조/가져온 디자인을 바탕으로 Composable UI(Screen, Content, Component)를 구현할 경우, KDoc 최상단에 해당 Figma 노드 ID/번호(예: `Figma Node: 1234:5678`)를 반드시 병기한다.
 - 필요한 최초 로드는 `LaunchedEffect(Unit)`에서 `Load` Intent로 전달한다.
 - Content는 Hilt, Android Lifecycle, Navigation, network, file access와 실제 사용자 데이터에
   의존하지 않는다.
