@@ -26,6 +26,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dminus14.app.domain.model.ConsentItem
+import com.dminus14.app.domain.model.ConsentItemCode
 import com.dminus14.app.feature.login.api.Onboarding
 import com.dminus14.app.feature.login.component.TermBottomSheet
 import com.dminus14.designsystem.component.button.HilitButtonType
@@ -115,7 +117,7 @@ private fun TermContent(
     state.visibleTermDetail?.let { term ->
         TermBottomSheet(
             title = term.title,
-            body = term.body,
+            body = term.content,
             onDismissRequest = { onIntent(TermIntent.DismissTermDetail) },
         )
     }
@@ -196,19 +198,18 @@ private fun TermAgreementList(
             verticalArrangement = Arrangement.spacedBy(TermScreenItemSpacing),
         ) {
             state.terms.forEachIndexed { index, term ->
-                val hasDetail = term.body.isNotBlank()
                 TermBox(
                     type =
-                        if (term.hasContent()) {
+                        if (term.hasDocument) {
                             TermBoxType.Term
                         } else {
                             TermBoxType.Text
                         },
-                    text = term.title,
+                    text = term.label,
                     checked = term.isChecked,
                     onClick = { onIntent(TermIntent.ClickTerm(index)) },
                     onViewClick = {
-                        if (hasDetail) {
+                        if (term.hasDocument) {
                             onIntent(TermIntent.ClickViewTerm(index))
                         }
                     },
@@ -267,29 +268,31 @@ private fun TermDetailPreview() {
 
 private val PreviewTerms =
     listOf(
-        TermDetailContent(
-            title = "(필수) 만 14세 이상입니다.",
-            body = "",
-            isEssential = true,
+        ConsentItem(
+            code = ConsentItemCode.TERMS_OF_SERVICE,
+            rawCode = "",
+            label = "(필수) 만 14세 이상입니다.",
+            version = 0,
+            isRequired = true,
+            hasDocument = true,
+            isChecked = false,
         ),
-        TermDetailContent(
-            title = "(필수) 서비스 이용약관 동의",
-            body = "합성 예시 본문",
-            isEssential = true,
+        ConsentItem(
+            code = ConsentItemCode.TERMS_OF_SERVICE,
+            rawCode = "",
+            label = "(필수) 만 14세 이상입니다.",
+            version = 0,
+            isRequired = true,
+            hasDocument = true,
+            isChecked = false,
         ),
-        TermDetailContent(
-            title = "(필수) 개인정보 수집·이용 동의",
-            body = "합성 예시 본문",
-            isEssential = true,
-        ),
-        TermDetailContent(
-            title = "(필수) 면접 영상·음성·촬영과 저장 동의",
-            body = "합성 예시 본문",
-            isEssential = true,
-        ),
-        TermDetailContent(
-            title = "(필수) 개인정보 국외 이전 동의",
-            body = "합성 예시 본문",
-            isEssential = true,
+        ConsentItem(
+            code = ConsentItemCode.TERMS_OF_SERVICE,
+            rawCode = "",
+            label = "(필수) 만 14세 이상입니다.",
+            version = 0,
+            isRequired = true,
+            hasDocument = true,
+            isChecked = false,
         ),
     )

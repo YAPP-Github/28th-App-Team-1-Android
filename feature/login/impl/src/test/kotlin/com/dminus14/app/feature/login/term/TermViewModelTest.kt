@@ -1,20 +1,46 @@
 package com.dminus14.app.feature.login.term
 
+import com.dminus14.app.domain.model.ConsentDocument
+import com.dminus14.app.domain.model.ConsentItemCode
+import com.dminus14.app.domain.model.ConsentPendingStatus
+import com.dminus14.app.domain.model.ConsentSubmission
+import com.dminus14.app.domain.model.PendingConsentList
+import com.dminus14.app.domain.repository.ConsentRepository
+import com.dminus14.app.domain.usecase.GetConsentDocumentUseCase
+import com.dminus14.app.domain.usecase.GetPendingConsentListUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TermViewModelTest {
+    private val testDispatcher = StandardTestDispatcher()
+
+    @Before
+    fun setUpMainDispatcher() {
+        Dispatchers.setMain(testDispatcher)
+    }
+
+    @After
+    fun tearDownMainDispatcher() {
+        Dispatchers.resetMain()
+    }
+
     // region TermState computed property
 
     @Test
@@ -167,13 +193,38 @@ class TermViewModelTest {
     }
 
     @Test
-    fun `Load Intent는 상태를 변경하지 않는다`() {
-        val viewModel = createViewModel()
+    fun `Load Intent는 pending 목록을 서버에서 조회해 terms에 반영한다`() =
+        runTest {
+            val fakePending =
+                PendingConsentList(
+                    status = ConsentPendingStatus.NOT_SUBMITTED,
+                    items =
+                        listOf(
+                            com.dminus14.app.domain.model.ConsentItem(
+                                code = ConsentItemCode.TERMS_OF_SERVICE,
+                                rawCode = "TERMS_OF_SERVICE",
+                                label = "서비스 이용약관",
+                                version = 1,
+                                isRequired = true,
+                                hasDocument = true,
+                            ),
+                        ),
+                )
+            val viewModel =
+                createViewModel(
+                    terms = emptyList(),
+                    consentRepository = FakeConsentRepository(pending = fakePending),
+                )
 
-        viewModel.onIntent(TermIntent.Load)
+            viewModel.onIntent(TermIntent.Load)
+            advanceUntilIdle()
 
-        assertEquals(SampleTerms, viewModel.state.value.terms)
-    }
+            val terms = viewModel.state.value.terms
+            assertEquals(1, terms.size)
+            assertEquals("(필수) 서비스 이용약관", terms[0].title)
+            assertEquals("TERMS_OF_SERVICE", terms[0].rawCode)
+            assertTrue(terms[0].hasDocument)
+        }
 
     // endregion
 
@@ -445,14 +496,48 @@ class TermViewModelTest {
         terms: List<TermDetailContent> = SampleTerms,
         isLoading: Boolean = false,
         visibleTermDetailIndex: Int? = null,
+        consentRepository: ConsentRepository = NoopConsentRepository,
     ): TermViewModel =
         TermViewModel(
+            GetPendingConsentListUseCase(consentRepository),
+            GetConsentDocumentUseCase(consentRepository),
             TermState(
                 terms = terms,
                 isLoading = isLoading,
                 visibleTermDetailIndex = visibleTermDetailIndex,
             ),
         )
+
+    /** Load/ClickViewTerm 검증용 fake. 필요한 것만 스텁하고 나머지는 AssertionError. */
+    private class FakeConsentRepository(
+        private val pending: PendingConsentList? = null,
+        private val document: ConsentDocument? = null,
+    ) : ConsentRepository {
+        override suspend fun getPendingConsentList(): PendingConsentList =
+            pending ?: throw AssertionError("이 테스트에서 pending 조회 스텁이 없습니다.")
+
+        override suspend fun getConsentDocument(
+            rawCode: String,
+            version: Int,
+        ): ConsentDocument = document ?: throw AssertionError("이 테스트에서 문서 조회 스텁이 없습니다.")
+
+        override suspend fun submitConsent(submission: ConsentSubmission) =
+            throw AssertionError("이 테스트에서 제출은 일어나면 안 됩니다.")
+    }
+
+    /** Load/ClickViewTerm 미행사 테스트용. 호출되면 AssertionError. */
+    private object NoopConsentRepository : ConsentRepository {
+        override suspend fun getPendingConsentList(): PendingConsentList =
+            throw AssertionError("이 테스트에서 pending 조회는 일어나면 안 됩니다.")
+
+        override suspend fun getConsentDocument(
+            rawCode: String,
+            version: Int,
+        ): ConsentDocument = throw AssertionError("이 테스트에서 문서 조회는 일어나면 안 됩니다.")
+
+        override suspend fun submitConsent(submission: ConsentSubmission) =
+            throw AssertionError("이 테스트에서 제출은 일어나면 안 됩니다.")
+    }
 
     private fun TestScope.collectEffects(viewModel: TermViewModel): MutableList<TermEffect> {
         val receivedEffects = mutableListOf<TermEffect>()
