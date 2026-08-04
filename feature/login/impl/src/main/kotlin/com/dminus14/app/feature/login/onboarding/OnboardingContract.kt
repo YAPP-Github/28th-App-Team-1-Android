@@ -3,6 +3,7 @@ package com.dminus14.app.feature.login.onboarding
 import com.dminus14.app.core.common.mvi.MviEffect
 import com.dminus14.app.core.common.mvi.MviIntent
 import com.dminus14.app.core.common.mvi.MviState
+import com.dminus14.app.domain.model.Job
 
 sealed interface OnboardingIntent : MviIntent {
     data object Load : OnboardingIntent
@@ -36,28 +37,23 @@ enum class OnboardingStep {
 data class OnboardingState(
     val step: OnboardingStep = OnboardingStep.Naming,
     val name: String = "",
-    val jobs: List<String> = DefaultJobs,
+    val jobs: List<Job> = emptyList(),
     val selectedJobIndex: Int? = null,
     val experienceOptions: List<String> = DefaultExperienceOptions,
     val selectedExperienceIndex: Int = 0,
     val isContinueEnabled: Boolean = false,
+    /** 프로필 등록 API 진행 중 여부. 중복 클릭 방지에 사용한다. */
+    val isSubmitting: Boolean = false,
+    /** InvalidJobRole·NameAlreadyTaken·Validation 등 인라인으로 보여줄 사용자 메시지. */
+    val errorMessage: String? = null,
 ) : MviState
 
 sealed interface OnboardingEffect : MviEffect {
     data object CloseRequested : OnboardingEffect
 
+    /** 프로필 등록 성공. 화면에서 Home 으로 이동한다. */
     data object Completed : OnboardingEffect
 }
-
-internal val DefaultJobs =
-    listOf(
-        "백엔드",
-        "데이터 엔지니어",
-        "Android",
-        "iOS",
-        "프론트엔드",
-        "인프라 · SRE",
-    )
 
 internal val DefaultExperienceOptions =
     listOf(

@@ -1,6 +1,7 @@
 package com.dminus14.app.data.remote.datasource
 
 import com.dminus14.app.data.remote.api.UserApi
+import com.dminus14.app.data.remote.dto.user.JobListResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileFetchResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileUpdateRequestDto
 import com.dminus14.app.data.remote.mapper.ApiErrorCode
@@ -38,6 +39,8 @@ class UserRemoteDataSourceImpl
                 )
             }
         }
+
+        override suspend fun getJobs(): JobListResponseDto = userApi.getJobs()
 
         private companion object {
             const val HTTP_NO_CONTENT = 204
