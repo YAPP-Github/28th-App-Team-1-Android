@@ -62,18 +62,14 @@ internal fun MyPageProfileSection(
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             HilitTag(
-                                colorType = TagColorType.Black,
-                                tagType = TagType.Small,
+                                colorType = TagColorType.BlackGreen,
+                                tagType = TagType.Large,
                                 text = profile.role,
                             )
-                            Text(
+                            HilitTag(
+                                colorType = TagColorType.BlackWhite,
+                                tagType = TagType.Large,
                                 text = profile.experience,
-                                modifier =
-                                    Modifier
-                                        .background(HilitTheme.colors.hilitBlack800)
-                                        .padding(horizontal = 4.dp),
-                                style = HilitTheme.typography.body6,
-                                color = HilitTheme.colors.hilitWhite,
                             )
                         }
                     }
