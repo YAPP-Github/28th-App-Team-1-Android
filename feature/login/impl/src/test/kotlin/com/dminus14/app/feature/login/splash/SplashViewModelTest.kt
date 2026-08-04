@@ -14,6 +14,7 @@ import com.dminus14.app.domain.model.ConsentPendingStatus
 import com.dminus14.app.domain.model.ConsentSubmission
 import com.dminus14.app.domain.model.PendingConsentList
 import com.dminus14.app.domain.model.UserProfile
+import com.dminus14.app.domain.model.UserProfileUpdate
 import com.dminus14.app.domain.repository.AuthRepository
 import com.dminus14.app.domain.repository.ConsentRepository
 import com.dminus14.app.domain.repository.SessionRepository
@@ -64,7 +65,7 @@ class SplashViewModelTest {
         }
 
     @Test
-    fun `Load 시 세션과 동의 최신이지만 이름이 없으면 RequireOnboarding Effect를 발행한다`() =
+    fun `Load 시 세션과 동의 최신이지만 프로필이 없으면 RequireOnboarding Effect를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -73,7 +74,8 @@ class SplashViewModelTest {
                     createViewModel(
                         session = sampleSession,
                         pendingResult = Result.success(upToDatePending),
-                        profileResult = Result.success(sampleUserProfileWithoutName),
+                        profileResult =
+                            Result.failure(UserNotFoundException(errCode = "USER_NOT_FOUND")),
                     )
                 val effect = async { viewModel.effect.first() }
 
@@ -311,7 +313,7 @@ class SplashViewModelTest {
         }
 
     @Test
-    fun `카카오 로그인 성공 후 동의 최신이지만 이름이 없으면 RequireOnboarding Effect를 발행한다`() =
+    fun `카카오 로그인 성공 후 동의 최신이지만 프로필이 없으면 RequireOnboarding Effect를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
@@ -320,7 +322,8 @@ class SplashViewModelTest {
                     createViewModel(
                         session = null,
                         pendingResult = Result.success(upToDatePending),
-                        profileResult = Result.success(sampleUserProfileWithoutName),
+                        profileResult =
+                            Result.failure(UserNotFoundException(errCode = "USER_NOT_FOUND")),
                         loginResult = Result.success(sampleSession),
                     )
                 val effect = async { viewModel.effect.first() }
@@ -538,11 +541,6 @@ class SplashViewModelTest {
                 remainingTicketCount = 3,
             )
 
-        val sampleUserProfileWithoutName =
-            sampleUserProfile.copy(
-                name = null,
-            )
-
         val upToDatePending =
             PendingConsentList(
                 status = ConsentPendingStatus.UP_TO_DATE,
@@ -582,6 +580,11 @@ class SplashViewModelTest {
         private val result: Result<UserProfile>,
     ) : UserRepository {
         override suspend fun getUserProfile(): UserProfile = result.getOrThrow()
+
+        override suspend fun updateUserProfile(update: UserProfileUpdate) =
+            error("Not used in SplashViewModelTest")
+
+        override suspend fun withdraw() = error("Not used in SplashViewModelTest")
     }
 
     private class FakeAuthRepository(

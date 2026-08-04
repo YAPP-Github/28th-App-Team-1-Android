@@ -79,6 +79,7 @@ Convention Plugin을 기준으로 구성한다.
 | 모듈 추가 또는 경계 변경          | `module-system.md`, `project-structure.md`                         |
 | Gradle dependency 추가            | `module-system.md`, `build-conventions.md`                         |
 | Convention Plugin 변경            | `module-system.md`, `build-conventions.md`                         |
+| API, DTO 또는 RemoteDataSource 변경 | `module-system.md`, 오류 변환 시 `error-handling.md`               |
 | Navigation route 또는 entry 변경  | `module-system.md`, `navigation.md`, `feature-ui.md`               |
 | Feature MVI 화면 구현             | `module-system.md`, `feature-ui.md`                                |
 | ViewModel 오류 처리               | `feature-ui.md`, `error-handling.md`                               |
