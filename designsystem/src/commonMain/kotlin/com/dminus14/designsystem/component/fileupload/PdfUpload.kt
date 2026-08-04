@@ -174,9 +174,9 @@ private fun PdfUploadFilled(
             isFailed -> HilitTheme.colors.error500
             else -> HilitTheme.colors.gray400
         }
-    val isInfoEnabled = isFailed && onInfoClick != null
+    val infoClickHandler = onInfoClick?.takeIf { isFailed }
     val infoTint =
-        if (isInfoEnabled) HilitTheme.colors.error500 else HilitTheme.colors.gray200
+        if (infoClickHandler != null) HilitTheme.colors.error500 else HilitTheme.colors.gray200
 
     Column(
         modifier =
@@ -231,17 +231,24 @@ private fun PdfUploadFilled(
                         if (isFailed) {
                             HilitIcon(
                                 asset = HilitIconAsset.Info,
-                                contentDescription = if (isInfoEnabled) "업로드 실패 안내" else null,
+                                contentDescription =
+                                    if (infoClickHandler !=
+                                        null
+                                    ) {
+                                        "업로드 실패 안내"
+                                    } else {
+                                        null
+                                    },
                                 tint = infoTint,
                                 modifier =
                                     Modifier
                                         .size(PdfUploadCloseSize)
                                         .then(
-                                            if (isInfoEnabled) {
+                                            if (infoClickHandler != null) {
                                                 Modifier.clickable(
                                                     indication = null,
                                                     interactionSource = null,
-                                                    onClick = onInfoClick,
+                                                    onClick = infoClickHandler,
                                                 )
                                             } else {
                                                 Modifier

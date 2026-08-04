@@ -135,7 +135,7 @@ class SampleViewModel(...) : ViewModel() {
         when (intent) {
             SampleIntent.Load -> load()
             SampleIntent.Refresh -> load()
-            is SampleIntent.ItemClicked -> select(intent.id)
+            is SampleIntent.ClickItem -> select(intent.id)
         }
     }
 
