@@ -8,7 +8,7 @@ import com.dminus14.app.domain.model.UserProfileUpdate
 /** 조회 응답의 null을 기본값으로 바꾸지 않고 회원 프로필 Domain 모델로 변환한다. */
 internal fun UserProfileFetchResponseDto.toDomain(): UserProfile =
     UserProfile(
-        name = name,
+        name = name.orEmpty(),
         email = email,
         provider = provider,
         jobRole = jobRole,
