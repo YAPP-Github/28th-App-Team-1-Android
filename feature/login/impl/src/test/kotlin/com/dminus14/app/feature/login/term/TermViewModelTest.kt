@@ -172,7 +172,6 @@ class TermViewModelTest {
                         listOf(
                             consentItem(
                                 code = ConsentItemCode.TERMS_OF_SERVICE,
-                                rawCode = "TERMS_OF_SERVICE",
                                 label = "서비스 이용약관",
                                 hasDocument = true,
                             ),
@@ -181,7 +180,10 @@ class TermViewModelTest {
             val viewModel =
                 createViewModel(
                     terms = emptyList(),
-                    consentRepository = FakeConsentRepository(pending = fakePending),
+                    deps =
+                        TermViewModelTestDeps(
+                            consentRepository = FakeConsentRepository(pending = fakePending),
+                        ),
                 )
 
             viewModel.onIntent(TermIntent.Load)
@@ -345,14 +347,25 @@ class TermViewModelTest {
                 )
             val viewModel =
                 createViewModel(
-                    consentRepository = FakeConsentRepository(document = document),
+                    deps =
+                        TermViewModelTestDeps(
+                            consentRepository = FakeConsentRepository(document = document),
+                        ),
                 )
 
             viewModel.onIntent(TermIntent.ClickViewTerm(1))
             advanceUntilIdle()
 
-            assertEquals("서비스 이용약관", viewModel.state.value.visibleTermDetail?.title)
-            assertEquals("약관 본문", viewModel.state.value.visibleTermDetail?.content)
+            assertEquals(
+                "서비스 이용약관",
+                viewModel.state.value.visibleTermDetail
+                    ?.title,
+            )
+            assertEquals(
+                "약관 본문",
+                viewModel.state.value.visibleTermDetail
+                    ?.content,
+            )
             assertFalse(viewModel.state.value.isLoading)
         }
 
@@ -441,8 +454,11 @@ class TermViewModelTest {
             val viewModel =
                 createViewModel(
                     terms = SampleTerms.map { it.copy(isChecked = true) },
-                    consentRepository = fake,
-                    permissionManager = FakePermissionManager(granted = false),
+                    deps =
+                        TermViewModelTestDeps(
+                            consentRepository = fake,
+                            permissionManager = FakePermissionManager(granted = false),
+                        ),
                 )
             val receivedEffects = collectEffects(viewModel)
 
@@ -464,9 +480,18 @@ class TermViewModelTest {
             val viewModel =
                 createViewModel(
                     terms = SampleTerms.map { it.copy(isChecked = true) },
-                    consentRepository = FakeConsentRepository(submitResult = Result.success(Unit)),
-                    userRepository = FakeUserRepository(profileResult = Result.success(userProfile())),
-                    permissionManager = FakePermissionManager(granted = true),
+                    deps =
+                        TermViewModelTestDeps(
+                            consentRepository =
+                                FakeConsentRepository(
+                                    submitResult = Result.success(Unit),
+                                ),
+                            userRepository =
+                                FakeUserRepository(
+                                    profileResult = Result.success(userProfile()),
+                                ),
+                            permissionManager = FakePermissionManager(granted = true),
+                        ),
                 )
             val receivedEffects = collectEffects(viewModel)
 
@@ -483,13 +508,21 @@ class TermViewModelTest {
             val viewModel =
                 createViewModel(
                     terms = SampleTerms.map { it.copy(isChecked = true) },
-                    consentRepository = FakeConsentRepository(submitResult = Result.success(Unit)),
-                    userRepository =
-                        FakeUserRepository(
-                            profileResult =
-                                Result.failure(UserNotFoundException(errCode = "USER_NOT_FOUND")),
+                    deps =
+                        TermViewModelTestDeps(
+                            consentRepository =
+                                FakeConsentRepository(
+                                    submitResult = Result.success(Unit),
+                                ),
+                            userRepository =
+                                FakeUserRepository(
+                                    profileResult =
+                                        Result.failure(
+                                            UserNotFoundException(errCode = "USER_NOT_FOUND"),
+                                        ),
+                                ),
+                            permissionManager = FakePermissionManager(granted = true),
                         ),
-                    permissionManager = FakePermissionManager(granted = true),
                 )
             val receivedEffects = collectEffects(viewModel)
 
@@ -506,15 +539,23 @@ class TermViewModelTest {
             val viewModel =
                 createViewModel(
                     terms = SampleTerms.map { it.copy(isChecked = true) },
-                    consentRepository = FakeConsentRepository(submitResult = Result.success(Unit)),
-                    userRepository =
-                        FakeUserRepository(
-                            profileResult =
-                                Result.failure(
-                                    NetworkUnavailableException(errCode = "NETWORK_UNAVAILABLE"),
+                    deps =
+                        TermViewModelTestDeps(
+                            consentRepository =
+                                FakeConsentRepository(
+                                    submitResult = Result.success(Unit),
                                 ),
+                            userRepository =
+                                FakeUserRepository(
+                                    profileResult =
+                                        Result.failure(
+                                            NetworkUnavailableException(
+                                                errCode = "NETWORK_UNAVAILABLE",
+                                            ),
+                                        ),
+                                ),
+                            permissionManager = FakePermissionManager(granted = true),
                         ),
-                    permissionManager = FakePermissionManager(granted = true),
                 )
             val globalEvents = collectGlobalEvents()
             val termEffects = collectEffects(viewModel)
@@ -542,7 +583,7 @@ class TermViewModelTest {
             val viewModel =
                 createViewModel(
                     terms = SampleTerms.map { it.copy(isChecked = true) },
-                    consentRepository = fake,
+                    deps = TermViewModelTestDeps(consentRepository = fake),
                 )
             val receivedEffects = collectEffects(viewModel)
 
@@ -566,7 +607,6 @@ class TermViewModelTest {
                         listOf(
                             consentItem(
                                 code = ConsentItemCode.TERMS_OF_SERVICE,
-                                rawCode = "TERMS_OF_SERVICE",
                                 label = "서비스 이용약관",
                                 hasDocument = true,
                             ),
@@ -586,7 +626,7 @@ class TermViewModelTest {
             val viewModel =
                 createViewModel(
                     terms = SampleTerms.map { it.copy(isChecked = true) },
-                    consentRepository = fake,
+                    deps = TermViewModelTestDeps(consentRepository = fake),
                 )
             val receivedEffects = collectEffects(viewModel)
 
@@ -598,7 +638,12 @@ class TermViewModelTest {
                 receivedEffects,
             )
             assertEquals(1, viewModel.state.value.terms.size)
-            assertEquals("TERMS_OF_SERVICE", viewModel.state.value.terms.first().rawCode)
+            assertEquals(
+                "TERMS_OF_SERVICE",
+                viewModel.state.value.terms
+                    .first()
+                    .rawCode,
+            )
             assertFalse(viewModel.state.value.isLoading)
         }
 
@@ -615,7 +660,7 @@ class TermViewModelTest {
             val viewModel =
                 createViewModel(
                     terms = SampleTerms.map { it.copy(isChecked = true) },
-                    consentRepository = fake,
+                    deps = TermViewModelTestDeps(consentRepository = fake),
                 )
             val globalEvents = collectGlobalEvents()
             val termEffects = collectEffects(viewModel)
@@ -645,20 +690,24 @@ class TermViewModelTest {
 
     // endregion
 
+    private data class TermViewModelTestDeps(
+        val consentRepository: ConsentRepository = NoopConsentRepository,
+        val userRepository: UserRepository = NoopUserRepository,
+        val permissionManager: PermissionManager = FakePermissionManager(granted = false),
+    )
+
     private fun createViewModel(
         terms: List<ConsentItem> = SampleTerms,
         isLoading: Boolean = false,
         visibleTermDetail: TermDetailContent? = null,
-        consentRepository: ConsentRepository = NoopConsentRepository,
-        userRepository: UserRepository = NoopUserRepository,
-        permissionManager: PermissionManager = FakePermissionManager(granted = false),
+        deps: TermViewModelTestDeps = TermViewModelTestDeps(),
     ): TermViewModel =
         TermViewModel(
-            GetPendingConsentListUseCase(consentRepository),
-            GetConsentDocumentUseCase(consentRepository),
-            SubmitConsentUseCase(consentRepository),
-            CheckUserProfileUseCase(userRepository),
-            permissionManager,
+            GetPendingConsentListUseCase(deps.consentRepository),
+            GetConsentDocumentUseCase(deps.consentRepository),
+            SubmitConsentUseCase(deps.consentRepository),
+            CheckUserProfileUseCase(deps.userRepository),
+            deps.permissionManager,
             TermState(
                 terms = terms,
                 isLoading = isLoading,
@@ -689,8 +738,7 @@ class TermViewModelTest {
         override suspend fun updateUserProfile(update: UserProfileUpdate) =
             throw AssertionError("이 테스트에서 프로필 수정은 일어나면 안 됩니다.")
 
-        override suspend fun withdraw() =
-            throw AssertionError("이 테스트에서 탈퇴는 일어나면 안 됩니다.")
+        override suspend fun withdraw() = throw AssertionError("이 테스트에서 탈퇴는 일어나면 안 됩니다.")
     }
 
     /** 프로필 조회 미행사 테스트용. 호출되면 AssertionError. */
@@ -701,8 +749,7 @@ class TermViewModelTest {
         override suspend fun updateUserProfile(update: UserProfileUpdate) =
             throw AssertionError("이 테스트에서 프로필 수정은 일어나면 안 됩니다.")
 
-        override suspend fun withdraw() =
-            throw AssertionError("이 테스트에서 탈퇴는 일어나면 안 됩니다.")
+        override suspend fun withdraw() = throw AssertionError("이 테스트에서 탈퇴는 일어나면 안 됩니다.")
     }
 
     /** Load/ClickViewTerm/제출 검증용 fake. 필요한 것만 스텁하고 나머지는 AssertionError. */
@@ -773,52 +820,44 @@ class TermViewModelTest {
 
         fun consentItem(
             code: ConsentItemCode,
-            rawCode: String,
             label: String,
             isRequired: Boolean = true,
             hasDocument: Boolean = false,
             version: Int = 1,
-            isChecked: Boolean = false,
         ): ConsentItem =
             ConsentItem(
                 code = code,
-                rawCode = rawCode,
+                rawCode = code.name,
                 label = label,
                 version = version,
                 isRequired = isRequired,
                 hasDocument = hasDocument,
-                isChecked = isChecked,
             )
 
         val SampleTerms =
             listOf(
                 consentItem(
                     code = ConsentItemCode.AGE_OVER_14,
-                    rawCode = "AGE_OVER_14",
                     label = "만 14세 이상입니다.",
                     hasDocument = false,
                 ),
                 consentItem(
                     code = ConsentItemCode.TERMS_OF_SERVICE,
-                    rawCode = "TERMS_OF_SERVICE",
                     label = "서비스 이용약관 동의",
                     hasDocument = true,
                 ),
                 consentItem(
                     code = ConsentItemCode.PERSONAL_INFO_COLLECTION,
-                    rawCode = "PERSONAL_INFO_COLLECTION",
                     label = "개인정보 수집·이용 동의",
                     hasDocument = true,
                 ),
                 consentItem(
                     code = ConsentItemCode.INTERVIEW_RECORDING,
-                    rawCode = "INTERVIEW_RECORDING",
                     label = "면접 영상·음성·촬영과 저장 동의",
                     hasDocument = true,
                 ),
                 consentItem(
                     code = ConsentItemCode.OVERSEAS_TRANSFER,
-                    rawCode = "OVERSEAS_TRANSFER",
                     label = "개인정보 국외 이전 동의",
                     hasDocument = true,
                 ),
