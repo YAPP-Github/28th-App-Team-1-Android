@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,19 +20,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.dminus14.app.feature.mypage.MyPageModalType
+import com.dminus14.designsystem.component.button.HilitButtonType
+import com.dminus14.designsystem.component.button.HilitFixedBottomButton
 import com.dminus14.designsystem.component.button.HilitFixedBottomDualButton
 import com.dminus14.designsystem.component.button.HilitFixedBottomDualButtonType
+import com.dminus14.designsystem.component.icon.HilitIcon
+import com.dminus14.designsystem.component.icon.HilitIconAsset
 import com.dminus14.designsystem.theme.HilitTheme
 
 @Composable
-@Suppress("LongMethod")
 internal fun MyPageModal(
     type: MyPageModalType,
     onConfirm: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    count: Int? = null,
 ) {
-    val content = type.content()
+    val content = type.content(count)
+
     Dialog(
         onDismissRequest = onClose,
         properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true),
@@ -39,9 +45,8 @@ internal fun MyPageModal(
         Column(
             modifier =
                 modifier
-                    .widthIn(
-                        max = 327.dp,
-                    ).fillMaxWidth()
+                    .widthIn(max = 327.dp)
+                    .fillMaxWidth()
                     .background(HilitTheme.colors.hilitWhite),
         ) {
             Column(
@@ -67,50 +72,69 @@ internal fun MyPageModal(
                     textAlign = TextAlign.Center,
                 )
                 content.notice?.let { notice ->
-                    val noticeBackground =
+                    val (bgColor, borderColor, textColor) =
                         if (content.isErrorNotice) {
-                            HilitTheme.colors.error200
+                            Triple(
+                                HilitTheme.colors.error200,
+                                HilitTheme.colors.error300,
+                                HilitTheme.colors.error500,
+                            )
                         } else {
-                            HilitTheme.colors.gray50
+                            Triple(
+                                HilitTheme.colors.gray50,
+                                HilitTheme.colors.gray100,
+                                HilitTheme.colors.gray700,
+                            )
                         }
-                    val noticeBorder =
-                        if (content.isErrorNotice) {
-                            HilitTheme.colors.error300
-                        } else {
-                            HilitTheme.colors.gray100
-                        }
-                    val noticeText =
+                    val iconTint =
                         if (content.isErrorNotice) {
                             HilitTheme.colors.error500
                         } else {
-                            HilitTheme.colors.gray700
+                            HilitTheme.colors.gray200
                         }
-                    Text(
-                        text = notice,
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .background(noticeBackground)
-                                .border(
-                                    1.dp,
-                                    noticeBorder,
-                                ).padding(12.dp),
-                        style = HilitTheme.typography.body6,
-                        color = noticeText,
-                        textAlign = TextAlign.Center,
-                    )
+                                .background(bgColor)
+                                .border(1.dp, borderColor)
+                                .padding(12.dp),
+                    ) {
+                        HilitIcon(
+                            asset = HilitIconAsset.Info,
+                            contentDescription = "안내",
+                            tint = iconTint,
+                        )
+                        Text(
+                            text = notice,
+                            style = HilitTheme.typography.body6,
+                            color = textColor,
+                        )
+                    }
                 }
             }
-            HilitFixedBottomDualButton(
-                leftText = content.leftText,
-                rightText = content.rightText,
-                type = HilitFixedBottomDualButtonType.TwoColor,
-                onLeftClick = {
-                    onConfirm()
-                    onClose()
-                },
-                onRightClick = onClose,
-            )
+
+            if (content.confirmText == null) {
+                HilitFixedBottomButton(
+                    text = content.dismissText,
+                    type = HilitButtonType.Light,
+                    onClick = onClose,
+                )
+            } else {
+                HilitFixedBottomDualButton(
+                    leftText = content.dismissText,
+                    rightText = content.confirmText,
+                    type = HilitFixedBottomDualButtonType.TwoColor,
+                    onLeftClick = onClose,
+                    onRightClick = {
+                        onConfirm()
+                        onClose()
+                    },
+                )
+            }
         }
     }
 }
@@ -120,17 +144,18 @@ private data class ModalContent(
     val message: String,
     val notice: String? = null,
     val isErrorNotice: Boolean = false,
-    val leftText: String = "닫기",
-    val rightText: String = "확인",
+    val dismissText: String = "취소",
+    val confirmText: String? = null,
 )
 
-private fun MyPageModalType.content(): ModalContent =
+private fun MyPageModalType.content(count: Int?): ModalContent =
     when (this) {
         MyPageModalType.PortfolioReupload -> {
             ModalContent(
                 title = "포트폴리오를\n새로 업로드하시겠어요?",
                 message = "한 달에 한 번만 포트폴리오를\n새로 업로드할 수 있어요.",
-                notice = "이번달 남은 기회 1번",
+                notice = "이번 달 남은 기회 ${count ?: 0}번",
+                confirmText = "확인",
             )
         }
 
@@ -138,7 +163,8 @@ private fun MyPageModalType.content(): ModalContent =
             ModalContent(
                 title = "포트폴리오를 삭제하시겠어요?",
                 message = "포트폴리오 파일이 삭제되어도\n지난 면접 레포트는 그대로 남아요.",
-                notice = "이번달 남은 삭제 기회 1번",
+                notice = "이번 달 남은 삭제 기회 ${count ?: 0}번",
+                confirmText = "삭제",
             )
         }
 
@@ -146,6 +172,7 @@ private fun MyPageModalType.content(): ModalContent =
             ModalContent(
                 title = "포트폴리오를 삭제할 수 없어요",
                 message = "현재 면접이 진행되고 있어요.\n면접이 끝나면 다시 삭제를 시도해주세요.",
+                dismissText = "확인",
             )
         }
 
@@ -153,8 +180,9 @@ private fun MyPageModalType.content(): ModalContent =
             ModalContent(
                 title = "포트폴리오를\n새로 업로드할 수 없어요.",
                 message = "한 달에 한 번만 포트폴리오를 업로드할 수 있어요.",
-                notice = "이번달 남은 기회 0번",
+                notice = "이번 달 남은 기회 ${count ?: 0}번",
                 isErrorNotice = true,
+                dismissText = "확인",
             )
         }
 
@@ -162,8 +190,7 @@ private fun MyPageModalType.content(): ModalContent =
             ModalContent(
                 title = "로그아웃하시겠어요?",
                 message = "언제든 다시 로그인할 수 있어요.",
-                leftText = "취소",
-                rightText = "로그아웃",
+                confirmText = "로그아웃",
             )
         }
     }
