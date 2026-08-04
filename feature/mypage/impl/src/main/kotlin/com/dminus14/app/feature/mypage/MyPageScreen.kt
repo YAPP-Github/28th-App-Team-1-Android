@@ -19,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -42,7 +43,7 @@ fun MyPageScreen(
     viewModel: MyPageViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    var modalType by remember { mutableStateOf<MyPageModalType?>(null) }
+    var modalType by rememberSaveable { mutableStateOf<MyPageModalType?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
