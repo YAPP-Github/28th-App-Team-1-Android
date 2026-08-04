@@ -45,7 +45,7 @@ object GsonModule {
     /**
      * 공용 JSON 정책을 유지하면서 Guest Feedback 응답 계약 어댑터만 추가한 Gson을 구성한다.
      *
-     * 기능 전용 검증이 Default, Auth와 Upload Retrofit의 역직렬화에 영향을 주지 않도록
+     * 기능 전용 검증이 Default, Auth와 Portfolio Retrofit의 역직렬화에 영향을 주지 않도록
      * [GuestRetrofit]에만 주입한다.
      */
     @Provides

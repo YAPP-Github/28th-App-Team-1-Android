@@ -10,7 +10,10 @@ import androidx.compose.ui.unit.dp
 import com.dminus14.app.core.resources.Res
 import com.dminus14.app.core.resources.ai_sparkle
 import com.dminus14.app.core.resources.apple_logo
+import com.dminus14.app.core.resources.book
 import com.dminus14.app.core.resources.cancel
+import com.dminus14.app.core.resources.checkbox_check
+import com.dminus14.app.core.resources.checkbox_uncheck
 import com.dminus14.app.core.resources.coupon
 import com.dminus14.app.core.resources.delete
 import com.dminus14.app.core.resources.down
@@ -18,6 +21,7 @@ import com.dminus14.app.core.resources.edit
 import com.dminus14.app.core.resources.expand
 import com.dminus14.app.core.resources.file
 import com.dminus14.app.core.resources.fill_warning
+import com.dminus14.app.core.resources.hiiii_logo
 import com.dminus14.app.core.resources.info
 import com.dminus14.app.core.resources.kakao_logo
 import com.dminus14.app.core.resources.left
@@ -67,6 +71,19 @@ enum class HilitIconAsset(
     Script("script", 24.dp, Res.drawable.script),
     AppleLogo("apple_logo", 24.dp, Res.drawable.apple_logo, preservesOriginalColors = true),
     KakaoLogo("kakao_logo", 24.dp, Res.drawable.kakao_logo, preservesOriginalColors = true),
+    HilitLogo("hiiii_logo", 24.dp, Res.drawable.hiiii_logo, preservesOriginalColors = true),
+    CheckboxCheck(
+        "checkbox_check",
+        24.dp,
+        Res.drawable.checkbox_check,
+        preservesOriginalColors = true,
+    ),
+    CheckboxUncheck(
+        "checkbox_uncheck",
+        24.dp,
+        Res.drawable.checkbox_uncheck,
+        preservesOriginalColors = true,
+    ),
     Coupon("coupon", 16.dp, Res.drawable.coupon),
     Info("info", 16.dp, Res.drawable.info),
     Delete("delete", 16.dp, Res.drawable.delete, preservesOriginalColors = true),
@@ -74,6 +91,7 @@ enum class HilitIconAsset(
     Upload("upload", 44.dp, Res.drawable.upload, preservesOriginalColors = true),
     Undo("undo", 16.dp, Res.drawable.undo, preservesOriginalColors = true),
     Voice("voice", 28.dp, Res.drawable.voice, preservesOriginalColors = true),
+    Book("book", 63.dp, Res.drawable.book, preservesOriginalColors = true),
 }
 
 @Composable

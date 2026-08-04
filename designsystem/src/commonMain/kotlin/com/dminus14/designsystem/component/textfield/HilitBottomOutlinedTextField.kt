@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,6 +44,8 @@ fun HilitBottomOutlinedTextField(
     onValueChange: (String) -> Unit,
     placeholder: String,
     modifier: Modifier = Modifier,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
     val colors = HilitTheme.colors
     val textStyle = HilitTheme.typography.head4
@@ -84,6 +88,8 @@ fun HilitBottomOutlinedTextField(
                 }.padding(bottom = BottomPadding),
         textStyle = textStyle.copy(color = colors.hilitBlack800),
         singleLine = true,
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
         cursorBrush = SolidColor(colors.hilitBlack800),
         decorationBox = { innerTextField ->
             Box {

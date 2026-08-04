@@ -11,7 +11,7 @@ data class UserProfileFetchResponseDto(
     @SerializedName("userId")
     val userId: String? = null,
     @SerializedName("name")
-    val name: String? = null,
+    val name: String,
     @SerializedName("email")
     val email: String? = null,
     @SerializedName("provider")
