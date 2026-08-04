@@ -58,7 +58,7 @@ enum class BubbleFieldTailShape {
 }
 
 private val SmallHorizontalPadding = 14.dp
-private val SmallVerticalPadding = 12.dp
+private val SmallVerticalPadding = 8.dp
 private val BigHorizontalPadding = 14.dp
 private val BigVerticalPadding = 12.dp
 private val SmallMinWidth = 149.dp
