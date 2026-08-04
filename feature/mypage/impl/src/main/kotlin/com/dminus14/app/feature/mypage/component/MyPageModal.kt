@@ -72,70 +72,93 @@ internal fun MyPageModal(
                     textAlign = TextAlign.Center,
                 )
                 content.notice?.let { notice ->
-                    val (bgColor, borderColor, textColor) =
-                        if (content.isErrorNotice) {
-                            Triple(
-                                HilitTheme.colors.error200,
-                                HilitTheme.colors.error300,
-                                HilitTheme.colors.error500,
-                            )
-                        } else {
-                            Triple(
-                                HilitTheme.colors.gray50,
-                                HilitTheme.colors.gray100,
-                                HilitTheme.colors.gray700,
-                            )
-                        }
-                    val iconTint =
-                        if (content.isErrorNotice) {
-                            HilitTheme.colors.error500
-                        } else {
-                            HilitTheme.colors.gray200
-                        }
-
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .background(bgColor)
-                                .border(1.dp, borderColor)
-                                .padding(12.dp),
-                    ) {
-                        HilitIcon(
-                            asset = HilitIconAsset.Info,
-                            contentDescription = "안내",
-                            tint = iconTint,
-                        )
-                        Text(
-                            text = notice,
-                            style = HilitTheme.typography.body6,
-                            color = textColor,
-                        )
-                    }
+                    ModalNotice(notice = notice, isError = content.isErrorNotice)
                 }
             }
 
-            if (content.confirmText == null) {
-                HilitFixedBottomButton(
-                    text = content.dismissText,
-                    type = HilitButtonType.Light,
-                    onClick = onClose,
-                )
-            } else {
-                HilitFixedBottomDualButton(
-                    leftText = content.dismissText,
-                    rightText = content.confirmText,
-                    type = HilitFixedBottomDualButtonType.TwoColor,
-                    onLeftClick = onClose,
-                    onRightClick = {
-                        onConfirm()
-                        onClose()
-                    },
-                )
-            }
+            ModalButtons(
+                dismissText = content.dismissText,
+                confirmText = content.confirmText,
+                onConfirm = onConfirm,
+                onClose = onClose,
+            )
         }
+    }
+}
+
+@Composable
+private fun ModalNotice(
+    notice: String,
+    isError: Boolean,
+) {
+    val (bgColor, borderColor, textColor) =
+        if (isError) {
+            Triple(
+                HilitTheme.colors.error200,
+                HilitTheme.colors.error300,
+                HilitTheme.colors.error500,
+            )
+        } else {
+            Triple(
+                HilitTheme.colors.gray50,
+                HilitTheme.colors.gray100,
+                HilitTheme.colors.gray700,
+            )
+        }
+    val iconTint =
+        if (isError) {
+            HilitTheme.colors.error500
+        } else {
+            HilitTheme.colors.gray200
+        }
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .background(bgColor)
+                .border(1.dp, borderColor)
+                .padding(12.dp),
+    ) {
+        HilitIcon(
+            asset = HilitIconAsset.Info,
+            contentDescription = "안내",
+            tint = iconTint,
+        )
+        Text(
+            text = notice,
+            style = HilitTheme.typography.body6,
+            color = textColor,
+        )
+    }
+}
+
+@Composable
+private fun ModalButtons(
+    dismissText: String,
+    confirmText: String?,
+    onConfirm: () -> Unit,
+    onClose: () -> Unit,
+) {
+    if (confirmText == null) {
+        HilitFixedBottomButton(
+            text = dismissText,
+            type = HilitButtonType.Light,
+            onClick = onClose,
+        )
+    } else {
+        HilitFixedBottomDualButton(
+            leftText = dismissText,
+            rightText = confirmText,
+            type = HilitFixedBottomDualButtonType.TwoColor,
+            onLeftClick = onClose,
+            onRightClick = {
+                onConfirm()
+                onClose()
+            },
+        )
     }
 }
 
