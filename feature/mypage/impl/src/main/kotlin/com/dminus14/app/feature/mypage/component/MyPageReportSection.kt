@@ -133,7 +133,7 @@ private fun ReportCard(
                     }
                     HilitIcon(
                         asset = if (expanded) HilitIconAsset.Up else HilitIconAsset.Down,
-                        contentDescription = if (expanded) "펼치기" else "접기",
+                        contentDescription = if (expanded) "접기" else "펼치기",
                         modifier = Modifier.size(16.dp),
                     )
                 }
