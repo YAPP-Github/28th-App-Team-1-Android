@@ -111,8 +111,10 @@ fun HomeReportSheet(
             var wasScrolling = false
             snapshotFlow { listState.isScrollInProgress }
                 .collect { isScrolling ->
-                    if (wasScrolling && !isScrolling) {
-                        sheetLayout.onGestureEnd(0f)
+                    // onPostFling 이 이미 실제 velocity + direction 으로 snap 을 시작한 경우
+                    // velocity=0 재호출로 그 애니메이션을 뒤엎지 않도록 skip.
+                    if (wasScrolling && !isScrolling && !sheetLayout.isSnapping()) {
+                        sheetLayout.onGestureEnd(0f, 0f)
                     }
                     wasScrolling = isScrolling
                 }
@@ -143,7 +145,8 @@ private data class HomeReportSheetLayout(
     val anchors: HomeSheetAnchors,
     val nestedScrollConnection: NestedScrollConnection,
     val onDragEnd: (Float) -> Unit,
-    val onGestureEnd: (Float) -> Unit,
+    val onGestureEnd: (velocityY: Float, directionHint: Float) -> Unit,
+    val isSnapping: () -> Boolean,
 )
 
 private data class HomeReportSheetLayoutParams(
@@ -185,8 +188,8 @@ private fun rememberHomeReportSheetLayout(
             )
         }
     val onGestureEndState =
-        rememberUpdatedState<(Float) -> Unit> { velocityY ->
-            snapController.snap(velocityY)
+        rememberUpdatedState<(Float, Float) -> Unit> { velocityY, directionHint ->
+            snapController.snap(velocityY = velocityY, directionHint = directionHint)
         }
     val nestedScrollConnection =
         rememberHomeReportSheetNestedScroll(
@@ -194,14 +197,19 @@ private fun rememberHomeReportSheetLayout(
             anchors = anchors,
             getSheetTopPx = params.currentSheetTopPx,
             onSheetTopPxChange = params.onSheetTopPxChange,
-            onGestureEnd = { velocityY -> onGestureEndState.value(velocityY) },
+            onGestureEnd = { velocityY, directionHint ->
+                onGestureEndState.value(velocityY, directionHint)
+            },
         )
 
     return HomeReportSheetLayout(
         anchors = anchors,
         nestedScrollConnection = nestedScrollConnection,
-        onDragEnd = { velocityY -> snapController.snap(velocityY) },
-        onGestureEnd = { velocityY -> onGestureEndState.value(velocityY) },
+        onDragEnd = { velocityY -> snapController.snap(velocityY = velocityY) },
+        onGestureEnd = { velocityY, directionHint ->
+            onGestureEndState.value(velocityY, directionHint)
+        },
+        isSnapping = { snapController.isSnapping },
     )
 }
 
@@ -337,7 +345,7 @@ private fun rememberHomeReportSheetNestedScroll(
     anchors: HomeSheetAnchors,
     getSheetTopPx: () -> Float,
     onSheetTopPxChange: (Float) -> Unit,
-    onGestureEnd: (Float) -> Unit,
+    onGestureEnd: (velocityY: Float, directionHint: Float) -> Unit,
 ): NestedScrollConnection {
     val currentGetSheetTopPx by rememberUpdatedState(getSheetTopPx)
     val currentOnSheetTopPxChange by rememberUpdatedState(onSheetTopPxChange)
@@ -346,6 +354,12 @@ private fun rememberHomeReportSheetNestedScroll(
 
     return remember(listState, anchors) {
         object : NestedScrollConnection {
+            /**
+             * 이번 gesture 동안 시트가 이동한 순수 y 델타.
+             * 양수 = 아래, 음수 = 위. onPostFling 에서 direction hint 로 snap 에 전달하고 리셋한다.
+             */
+            var gestureNetDeltaY: Float = 0f
+
             override fun onPreScroll(
                 available: Offset,
                 source: NestedScrollSource,
@@ -356,6 +370,7 @@ private fun rememberHomeReportSheetNestedScroll(
                     val consumed = (-delta).coerceAtMost(currentTopPx - anchors.expandedTopPx)
                     currentOnSheetTopPxChange(currentTopPx - consumed)
                     sheetMovedDuringGesture = consumed > 0f
+                    gestureNetDeltaY -= consumed
                     return Offset(0f, -consumed)
                 }
                 return Offset.Zero
@@ -375,6 +390,7 @@ private fun rememberHomeReportSheetNestedScroll(
                     val consumedDelta = delta.coerceAtMost(anchors.collapsedTopPx - currentTopPx)
                     currentOnSheetTopPxChange(currentTopPx + consumedDelta)
                     sheetMovedDuringGesture = sheetMovedDuringGesture || consumedDelta > 0f
+                    gestureNetDeltaY += consumedDelta
                     return Offset(0f, consumedDelta)
                 }
                 return Offset.Zero
@@ -389,6 +405,7 @@ private fun rememberHomeReportSheetNestedScroll(
                     val consumed = available.y.coerceAtMost(anchors.collapsedTopPx - currentTopPx)
                     currentOnSheetTopPxChange(currentTopPx + consumed)
                     sheetMovedDuringGesture = sheetMovedDuringGesture || consumed > 0f
+                    gestureNetDeltaY += consumed
                     return Velocity(0f, consumed)
                 }
                 return Velocity.Zero
@@ -399,8 +416,9 @@ private fun rememberHomeReportSheetNestedScroll(
                 available: Velocity,
             ): Velocity {
                 if (sheetMovedDuringGesture) {
-                    currentOnGestureEnd(available.y)
+                    currentOnGestureEnd(available.y, gestureNetDeltaY)
                     sheetMovedDuringGesture = false
+                    gestureNetDeltaY = 0f
                 }
                 return Velocity.Zero
             }
