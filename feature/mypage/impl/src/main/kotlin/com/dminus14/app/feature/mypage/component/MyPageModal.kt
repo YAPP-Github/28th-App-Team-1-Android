@@ -3,7 +3,9 @@ package com.dminus14.app.feature.mypage.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -25,6 +27,7 @@ import com.dminus14.designsystem.theme.HilitTheme
 @Suppress("LongMethod")
 internal fun MyPageModal(
     type: MyPageModalType,
+    onConfirm: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -42,7 +45,10 @@ internal fun MyPageModal(
                     .background(HilitTheme.colors.hilitWhite),
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 40.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 40.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -99,7 +105,10 @@ internal fun MyPageModal(
                 leftText = content.leftText,
                 rightText = content.rightText,
                 type = HilitFixedBottomDualButtonType.TwoColor,
-                onLeftClick = onClose,
+                onLeftClick = {
+                    onConfirm()
+                    onClose()
+                },
                 onRightClick = onClose,
             )
         }
@@ -163,7 +172,9 @@ private fun MyPageModalType.content(): ModalContent =
 @Composable
 private fun MyPagePortfolioModalPreview() {
     HilitTheme {
-        MyPageModal(type = MyPageModalType.PortfolioReupload, onClose = {})
+        Box(modifier = Modifier.fillMaxSize()) {
+            MyPageModal(type = MyPageModalType.PortfolioReupload, onConfirm = {}, onClose = {})
+        }
     }
 }
 
@@ -171,7 +182,9 @@ private fun MyPagePortfolioModalPreview() {
 @Composable
 private fun MyPagePortfolioDeleteModalPreview() {
     HilitTheme {
-        MyPageModal(type = MyPageModalType.PortfolioDelete, onClose = {})
+        Box(modifier = Modifier.fillMaxSize()) {
+            MyPageModal(type = MyPageModalType.PortfolioDelete, onConfirm = {}, onClose = {})
+        }
     }
 }
 
@@ -179,7 +192,13 @@ private fun MyPagePortfolioDeleteModalPreview() {
 @Composable
 private fun MyPageDeleteUnavailableModalPreview() {
     HilitTheme {
-        MyPageModal(type = MyPageModalType.PortfolioDeleteUnavailable, onClose = {})
+        Box(modifier = Modifier.fillMaxSize()) {
+            MyPageModal(
+                type = MyPageModalType.PortfolioDeleteUnavailable,
+                onConfirm = {},
+                onClose = {},
+            )
+        }
     }
 }
 
@@ -187,7 +206,13 @@ private fun MyPageDeleteUnavailableModalPreview() {
 @Composable
 private fun MyPageReuploadUnavailableModalPreview() {
     HilitTheme {
-        MyPageModal(type = MyPageModalType.PortfolioReuploadUnavailable, onClose = {})
+        Box(modifier = Modifier.fillMaxSize()) {
+            MyPageModal(
+                type = MyPageModalType.PortfolioReuploadUnavailable,
+                onConfirm = {},
+                onClose = {},
+            )
+        }
     }
 }
 
@@ -195,6 +220,8 @@ private fun MyPageReuploadUnavailableModalPreview() {
 @Composable
 private fun MyPageLogoutModalPreview() {
     HilitTheme {
-        MyPageModal(type = MyPageModalType.Logout, onClose = {})
+        Box(modifier = Modifier.fillMaxSize()) {
+            MyPageModal(type = MyPageModalType.Logout, onConfirm = {}, onClose = {})
+        }
     }
 }
