@@ -3,9 +3,9 @@ package com.dminus14.app.data.repository
 import com.dminus14.app.data.remote.config.NetworkConfig
 import com.dminus14.app.data.remote.datasource.InterviewRemoteDataSource
 import com.dminus14.app.data.remote.dto.ApiErrorResponseDto
-import com.dminus14.app.data.remote.dto.CreateInterviewSessionRequestDto
-import com.dminus14.app.data.remote.dto.InterviewAbandonRequestDto
-import com.dminus14.app.data.remote.dto.InterviewVideoCompleteRequestDto
+import com.dminus14.app.data.remote.dto.interview.CreateInterviewSessionRequestDto
+import com.dminus14.app.data.remote.dto.interview.InterviewAbandonRequestDto
+import com.dminus14.app.data.remote.dto.interview.InterviewVideoCompleteRequestDto
 import com.dminus14.app.data.remote.mapper.ApiErrorCode
 import com.dminus14.app.data.remote.mapper.CommonApiErrorMapper
 import com.dminus14.app.domain.exception.CustomException

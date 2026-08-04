@@ -1,19 +1,19 @@
 package com.dminus14.app.data.remote.datasource
 
-import com.dminus14.app.data.remote.dto.CreateInterviewSessionRequestDto
-import com.dminus14.app.data.remote.dto.InterviewAbandonRequestDto
-import com.dminus14.app.data.remote.dto.InterviewAbandonResponseDto
-import com.dminus14.app.data.remote.dto.InterviewReportListResponseDto
-import com.dminus14.app.data.remote.dto.InterviewReportResponseDto
-import com.dminus14.app.data.remote.dto.InterviewResumeConfirmResponseDto
-import com.dminus14.app.data.remote.dto.InterviewResumeStatusResponseDto
-import com.dminus14.app.data.remote.dto.InterviewSessionResponseDto
-import com.dminus14.app.data.remote.dto.InterviewSessionStatusResponseDto
-import com.dminus14.app.data.remote.dto.InterviewVideoCompleteRequestDto
-import com.dminus14.app.data.remote.dto.InterviewVideoExpiryResponseDto
-import com.dminus14.app.data.remote.dto.InterviewVideoUploadUrlResponseDto
-import com.dminus14.app.data.remote.dto.JdValidateResponseDto
-import com.dminus14.app.data.remote.dto.SubmitAnswerResponseDto
+import com.dminus14.app.data.remote.dto.interview.CreateInterviewSessionRequestDto
+import com.dminus14.app.data.remote.dto.interview.InterviewAbandonRequestDto
+import com.dminus14.app.data.remote.dto.interview.InterviewAbandonResponseDto
+import com.dminus14.app.data.remote.dto.interview.InterviewReportListResponseDto
+import com.dminus14.app.data.remote.dto.interview.InterviewReportResponseDto
+import com.dminus14.app.data.remote.dto.interview.InterviewResumeConfirmResponseDto
+import com.dminus14.app.data.remote.dto.interview.InterviewResumeStatusResponseDto
+import com.dminus14.app.data.remote.dto.interview.InterviewSessionResponseDto
+import com.dminus14.app.data.remote.dto.interview.InterviewSessionStatusResponseDto
+import com.dminus14.app.data.remote.dto.interview.InterviewVideoCompleteRequestDto
+import com.dminus14.app.data.remote.dto.interview.InterviewVideoExpiryResponseDto
+import com.dminus14.app.data.remote.dto.interview.InterviewVideoUploadUrlResponseDto
+import com.dminus14.app.data.remote.dto.interview.JdValidateResponseDto
+import com.dminus14.app.data.remote.dto.interview.SubmitAnswerResponseDto
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 
