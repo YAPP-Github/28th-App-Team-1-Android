@@ -57,6 +57,7 @@ class OnBoardingInterviewViewModel
         private var jdText: String? = null
         private var jdValidationJob: Job? = null
 
+        @Suppress("detekt:LongMethod")
         override fun onIntent(intent: OnBoardingInterviewIntent) {
             when (intent) {
                 OnBoardingInterviewIntent.Load -> {

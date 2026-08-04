@@ -1,26 +1,45 @@
 package com.dminus14.app.data.remote.datasource
 
 import com.dminus14.app.data.remote.api.UserApi
-import com.dminus14.app.data.remote.dto.UserProfileDto
+import com.dminus14.app.data.remote.dto.user.UserProfileFetchResponseDto
+import com.dminus14.app.data.remote.dto.user.UserProfileUpdateRequestDto
+import com.dminus14.app.data.remote.mapper.ApiErrorCode
+import com.dminus14.app.domain.exception.ServerException
+import retrofit2.HttpException
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/** 회원 프로필 Retrofit 호출과 성공 응답 확인을 담당하는 원격 데이터 소스다. */
 @Singleton
 class UserRemoteDataSourceImpl
     @Inject
     constructor(
         private val userApi: UserApi,
     ) : UserRemoteDataSource {
-        override suspend fun getUserProfile(): UserProfileDto {
-            val response = userApi.getProfile()
-            return UserProfileDto(
-                name = response.name.orEmpty(),
-                email = response.email.orEmpty(),
-                provider = response.provider.orEmpty(),
-                jobRole = response.jobRole.orEmpty(),
-                jobRoleLabel = response.jobRoleLabel.orEmpty(),
-                careerYears = response.careerYears ?: 0,
-                remainingTicketCount = response.remainingTicketCount ?: 0,
-            )
+        override suspend fun getUserProfile(): UserProfileFetchResponseDto = userApi.getProfile()
+
+        override suspend fun updateUserProfile(request: UserProfileUpdateRequestDto) {
+            val response = userApi.updateProfile(request)
+            if (!response.success) {
+                throw ServerException(
+                    errCode = ApiErrorCode.SERVER_ERROR,
+                    message = "회원 프로필 수정 응답이 실패를 나타냅니다.",
+                )
+            }
+        }
+
+        override suspend fun withdraw() {
+            val response = userApi.withdraw()
+            if (!response.isSuccessful) throw HttpException(response)
+            if (response.code() != HTTP_NO_CONTENT) {
+                throw ServerException(
+                    errCode = ApiErrorCode.SERVER_ERROR,
+                    message = "회원 탈퇴 성공 응답 코드가 올바르지 않습니다.",
+                )
+            }
+        }
+
+        private companion object {
+            const val HTTP_NO_CONTENT = 204
         }
     }
