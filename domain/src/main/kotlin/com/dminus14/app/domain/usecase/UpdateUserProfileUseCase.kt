@@ -17,7 +17,7 @@ class UpdateUserProfileUseCase
                 val normalizedName = update.name?.trim()
                 validate(
                     normalizedName == null || normalizedName.length in NAME_LENGTH_RANGE,
-                    "이름은 1자 이상 20자 이하로 입력해 주세요.",
+                    "이름은 1자 이상 5자 이하로 입력해 주세요.",
                 )
                 val normalizedJobRole = update.jobRole.trim()
                 validate(normalizedJobRole.isNotEmpty(), "직무를 입력해 주세요.")
@@ -45,7 +45,7 @@ class UpdateUserProfileUseCase
 
         private companion object {
             const val VALIDATION_ERROR_CODE = "VALIDATION_ERROR"
-            val NAME_LENGTH_RANGE = 1..20
+            val NAME_LENGTH_RANGE = 1..5
             val CAREER_YEARS_RANGE = 0..10
         }
     }
