@@ -83,6 +83,20 @@ Feature 내부에서만 사용하는 UI와 extension은 Feature 안에 둔다. �
 
 `data`는 `feature:*`와 `app`에 의존하지 않고 UI 정책을 포함하지 않는다.
 
+#### 2.4.1 원격 API와 DTO 계약
+
+- DTO 파일은 API 하나당 하나를 만든다. 서로 다른 API의 DTO를 같은 파일에 합치거나
+  하나의 API DTO를 요청·응답 파일로 나누지 않는다.
+- 하나의 DTO 파일에는 해당 API의 요청(Request) DTO와 응답(Response) DTO를 각각 정의한다. 단,
+  HTTP 204 No Content 등 본문이 없는 Unit 반환 API(`Response<Unit>` 또는 `Unit`)는 DTO 정의의
+  예외로 허용하며, 그 외 본문이 존재하는 API는 빈 형식을 같은 파일 안에 명시해 API별 요청·응답
+  계약을 완결한다.
+- 모든 선택적 요청 필드는 nullable로 정의하고, 값이 없을 때도 JSON 키를 생략하지 않고 명시적
+  `null`을 포함해 전송한다. 선택적 필드 자체를 생략한 요청은 서버가 거부하므로 Gson의
+  `serializeNulls()` 또는 동일한 동작을 보장하는 직렬화 설정을 유지한다.
+- 선택적 요청 필드의 직렬화 테스트는 값이 없는 경우에도 JSON 키가 존재하고 그 값이 JSON
+  `null`인지 확인한다. API별 어댑터나 별도 직렬화 처리를 추가할 때도 이 계약을 약화하지 않는다.
+
 ### 2.5 `designsystem`
 
 `designsystem`은 Theme primitive와 공용 Compose UI를 소유하는 Compose Multiplatform 모듈이다.

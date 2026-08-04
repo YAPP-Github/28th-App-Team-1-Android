@@ -2,6 +2,8 @@ package com.dminus14.app.data.di.remote.portfolio
 
 import com.dminus14.app.data.remote.api.PortfolioApi
 import com.dminus14.app.data.remote.config.PortfolioNetworkConfig
+import com.dminus14.app.data.remote.interceptor.InsertAuthorizationInterceptor
+import com.dminus14.app.data.remote.interceptor.InsertInstallationIdInterceptor
 import com.dminus14.app.data.remote.interceptor.OkHttpLoggingInterceptorFactory
 import com.google.gson.Gson
 import dagger.Module
@@ -35,9 +37,14 @@ object PortfolioNetworkModule {
     @Provides
     @Singleton
     @PortfolioOkHttpClient
-    fun providePortfolioOkHttpClient(): OkHttpClient =
+    fun providePortfolioOkHttpClient(
+        insertInstallationIdInterceptor: InsertInstallationIdInterceptor,
+        insertAuthorizationInterceptor: InsertAuthorizationInterceptor,
+    ): OkHttpClient =
         OkHttpClient
             .Builder()
+            .addInterceptor(insertAuthorizationInterceptor)
+            .addInterceptor(insertInstallationIdInterceptor)
             .addInterceptor(OkHttpLoggingInterceptorFactory.createForUpload())
             .connectTimeout(PortfolioNetworkConfig.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(PortfolioNetworkConfig.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)

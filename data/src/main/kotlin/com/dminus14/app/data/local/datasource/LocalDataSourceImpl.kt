@@ -17,7 +17,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 class LocalDataSourceImpl
     @Inject
     constructor(
-        @ApplicationContext private val context: Context,
+        @param:ApplicationContext private val context: Context,
     ) : LocalDataSource {
         override suspend fun <T> get(key: Preferences.Key<T>): T? =
             context.dataStore.data
