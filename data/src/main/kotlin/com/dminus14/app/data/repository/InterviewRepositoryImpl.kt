@@ -1,8 +1,11 @@
 package com.dminus14.app.data.repository
 
+import com.dminus14.app.data.remote.config.NetworkConfig
 import com.dminus14.app.data.remote.datasource.InterviewRemoteDataSource
 import com.dminus14.app.data.remote.dto.ApiErrorResponseDto
 import com.dminus14.app.data.remote.dto.CreateInterviewSessionRequestDto
+import com.dminus14.app.data.remote.dto.InterviewAbandonRequestDto
+import com.dminus14.app.data.remote.dto.InterviewVideoCompleteRequestDto
 import com.dminus14.app.data.remote.mapper.ApiErrorCode
 import com.dminus14.app.data.remote.mapper.CommonApiErrorMapper
 import com.dminus14.app.domain.exception.CustomException
@@ -21,22 +24,35 @@ import com.dminus14.app.domain.exception.PortfolioProcessingException
 import com.dminus14.app.domain.exception.PortfolioUploadFailedException
 import com.dminus14.app.domain.exception.UserProfileNotRegisteredException
 import com.dminus14.app.domain.exception.ValidationException
+import com.dminus14.app.domain.model.InterviewAbandon
+import com.dminus14.app.domain.model.InterviewReport
+import com.dminus14.app.domain.model.InterviewReportList
+import com.dminus14.app.domain.model.InterviewResumeConfirm
+import com.dminus14.app.domain.model.InterviewResumeStatus
 import com.dminus14.app.domain.model.InterviewSessionRequest
 import com.dminus14.app.domain.model.InterviewSessionResult
 import com.dminus14.app.domain.model.InterviewSessionStatus
+import com.dminus14.app.domain.model.InterviewVideoExpiry
+import com.dminus14.app.domain.model.InterviewVideoUploadUrl
 import com.dminus14.app.domain.model.JdValidationResult
+import com.dminus14.app.domain.model.SubmitAnswerResult
 import com.dminus14.app.domain.repository.InterviewRepository
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import retrofit2.HttpException
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * 면접(JD 검증·세션 생성·세션 상태) 원격 DTO를 Domain 계약으로 변환하는 Repository 구현이다.
+ * 면접(JD 검증·세션 생성·세션 상태·답변 제출 등) 원격 DTO를 Domain 계약으로 변환하는 Repository 구현이다.
  *
  * API별 비즈니스 오류는 각 함수에서만 매핑하고, 전송·서버·알 수 없는 오류는
  * 공통 변환 정책([CommonApiErrorMapper])을 사용한다.
  */
 @Singleton
+@Suppress("TooManyFunctions")
 class InterviewRepositoryImpl
     @Inject
     constructor(
@@ -92,6 +108,9 @@ class InterviewRepositoryImpl
             return response.toDomain()
         }
 
+        override suspend fun getInterviewSession(sessionId: Long): InterviewSessionStatus =
+            getInterviewSessionStatus(sessionId)
+
         override suspend fun getInterviewSessionStatus(sessionId: Long): InterviewSessionStatus {
             val response =
                 runCatching { interviewRemoteDataSource.getInterviewSessionStatus(sessionId) }
@@ -108,6 +127,141 @@ class InterviewRepositoryImpl
                                 null
                             }
                         }
+                    }
+            return response.toDomain()
+        }
+
+        override suspend fun getReportList(): InterviewReportList {
+            val response =
+                runCatching { interviewRemoteDataSource.getReportList() }
+                    .getOrElse { error ->
+                        throw CommonApiErrorMapper.map(error)
+                    }
+            return response.toDomain()
+        }
+
+        @Suppress("LongParameterList")
+        override suspend fun submitAnswer(
+            sessionId: Long,
+            questionId: Long,
+            isWrapUp: Boolean,
+            questionAudioStartAt: Float?,
+            questionAudioEndAt: Float?,
+            answerStartAt: Float?,
+            answerEndAt: Float?,
+            answerDuration: Float?,
+            endType: String?,
+            audioFile: File?,
+        ): SubmitAnswerResult {
+            val audioPart =
+                audioFile?.let { file ->
+                    val requestBody = file.asRequestBody("audio/*".toMediaTypeOrNull())
+                    MultipartBody.Part.createFormData("audio", file.name, requestBody)
+                }
+            val response =
+                runCatching {
+                    interviewRemoteDataSource.submitAnswer(
+                        sessionId = sessionId,
+                        questionId = questionId,
+                        isWrapUp = isWrapUp,
+                        questionAudioStartAt = questionAudioStartAt,
+                        questionAudioEndAt = questionAudioEndAt,
+                        answerStartAt = answerStartAt,
+                        answerEndAt = answerEndAt,
+                        answerDuration = answerDuration,
+                        endType = endType,
+                        audio = audioPart,
+                    )
+                }.getOrElse { error ->
+                    throw CommonApiErrorMapper.map(error)
+                }
+            return response.toDomain()
+        }
+
+        override fun getAudioStreamUrl(
+            sessionId: Long,
+            questionId: Long,
+        ): String {
+            val baseUrl = NetworkConfig.BASE_URL.removeSuffix("/")
+            val streamPath =
+                "api/v1/interview/sessions/$sessionId/questions/$questionId/audio/stream"
+            return "$baseUrl/$streamPath"
+        }
+
+        override suspend fun getResume(sessionId: Long): InterviewResumeStatus {
+            val response =
+                runCatching { interviewRemoteDataSource.getResume(sessionId) }
+                    .getOrElse { error ->
+                        throw CommonApiErrorMapper.map(error)
+                    }
+            return response.toDomain()
+        }
+
+        override suspend fun confirmResume(sessionId: Long): InterviewResumeConfirm {
+            val response =
+                runCatching { interviewRemoteDataSource.confirmResume(sessionId) }
+                    .getOrElse { error ->
+                        throw CommonApiErrorMapper.map(error)
+                    }
+            return response.toDomain()
+        }
+
+        override suspend fun abandon(
+            sessionId: Long,
+            cause: String,
+        ): InterviewAbandon {
+            val request = InterviewAbandonRequestDto(cause = cause)
+            val response =
+                runCatching { interviewRemoteDataSource.abandon(sessionId, request) }
+                    .getOrElse { error ->
+                        throw CommonApiErrorMapper.map(error)
+                    }
+            return response.toDomain()
+        }
+
+        override suspend fun getReport(sessionId: Long): InterviewReport {
+            val response =
+                runCatching { interviewRemoteDataSource.getReport(sessionId) }
+                    .getOrElse { error ->
+                        throw CommonApiErrorMapper.map(error)
+                    }
+            return response.toDomain()
+        }
+
+        override suspend fun issueUploadUrl(sessionId: Long): InterviewVideoUploadUrl {
+            val response =
+                runCatching { interviewRemoteDataSource.issueUploadUrl(sessionId) }
+                    .getOrElse { error ->
+                        throw CommonApiErrorMapper.map(error)
+                    }
+            return response.toDomain()
+        }
+
+        override suspend fun completeUpload(
+            sessionId: Long,
+            wrapUpStartSec: Float?,
+            wrapUpEndSec: Float?,
+        ) {
+            val request =
+                if (wrapUpStartSec != null || wrapUpEndSec != null) {
+                    InterviewVideoCompleteRequestDto(
+                        wrapUpStartSec = wrapUpStartSec,
+                        wrapUpEndSec = wrapUpEndSec,
+                    )
+                } else {
+                    null
+                }
+            runCatching { interviewRemoteDataSource.completeUpload(sessionId, request) }
+                .getOrElse { error ->
+                    throw CommonApiErrorMapper.map(error)
+                }
+        }
+
+        override suspend fun getExpiry(sessionId: Long): InterviewVideoExpiry {
+            val response =
+                runCatching { interviewRemoteDataSource.getExpiry(sessionId) }
+                    .getOrElse { error ->
+                        throw CommonApiErrorMapper.map(error)
                     }
             return response.toDomain()
         }
