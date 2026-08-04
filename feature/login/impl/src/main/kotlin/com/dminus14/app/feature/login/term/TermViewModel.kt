@@ -4,6 +4,8 @@ import androidx.lifecycle.viewModelScope
 import com.dminus14.app.core.common.event.GlobalAppEvent
 import com.dminus14.app.core.common.event.GlobalErrorHandler
 import com.dminus14.app.core.common.mvi.MviViewModel
+import com.dminus14.app.core.permission.AppPermission
+import com.dminus14.app.core.permission.PermissionManager
 import com.dminus14.app.domain.exception.ConsentVersionMismatchException
 import com.dminus14.app.domain.exception.InvalidConsentItemException
 import com.dminus14.app.domain.exception.NetworkUnavailableException
@@ -27,14 +29,16 @@ constructor(
     private val getPendingConsentList: GetPendingConsentListUseCase,
     private val getConsentDocument: GetConsentDocumentUseCase,
     private val submitConsent: SubmitConsentUseCase,
+    private val permissionManager: PermissionManager,
 ) : MviViewModel<TermIntent, TermState, TermEffect>(TermState()) {
     /** 테스트 전용: 초기 State를 주입한다. UseCase는 실제 fake로 넘겨야 한다. */
     internal constructor(
         getPendingConsentList: GetPendingConsentListUseCase,
         getConsentDocument: GetConsentDocumentUseCase,
         submitConsent: SubmitConsentUseCase,
+        permissionManager: PermissionManager,
         initialState: TermState,
-    ) : this(getPendingConsentList, getConsentDocument, submitConsent) {
+    ) : this(getPendingConsentList, getConsentDocument, submitConsent, permissionManager) {
         reduce { initialState }
     }
 
@@ -127,7 +131,7 @@ constructor(
             submitConsent(submission)
                 .onSuccess {
                     reduce { copy(isLoading = false) }
-                    sendEffect(TermEffect.Agreed)
+                    checkPermissionConsent()
                 }.onFailure { error ->
                     when (error) {
                         // 버전 불일치는 목록을 재조회한다. loadPending()의 isLoading 가드 때문에
@@ -151,6 +155,21 @@ constructor(
                         else -> handleLoadFailure(error)
                     }
                 }
+        }
+    }
+
+    /**
+     * 약관 제출 성공 후 권한 동의 여부를 확인해 다음 화면을 분기한다.
+     * 권한이 이미 허용돼 있으면 GrantPerm, 아니면 DeniedPerm(권한 동의 화면)으로 보낸다.
+     */
+    private fun checkPermissionConsent() {
+        val isGrantPerm = permissionManager.isGranted(AppPermission.CAMERA) &&
+            permissionManager.isGranted(AppPermission.RECORD_AUDIO)
+
+        if (isGrantPerm) {
+            // 프로필 조회 추가
+        } else {
+            sendEffect(TermEffect.DeniedPerm)
         }
     }
 

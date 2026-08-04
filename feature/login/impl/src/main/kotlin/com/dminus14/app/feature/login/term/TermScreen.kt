@@ -31,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dminus14.app.domain.model.ConsentItem
 import com.dminus14.app.domain.model.ConsentItemCode
 import com.dminus14.app.feature.login.api.Onboarding
+import com.dminus14.app.feature.login.api.PermissionConsent
 import com.dminus14.app.feature.login.component.TermBottomSheet
 import com.dminus14.designsystem.component.button.HilitButtonType
 import com.dminus14.designsystem.component.button.HilitFixedBottomButton
@@ -72,7 +73,7 @@ fun TermScreen(
                 }
 
                 TermEffect.DeniedPerm -> {
-                    // 권한 화면 이동
+                    onNavigate(PermissionConsent)
                 }
 
                 is TermEffect.ShowToast -> {
