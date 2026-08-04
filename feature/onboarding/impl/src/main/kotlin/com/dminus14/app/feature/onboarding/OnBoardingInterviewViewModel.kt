@@ -11,7 +11,7 @@ class OnBoardingInterviewViewModel
     MviViewModel<OnBoardingInterviewIntent, OnBoardingInterviewState, OnBoardingInterviewEffect>(
             OnBoardingInterviewState(),
         ) {
-        @Suppress("detekt:LongMethod") 
+        @Suppress("detekt:LongMethod")
         override fun onIntent(intent: OnBoardingInterviewIntent) {
             when (intent) {
                 OnBoardingInterviewIntent.Load -> {
