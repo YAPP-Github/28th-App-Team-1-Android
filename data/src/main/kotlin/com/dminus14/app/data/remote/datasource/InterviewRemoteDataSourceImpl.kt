@@ -66,7 +66,7 @@ class InterviewRemoteDataSourceImpl
             return response.data
                 ?: throw ServerException(
                     errCode = ApiErrorCode.SERVER_ERROR,
-                    message = "면접 레포트 목록 응답이 비어 있습니다.",
+                    message = "면접 리포트 목록 응답이 비어 있습니다.",
                 )
         }
 
@@ -143,7 +143,7 @@ class InterviewRemoteDataSourceImpl
             return response.data
                 ?: throw ServerException(
                     errCode = ApiErrorCode.SERVER_ERROR,
-                    message = "면접 레포트 응답이 비어 있습니다.",
+                    message = "면접 리포트 응답이 비어 있습니다.",
                 )
         }
 

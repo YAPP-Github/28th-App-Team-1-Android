@@ -11,7 +11,7 @@ import org.junit.Test
 
 class MyPageViewModelTest {
     @Test
-    fun `초기 상태는 사용자 데이터가 비어 있고 레포트가 모두 접혀 있다`() {
+    fun `초기 상태는 사용자 데이터가 비어 있고 리포트가 모두 접혀 있다`() {
         val state = MyPageViewModel().state.value
 
         assertEquals(null, state.profile)
