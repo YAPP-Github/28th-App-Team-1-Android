@@ -135,7 +135,6 @@ class TermViewModel
             viewModelScope.launch {
                 submitConsent(submission)
                     .onSuccess {
-                        reduce { copy(isLoading = false) }
                         checkPermissionConsent()
                     }.onFailure { error ->
                         when (error) {
@@ -177,6 +176,7 @@ class TermViewModel
             if (isGrantPerm) {
                 routeByProfile()
             } else {
+                reduce { copy(isLoading = false) }
                 sendEffect(TermEffect.DeniedPerm)
             }
         }
@@ -188,8 +188,10 @@ class TermViewModel
         private suspend fun routeByProfile() {
             checkUserProfile()
                 .onSuccess {
+                    reduce { copy(isLoading = false) }
                     sendEffect(TermEffect.ExistProfile)
                 }.onFailure { error ->
+                    reduce { copy(isLoading = false) }
                     when (error) {
                         is UserNotFoundException -> sendEffect(TermEffect.NonExistProfile)
                         else -> handleLoadFailure(error)

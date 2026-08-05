@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,6 +39,7 @@ import com.dminus14.designsystem.component.button.HilitButtonType
 import com.dminus14.designsystem.component.button.HilitFixedBottomButton
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
+import com.dminus14.designsystem.component.loading.HilitLoadingIndicator
 import com.dminus14.designsystem.component.term.TermBox
 import com.dminus14.designsystem.component.term.TermBoxType
 import com.dminus14.designsystem.component.topbar.HilitTopBar
@@ -98,37 +100,43 @@ private fun TermContent(
     onIntent: (TermIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(HilitTheme.colors.hilitWhite),
-    ) {
-        TermCloseTopBar(onCloseClick = { onIntent(TermIntent.ClickClose) })
-
-        TermAgreementBody(
-            state = state,
-            onIntent = onIntent,
+    Box {
+        Column(
             modifier =
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-        )
+                modifier
+                    .fillMaxSize()
+                    .background(HilitTheme.colors.hilitWhite),
+        ) {
+            TermCloseTopBar(onCloseClick = { onIntent(TermIntent.ClickClose) })
 
-        HilitFixedBottomButton(
-            text = "동의하고 시작하기",
-            enabled = state.canSubmit,
-            type = HilitButtonType.Light,
-            onClick = { onIntent(TermIntent.ClickAgree) },
-        )
-    }
+            TermAgreementBody(
+                state = state,
+                onIntent = onIntent,
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+            )
 
-    state.visibleTermDetail?.let { term ->
-        TermBottomSheet(
-            title = term.title,
-            body = term.content,
-            onDismissRequest = { onIntent(TermIntent.DismissTermDetail) },
-        )
+            HilitFixedBottomButton(
+                text = "동의하고 시작하기",
+                enabled = state.canSubmit,
+                type = HilitButtonType.Light,
+                onClick = { onIntent(TermIntent.ClickAgree) },
+            )
+        }
+
+        state.visibleTermDetail?.let { term ->
+            TermBottomSheet(
+                title = term.title,
+                body = term.content,
+                onDismissRequest = { onIntent(TermIntent.DismissTermDetail) },
+            )
+        }
+
+        if (state.isLoading) {
+            HilitLoadingIndicator()
+        }
     }
 }
 
