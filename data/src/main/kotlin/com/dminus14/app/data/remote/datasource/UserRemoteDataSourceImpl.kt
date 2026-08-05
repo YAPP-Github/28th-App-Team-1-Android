@@ -47,7 +47,14 @@ class UserRemoteDataSourceImpl
             }
         }
 
-        override suspend fun getJobs(): JobListResponseDto = userApi.getJobs()
+        override suspend fun getJobs(): JobListResponseDto {
+            val response = userApi.getJobs()
+            return response.data.takeIf { response.success }
+                ?: throw ServerException(
+                    errCode = ApiErrorCode.SERVER_ERROR,
+                    message = "직무 목록 조회 응답에 data가 없습니다.",
+                )
+        }
 
         private companion object {
             const val HTTP_NO_CONTENT = 204
