@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -135,7 +136,15 @@ private fun TermContent(
         }
 
         if (state.isLoading) {
-            HilitLoadingIndicator()
+            HilitLoadingIndicator(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null // 리플 이펙트 제거
+                    ) { /* 아무것도 안 함, 클릭만 소비 */ }
+                    .background(HilitTheme.colors.hilitWhite.copy(alpha = 0.5f))
+            )
         }
     }
 }
