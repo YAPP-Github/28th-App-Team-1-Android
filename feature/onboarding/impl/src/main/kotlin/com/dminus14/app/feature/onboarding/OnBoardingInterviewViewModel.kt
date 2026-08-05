@@ -137,7 +137,13 @@ class OnBoardingInterviewViewModel
                 }
 
                 is OnBoardingInterviewIntent.MainProjectTextChange -> {
-                    reduce { copy(mainProjectText = intent.value, mainProjectError = null) }
+                    // 붙여넣기 등으로 300자를 넘겨 들어와도 잘라서 반영한다.
+                    reduce {
+                        copy(
+                            mainProjectText = intent.value.take(FREETEXT_MAX_LENGTH),
+                            mainProjectError = null,
+                        )
+                    }
                 }
             }
         }
@@ -175,7 +181,7 @@ class OnBoardingInterviewViewModel
                 }
 
                 OnBoardingInterviewStep.MainProject -> {
-                    advanceStep()
+                    submitMainProject()
                 }
 
                 OnBoardingInterviewStep.Preload -> {
@@ -574,6 +580,7 @@ class OnBoardingInterviewViewModel
             const val JD_TEXT_MAX_LENGTH = 3000
             const val MESSAGE_TEXT_TOO_SHORT = "공고 내용은 200자 이상으로 입력해 주세요"
             const val FREETEXT_MIN_LENGTH = 10
+            const val FREETEXT_MAX_LENGTH = 300
             const val MESSAGE_FREETEXT_TOO_SHORT = "집중 프로젝트 설명은 10자 이상 입력해 주세요"
             const val MESSAGE_PORTFOLIO_REQUIRED = "포트폴리오를 업로드해주세요"
             const val MESSAGE_PDF_SIZE = "파일이 너무 커요. 20MB 이하 PDF로 올려주세요"

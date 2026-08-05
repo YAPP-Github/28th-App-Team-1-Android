@@ -19,6 +19,7 @@ import com.dminus14.designsystem.theme.HilitTheme
 private val SubtitleToLabelSpacing = 30.dp
 private val LabelToFieldSpacing = 10.dp
 private val BubbleBottomPadding = 16.dp
+private const val MAIN_PROJECT_MAX_LENGTH = 300
 private const val MAIN_PROJECT_PLACEHOLDER =
     "프로젝트에서 담당하신 주요 내용을 담아 10글자 이상 작성해 주세요. " +
         "AI가 프로젝트를 더 좋은 면접 질문을 만들 수 있어요."
@@ -54,6 +55,7 @@ fun OnBoardingMainProjectStep(
                 value = text,
                 onValueChange = { onIntent(OnBoardingInterviewIntent.MainProjectTextChange(it)) },
                 placeholder = MAIN_PROJECT_PLACEHOLDER,
+                maxLength = MAIN_PROJECT_MAX_LENGTH,
                 modifier = Modifier.padding(top = LabelToFieldSpacing),
             )
         }
