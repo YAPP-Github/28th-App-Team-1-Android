@@ -154,6 +154,7 @@ class OnBoardingInterviewViewModel
                     // "집중 프로젝트 없이 진행": free text를 비우고 preload를 다시 시작한다.
                     reduce {
                         copy(
+                            step = OnBoardingInterviewStep.Preload,
                             showRelevanceFailDialog = false,
                             mainProjectText = "",
                             mainProjectError = null,
@@ -162,6 +163,19 @@ class OnBoardingInterviewViewModel
                         )
                     }
                     startPreload()
+                }
+
+                OnBoardingInterviewIntent.ClickPreloadFailureAcknowledged -> {
+                    // Preload 실패 안내 다이얼로그 확인: MainProject로 되돌려 재시도 유도.
+                    reduce {
+                        copy(
+                            step = OnBoardingInterviewStep.MainProject,
+                            errorMessage = null,
+                            loadingBasicInfo = OnBoardingLoadingStepStatus.Waiting,
+                            loadingJd = OnBoardingLoadingStepStatus.Waiting,
+                            loadingPortfolio = OnBoardingLoadingStepStatus.Waiting,
+                        )
+                    }
                 }
             }
         }

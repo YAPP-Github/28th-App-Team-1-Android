@@ -56,6 +56,12 @@ sealed interface OnBoardingInterviewIntent : MviIntent {
      * "집중 프로젝트 없이 진행"을 눌렀을 때 발생한다.
      */
     data object ClickRelevanceProceedWithoutMainProject : OnBoardingInterviewIntent
+
+    /**
+     * Preload(세션 생성/준비) 실패 다이얼로그의 확인 버튼. 다이얼로그를 닫고 사용자를
+     * 이전 스텝(MainProject)으로 되돌려 재시도 가능하게 만든다.
+     */
+    data object ClickPreloadFailureAcknowledged : OnBoardingInterviewIntent
 }
 
 enum class OnBoardingInterviewStep {

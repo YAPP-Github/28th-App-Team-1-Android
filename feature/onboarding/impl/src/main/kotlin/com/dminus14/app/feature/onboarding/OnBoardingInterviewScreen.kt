@@ -31,6 +31,7 @@ import com.dminus14.app.feature.onboarding.component.OnBoardingJobDescriptionSte
 import com.dminus14.app.feature.onboarding.component.OnBoardingMainProjectStep
 import com.dminus14.app.feature.onboarding.component.OnBoardingPortfolioStep
 import com.dminus14.app.feature.onboarding.component.OnBoardingPreloadStep
+import com.dminus14.designsystem.component.button.HilitFixedBottomButton
 import com.dminus14.designsystem.component.button.HilitFixedBottomDualButton
 import com.dminus14.designsystem.component.modal.HilitModal
 import com.dminus14.designsystem.component.modal.HilitModalType
@@ -150,6 +151,14 @@ private fun OnBoardingInterviewContent(
             onIntent = onIntent,
             modifier = modifier,
         )
+        // Preload 중 세션 생성 실패는 화면에 노출되지 않던 버그를 다이얼로그로 안내한다.
+        // 확인 시 MainProject 스텝으로 되돌려 재시도 가능하게 만든다.
+        if (state.errorMessage != null) {
+            OnBoardingPreloadFailureDialog(
+                message = state.errorMessage,
+                onIntent = onIntent,
+            )
+        }
         return
     }
 
@@ -188,6 +197,31 @@ private fun OnBoardingInterviewContent(
     if (state.showRelevanceFailDialog) {
         OnBoardingRelevanceFailDialog(onIntent = onIntent)
     }
+}
+
+/**
+ * Preload(세션 생성/준비) 실패 안내 다이얼로그. 그 외 실패는 Preload 화면 아래
+ * 로딩 인디케이터 그대로였는데, 다이얼로그로 사용자에게 알리고 이전 스텝으로 복귀시킨다.
+ */
+@Composable
+private fun OnBoardingPreloadFailureDialog(
+    message: String,
+    onIntent: (OnBoardingInterviewIntent) -> Unit,
+) {
+    HilitModal(
+        type = HilitModalType.InvisibleInfo,
+        title = "면접 준비에 실패했어요",
+        subtitle = message,
+        dismissible = false,
+        buttons = {
+            HilitFixedBottomButton(
+                text = "확인",
+                onClick = {
+                    onIntent(OnBoardingInterviewIntent.ClickPreloadFailureAcknowledged)
+                },
+            )
+        },
+    )
 }
 
 /**
