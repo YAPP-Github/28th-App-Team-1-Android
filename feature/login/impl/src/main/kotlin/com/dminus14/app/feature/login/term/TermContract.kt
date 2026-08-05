@@ -26,8 +26,8 @@ sealed interface TermIntent : MviIntent {
 }
 
 data class TermState(
-    /** pending으로 내려온 동의 항목 목록. 각 항목의 체크 상태를 포함한다. */
-    val terms: List<ConsentItem> = emptyList(),
+    /** pending으로 내려온 동의 항목과 UI 체크 상태를 함께 담는다. */
+    val terms: List<TermConsentItem> = emptyList(),
     /** 서버 통신(목록 조회·문서 조회·제출) 진행 여부. */
     val isLoading: Boolean = false,
     /** 열려 있는 약관 상세 시트 내용. null이면 시트를 닫는다. */
@@ -35,19 +35,28 @@ data class TermState(
 ) : MviState {
     /** 필수·선택 항목 전부 체크됐는지. 전체 동의 체크박스 상태에 사용한다. */
     val isAllChecked: Boolean
-        get() = terms.isNotEmpty() && terms.all(ConsentItem::isChecked)
+        get() = terms.isNotEmpty() && terms.all { it.isChecked }
 
     /** 필수 항목이 모두 체크됐는지. 제출 가능 여부의 기준이다. */
     val isEssentialAllChecked: Boolean
         get() =
-            terms.filter(ConsentItem::isRequired).let { essentials ->
-                essentials.isNotEmpty() && essentials.all(ConsentItem::isChecked)
+            terms.filter { it.item.isRequired }.let { essentials ->
+                essentials.isNotEmpty() && essentials.all { it.isChecked }
             }
 
     /** 필수 항목이 모두 체크됐고 로딩 중이 아니면 제출할 수 있다. */
     val canSubmit: Boolean
         get() = isEssentialAllChecked && !isLoading
 }
+
+/**
+ * 약관 화면에서 도메인 동의 항목([item])에 UI 편집 상태([isChecked])를 얹은 wrapper다.
+ * 도메인 모델은 서버 스냅샷/wire 흡수 목적으로 순수하게 유지하고, 사용자 편집 상태는 이곳에 담는다.
+ */
+data class TermConsentItem(
+    val item: ConsentItem,
+    val isChecked: Boolean = false,
+)
 
 /** 약관 상세 시트에 표시할 문서 제목과 본문(마크다운). */
 data class TermDetailContent(

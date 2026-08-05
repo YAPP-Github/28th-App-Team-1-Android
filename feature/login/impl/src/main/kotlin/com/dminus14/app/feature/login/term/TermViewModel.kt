@@ -97,15 +97,14 @@ class TermViewModel
                             -> {
                                 reduce {
                                     copy(
-                                        terms = pending.items,
+                                        terms = pending.items.map { TermConsentItem(item = it) },
                                         isLoading = false,
                                     )
                                 }
                             }
 
-                            // 재동의가 필요 없는 상태. 정상 진입 시엔 도달하지 않으므로 로딩만 해제한다.
                             ConsentPendingStatus.UP_TO_DATE -> {
-                                reduce { copy(isLoading = false) }
+                                checkPermissionConsent()
                             }
                         }
                     }.onFailure { error ->
@@ -127,8 +126,8 @@ class TermViewModel
                     items =
                         state.value.terms.map { term ->
                             ConsentSubmissionItem(
-                                rawCode = term.rawCode,
-                                version = term.version,
+                                rawCode = term.item.rawCode,
+                                version = term.item.version,
                                 agreed = term.isChecked,
                             )
                         },
@@ -136,7 +135,6 @@ class TermViewModel
             viewModelScope.launch {
                 submitConsent(submission)
                     .onSuccess {
-                        reduce { copy(isLoading = false) }
                         checkPermissionConsent()
                     }.onFailure { error ->
                         when (error) {
@@ -178,6 +176,7 @@ class TermViewModel
             if (isGrantPerm) {
                 routeByProfile()
             } else {
+                reduce { copy(isLoading = false) }
                 sendEffect(TermEffect.DeniedPerm)
             }
         }
@@ -189,8 +188,10 @@ class TermViewModel
         private suspend fun routeByProfile() {
             checkUserProfile()
                 .onSuccess {
+                    reduce { copy(isLoading = false) }
                     sendEffect(TermEffect.ExistProfile)
                 }.onFailure { error ->
+                    reduce { copy(isLoading = false) }
                     when (error) {
                         is UserNotFoundException -> sendEffect(TermEffect.NonExistProfile)
                         else -> handleLoadFailure(error)
@@ -246,13 +247,13 @@ class TermViewModel
         private fun openTermDetail(index: Int) {
             val term = state.value.terms.getOrNull(index) ?: return
 
-            if (!term.hasDocument) return
+            if (!term.item.hasDocument) return
             if (state.value.isLoading) return
 
             reduce { copy(isLoading = true) }
 
             viewModelScope.launch {
-                getConsentDocument(rawCode = term.rawCode, version = term.version)
+                getConsentDocument(rawCode = term.item.rawCode, version = term.item.version)
                     .onSuccess { document ->
                         reduce {
                             copy(

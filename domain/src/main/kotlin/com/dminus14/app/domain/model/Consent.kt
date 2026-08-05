@@ -53,7 +53,6 @@ data class ConsentItem(
     val version: Int,
     val isRequired: Boolean,
     val hasDocument: Boolean,
-    val isChecked: Boolean = false,
 )
 
 /**
