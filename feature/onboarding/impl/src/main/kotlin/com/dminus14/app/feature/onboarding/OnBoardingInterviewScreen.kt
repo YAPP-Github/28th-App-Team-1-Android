@@ -32,6 +32,8 @@ import com.dminus14.app.feature.onboarding.component.OnBoardingMainProjectStep
 import com.dminus14.app.feature.onboarding.component.OnBoardingPortfolioStep
 import com.dminus14.app.feature.onboarding.component.OnBoardingPreloadStep
 import com.dminus14.designsystem.component.button.HilitFixedBottomDualButton
+import com.dminus14.designsystem.component.modal.HilitModal
+import com.dminus14.designsystem.component.modal.HilitModalType
 import com.dminus14.designsystem.component.progressbar.HilitProgressBar
 import com.dminus14.designsystem.component.topbar.HilitIconTopBar
 import com.dminus14.designsystem.component.topbar.HilitTextTopBar
@@ -194,8 +196,8 @@ private fun OnBoardingInterviewContent(
  */
 @Composable
 private fun OnBoardingRelevanceFailDialog(onIntent: (OnBoardingInterviewIntent) -> Unit) {
-    com.dminus14.designsystem.component.modal.HilitModal(
-        type = com.dminus14.designsystem.component.modal.HilitModalType.InvisibleInfo,
+    HilitModal(
+        type = HilitModalType.InvisibleInfo,
         title = "포트폴리오에서\n그 내용을 계속 찾지 못했어요",
         subtitle = "포트폴리오를 다시 올리거나, 집중 프로젝트 없이 진행할 수 있어요.",
         dismissible = false,
