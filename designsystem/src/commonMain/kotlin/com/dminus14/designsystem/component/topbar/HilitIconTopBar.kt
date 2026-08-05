@@ -14,6 +14,8 @@ import com.dminus14.designsystem.theme.HilitTheme
  * 지원 [TopBarType]: [TopBarType.Max], [TopBarType.HideLeft], [TopBarType.HideMiddle],
  * [TopBarType.HideRight].
  *
+ * Figma 노드 번호: 439-10394, 439-10395, 439-10396, 439-10397.
+ *
  * @param type 영역 노출 타입
  * @param leftIcon 좌측 아이콘. 기본 cancel
  * @param title 중앙 타이틀. 기본 "타이틀"

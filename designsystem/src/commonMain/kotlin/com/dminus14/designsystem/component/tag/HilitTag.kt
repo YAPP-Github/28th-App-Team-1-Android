@@ -30,6 +30,11 @@ enum class TagType {
     Small,
 }
 
+/**
+ * 태그.
+ *
+ * 큰 사이즈 `TagType.Large`와 작은 사이즈 `TagType.Small`로 나뉜다.
+ */
 @Composable
 fun HilitTag(
     modifier: Modifier = Modifier,

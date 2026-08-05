@@ -94,6 +94,9 @@ enum class HilitIconAsset(
     Book("book", 63.dp, Res.drawable.book, preservesOriginalColors = true),
 }
 
+/**
+ * 공용 Icon Composable.
+ */
 @Composable
 fun HilitIcon(
     asset: HilitIconAsset,
