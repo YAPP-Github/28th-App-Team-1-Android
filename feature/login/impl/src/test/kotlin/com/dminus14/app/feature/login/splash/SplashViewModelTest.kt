@@ -288,6 +288,60 @@ class SplashViewModelTest {
         }
 
     @Test
+    fun `Load 시 세션은 있지만 동의 조회가 세션 만료면 토스트 없이 카카오 로그인 버튼을 노출한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = sampleSession,
+                        pendingResult =
+                            Result.failure(UnknownException(errCode = "TOKEN_EXPIRED")),
+                        profileResult = Result.success(sampleUserProfile),
+                    )
+                val receivedEffects = mutableListOf<SplashEffect>()
+                backgroundScope.launch { viewModel.effect.collect(receivedEffects::add) }
+
+                viewModel.onIntent(SplashIntent.Load)
+                advanceUntilIdle()
+
+                assertTrue(viewModel.state.value.showKakaoLoginButton)
+                assertFalse(viewModel.state.value.isLoading)
+                assertEquals(emptyList<SplashEffect>(), receivedEffects)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun `Load 시 프로필 조회가 세션 만료면 토스트 없이 카카오 로그인 버튼을 노출한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = sampleSession,
+                        pendingResult = Result.success(upToDatePending),
+                        profileResult =
+                            Result.failure(UnknownException(errCode = "LOGIN_EXPIRED")),
+                    )
+                val receivedEffects = mutableListOf<SplashEffect>()
+                backgroundScope.launch { viewModel.effect.collect(receivedEffects::add) }
+
+                viewModel.onIntent(SplashIntent.Load)
+                advanceUntilIdle()
+
+                assertTrue(viewModel.state.value.showKakaoLoginButton)
+                assertFalse(viewModel.state.value.isLoading)
+                assertEquals(emptyList<SplashEffect>(), receivedEffects)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
     fun `카카오 로그인 성공 후 동의 최신·완성된 프로필이면 Ready Effect를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
