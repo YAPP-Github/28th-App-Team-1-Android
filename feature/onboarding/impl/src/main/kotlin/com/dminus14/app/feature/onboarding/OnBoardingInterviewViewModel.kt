@@ -200,6 +200,11 @@ class OnBoardingInterviewViewModel
                             readyPortfolioId = portfolio.portfolioId
                             reduce { copy(portfolioFileName = portfolio.fileName) }
                         }
+                    }.onFailure { error ->
+                        // 조회 실패를 무음 처리하면 사용자에게는 "포폴 없음"으로 보여, 재업로드 시
+                        // 서버가 PORTFOLIO_ALREADY_EXISTS로 튕겨내는 혼란을 만든다.
+                        // checkUserProfile 실패와 동일하게 errorMessage로 노출한다.
+                        reduce { copy(errorMessage = error.message) }
                     }
             }
         }
