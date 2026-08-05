@@ -8,6 +8,7 @@ import com.dminus14.app.core.common.pdf.PdfInvalidReason
 import com.dminus14.app.core.common.pdf.PdfValidationResult
 import com.dminus14.app.core.common.pdf.validatePdf
 import com.dminus14.app.domain.exception.FreeTextNotRelevantException
+import com.dminus14.app.domain.exception.JdValidationLimitExceededException
 import com.dminus14.app.domain.model.InterviewSessionRequest
 import com.dminus14.app.domain.model.InterviewSessionStatusType
 import com.dminus14.app.domain.model.PortfolioStatus
@@ -293,10 +294,16 @@ class OnBoardingInterviewViewModel
                                 }
                             }
                         }.onFailure { error ->
+                            // 429는 고정 문구로 강제 노출한다 (스펙 S1 확정 카피).
+                            val subText =
+                                when (error) {
+                                    is JdValidationLimitExceededException -> MESSAGE_LINK_RATE_LIMIT
+                                    else -> error.message ?: MESSAGE_LINK_INVALID
+                                }
                             reduce {
                                 copy(
                                     jdLinkStatus = JdLinkStatus.Invalid,
-                                    jdLinkSubText = error.message ?: MESSAGE_LINK_INVALID,
+                                    jdLinkSubText = subText,
                                 )
                             }
                         }
@@ -405,11 +412,14 @@ class OnBoardingInterviewViewModel
                 uploadPortfolio(file = intent.file, fileName = intent.fileName)
                     .onSuccess { result -> pollPortfolioStatus(result.portfolioId) }
                     .onFailure { error ->
+                        // 서버 매핑된 예외 메시지(스펙 6장 문구)를 그대로 보여준다.
+                        // 매핑되지 않은 실패는 시스템 실패 안내로 폴백한다.
                         reduce {
                             copy(
                                 isPortfolioProcessing = false,
                                 portfolioFileName = null,
-                                portfolioErrorMessage = error.message,
+                                portfolioErrorMessage =
+                                    error.message ?: MESSAGE_PORTFOLIO_SYSTEM_FAILED,
                             )
                         }
                     }
@@ -423,7 +433,8 @@ class OnBoardingInterviewViewModel
                         reduce {
                             copy(
                                 isPortfolioProcessing = false,
-                                portfolioErrorMessage = error.message,
+                                portfolioErrorMessage =
+                                    error.message ?: MESSAGE_PORTFOLIO_SYSTEM_FAILED,
                             )
                         }
                         return
@@ -435,14 +446,23 @@ class OnBoardingInterviewViewModel
                         return
                     }
 
-                    PortfolioStatus.FAILED_FILE,
-                    PortfolioStatus.FAILED_SYSTEM,
-                    -> {
+                    PortfolioStatus.FAILED_FILE -> {
                         reduce {
                             copy(
                                 isPortfolioProcessing = false,
                                 portfolioFileName = null,
-                                portfolioErrorMessage = "포트폴리오 처리에 실패했어요. 다시 업로드해 주세요.",
+                                portfolioErrorMessage = MESSAGE_PDF_UNREADABLE,
+                            )
+                        }
+                        return
+                    }
+
+                    PortfolioStatus.FAILED_SYSTEM -> {
+                        reduce {
+                            copy(
+                                isPortfolioProcessing = false,
+                                portfolioFileName = null,
+                                portfolioErrorMessage = MESSAGE_PORTFOLIO_SYSTEM_FAILED,
                             )
                         }
                         return
@@ -456,7 +476,7 @@ class OnBoardingInterviewViewModel
             reduce {
                 copy(
                     isPortfolioProcessing = false,
-                    portfolioErrorMessage = "포트폴리오 처리가 지연되고 있어요. 잠시 후 다시 시도해 주세요.",
+                    portfolioErrorMessage = MESSAGE_PORTFOLIO_SYSTEM_FAILED,
                 )
             }
         }
@@ -649,6 +669,7 @@ class OnBoardingInterviewViewModel
             const val HTTPS_SCHEME = "https://"
             const val MESSAGE_LINK_FORMAT = "올바른 URL 형식이 아니에요."
             const val MESSAGE_LINK_INVALID = "공고 내용을 정리하는 데 실패했어요. 공고 내용을 직접 붙여넣어 주세요."
+            const val MESSAGE_LINK_RATE_LIMIT = "공고 링크는 하루에 5번까지만 입력할 수 있어요"
             const val JD_TEXT_MIN_LENGTH = 200
             const val JD_TEXT_MAX_LENGTH = 3000
             const val MESSAGE_TEXT_TOO_SHORT = "공고 내용은 200자 이상으로 입력해 주세요"
@@ -665,5 +686,14 @@ class OnBoardingInterviewViewModel
             const val MESSAGE_PDF_PAGE = "페이지가 너무 많아요. 30페이지 이하 PDF로 올려주세요"
             const val MESSAGE_PDF_PASSWORD = "암호가 걸린 PDF는 열 수 없어요. 암호를 푼 PDF로 올려주세요"
             const val MESSAGE_PDF_CORRUPT = "파일이 손상된 것 같아요. 파일을 확인하고 다시 시도해 주세요"
+
+            // 서버 status가 FAILED_FILE로 오는 케이스(스캔본·글자 30자 미만 등) 전용 안내.
+            const val MESSAGE_PDF_UNREADABLE =
+                "이 PDF에서 글자를 읽지 못했어요. 스캔본·이미지로 만든 PDF는 인식이 어려워요. " +
+                    "글자가 드래그로 선택되는 PDF로 다시 올려주세요"
+
+            // 서버 status가 FAILED_SYSTEM/폴링 타임아웃일 때 안내.
+            const val MESSAGE_PORTFOLIO_SYSTEM_FAILED =
+                "포트폴리오 분석이 예상보다 오래 걸리고 있어요. 잠시 후 다시 시도해 주세요"
         }
     }
