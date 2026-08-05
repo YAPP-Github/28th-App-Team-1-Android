@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dminus14.app.core.permission.AppPermission
-import com.dminus14.app.core.permission.rememberSequentialPermissionRequester
+import com.dminus14.app.core.permission.rememberMultiplePermissionRequester
 import com.dminus14.app.feature.home.api.Home
 import com.dminus14.app.feature.login.api.Onboarding
 import com.dminus14.app.feature.login.api.PermissionConsentDenied
@@ -38,7 +38,7 @@ fun PermissionConsentScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     val requestPermissions =
-        viewModel.permissionManager.rememberSequentialPermissionRequester(
+        viewModel.permissionManager.rememberMultiplePermissionRequester(
             permissions = listOf(AppPermission.CAMERA, AppPermission.RECORD_AUDIO),
             onAllGranted = {
                 viewModel.onIntent(

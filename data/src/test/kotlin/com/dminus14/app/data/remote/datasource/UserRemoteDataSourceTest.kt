@@ -1,6 +1,7 @@
 package com.dminus14.app.data.remote.datasource
 
 import com.dminus14.app.data.remote.api.UserApi
+import com.dminus14.app.data.remote.dto.ApiResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileFetchResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileUpdateRequestDto
 import com.dminus14.app.data.remote.dto.user.UserProfileUpdateResponseDto
@@ -114,9 +115,9 @@ class UserRemoteDataSourceTest {
         var updateRequest: UserProfileUpdateRequestDto? = null
             private set
 
-        override suspend fun getProfile(): UserProfileFetchResponseDto {
+        override suspend fun getProfile(): ApiResponseDto<UserProfileFetchResponseDto> {
             profileCallCount += 1
-            return profileResponse
+            return ApiResponseDto(success = true, data = profileResponse)
         }
 
         override suspend fun updateProfile(
