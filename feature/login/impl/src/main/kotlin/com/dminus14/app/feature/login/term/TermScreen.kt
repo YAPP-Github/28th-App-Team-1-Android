@@ -209,16 +209,16 @@ private fun TermAgreementList(
             state.terms.forEachIndexed { index, term ->
                 TermBox(
                     type =
-                        if (term.hasDocument) {
+                        if (term.item.hasDocument) {
                             TermBoxType.Term
                         } else {
                             TermBoxType.Text
                         },
-                    text = term.label,
+                    text = term.item.label,
                     checked = term.isChecked,
                     onClick = { onIntent(TermIntent.ClickTerm(index)) },
                     onViewClick = {
-                        if (term.hasDocument) {
+                        if (term.item.hasDocument) {
                             onIntent(TermIntent.ClickViewTerm(index))
                         }
                     },
@@ -261,32 +261,16 @@ private fun TermContentCheckedPreview() {
 }
 
 private val PreviewTerms =
-    listOf(
-        ConsentItem(
-            code = ConsentItemCode.TERMS_OF_SERVICE,
-            rawCode = "",
-            label = "(필수) 만 14세 이상입니다.",
-            version = 0,
-            isRequired = true,
-            hasDocument = true,
-            isChecked = false,
-        ),
-        ConsentItem(
-            code = ConsentItemCode.TERMS_OF_SERVICE,
-            rawCode = "",
-            label = "(필수) 만 14세 이상입니다.",
-            version = 0,
-            isRequired = true,
-            hasDocument = true,
-            isChecked = false,
-        ),
-        ConsentItem(
-            code = ConsentItemCode.TERMS_OF_SERVICE,
-            rawCode = "",
-            label = "(필수) 만 14세 이상입니다.",
-            version = 0,
-            isRequired = true,
-            hasDocument = true,
-            isChecked = false,
-        ),
-    )
+    List(3) {
+        TermConsentItem(
+            item =
+                ConsentItem(
+                    code = ConsentItemCode.TERMS_OF_SERVICE,
+                    rawCode = "",
+                    label = "(필수) 만 14세 이상입니다.",
+                    version = 0,
+                    isRequired = true,
+                    hasDocument = true,
+                ),
+        )
+    }

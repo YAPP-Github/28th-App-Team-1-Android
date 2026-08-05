@@ -97,7 +97,7 @@ class TermViewModel
                             -> {
                                 reduce {
                                     copy(
-                                        terms = pending.items,
+                                        terms = pending.items.map { TermConsentItem(item = it) },
                                         isLoading = false,
                                     )
                                 }
@@ -126,8 +126,8 @@ class TermViewModel
                     items =
                         state.value.terms.map { term ->
                             ConsentSubmissionItem(
-                                rawCode = term.rawCode,
-                                version = term.version,
+                                rawCode = term.item.rawCode,
+                                version = term.item.version,
                                 agreed = term.isChecked,
                             )
                         },
@@ -245,13 +245,13 @@ class TermViewModel
         private fun openTermDetail(index: Int) {
             val term = state.value.terms.getOrNull(index) ?: return
 
-            if (!term.hasDocument) return
+            if (!term.item.hasDocument) return
             if (state.value.isLoading) return
 
             reduce { copy(isLoading = true) }
 
             viewModelScope.launch {
-                getConsentDocument(rawCode = term.rawCode, version = term.version)
+                getConsentDocument(rawCode = term.item.rawCode, version = term.item.version)
                     .onSuccess { document ->
                         reduce {
                             copy(
