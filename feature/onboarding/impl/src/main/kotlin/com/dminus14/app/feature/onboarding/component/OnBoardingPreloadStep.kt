@@ -1,5 +1,9 @@
 package com.dminus14.app.feature.onboarding.component
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -12,7 +16,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -33,6 +42,19 @@ private val SubtitleToStepsSpacing = 32.dp
 private val StepRowSpacing = 8.dp
 private val DecorationHeight = 220.dp
 private const val DECORATION_ROTATION_DEGREES = 6f
+
+/**
+ * 준비 화면에서 회전해서 노출할 카피 리스트. 최종 문구·순서·주기는 디자인/PM 확정 예정이며,
+ * 여기 값은 우선 노출용 초안이다. (스펙 S2: "무한 스피너 + 철학 회전 문구")
+ */
+private val PreloadRotatingCopies =
+    listOf(
+        "잠시만 기다려주세요",
+        "당신만을 위한 질문을 고르고 있어요",
+        "면접관의 눈으로 포트폴리오를 다시 읽고 있어요",
+        "긴장돼도 괜찮아요, 실전 감각을 위해 준비 중이에요",
+    )
+private const val PRELOAD_COPY_ROTATION_MS = 3_000L
 
 @Composable
 fun OnBoardingPreloadStep(
@@ -78,11 +100,7 @@ fun OnBoardingPreloadStep(
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            Text(
-                text = "잠시만 기다려주세요",
-                style = HilitTheme.typography.sub8,
-                color = HilitTheme.colors.gray300,
-                textAlign = TextAlign.Center,
+            PreloadRotatingSubtitle(
                 modifier =
                     Modifier
                         .padding(top = TitleToSubtitleSpacing)
@@ -96,6 +114,35 @@ fun OnBoardingPreloadStep(
                 modifier = Modifier.padding(top = SubtitleToStepsSpacing),
             )
         }
+    }
+}
+
+/**
+ * [PreloadRotatingCopies]를 순환하며 페이드 전환으로 노출한다.
+ * 마지막 항목까지 가면 처음으로 돌아온다.
+ */
+@Composable
+private fun PreloadRotatingSubtitle(modifier: Modifier = Modifier) {
+    var index by remember { mutableIntStateOf(0) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(PRELOAD_COPY_ROTATION_MS)
+            index = (index + 1) % PreloadRotatingCopies.size
+        }
+    }
+    AnimatedContent(
+        targetState = index,
+        transitionSpec = { fadeIn() togetherWith fadeOut() },
+        label = "onBoardingPreloadRotatingCopy",
+        modifier = modifier,
+    ) { current ->
+        Text(
+            text = PreloadRotatingCopies[current],
+            style = HilitTheme.typography.sub8,
+            color = HilitTheme.colors.gray300,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
