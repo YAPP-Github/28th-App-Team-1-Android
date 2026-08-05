@@ -564,33 +564,20 @@ class OnBoardingInterviewViewModel
             }
 
             val nextCount = state.value.mainProjectRelevanceFailCount + 1
-            if (nextCount >= RELEVANCE_FAIL_ESCAPE_THRESHOLD) {
-                // 이스케이프 다이얼로그는 MainProject 스텝 위에 띄워, 사용자가 자신이 쓴 문구를 보며
-                // 재시도/우회를 결정하게 한다.
-                reduce {
-                    copy(
-                        step = OnBoardingInterviewStep.MainProject,
-                        showRelevanceFailDialog = true,
-                        mainProjectRelevanceFailCount = nextCount,
-                        mainProjectError = MESSAGE_FREETEXT_NOT_RELEVANT,
-                        loadingBasicInfo = OnBoardingLoadingStepStatus.Waiting,
-                        loadingJd = OnBoardingLoadingStepStatus.Waiting,
-                        loadingPortfolio = OnBoardingLoadingStepStatus.Waiting,
-                        errorMessage = null,
-                    )
-                }
-            } else {
-                reduce {
-                    copy(
-                        step = OnBoardingInterviewStep.MainProject,
-                        mainProjectRelevanceFailCount = nextCount,
-                        mainProjectError = MESSAGE_FREETEXT_NOT_RELEVANT,
-                        loadingBasicInfo = OnBoardingLoadingStepStatus.Waiting,
-                        loadingJd = OnBoardingLoadingStepStatus.Waiting,
-                        loadingPortfolio = OnBoardingLoadingStepStatus.Waiting,
-                        errorMessage = null,
-                    )
-                }
+            // 4회째부터는 이스케이프 다이얼로그를 함께 띄운다.
+            // 두 브랜치의 나머지 필드가 동일해서 showRelevanceFailDialog 한 값만 계산해 통합한다.
+            val showEscape = nextCount >= RELEVANCE_FAIL_ESCAPE_THRESHOLD
+            reduce {
+                copy(
+                    step = OnBoardingInterviewStep.MainProject,
+                    showRelevanceFailDialog = showEscape,
+                    mainProjectRelevanceFailCount = nextCount,
+                    mainProjectError = MESSAGE_FREETEXT_NOT_RELEVANT,
+                    loadingBasicInfo = OnBoardingLoadingStepStatus.Waiting,
+                    loadingJd = OnBoardingLoadingStepStatus.Waiting,
+                    loadingPortfolio = OnBoardingLoadingStepStatus.Waiting,
+                    errorMessage = null,
+                )
             }
         }
 
