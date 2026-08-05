@@ -595,12 +595,17 @@ class OnBoardingInterviewViewModel
                     }
                 when (status.status) {
                     InterviewSessionStatusType.READY -> {
+                        // 세 스텝을 모두 Completed로 마킹하면 Preload 화면이 초록 확장
+                        // + 완료 텍스트 fadeIn/scale 애니메이션을 재생한다. 이 재생 시간을
+                        // 사용자가 볼 수 있게 잠깐 대기한 후 결과 화면으로 이동한다.
                         reduce {
                             copy(
+                                loadingBasicInfo = OnBoardingLoadingStepStatus.Completed,
                                 loadingJd = OnBoardingLoadingStepStatus.Completed,
                                 loadingPortfolio = OnBoardingLoadingStepStatus.Completed,
                             )
                         }
+                        delay(PRELOAD_COMPLETION_DWELL_MS)
                         sendEffect(OnBoardingInterviewEffect.NavigateToResult(sessionId))
                         return
                     }
@@ -671,6 +676,12 @@ class OnBoardingInterviewViewModel
         private companion object {
             const val POLL_INTERVAL_MS = 3_000L
             const val MAX_POLL_ATTEMPTS = 40
+
+            /**
+             * 세션 준비 완료 후 결과 화면으로 넘어가기 전 사용자가 완료 애니메이션
+             * (초록 배경 확장 + 완료 텍스트 fadeIn/scale)을 볼 수 있게 잠시 대기한다.
+             */
+            const val PRELOAD_COMPLETION_DWELL_MS = 1_800L
             const val JD_DEBOUNCE_MS = 600L
             const val HTTPS_SCHEME = "https://"
             const val MESSAGE_LINK_FORMAT = "올바른 URL 형식이 아니에요."
