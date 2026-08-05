@@ -44,6 +44,18 @@ sealed interface OnBoardingInterviewIntent : MviIntent {
     data class MainProjectTextChange(
         val value: String,
     ) : OnBoardingInterviewIntent
+
+    /**
+     * S3.5 연관성 판단이 4회 연속 실패했을 때 뜨는 다이얼로그의 선택지 중
+     * "포트폴리오 다시 올리기"를 눌렀을 때 발생한다.
+     */
+    data object ClickRelevanceRetryPortfolio : OnBoardingInterviewIntent
+
+    /**
+     * S3.5 연관성 판단이 4회 연속 실패했을 때 뜨는 다이얼로그의 선택지 중
+     * "집중 프로젝트 없이 진행"을 눌렀을 때 발생한다.
+     */
+    data object ClickRelevanceProceedWithoutMainProject : OnBoardingInterviewIntent
 }
 
 enum class OnBoardingInterviewStep {
@@ -97,6 +109,15 @@ data class OnBoardingInterviewState(
     val mainProjectText: String = "",
     /** 집중 프로젝트 입력의 검증 에러 메시지. 표기 방식은 디자이너 협의 예정이라 저장만 한다. */
     val mainProjectError: String? = null,
+    /**
+     * S3.5 서버 연관성 판단(`FREETEXT_NOT_RELEVANT`) 실패가 이 세션에서 몇 번 발생했는지.
+     * 4회째부터는 [showRelevanceFailDialog]가 뜨고, 그 전엔 인라인 에러로만 안내한다.
+     */
+    val mainProjectRelevanceFailCount: Int = 0,
+    /**
+     * 연관성 판단 4회 연속 실패 시 재선택 다이얼로그(포폴 다시 올리기 / 집중 프로젝트 없이 진행)를 띄운다.
+     */
+    val showRelevanceFailDialog: Boolean = false,
     val errorMessage: String? = null,
     val loadingBasicInfo: OnBoardingLoadingStepStatus = OnBoardingLoadingStepStatus.Waiting,
     val loadingJd: OnBoardingLoadingStepStatus = OnBoardingLoadingStepStatus.Waiting,

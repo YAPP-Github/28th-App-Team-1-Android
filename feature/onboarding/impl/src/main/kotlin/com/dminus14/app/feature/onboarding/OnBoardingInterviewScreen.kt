@@ -182,6 +182,36 @@ private fun OnBoardingInterviewContent(
             onRightClick = { onIntent(OnBoardingInterviewIntent.ClickContinue) },
         )
     }
+
+    if (state.showRelevanceFailDialog) {
+        OnBoardingRelevanceFailDialog(onIntent = onIntent)
+    }
+}
+
+/**
+ * S3.5 연관성 판단이 4회 연속 실패했을 때 뜨는 이스케이프 다이얼로그.
+ * 스펙: 포트폴리오 다시 올리기 vs 집중 프로젝트 없이 진행.
+ */
+@Composable
+private fun OnBoardingRelevanceFailDialog(onIntent: (OnBoardingInterviewIntent) -> Unit) {
+    com.dminus14.designsystem.component.modal.HilitModal(
+        type = com.dminus14.designsystem.component.modal.HilitModalType.InvisibleInfo,
+        title = "포트폴리오에서\n그 내용을 계속 찾지 못했어요",
+        subtitle = "포트폴리오를 다시 올리거나, 집중 프로젝트 없이 진행할 수 있어요.",
+        dismissible = false,
+        buttons = {
+            HilitFixedBottomDualButton(
+                leftText = "집중 프로젝트 없이 진행",
+                rightText = "포트폴리오 다시 올리기",
+                onLeftClick = {
+                    onIntent(OnBoardingInterviewIntent.ClickRelevanceProceedWithoutMainProject)
+                },
+                onRightClick = {
+                    onIntent(OnBoardingInterviewIntent.ClickRelevanceRetryPortfolio)
+                },
+            )
+        },
+    )
 }
 
 @Composable

@@ -7,6 +7,7 @@ import com.dminus14.app.core.common.mvi.MviViewModel
 import com.dminus14.app.core.common.pdf.PdfInvalidReason
 import com.dminus14.app.core.common.pdf.PdfValidationResult
 import com.dminus14.app.core.common.pdf.validatePdf
+import com.dminus14.app.domain.exception.FreeTextNotRelevantException
 import com.dminus14.app.domain.model.InterviewSessionRequest
 import com.dminus14.app.domain.model.InterviewSessionStatusType
 import com.dminus14.app.domain.model.PortfolioStatus
@@ -132,6 +133,34 @@ class OnBoardingInterviewViewModel
                             mainProjectError = null,
                         )
                     }
+                }
+
+                OnBoardingInterviewIntent.ClickRelevanceRetryPortfolio -> {
+                    // "포트폴리오 다시 올리기": 다이얼로그를 닫고 포트폴리오 스텝으로 되돌아간다.
+                    // 카운트는 초기화해 다음 시도가 처음부터 새로 세도록 한다.
+                    reduce {
+                        copy(
+                            showRelevanceFailDialog = false,
+                            step = OnBoardingInterviewStep.Portfolio,
+                            mainProjectRelevanceFailCount = 0,
+                            mainProjectError = null,
+                            errorMessage = null,
+                        )
+                    }
+                }
+
+                OnBoardingInterviewIntent.ClickRelevanceProceedWithoutMainProject -> {
+                    // "집중 프로젝트 없이 진행": free text를 비우고 preload를 다시 시작한다.
+                    reduce {
+                        copy(
+                            showRelevanceFailDialog = false,
+                            mainProjectText = "",
+                            mainProjectError = null,
+                            mainProjectRelevanceFailCount = 0,
+                            errorMessage = null,
+                        )
+                    }
+                    startPreload()
                 }
             }
         }
@@ -476,8 +505,58 @@ class OnBoardingInterviewViewModel
                         }
                         pollInterviewSession(result.sessionId)
                     }.onFailure { error ->
-                        reduce { copy(errorMessage = error.message) }
+                        handleSessionCreateFailure(error)
                     }
+            }
+        }
+
+        /**
+         * S3.5 서버 연관성 판단 실패는 일반 에러와 다르게 처리한다:
+         * - 1~3회: MainProject 스텝으로 되돌리고 인라인 에러로 재입력을 유도한다.
+         * - 4회째: 다이얼로그로 "포폴 다시 올리기 / 집중 프로젝트 없이 진행" 두 선택지를 제시한다.
+         *   그 외 실패는 기존과 동일하게 상단 에러 메시지로 노출한다.
+         */
+        private fun handleSessionCreateFailure(error: Throwable) {
+            if (error !is FreeTextNotRelevantException) {
+                reduce {
+                    copy(
+                        errorMessage = error.message,
+                        loadingBasicInfo = OnBoardingLoadingStepStatus.Waiting,
+                        loadingJd = OnBoardingLoadingStepStatus.Waiting,
+                        loadingPortfolio = OnBoardingLoadingStepStatus.Waiting,
+                    )
+                }
+                return
+            }
+
+            val nextCount = state.value.mainProjectRelevanceFailCount + 1
+            if (nextCount >= RELEVANCE_FAIL_ESCAPE_THRESHOLD) {
+                // 이스케이프 다이얼로그는 MainProject 스텝 위에 띄워, 사용자가 자신이 쓴 문구를 보며
+                // 재시도/우회를 결정하게 한다.
+                reduce {
+                    copy(
+                        step = OnBoardingInterviewStep.MainProject,
+                        showRelevanceFailDialog = true,
+                        mainProjectRelevanceFailCount = nextCount,
+                        mainProjectError = MESSAGE_FREETEXT_NOT_RELEVANT,
+                        loadingBasicInfo = OnBoardingLoadingStepStatus.Waiting,
+                        loadingJd = OnBoardingLoadingStepStatus.Waiting,
+                        loadingPortfolio = OnBoardingLoadingStepStatus.Waiting,
+                        errorMessage = null,
+                    )
+                }
+            } else {
+                reduce {
+                    copy(
+                        step = OnBoardingInterviewStep.MainProject,
+                        mainProjectRelevanceFailCount = nextCount,
+                        mainProjectError = MESSAGE_FREETEXT_NOT_RELEVANT,
+                        loadingBasicInfo = OnBoardingLoadingStepStatus.Waiting,
+                        loadingJd = OnBoardingLoadingStepStatus.Waiting,
+                        loadingPortfolio = OnBoardingLoadingStepStatus.Waiting,
+                        errorMessage = null,
+                    )
+                }
             }
         }
 
@@ -576,6 +655,11 @@ class OnBoardingInterviewViewModel
             const val FREETEXT_MIN_LENGTH = 10
             const val FREETEXT_MAX_LENGTH = 300
             const val MESSAGE_FREETEXT_TOO_SHORT = "집중 프로젝트 설명은 10자 이상 입력해 주세요"
+            const val MESSAGE_FREETEXT_NOT_RELEVANT =
+                "포트폴리오에서 그 내용을 찾지 못했어요. 포트폴리오에 있는 프로젝트로 다시 적어주세요"
+
+            /** 연관성 실패가 이 횟수에 도달하면 재선택 다이얼로그로 이스케이프 경로를 제공한다. */
+            const val RELEVANCE_FAIL_ESCAPE_THRESHOLD = 4
             const val MESSAGE_PORTFOLIO_REQUIRED = "포트폴리오를 업로드해주세요"
             const val MESSAGE_PDF_SIZE = "파일이 너무 커요. 20MB 이하 PDF로 올려주세요"
             const val MESSAGE_PDF_PAGE = "페이지가 너무 많아요. 30페이지 이하 PDF로 올려주세요"
