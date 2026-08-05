@@ -19,8 +19,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dminus14.app.feature.onboarding.OnBoardingInterviewIntent
-import com.dminus14.designsystem.component.button.HilitFixedBottomDualButton
-import com.dminus14.designsystem.component.button.HilitFixedBottomDualButtonType
+import com.dminus14.designsystem.component.button.HilitFixedBottomButton
 import com.dminus14.designsystem.component.fileupload.FileUploadGuide
 import com.dminus14.designsystem.component.fileupload.PdfUpload
 import com.dminus14.designsystem.component.fileupload.PdfUploadType
@@ -114,18 +113,13 @@ fun OnBoardingPortfolioStep(
 private fun OnBoardingExistingPortfolioModal(onIntent: (OnBoardingInterviewIntent) -> Unit) {
     HilitModal(
         type = HilitModalType.InvisibleInfo,
-        title = "기존에 있는 포트폴리오로\n진행할까요?",
+        title = "기존에 업로드한 포트폴리오로\n다시 진행할 수 있어요",
         dismissible = false,
         graphic = { HilitBookIllustration() },
         buttons = {
-            HilitFixedBottomDualButton(
-                leftText = "새로 업로드",
-                rightText = "기존 포트폴리오 사용",
-                type = HilitFixedBottomDualButtonType.Default,
-                onLeftClick = {
-                    onIntent(OnBoardingInterviewIntent.ClickExistingPortfolioModalDismiss)
-                },
-                onRightClick = {
+            HilitFixedBottomButton(
+                text = "확인",
+                onClick = {
                     onIntent(OnBoardingInterviewIntent.ClickExistingPortfolioModalDismiss)
                 },
             )
