@@ -23,6 +23,11 @@ import androidx.compose.ui.unit.dp
 import com.dminus14.designsystem.theme.HilitColors
 import com.dminus14.designsystem.theme.HilitTheme
 
+/**
+ * 토글 버튼.
+ *
+ * Figma 노드 번호: 935-13759, 935-13760.
+ */
 @Composable
 fun HilitToggle(
     checked: Boolean,

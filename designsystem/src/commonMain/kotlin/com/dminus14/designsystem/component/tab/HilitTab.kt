@@ -23,6 +23,13 @@ import androidx.compose.ui.unit.dp
 import com.dminus14.designsystem.theme.HilitColors
 import com.dminus14.designsystem.theme.HilitTheme
 
+/**
+ * 탭 아이템.
+ *
+ * 1개의 탭 아이템을 나타내며, 이 탭 아이템들이 모여 [HilitTabRow](designsystem/src/commonMain/kotlin/com/dminus14/designsystem/component/tab/HilitTabRow.kt)를 구성한다.
+ *
+ * Figma 노드 번호: 935-13756, 935-13757, 935-13758.
+ */
 @Composable
 fun HilitTab(
     text: String,

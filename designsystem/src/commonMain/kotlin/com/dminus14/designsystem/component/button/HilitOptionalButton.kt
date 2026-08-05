@@ -37,6 +37,11 @@ import com.dminus14.designsystem.component.tag.TagType
 import com.dminus14.designsystem.theme.HilitColors
 import com.dminus14.designsystem.theme.HilitTheme
 
+/**
+ * 선택 가능한 옵션을 나타내는 버튼.
+ *
+ * Figma 노드 번호: 439-10206.
+ */
 @Composable
 fun HilitOptionalButton(
     onClick: () -> Unit,
