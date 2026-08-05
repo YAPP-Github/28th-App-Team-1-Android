@@ -116,20 +116,8 @@ class OnBoardingInterviewViewModel
                     removePortfolio()
                 }
 
-                OnBoardingInterviewIntent.ClickPortfolioUseExisting -> {
-                    readyPortfolioId = existingPortfolioId
-                    reduce {
-                        copy(
-                            portfolioFileName = existingPortfolioFileName,
-                            showExistingPortfolioModal = false,
-                            portfolioErrorMessage = null,
-                        )
-                    }
-                }
-
-                OnBoardingInterviewIntent.ClickPortfolioUploadNew -> {
+                OnBoardingInterviewIntent.ClickExistingPortfolioModalDismiss -> {
                     reduce { copy(showExistingPortfolioModal = false) }
-                    sendEffect(OnBoardingInterviewEffect.LaunchPortfolioPicker)
                 }
 
                 is OnBoardingInterviewIntent.PortfolioFileSelected -> {
@@ -162,6 +150,12 @@ class OnBoardingInterviewViewModel
                     .onSuccess { portfolio ->
                         existingPortfolioId = portfolio?.portfolioId
                         existingPortfolioFileName = portfolio?.fileName
+                        // 재진입 시 기존 READY 포트폴리오는 즉시 노출·재사용한다.
+                        // (스펙 S2: "정상 저장(READY) 포폴은 이탈해도 보존, 다음 진입 시 재사용")
+                        if (portfolio != null && portfolio.status == PortfolioStatus.READY) {
+                            readyPortfolioId = portfolio.portfolioId
+                            reduce { copy(portfolioFileName = portfolio.fileName) }
+                        }
                     }
             }
         }

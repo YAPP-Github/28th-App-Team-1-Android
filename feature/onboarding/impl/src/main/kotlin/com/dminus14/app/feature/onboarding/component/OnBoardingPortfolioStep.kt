@@ -122,8 +122,12 @@ private fun OnBoardingExistingPortfolioModal(onIntent: (OnBoardingInterviewInten
                 leftText = "새로 업로드",
                 rightText = "기존 포트폴리오 사용",
                 type = HilitFixedBottomDualButtonType.Default,
-                onLeftClick = { onIntent(OnBoardingInterviewIntent.ClickPortfolioUploadNew) },
-                onRightClick = { onIntent(OnBoardingInterviewIntent.ClickPortfolioUseExisting) },
+                onLeftClick = {
+                    onIntent(OnBoardingInterviewIntent.ClickExistingPortfolioModalDismiss)
+                },
+                onRightClick = {
+                    onIntent(OnBoardingInterviewIntent.ClickExistingPortfolioModalDismiss)
+                },
             )
         },
     )
