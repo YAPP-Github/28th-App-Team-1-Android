@@ -99,6 +99,54 @@ class PermissionConsentViewModelTest {
         }
 
     @Test
+    fun `ClickLater 시 프로필 조회 성공했지만 이름이 없으면 NavigateOnboarding Effect를 발행한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        userRepository =
+                            FakeUserRepository(
+                                Result.success(sampleUserProfile.copy(name = null)),
+                            ),
+                    )
+                val effect = async { viewModel.effect.first() }
+
+                viewModel.onIntent(PermissionConsentIntent.ClickLater)
+
+                assertEquals(PermissionConsentEffect.NavigateOnboarding, effect.await())
+                assertFalse(viewModel.state.value.isLoading)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun `ClickLater 시 프로필 조회 성공했지만 이메일이 없으면 NavigateOnboarding Effect를 발행한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        userRepository =
+                            FakeUserRepository(
+                                Result.success(sampleUserProfile.copy(email = null)),
+                            ),
+                    )
+                val effect = async { viewModel.effect.first() }
+
+                viewModel.onIntent(PermissionConsentIntent.ClickLater)
+
+                assertEquals(PermissionConsentEffect.NavigateOnboarding, effect.await())
+                assertFalse(viewModel.state.value.isLoading)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
     fun `ClickLater 시 NetworkUnavailableException 이면 ShowNetworkErrorAndExit를 emit한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)

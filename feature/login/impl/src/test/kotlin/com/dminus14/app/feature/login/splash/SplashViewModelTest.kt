@@ -207,6 +207,50 @@ class SplashViewModelTest {
         }
 
     @Test
+    fun `Load 시 프로필 조회 성공했지만 이름이 없으면 RequireOnboarding Effect를 발행한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = sampleSession,
+                        pendingResult = Result.success(upToDatePending),
+                        profileResult = Result.success(sampleUserProfile.copy(name = null)),
+                    )
+                val effect = async { viewModel.effect.first() }
+
+                viewModel.onIntent(SplashIntent.Load)
+
+                assertEquals(SplashEffect.RequireOnboarding, effect.await())
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun `Load 시 프로필 조회 성공했지만 이메일이 없으면 RequireOnboarding Effect를 발행한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = sampleSession,
+                        pendingResult = Result.success(upToDatePending),
+                        profileResult = Result.success(sampleUserProfile.copy(email = null)),
+                    )
+                val effect = async { viewModel.effect.first() }
+
+                viewModel.onIntent(SplashIntent.Load)
+
+                assertEquals(SplashEffect.RequireOnboarding, effect.await())
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
     fun `Load 시 세션은 있지만 동의 조회 네트워크 오류면 ShowNetworkErrorAndExit를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
