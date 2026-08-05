@@ -103,9 +103,8 @@ class TermViewModel
                                 }
                             }
 
-                            // 재동의가 필요 없는 상태. 정상 진입 시엔 도달하지 않으므로 로딩만 해제한다.
                             ConsentPendingStatus.UP_TO_DATE -> {
-                                reduce { copy(isLoading = false) }
+                                checkPermissionConsent()
                             }
                         }
                     }.onFailure { error ->
