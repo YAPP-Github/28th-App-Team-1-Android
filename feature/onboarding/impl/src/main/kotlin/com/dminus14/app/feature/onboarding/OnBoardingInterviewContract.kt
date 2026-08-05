@@ -32,9 +32,8 @@ sealed interface OnBoardingInterviewIntent : MviIntent {
 
     data object ClickPortfolioRemove : OnBoardingInterviewIntent
 
-    data object ClickPortfolioUseExisting : OnBoardingInterviewIntent
-
-    data object ClickPortfolioUploadNew : OnBoardingInterviewIntent
+    /** 기존 포트폴리오 확인 모달을 닫기만 한다 (두 버튼 공용). */
+    data object ClickExistingPortfolioModalDismiss : OnBoardingInterviewIntent
 
     /** SAF 파일 선택기가 PDF를 캐시로 복사해 돌려준 결과. */
     data class PortfolioFileSelected(
