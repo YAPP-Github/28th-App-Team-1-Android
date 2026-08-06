@@ -66,6 +66,7 @@ Feature 내부에서만 사용하는 UI와 extension은 Feature 안에 둔다. �
 - Repository Interface를 정의한다.
 - UseCase와 비즈니스 규칙을 정의한다.
 - UI와 무관한 도메인 결과 또는 예외를 표현할 수 있다.
+- 유스케이스 단위 테스트는 오직 검증 로직이 있는 경우에만 추가한다.
 
 `domain`은 Android Framework, `data`, `feature:*`에 의존하지 않고 UI 표현 정책을 결정하지
 않는다.
