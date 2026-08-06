@@ -21,15 +21,18 @@ data class AppVersionCheckResponseDto(
     @SerializedName("body")
     val body: String?,
 ) {
-    fun toDomain(): AppVersionPolicy =
+    fun toDomain(): AppVersionPolicy {
+        val domainUpdateType = updateType.toAppVersionUpdateType()
+
         AppVersionPolicy(
-            updateType = updateType.toAppVersionUpdateType(),
+            updateType = domainUpdateType,
             latestVersion = latestVersion,
             minSupportedVersion = minSupportedVersion,
             storeUrl = storeUrl,
-            title = title,
-            body = body,
+            title = title.takeUnless { domainUpdateType == AppVersionUpdateType.NONE },
+            body = body.takeUnless { domainUpdateType == AppVersionUpdateType.NONE },
         )
+    }
 }
 
 private fun String.toAppVersionUpdateType(): AppVersionUpdateType =
