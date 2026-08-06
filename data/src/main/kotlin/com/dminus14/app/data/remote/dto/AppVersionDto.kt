@@ -24,7 +24,7 @@ data class AppVersionCheckResponseDto(
     fun toDomain(): AppVersionPolicy {
         val domainUpdateType = updateType.toAppVersionUpdateType()
 
-        AppVersionPolicy(
+        return AppVersionPolicy(
             updateType = domainUpdateType,
             latestVersion = latestVersion,
             minSupportedVersion = minSupportedVersion,

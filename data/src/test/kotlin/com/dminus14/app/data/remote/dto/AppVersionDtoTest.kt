@@ -41,15 +41,15 @@ class AppVersionDtoTest {
     }
 
     @Test
-    fun `NONE 응답은 title body가 null이다`() {
+    fun `NONE 응답은 서버에 title body가 있어도 도메인에서는 null로 정규화한다`() {
         val actual =
             AppVersionCheckResponseDto(
                 updateType = "NONE",
                 latestVersion = "1.4.0",
                 minSupportedVersion = "1.3.0",
                 storeUrl = "https://apps.apple.com/app/idXXXXXXXXX",
-                title = null,
-                body = null,
+                title = "무시되어야 할 제목",
+                body = "무시되어야 할 본문",
             ).toDomain()
 
         assertEquals(AppVersionUpdateType.NONE, actual.updateType)
