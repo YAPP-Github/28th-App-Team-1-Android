@@ -9,8 +9,6 @@ import com.dminus14.app.feature.interview.interview.InterviewScreen
 
 fun EntryProviderScope<Any>.interviewEntryBuilder(
     onNavigateHome: () -> Unit,
-    onOpenAppSettings: () -> Unit,
-    onNavigateError: (InterviewErrorType) -> Unit,
     onResumeInterview: () -> Unit,
 ) {
     entry<InterviewRoute> {

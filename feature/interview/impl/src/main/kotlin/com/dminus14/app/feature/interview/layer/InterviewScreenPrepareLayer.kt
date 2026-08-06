@@ -39,12 +39,14 @@ fun InterviewScreenPrepareLayer(
             withHilitTextHighlight { append("소리") }
             append("로만 나와요")
         }
+    /*
     val timeGuideText =
         buildAnnotatedString {
             append("면접은 총 ")
             withHilitTextHighlight { append("10분") }
             append("으로 진행돼요")
         }
+     */
     val titleText: AnnotatedString =
         if (interviewScreenState == InterviewScreenState.PREPARED) {
             soundGuideText
@@ -60,7 +62,7 @@ fun InterviewScreenPrepareLayer(
             text = titleText,
             style = getTitleTextStyle(),
             modifier =
-                modifier
+                Modifier
                     .fillMaxWidth()
                     .padding(top = 74.dp),
         )

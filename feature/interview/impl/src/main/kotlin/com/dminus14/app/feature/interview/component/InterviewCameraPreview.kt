@@ -24,6 +24,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.dminus14.designsystem.theme.HilitTheme
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
+private const val MOCK_TEXT_REPEAT_COUNT = 4
+
 /**
  * 전면 카메라 프리뷰 (Video-only, Portrait Fixed).
  *
@@ -112,7 +114,7 @@ private fun CameraPreviewMock(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        repeat(4) {
+        repeat(MOCK_TEXT_REPEAT_COUNT) {
             Text(
                 text = "Camera Self-View (Preview Mode)",
                 color = HilitTheme.colors.gray300,

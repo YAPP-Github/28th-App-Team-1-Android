@@ -18,6 +18,8 @@ import com.dminus14.designsystem.component.icon.HilitIconAsset
 import com.dminus14.designsystem.theme.HilitTheme
 import java.util.Locale
 
+private const val MINUTE_SECONDS = 60
+
 /**
  * 면접 타이머.
  *
@@ -30,14 +32,14 @@ fun InterviewTimer(
     remainingSeconds: Int,
     modifier: Modifier = Modifier,
 ) {
-    val isWarning = (remainingSeconds <= 60)
+    val isWarning = (remainingSeconds <= MINUTE_SECONDS)
     val bgColor = if (isWarning) HilitTheme.colors.error200 else HilitTheme.colors.gray50
     val textColor = if (isWarning) HilitTheme.colors.error500 else HilitTheme.colors.gray500
 
     // Format MM:SS
-    val minutes = remainingSeconds / 60
-    val seconds = remainingSeconds % 60
-    val format = if (remainingSeconds <= 60) "%d초" else "%d:%02d"
+    val minutes = remainingSeconds / MINUTE_SECONDS
+    val seconds = remainingSeconds % MINUTE_SECONDS
+    val format = if (remainingSeconds <= MINUTE_SECONDS) "%d초" else "%d:%02d"
     val timeText = String.format(Locale.US, format, minutes, seconds)
 
     Box(

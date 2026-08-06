@@ -13,11 +13,43 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.dminus14.designsystem.theme.HilitTheme
+
+private val CORNER_DIRECTIONS =
+    listOf(
+        Offset(0f, 0f) to Offset(1f, 1f),
+        Offset(1f, 0f) to Offset(-1f, 1f),
+        Offset(0f, 1f) to Offset(1f, -1f),
+        Offset(1f, 1f) to Offset(-1f, -1f),
+    )
+
+private fun DrawScope.drawCornerBrackets(
+    color: Color,
+    strokePx: Float,
+    cornerPx: Float,
+) {
+    CORNER_DIRECTIONS.forEach { (originRatio, direction) ->
+        val origin = Offset(originRatio.x * size.width, originRatio.y * size.height)
+        drawLine(
+            color = color,
+            start = origin,
+            end = origin + Offset(direction.x * cornerPx, 0f),
+            strokeWidth = strokePx,
+            cap = StrokeCap.Square,
+        )
+        drawLine(
+            color = color,
+            start = origin,
+            end = origin + Offset(0f, direction.y * cornerPx),
+            strokeWidth = strokePx,
+            cap = StrokeCap.Square,
+        )
+    }
+}
 
 /**
  * Figma `camera-frame` preset (Figma Node: `683:9220`, `435:821`).
@@ -28,88 +60,21 @@ import com.dminus14.designsystem.theme.HilitTheme
 fun InterviewCameraFrame(
     modifier: Modifier = Modifier,
     text: String = "얼굴을 여기에 맞춰주세요",
-    showText: Boolean = true,
-    frameSize: Dp = 327.dp,
-    cornerLength: Dp = 35.dp,
-    strokeWidth: Dp = 5.dp,
     color: Color = HilitTheme.colors.gray300.copy(alpha = 0xAC / 255f),
 ) {
     Box(
-        modifier = modifier.size(frameSize),
+        modifier = modifier.size(327.dp),
         contentAlignment = Alignment.Center,
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-            val strokePx = strokeWidth.toPx()
-            val cornerPx = cornerLength.toPx()
-            val width = size.width
-            val height = size.height
-
-            // Top-Left corner
-            drawLine(
+            drawCornerBrackets(
                 color = color,
-                start = Offset(0f, 0f),
-                end = Offset(cornerPx, 0f),
-                strokeWidth = strokePx,
-                cap = StrokeCap.Square,
-            )
-            drawLine(
-                color = color,
-                start = Offset(0f, 0f),
-                end = Offset(0f, cornerPx),
-                strokeWidth = strokePx,
-                cap = StrokeCap.Square,
-            )
-
-            // Top-Right corner
-            drawLine(
-                color = color,
-                start = Offset(width, 0f),
-                end = Offset(width - cornerPx, 0f),
-                strokeWidth = strokePx,
-                cap = StrokeCap.Square,
-            )
-            drawLine(
-                color = color,
-                start = Offset(width, 0f),
-                end = Offset(width, cornerPx),
-                strokeWidth = strokePx,
-                cap = StrokeCap.Square,
-            )
-
-            // Bottom-Left corner
-            drawLine(
-                color = color,
-                start = Offset(0f, height),
-                end = Offset(cornerPx, height),
-                strokeWidth = strokePx,
-                cap = StrokeCap.Square,
-            )
-            drawLine(
-                color = color,
-                start = Offset(0f, height),
-                end = Offset(0f, height - cornerPx),
-                strokeWidth = strokePx,
-                cap = StrokeCap.Square,
-            )
-
-            // Bottom-Right corner
-            drawLine(
-                color = color,
-                start = Offset(width, height),
-                end = Offset(width - cornerPx, height),
-                strokeWidth = strokePx,
-                cap = StrokeCap.Square,
-            )
-            drawLine(
-                color = color,
-                start = Offset(width, height),
-                end = Offset(width, height - cornerPx),
-                strokeWidth = strokePx,
-                cap = StrokeCap.Square,
+                strokePx = 5.dp.toPx(),
+                cornerPx = 35.dp.toPx(),
             )
         }
 
-        if (showText && text.isNotEmpty()) {
+        if (text.isNotEmpty()) {
             Column(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,

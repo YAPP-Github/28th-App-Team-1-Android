@@ -17,8 +17,6 @@ object InterviewNavigationModule {
         {
             interviewEntryBuilder(
                 onNavigateHome = {},
-                onOpenAppSettings = {},
-                onNavigateError = {},
                 onResumeInterview = {},
             )
         }
