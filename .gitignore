@@ -3,6 +3,7 @@ specs/
 .agent/
 .agents/
 .codex/
+.claude/
 
 # Local configuration and secrets
 local.properties
@@ -143,8 +144,9 @@ ehthumbs.db
 hs_err_pid*
 replay_pid*
 
+# API Docs
+api-docs.json
+
 # Keep the Gradle wrapper JAR even when generic JAR files are ignored.
 !/gradle/wrapper/gradle-wrapper.jar
 
-# API Docs
-api-docs.json
