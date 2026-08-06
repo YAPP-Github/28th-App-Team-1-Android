@@ -39,8 +39,12 @@ fun InterviewTimer(
     // Format MM:SS
     val minutes = remainingSeconds / MINUTE_SECONDS
     val seconds = remainingSeconds % MINUTE_SECONDS
-    val format = if (remainingSeconds <= MINUTE_SECONDS) "%d초" else "%d:%02d"
-    val timeText = String.format(Locale.US, format, minutes, seconds)
+    val timeText =
+        if (remainingSeconds < 60) {
+            "${remainingSeconds.coerceIn(0..59)}초"
+        } else {
+            String.format(Locale.US, "%d:%02d", minutes, seconds)
+        }
 
     Box(
         modifier =

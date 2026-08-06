@@ -56,6 +56,9 @@ fun InterviewErrorScreen(
 
     LaunchedEffect(errorType) {
         viewModel.initErrorType(errorType)
+    }
+
+    LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
                 InterviewErrorEffect.NavigateToHome -> onNavigateHome()

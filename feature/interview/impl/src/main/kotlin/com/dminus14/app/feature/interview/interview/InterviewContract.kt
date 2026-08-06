@@ -13,8 +13,8 @@ enum class InterviewSpeaker {
 
     operator fun not(): InterviewSpeaker =
         when (this) {
-            InterviewSpeaker.AI -> InterviewSpeaker.AI
-            InterviewSpeaker.User -> InterviewSpeaker.User
+            InterviewSpeaker.AI -> InterviewSpeaker.User
+            InterviewSpeaker.User -> InterviewSpeaker.AI
         }
 }
 
