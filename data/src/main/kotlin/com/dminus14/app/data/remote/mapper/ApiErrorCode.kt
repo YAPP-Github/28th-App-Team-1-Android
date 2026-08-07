@@ -34,6 +34,9 @@ import com.dminus14.app.data.remote.mapper.ApiErrorCode.VALIDATION_ERROR
  *   [PORTFOLIO_PROCESSING], [PORTFOLIO_UPLOAD_FAILED]
  * - Interview session create API 403: [NO_REMAINING_TICKET]
  * - Interview session create/status API 404: [PORTFOLIO_NOT_FOUND], [INTERVIEW_SESSION_NOT_FOUND]
+ * - 앱 버전 확인 API 400: [INVALID_PLATFORM], [INVALID_VERSION_FORMAT]
+ * - 앱 버전 확인 API 404: [APP_VERSION_POLICY_NOT_FOUND] (사용자가 대응할 수 없는 서버 설정
+ *   누락이므로 ServerError로 격상해 처리한다)
  * - 클라이언트 분류: [NETWORK_UNAVAILABLE], [SERVER_ERROR], [UNKNOWN]
  */
 internal object ApiErrorCode {
@@ -90,6 +93,10 @@ internal object ApiErrorCode {
 
     const val NO_REMAINING_TICKET = "NO_REMAINING_TICKET"
     const val INTERVIEW_SESSION_NOT_FOUND = "INTERVIEW_SESSION_NOT_FOUND"
+
+    const val INVALID_PLATFORM = "INVALID_PLATFORM"
+    const val INVALID_VERSION_FORMAT = "INVALID_VERSION_FORMAT"
+    const val APP_VERSION_POLICY_NOT_FOUND = "APP_VERSION_POLICY_NOT_FOUND"
 
     const val NETWORK_UNAVAILABLE = "NETWORK_UNAVAILABLE"
     const val SERVER_ERROR = "SERVER_ERROR"
