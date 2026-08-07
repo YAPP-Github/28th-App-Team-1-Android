@@ -249,6 +249,9 @@ class OnboardingViewModel
 
         private companion object {
             private const val NICKNAME_MAX_LENGTH = 5
-            private val NICKNAME_ALLOWED_CHAR_REGEX = Regex("[a-zA-Z가-힣ㄱ-ㅎㅏ-ㅣ]")
+
+            // ㆍ(U+318D, Hangul Letter Araea): 천지인 키보드의 "천" 점 입력.
+            // 조합이 완성되기 전 IME가 원시 문자를 그대로 흘려보내는 경우가 있어 허용한다.
+            private val NICKNAME_ALLOWED_CHAR_REGEX = Regex("[a-zA-Z가-힣ㄱ-ㅎㅏ-ㅣㆍ]")
         }
     }
