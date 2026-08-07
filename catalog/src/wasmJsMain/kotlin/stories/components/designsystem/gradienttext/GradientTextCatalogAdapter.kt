@@ -1,26 +1,26 @@
-package stories.components.designsystem.previousinfotext
+package stories.components.designsystem.gradienttext
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.dminus14.catalog.controls.CatalogControls
-import com.dminus14.designsystem.component.text.PreviousInfoText
+import com.dminus14.designsystem.component.text.GradientText
 import com.dminus14.designsystem.theme.HilitTheme
 
 /**
- * PreviousInfoText Controls용 어댑터.
+ * GradientText Controls용 어댑터.
  *
  * [Color]는 CatalogControls 지원 타입이 아니라 hex 문자열로 받아 어댑터 안에서 파싱한다.
  * 잘못된 hex가 들어와도 카탈로그가 죽지 않도록 default 색으로 fallback한다.
  */
 @CatalogControls
 @Composable
-internal fun PreviousInfoTextCatalogAdapter(
+internal fun GradientTextCatalogAdapter(
     text: String,
     startColorHex: String,
     endColorHex: String,
 ) {
     HilitTheme {
-        PreviousInfoText(
+        GradientText(
             text = text,
             startColor = parseHexColorOrDefault(startColorHex, HilitTheme.colors.hilitGreen600),
             endColor = parseHexColorOrDefault(endColorHex, HilitTheme.colors.hilitGreen800),

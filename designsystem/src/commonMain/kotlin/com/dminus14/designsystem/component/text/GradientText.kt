@@ -14,12 +14,9 @@ import com.dminus14.designsystem.theme.HilitTheme
 
 private const val DEFAULT_TEXT = "오랜만이에요\n재원님!"
 
-/**
- * 가로 그라디언트가 적용된 텍스트. 재방문 사용자 인사에 기본 문구·색이 맞춰져 있으며,
- * 필요 시 [text]와 [startColor]·[endColor]를 바꿔 다른 용도로도 재사용할 수 있다.
- */
+/** 가로 그라디언트가 적용된 텍스트. */
 @Composable
-fun PreviousInfoText(
+fun GradientText(
     modifier: Modifier = Modifier,
     text: String = DEFAULT_TEXT,
     startColor: Color = HilitTheme.colors.hilitGreen600,
@@ -35,9 +32,9 @@ fun PreviousInfoText(
     )
 }
 
-@Preview(name = "PreviousInfoText")
+@Preview(name = "GradientText")
 @Composable
-private fun PreviousInfoTextPreview() {
+private fun GradientTextPreview() {
     HilitTheme {
         Column(
             modifier =
@@ -45,7 +42,7 @@ private fun PreviousInfoTextPreview() {
                     .fillMaxSize()
                     .background(HilitTheme.colors.hilitWhite),
         ) {
-            PreviousInfoText()
+            GradientText()
         }
     }
 }
