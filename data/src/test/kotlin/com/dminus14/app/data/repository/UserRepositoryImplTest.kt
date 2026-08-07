@@ -1,6 +1,7 @@
 package com.dminus14.app.data.repository
 
 import com.dminus14.app.data.remote.datasource.UserRemoteDataSource
+import com.dminus14.app.data.remote.dto.user.JobDto
 import com.dminus14.app.data.remote.dto.user.JobListResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileFetchResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileUpdateRequestDto
@@ -14,6 +15,7 @@ import com.dminus14.app.domain.exception.SocialUnlinkFailedException
 import com.dminus14.app.domain.exception.UnknownException
 import com.dminus14.app.domain.exception.UserNotFoundException
 import com.dminus14.app.domain.exception.ValidationException
+import com.dminus14.app.domain.model.Job
 import com.dminus14.app.domain.model.UserProfile
 import com.dminus14.app.domain.model.UserProfileUpdate
 import kotlinx.coroutines.runBlocking
@@ -153,6 +155,58 @@ class UserRepositoryImplTest {
             }
         }
 
+    @Test
+    fun `직군 목록 조회 응답을 도메인 모델 리스트로 변환한다`() =
+        runBlocking {
+            val dataSource =
+                FakeUserRemoteDataSource(
+                    jobsResponse =
+                        JobListResponseDto(
+                            jobs =
+                                listOf(
+                                    JobDto(jobId = 1, jobRole = "BACKEND", label = "백엔드"),
+                                    JobDto(
+                                        jobId = 2,
+                                        jobRole = "FRONTEND",
+                                        label = "프론트엔드",
+                                    ),
+                                ),
+                        ),
+                )
+            val repository = UserRepositoryImpl(dataSource)
+
+            val actual = repository.getJobList()
+
+            assertEquals(
+                listOf(
+                    Job(jobId = 1, jobRole = "BACKEND", label = "백엔드"),
+                    Job(jobId = 2, jobRole = "FRONTEND", label = "프론트엔드"),
+                ),
+                actual,
+            )
+        }
+
+    @Test
+    fun `직군 목록 조회 실패는 공통 오류 매퍼를 거쳐 도메인 예외로 변환된다`() =
+        runBlocking {
+            val cases =
+                listOf(
+                    IOException("boom") to NetworkUnavailableException::class.java,
+                    httpException(status = 500, code = "SERVER_ERROR") to
+                        ServerException::class.java,
+                )
+
+            cases.forEach { (failure, expectedType) ->
+                val repository =
+                    UserRepositoryImpl(FakeUserRemoteDataSource(jobsFailure = failure))
+
+                val actual = captureFailure { repository.getJobList() }
+
+                assertTrue(expectedType.isInstance(actual))
+                assertSame(failure, actual.cause)
+            }
+        }
+
     private suspend fun captureFailure(block: suspend () -> Unit): Throwable =
         try {
             block()
@@ -167,6 +221,8 @@ class UserRepositoryImplTest {
         private val profileFailure: Throwable? = null,
         private val updateFailure: Throwable? = null,
         private val withdrawalFailure: Throwable? = null,
+        private val jobsResponse: JobListResponseDto = JobListResponseDto(jobs = emptyList()),
+        private val jobsFailure: Throwable? = null,
     ) : UserRemoteDataSource {
         var profileCallCount = 0
             private set
@@ -191,8 +247,10 @@ class UserRepositoryImplTest {
             withdrawalCallCount += 1
         }
 
-        // 직군 목록 API 케이스 커버리지는 별도 테스트에서 다루고, 여기서는 컴파일 통과용 스텁만 둔다.
-        override suspend fun getJobs(): JobListResponseDto = JobListResponseDto(jobs = emptyList())
+        override suspend fun getJobs(): JobListResponseDto {
+            jobsFailure?.let { throw it }
+            return jobsResponse
+        }
     }
 
     private fun httpException(
