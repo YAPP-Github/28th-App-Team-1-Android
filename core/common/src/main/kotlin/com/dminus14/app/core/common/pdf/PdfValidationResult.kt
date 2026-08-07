@@ -1,7 +1,9 @@
 package com.dminus14.app.core.common.pdf
 
 sealed interface PdfValidationResult {
-    data object Valid : PdfValidationResult
+    data class Valid(
+        val pageCount: Int,
+    ) : PdfValidationResult
 
     data class Invalid(
         val reason: PdfInvalidReason,

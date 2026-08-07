@@ -1,7 +1,9 @@
 package com.dminus14.app.feature.home
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,6 +18,7 @@ import com.dminus14.designsystem.theme.HilitTheme
 
 @Composable
 fun HomeScreen(
+    onOpenMyPage: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -25,8 +28,19 @@ fun HomeScreen(
         viewModel.onIntent(HomeIntent.Load)
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                HomeEffect.GoToHomeRequested -> {
+                    onOpenMyPage()
+                }
+            }
+        }
+    }
+
     HomeContent(
         state = state,
+        onIntent = viewModel::onIntent,
         modifier = modifier,
     )
 }
@@ -34,6 +48,7 @@ fun HomeScreen(
 @Composable
 private fun HomeContent(
     state: HomeState,
+    onIntent: (HomeIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -43,11 +58,19 @@ private fun HomeContent(
         if (state.isLoading) {
             CircularProgressIndicator()
         } else {
-            Text(
-                text = state.title,
-                style = HilitTheme.typography.head3,
-                color = HilitTheme.colors.hilitBlack800,
-            )
+            Column {
+                Text(
+                    text = state.title,
+                    style = HilitTheme.typography.head3,
+                    color = HilitTheme.colors.hilitBlack800,
+                )
+
+                Button(
+                    onClick = { onIntent(HomeIntent.OpenMyPage) },
+                ) {
+                    Text(text = "Open MyPage")
+                }
+            }
         }
     }
 }
@@ -58,6 +81,7 @@ private fun HomeContentPreview() {
     HilitTheme {
         HomeContent(
             state = HomeState(title = "Home"),
+            onIntent = {},
         )
     }
 }

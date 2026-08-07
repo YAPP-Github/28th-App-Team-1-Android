@@ -6,6 +6,8 @@ import com.dminus14.app.core.common.mvi.MviState
 
 sealed interface HomeIntent : MviIntent {
     data object Load : HomeIntent
+
+    data object OpenMyPage : HomeIntent
 }
 
 data class HomeState(
@@ -13,4 +15,6 @@ data class HomeState(
     val title: String = "",
 ) : MviState
 
-sealed interface HomeEffect : MviEffect
+sealed interface HomeEffect : MviEffect {
+    data object GoToHomeRequested : HomeEffect
+}
