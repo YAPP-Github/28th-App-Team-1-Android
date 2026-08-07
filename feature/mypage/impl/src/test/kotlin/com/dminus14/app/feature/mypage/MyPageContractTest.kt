@@ -9,15 +9,23 @@ class MyPageContractTest {
         val report =
             MyPageReportUiModel(
                 id = "synthetic-report",
-                jobRole = MyPageJobRole.Ios,
+                jobRole = MyPageJobRole.IOS,
+                jobRoleLabel = MyPageJobRole.IOS.toString(),
                 experienceYears = 2,
                 createdAt = "2026.08.04",
-                status = MyPageReportStatus.Completed,
+                status = MyPageReportStatus.READY,
                 portfolioFileName = "sample_portfolio.pdf",
                 jobDescription = "JD 직접 입력",
+                isFeedbackAvailable = true,
             )
 
-        assertEquals("iOS", MyPageJobRole.Ios.toString())
+        assertEquals("iOS", MyPageJobRole.IOS.toString())
         assertEquals("iOS · 2년", report.jobRoleAndExperience)
+    }
+
+    @Test
+    fun `서버 목록 밖 직군 코드는 fromRaw에서 null을 반환한다`() {
+        assertEquals(null, MyPageJobRole.fromRaw("UNKNOWN_ROLE"))
+        assertEquals(MyPageJobRole.BACKEND, MyPageJobRole.fromRaw("BACKEND"))
     }
 }
