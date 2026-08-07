@@ -31,6 +31,11 @@ enum class HilitMediumButtonColor {
     Black,
 }
 
+/**
+ * 색상이 있는 중간 사이즈 버튼.
+ *
+ * Figma 노드 번호 439-10175, 439-10176, 439-10178, 439-10187, 439-10188, 439-10189.
+ */
 @Composable
 fun HilitMediumButton(
     text: String,

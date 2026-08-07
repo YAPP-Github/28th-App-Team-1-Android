@@ -19,6 +19,8 @@ import com.dminus14.designsystem.theme.HilitTheme
  * 앱 전역 Modal(Global Modal)용 alert preset.
  *
  * title + message + single/dual([HilitFixedBottomDualButtonType.TwoColor]) 버튼을 제공한다.
+ *
+ * Figma 노드 번호: 439-10403, 439-10404, 439-10405, 439-10406.
  */
 @Composable
 fun HilitGlobalModal(

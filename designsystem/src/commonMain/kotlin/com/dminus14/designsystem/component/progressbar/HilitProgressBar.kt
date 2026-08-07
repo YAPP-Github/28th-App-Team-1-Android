@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -16,6 +15,8 @@ import com.dminus14.designsystem.theme.HilitTheme
 
 /**
  * 온보딩 등에서 쓰는 dash progress bar.
+ *
+ * Figma 노드 번호: 935-13752.
  *
  * @param step 현재까지 활성화할 단계(1부터 [maxStep]까지). 1이면 첫 칸만 활성
  * @param maxStep 전체 칸 수. 1 이상이어야 한다

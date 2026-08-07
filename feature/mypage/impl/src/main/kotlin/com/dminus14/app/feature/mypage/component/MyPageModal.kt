@@ -185,7 +185,7 @@ private fun MyPageModalType.content(count: Int?): ModalContent =
         MyPageModalType.PortfolioDelete -> {
             ModalContent(
                 title = "포트폴리오를 삭제하시겠어요?",
-                message = "포트폴리오 파일이 삭제되어도\n지난 면접 레포트는 그대로 남아요.",
+                message = "포트폴리오 파일이 삭제되어도\n지난 면접 리포트는 그대로 남아요.",
                 notice = "이번 달 남은 삭제 기회 ${count ?: 0}번",
                 confirmText = "삭제",
             )

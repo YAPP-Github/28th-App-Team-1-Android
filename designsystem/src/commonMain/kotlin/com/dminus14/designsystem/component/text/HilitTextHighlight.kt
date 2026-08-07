@@ -70,6 +70,8 @@ fun AnnotatedString.Builder.withHilitTextHighlight(block: AnnotatedString.Builde
  * [onTextLayout]으로 전달되는 [TextLayoutResult]의 인덱스와 배치 정보는 원본 [text]가 아니라
  * 전처리된 `preparedText.text`를 기준으로 한다. 이 문자열에서는 각 하이라이트 범위가 하나의
  * 인라인 콘텐츠 플레이스홀더로 치환되므로 원본 [text]의 인덱스와 일치하지 않을 수 있다.
+ *
+ * Figma 노드 번호: 439-10362.
  */
 @Composable
 fun HilitText(
