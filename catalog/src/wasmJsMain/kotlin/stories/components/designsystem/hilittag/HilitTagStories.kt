@@ -27,7 +27,7 @@ internal val HilitTagStories =
                         initialArgs =
                             HilitTagCatalogAdapterArgs(
                                 text = "Tag",
-                                colorType = TagColorType.Black,
+                                colorType = TagColorType.BlackGreen,
                                 tagType = TagType.Small,
                             ),
                     )

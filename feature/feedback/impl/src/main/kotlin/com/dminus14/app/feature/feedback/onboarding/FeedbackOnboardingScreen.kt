@@ -207,7 +207,7 @@ private fun NameEditorBottomSheetContent(
         HilitText(
             text =
                 buildAnnotatedString {
-                    append("레포트에 표시될 당신의\n")
+                    append("리포트에 표시될 당신의\n")
                     withHilitTextHighlight { append("이름") }
                     append("을 입력해주세요")
                 },
@@ -220,7 +220,7 @@ private fun NameEditorBottomSheetContent(
             style = HilitTheme.typography.head3,
         )
         Text(
-            text = "이름은 피드백 레포트에만 반영이 됩니다",
+            text = "이름은 피드백 리포트에만 반영이 됩니다",
             style = HilitTheme.typography.body4,
             color = HilitTheme.colors.gray500,
             modifier =

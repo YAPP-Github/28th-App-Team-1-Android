@@ -1,9 +1,11 @@
 package com.dminus14.app.feature.login.term
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,17 +24,23 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dminus14.app.domain.model.ConsentItem
+import com.dminus14.app.domain.model.ConsentItemCode
+import com.dminus14.app.feature.home.api.Home
 import com.dminus14.app.feature.login.api.Onboarding
+import com.dminus14.app.feature.login.api.PermissionConsent
 import com.dminus14.app.feature.login.component.TermBottomSheet
 import com.dminus14.designsystem.component.button.HilitButtonType
 import com.dminus14.designsystem.component.button.HilitFixedBottomButton
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
+import com.dminus14.designsystem.component.loading.HilitLoadingIndicator
 import com.dminus14.designsystem.component.term.TermBox
 import com.dminus14.designsystem.component.term.TermBoxType
 import com.dminus14.designsystem.component.topbar.HilitTopBar
@@ -46,6 +55,7 @@ fun TermScreen(
     viewModel: TermViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.onIntent(TermIntent.Load)
@@ -54,20 +64,24 @@ fun TermScreen(
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                TermEffect.Agreed -> {
-                    onNavigate(Onboarding)
-                }
-
                 TermEffect.Closed -> {
                     onClose()
                 }
 
-                TermEffect.GrantPerm -> {
+                TermEffect.DeniedPerm -> {
+                    onNavigate(PermissionConsent)
+                }
+
+                TermEffect.ExistProfile -> {
+                    onNavigate(Home)
+                }
+
+                TermEffect.NonExistProfile -> {
                     onNavigate(Onboarding)
                 }
 
-                TermEffect.DeniedPerm -> {
-                    // 권한 화면 이동
+                is TermEffect.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -87,37 +101,52 @@ private fun TermContent(
     onIntent: (TermIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(HilitTheme.colors.hilitWhite),
-    ) {
-        TermCloseTopBar(onCloseClick = { onIntent(TermIntent.ClickClose) })
-
-        TermAgreementBody(
-            state = state,
-            onIntent = onIntent,
+    Box {
+        Column(
             modifier =
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-        )
+                modifier
+                    .fillMaxSize()
+                    .background(HilitTheme.colors.hilitWhite),
+        ) {
+            TermCloseTopBar(onCloseClick = { onIntent(TermIntent.ClickClose) })
 
-        HilitFixedBottomButton(
-            text = "동의하고 시작하기",
-            enabled = state.canSubmit,
-            type = HilitButtonType.Light,
-            onClick = { onIntent(TermIntent.ClickAgree) },
-        )
-    }
+            TermAgreementBody(
+                state = state,
+                onIntent = onIntent,
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+            )
 
-    state.visibleTermDetail?.let { term ->
-        TermBottomSheet(
-            title = term.title,
-            body = term.body,
-            onDismissRequest = { onIntent(TermIntent.DismissTermDetail) },
-        )
+            HilitFixedBottomButton(
+                text = "동의하고 시작하기",
+                enabled = state.canSubmit,
+                type = HilitButtonType.Light,
+                onClick = { onIntent(TermIntent.ClickAgree) },
+            )
+        }
+
+        state.visibleTermDetail?.let { term ->
+            TermBottomSheet(
+                title = term.title,
+                body = term.content,
+                onDismissRequest = { onIntent(TermIntent.DismissTermDetail) },
+            )
+        }
+
+        if (state.isLoading) {
+            HilitLoadingIndicator(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null, // 리플 이펙트 제거
+                        ) { /* 아무것도 안 함, 클릭만 소비 */ }
+                        .background(HilitTheme.colors.hilitWhite.copy(alpha = 0.5f)),
+            )
+        }
     }
 }
 
@@ -196,19 +225,18 @@ private fun TermAgreementList(
             verticalArrangement = Arrangement.spacedBy(TermScreenItemSpacing),
         ) {
             state.terms.forEachIndexed { index, term ->
-                val hasDetail = term.body.isNotBlank()
                 TermBox(
                     type =
-                        if (term.hasContent()) {
+                        if (term.item.hasDocument) {
                             TermBoxType.Term
                         } else {
                             TermBoxType.Text
                         },
-                    text = term.title,
+                    text = term.item.label,
                     checked = term.isChecked,
                     onClick = { onIntent(TermIntent.ClickTerm(index)) },
                     onViewClick = {
-                        if (hasDetail) {
+                        if (term.item.hasDocument) {
                             onIntent(TermIntent.ClickViewTerm(index))
                         }
                     },
@@ -250,46 +278,17 @@ private fun TermContentCheckedPreview() {
     }
 }
 
-@Preview(showBackground = true, widthDp = 375, heightDp = 812)
-@Composable
-private fun TermDetailPreview() {
-    HilitTheme {
-        TermContent(
-            state =
-                TermState(
-                    terms = PreviewTerms.map { it.copy(isChecked = true) },
-                    visibleTermDetailIndex = 1,
+private val PreviewTerms =
+    List(3) {
+        TermConsentItem(
+            item =
+                ConsentItem(
+                    code = ConsentItemCode.TERMS_OF_SERVICE,
+                    rawCode = "",
+                    label = "(필수) 만 14세 이상입니다.",
+                    version = 0,
+                    isRequired = true,
+                    hasDocument = true,
                 ),
-            onIntent = {},
         )
     }
-}
-
-private val PreviewTerms =
-    listOf(
-        TermDetailContent(
-            title = "(필수) 만 14세 이상입니다.",
-            body = "",
-            isEssential = true,
-        ),
-        TermDetailContent(
-            title = "(필수) 서비스 이용약관 동의",
-            body = "합성 예시 본문",
-            isEssential = true,
-        ),
-        TermDetailContent(
-            title = "(필수) 개인정보 수집·이용 동의",
-            body = "합성 예시 본문",
-            isEssential = true,
-        ),
-        TermDetailContent(
-            title = "(필수) 면접 영상·음성·촬영과 저장 동의",
-            body = "합성 예시 본문",
-            isEssential = true,
-        ),
-        TermDetailContent(
-            title = "(필수) 개인정보 국외 이전 동의",
-            body = "합성 예시 본문",
-            isEssential = true,
-        ),
-    )

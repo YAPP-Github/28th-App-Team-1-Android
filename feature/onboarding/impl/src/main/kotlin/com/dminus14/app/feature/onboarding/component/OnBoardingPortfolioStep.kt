@@ -53,7 +53,7 @@ fun OnBoardingPortfolioStep(
     Column(modifier = modifier.fillMaxSize()) {
         OnBoardingStepHeader(
             tagText = "필수",
-            tagColorType = TagColorType.Black,
+            tagColorType = TagColorType.BlackGreen,
             title =
                 buildAnnotatedString {
                     withHilitTextHighlight { append("포트폴리오") }
@@ -93,6 +93,7 @@ fun OnBoardingPortfolioStep(
                         else -> PdfUploadType.Ready
                     },
                 fileName = fileName.orEmpty(),
+                progress = if (fileName != null) 100f else 0f,
                 onCloseClick =
                     if (fileName != null && !isProcessing) {
                         { onIntent(OnBoardingInterviewIntent.ClickPortfolioRemove) }
@@ -230,7 +231,7 @@ private fun OnBoardingPortfolioStepUploadingPreview() {
         Column(modifier = Modifier.fillMaxSize()) {
             OnBoardingStepHeader(
                 tagText = "필수",
-                tagColorType = TagColorType.Black,
+                tagColorType = TagColorType.BlackGreen,
                 title =
                     buildAnnotatedString {
                         withHilitTextHighlight { append("포트폴리오") }
@@ -255,6 +256,7 @@ private fun OnBoardingPortfolioStepUploadingPreview() {
                 PdfUpload(
                     type = PdfUploadType.Processing,
                     fileName = "포트폴리오.pdf",
+                    progress = 50f,
                     onCloseClick = {},
                     modifier = Modifier.padding(top = UploadToStatusSpacing),
                 )

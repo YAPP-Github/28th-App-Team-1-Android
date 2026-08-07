@@ -28,6 +28,11 @@ import org.jetbrains.compose.resources.painterResource
 import kotlin.math.PI
 import kotlin.math.sin
 
+/**
+ * 공용 로딩 인디케이터.
+ *
+ * Figma 노드 번호: 439-10407.
+ */
 @Composable
 fun HilitLoadingIndicator(
     modifier: Modifier = Modifier,

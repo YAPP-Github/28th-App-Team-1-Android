@@ -45,7 +45,7 @@ fun OnboardingJobStep(
 
     Column(modifier = modifier.fillMaxWidth()) {
         HilitTag(
-            colorType = TagColorType.Black,
+            colorType = TagColorType.BlackGreen,
             tagType = TagType.Small,
             text = "필수",
         )

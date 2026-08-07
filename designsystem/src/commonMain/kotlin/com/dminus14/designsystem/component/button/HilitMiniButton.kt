@@ -32,6 +32,11 @@ enum class HilitMiniButtonColor {
     Non,
 }
 
+/**
+ * 미니 버튼.
+ *
+ * Figma 노드 번호: 439-10190, 439-10191, 439-10192, 439-10193, 439-10194, 439-10195, 439-10196, 439-10197.
+ */
 @Composable
 fun HilitMiniButton(
     onClick: () -> Unit,

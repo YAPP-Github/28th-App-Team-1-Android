@@ -92,7 +92,7 @@ private fun PermissionConsentContent(
                         textAlign = TextAlign.Center,
                     )
                     Text(
-                        text = "면접 답변을 녹화·녹음해 레포트를 만들어요.\n카메라와 마이크 권한이 필요해요.",
+                        text = "면접 답변을 녹화·녹음해 리포트를 만들어요.\n카메라와 마이크 권한이 필요해요.",
                         style = HilitTheme.typography.body4,
                         color = HilitTheme.colors.gray500,
                         textAlign = TextAlign.Center,
