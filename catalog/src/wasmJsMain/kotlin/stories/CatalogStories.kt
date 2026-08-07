@@ -26,6 +26,7 @@ import stories.components.designsystem.hilittopbar.HilitTopBarStories
 import stories.components.designsystem.hilitwheelpicker.HilitWheelPickerStories
 import stories.components.designsystem.kakaologinbutton.KakaoLoginButtonStories
 import stories.components.designsystem.pdfupload.PdfUploadStories
+import stories.components.designsystem.previousinfotext.PreviousInfoTextStories
 import stories.components.designsystem.termbox.TermBoxStories
 import stories.foundations.ColorStories
 import stories.foundations.IconStories
@@ -64,6 +65,7 @@ internal val CatalogStories: List<StoryGroup> =
         HilitJDTextFieldStories,
         HilitAsyncTextFieldStories,
         HilitSubTextStories,
+        PreviousInfoTextStories,
         BubbleFieldStories,
         FileUploadGuideStories,
         PdfUploadStories,
