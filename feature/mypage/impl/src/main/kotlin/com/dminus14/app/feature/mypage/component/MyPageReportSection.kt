@@ -41,7 +41,7 @@ internal fun MyPageReportSection(
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = "내 면접 레포트",
+            text = "내 면접 리포트",
             style = HilitTheme.typography.body6,
             color = HilitTheme.colors.gray500,
             modifier = Modifier.padding(bottom = 12.dp),
@@ -175,7 +175,7 @@ private fun ReportCard(
                                 .padding(horizontal = 4.dp),
                     ) {
                         Text(
-                            text = "레포트 생성에 실패했어요 · 횟수는 차감되지 않았어요",
+                            text = "리포트 생성에 실패했어요 · 횟수는 차감되지 않았어요",
                             style = HilitTheme.typography.body6,
                             color = HilitTheme.colors.error500,
                         )
@@ -184,7 +184,7 @@ private fun ReportCard(
                 if (report.status == MyPageReportStatus.Completed) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         ReportAction(
-                            text = "레포트 보기",
+                            text = "리포트 보기",
                             isPrimary = false,
                             onClick = onReportViewClick,
                             modifier = Modifier.weight(1f),
@@ -318,7 +318,7 @@ private fun ReportActionPreview() {
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             ReportAction(
-                text = "레포트 보기",
+                text = "리포트 보기",
                 isPrimary = false,
                 onClick = {},
                 modifier = Modifier.weight(1f),

@@ -141,7 +141,7 @@ internal fun MyPagePortfolioSection(
                     modifier = Modifier.size(16.dp),
                 )
                 Text(
-                    text = "포트폴리오는 한 달에 한 번 바꿀 수 있어요. 지워도 지난 면접 레포트는 그대로 남아요.",
+                    text = "포트폴리오는 한 달에 한 번 바꿀 수 있어요. 지워도 지난 면접 리포트는 그대로 남아요.",
                     style = HilitTheme.typography.body9,
                     color = HilitTheme.colors.gray700,
                 )

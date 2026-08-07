@@ -5,7 +5,7 @@ import org.junit.Test
 
 class MyPageContractTest {
     @Test
-    fun `직군과 연차로 레포트의 표시 문자열을 계산한다`() {
+    fun `직군과 연차로 리포트의 표시 문자열을 계산한다`() {
         val report =
             MyPageReportUiModel(
                 id = "synthetic-report",

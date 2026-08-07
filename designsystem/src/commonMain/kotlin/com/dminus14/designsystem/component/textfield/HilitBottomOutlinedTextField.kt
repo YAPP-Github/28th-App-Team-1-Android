@@ -37,6 +37,8 @@ private val BottomOutlineThickness = 4.dp
  *
  * 기본적으로 가운데 정렬하여 사용하되, 만약 텍스트 필드 너비가 화면 너비를 초과할 경우
  * 이 때에는 좌우 패딩 `24.dp`를 적용하여야 한다.
+ *
+ * Figma 노드 번호: 935-13816, 935-13817.
  */
 @Composable
 fun HilitBottomOutlinedTextField(

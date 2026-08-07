@@ -29,6 +29,7 @@ import com.dminus14.designsystem.theme.HilitTheme
  * 카카오 로그인 전용 Large 버튼.
  *
  * Figma: ButtonLargeLogin (kakao)
+ * - 노드 번호: 439-10207
  * - 배경: kakao `#FEE500`
  * - 텍스트: `hilitBlack900` + `sub7`
  * - 아이콘: [HilitIconAsset.KakaoLogo] 24dp
