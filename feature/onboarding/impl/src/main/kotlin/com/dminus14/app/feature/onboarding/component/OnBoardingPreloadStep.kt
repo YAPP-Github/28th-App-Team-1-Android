@@ -91,7 +91,11 @@ fun OnBoardingPreloadStep(
     // 세 스텝이 모두 완료되면 하단 초록 사각형을 화면 전체로 확장한다.
     val expandFraction by animateFloatAsState(
         targetValue = if (isCompleted) 1f else 0f,
-        animationSpec = tween(durationMillis = PRELOAD_EXPAND_ANIMATION_MS, easing = FastOutSlowInEasing),
+        animationSpec =
+            tween(
+                durationMillis = PRELOAD_EXPAND_ANIMATION_MS,
+                easing = FastOutSlowInEasing,
+            ),
         label = "onBoardingPreloadExpand",
     )
 
@@ -303,7 +307,13 @@ private fun PreloadDecoration(
     }
 }
 
-@Preview(name = "In progress", showBackground = true, backgroundColor = 0xFF1A1B1F, widthDp = 375, heightDp = 812)
+@Preview(
+    name = "In progress",
+    showBackground = true,
+    backgroundColor = 0xFF1A1B1F,
+    widthDp = 375,
+    heightDp = 812,
+)
 @Composable
 private fun OnBoardingPreloadStepPreview() {
     HilitTheme {
@@ -316,7 +326,13 @@ private fun OnBoardingPreloadStepPreview() {
     }
 }
 
-@Preview(name = "Completed", showBackground = true, backgroundColor = 0xFF1A1B1F, widthDp = 375, heightDp = 812)
+@Preview(
+    name = "Completed",
+    showBackground = true,
+    backgroundColor = 0xFF1A1B1F,
+    widthDp = 375,
+    heightDp = 812,
+)
 @Composable
 private fun OnBoardingPreloadStepCompletedPreview() {
     HilitTheme {

@@ -524,11 +524,11 @@ class OnBoardingInterviewViewModel
 
             reduce { copy(loadingBasicInfo = OnBoardingLoadingStepStatus.InProgress) }
             viewModelScope.launch {
+                // 서버는 직군·연차를 요청 바디로 받지 않고 저장된 프로필 스냅샷을 사용한다.
+                // 그래도 프로필이 미완성이면 세션 생성이 튕겨나오므로 위 role/years 가드는 유지한다.
                 val request =
                     InterviewSessionRequest(
                         portfolioId = portfolioId,
-                        jobRole = role,
-                        careerYears = years,
                         jdUrl = jdUrl,
                         jdText = jdText,
                         freeText = state.value.mainProjectText.takeIf { it.isNotEmpty() },
