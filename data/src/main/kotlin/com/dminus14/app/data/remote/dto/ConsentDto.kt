@@ -10,7 +10,7 @@ import com.google.gson.annotations.SerializedName
 
 /** pending 동의 목록 응답의 `data` 본문이다. */
 data class ConsentPendingItemsDto(
-    @SerializedName("status")
+    @SerializedName("consentStatus")
     val status: String,
     @SerializedName("items")
     val items: List<ConsentItemDto>?,

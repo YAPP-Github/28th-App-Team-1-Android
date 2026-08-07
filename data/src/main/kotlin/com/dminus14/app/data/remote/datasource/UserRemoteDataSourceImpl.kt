@@ -16,7 +16,14 @@ class UserRemoteDataSourceImpl
     constructor(
         private val userApi: UserApi,
     ) : UserRemoteDataSource {
-        override suspend fun getUserProfile(): UserProfileFetchResponseDto = userApi.getProfile()
+        override suspend fun getUserProfile(): UserProfileFetchResponseDto {
+            val response = userApi.getProfile()
+            return response.data.takeIf { response.success }
+                ?: throw ServerException(
+                    errCode = ApiErrorCode.SERVER_ERROR,
+                    message = "회원 프로필 조회 응답에 data가 없습니다.",
+                )
+        }
 
         override suspend fun updateUserProfile(request: UserProfileUpdateRequestDto) {
             val response = userApi.updateProfile(request)
