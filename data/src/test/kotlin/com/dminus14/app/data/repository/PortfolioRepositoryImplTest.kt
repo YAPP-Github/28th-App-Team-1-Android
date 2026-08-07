@@ -31,14 +31,14 @@ import java.io.IOException
 
 class PortfolioRepositoryImplTest {
     @Test
-    fun `목록 조회를 위임하고 도메인 결과를 반환한다`() {
+    fun `개요 조회를 위임하고 도메인 결과를 반환한다`() {
         val dataSource = FakePortfolioRemoteDataSource()
         val repository = PortfolioRepositoryImpl(dataSource)
 
-        val actual = runBlocking { repository.getPortfolios() }
+        val actual = runBlocking { repository.getPortfolioOverview() }
 
-        assertEquals("portfolio-1", actual.single().portfolioId)
-        assertEquals(PortfolioStatus.READY, actual.single().status)
+        assertEquals("portfolio-1", actual.portfolio?.portfolioId)
+        assertEquals(PortfolioStatus.READY, actual.portfolio?.status)
         assertEquals(1, dataSource.getPortfoliosCallCount)
     }
 
@@ -165,7 +165,7 @@ class PortfolioRepositoryImplTest {
             val repository =
                 PortfolioRepositoryImpl(FakePortfolioRemoteDataSource(failure = failure))
 
-            val actual = captureFailure { repository.getPortfolios() }
+            val actual = captureFailure { repository.getPortfolioOverview() }
 
             assertTrue(expectedType.isInstance(actual))
             assertSame(failure, actual.cause)

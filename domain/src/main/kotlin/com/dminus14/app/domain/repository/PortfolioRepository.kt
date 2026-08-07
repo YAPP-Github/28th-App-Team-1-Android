@@ -1,18 +1,18 @@
 package com.dminus14.app.domain.repository
 
-import com.dminus14.app.domain.model.Portfolio
 import com.dminus14.app.domain.model.PortfolioDeleteResult
+import com.dminus14.app.domain.model.PortfolioOverview
 import com.dminus14.app.domain.model.PortfolioUploadResult
 import java.io.File
 
 interface PortfolioRepository {
     /**
-     * 내 포트폴리오 목록을 조회한다.
+     * 내 포트폴리오와 계정 단위 교체·삭제 정책을 함께 조회한다.
      *
      * Access Token은 네트워크 레이어에서 자동 부착된다.
-     * MVP는 계정당 1개지만 확장 대비 리스트로 반환한다.
+     * MVP는 계정당 포트폴리오 1개다.
      */
-    suspend fun getPortfolios(): List<Portfolio>
+    suspend fun getPortfolioOverview(): PortfolioOverview
 
     /**
      * 포트폴리오 PDF를 멀티파트로 업로드 접수한다.
