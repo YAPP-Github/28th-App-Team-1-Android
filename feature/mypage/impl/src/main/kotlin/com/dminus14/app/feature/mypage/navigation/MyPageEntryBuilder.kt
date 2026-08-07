@@ -6,13 +6,14 @@ import com.dminus14.app.feature.mypage.MyPageScreen
 
 fun EntryProviderScope<Any>.myPageEntryBuilder(
     onClose: () -> Unit,
-    onPortfolioSelectionRequested: () -> Unit,
+    onLogoutCompleted: () -> Unit,
+    onWithdrawalCompleted: () -> Unit,
 ) {
     entry<MyPage> {
         MyPageScreen(
             onClose = onClose,
-            onPortfolioSelectionRequested = onPortfolioSelectionRequested,
-            progress = 0f,
+            onLogoutCompleted = onLogoutCompleted,
+            onWithdrawalCompleted = onWithdrawalCompleted,
         )
     }
 }

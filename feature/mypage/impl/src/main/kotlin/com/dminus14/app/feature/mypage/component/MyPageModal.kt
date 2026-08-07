@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.dminus14.app.feature.mypage.component
 
 import androidx.compose.foundation.background
@@ -28,6 +30,14 @@ import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
 import com.dminus14.designsystem.theme.HilitTheme
 
+/**
+ * 포트폴리오·로그아웃 관련 확인 모달.
+ *
+ * 확인 버튼은 [onConfirm]만 호출한다. 서버 응답을 받은 ViewModel이 [onClose]에 해당하는 상태
+ * 변경(모달 닫기)을 직접 수행하므로, 이 컴포저블은 결과를 기다리지 않고 자동으로 닫지 않는다.
+ * [isSubmitting]인 동안에는 두 버튼 모두 비활성으로 잠근다.
+ */
+@Suppress("LongParameterList")
 @Composable
 internal fun MyPageModal(
     type: MyPageModalType,
@@ -35,6 +45,7 @@ internal fun MyPageModal(
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
     count: Int? = null,
+    isSubmitting: Boolean = false,
 ) {
     val content = type.content(count)
 
@@ -79,6 +90,7 @@ internal fun MyPageModal(
             ModalButtons(
                 dismissText = content.dismissText,
                 confirmText = content.confirmText,
+                isSubmitting = isSubmitting,
                 onConfirm = onConfirm,
                 onClose = onClose,
             )
@@ -139,6 +151,7 @@ private fun ModalNotice(
 private fun ModalButtons(
     dismissText: String,
     confirmText: String?,
+    isSubmitting: Boolean,
     onConfirm: () -> Unit,
     onClose: () -> Unit,
 ) {
@@ -146,6 +159,7 @@ private fun ModalButtons(
         HilitFixedBottomButton(
             text = dismissText,
             type = HilitButtonType.Light,
+            enabled = !isSubmitting,
             onClick = onClose,
         )
     } else {
@@ -153,11 +167,10 @@ private fun ModalButtons(
             leftText = dismissText,
             rightText = confirmText,
             type = HilitFixedBottomDualButtonType.TwoColor,
+            leftEnabled = !isSubmitting,
+            rightEnabled = !isSubmitting,
             onLeftClick = onClose,
-            onRightClick = {
-                onConfirm()
-                onClose()
-            },
+            onRightClick = onConfirm,
         )
     }
 }
@@ -209,11 +222,32 @@ private fun MyPageModalType.content(count: Int?): ModalContent =
             )
         }
 
+        MyPageModalType.UploadAlreadyCompleted -> {
+            ModalContent(
+                title = "업로드가 이미 완료됐어요",
+                message = "취소하기 전에 처리가 끝나 그대로 등록했어요.",
+                dismissText = "확인",
+            )
+        }
+
         MyPageModalType.Logout -> {
             ModalContent(
                 title = "로그아웃하시겠어요?",
                 message = "언제든 다시 로그인할 수 있어요.",
                 confirmText = "로그아웃",
+            )
+        }
+
+        MyPageModalType.WithdrawalNotice, MyPageModalType.WithdrawalConfirm -> {
+            // 탈퇴 모달은 MyPageWithdrawalModal이 별도로 그린다.
+            ModalContent(title = "", message = "")
+        }
+
+        MyPageModalType.WithdrawalBlocked -> {
+            ModalContent(
+                title = "탈퇴할 수 없어요",
+                message = "현재 면접이 진행되고 있어요.\n면접이 끝나면 다시 시도해주세요.",
+                dismissText = "확인",
             )
         }
     }
@@ -268,10 +302,39 @@ private fun MyPageReuploadUnavailableModalPreview() {
 
 @Preview(showBackground = true)
 @Composable
+private fun MyPageUploadAlreadyCompletedModalPreview() {
+    HilitTheme {
+        Box(modifier = Modifier.fillMaxSize()) {
+            MyPageModal(
+                type = MyPageModalType.UploadAlreadyCompleted,
+                onConfirm = {},
+                onClose = {},
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
 private fun MyPageLogoutModalPreview() {
     HilitTheme {
         Box(modifier = Modifier.fillMaxSize()) {
             MyPageModal(type = MyPageModalType.Logout, onConfirm = {}, onClose = {})
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MyPageLogoutSubmittingModalPreview() {
+    HilitTheme {
+        Box(modifier = Modifier.fillMaxSize()) {
+            MyPageModal(
+                type = MyPageModalType.Logout,
+                onConfirm = {},
+                onClose = {},
+                isSubmitting = true,
+            )
         }
     }
 }
