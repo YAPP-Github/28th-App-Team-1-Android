@@ -30,6 +30,10 @@ class AuthRemoteDataSourceImpl
             return response.data ?: error("토큰 재발급 응답에 토큰이 없습니다.")
         }
 
+        override suspend fun logout() {
+            authApi.logout()
+        }
+
         private companion object {
             const val PROVIDER_KAKAO = "KAKAO"
         }

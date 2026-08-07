@@ -7,4 +7,6 @@ interface AuthRemoteDataSource {
     suspend fun loginWithKakao(credential: String): SocialLoginResponseDto
 
     suspend fun refreshToken(refreshToken: String): TokenRefreshResponseDto
+
+    suspend fun logout()
 }
