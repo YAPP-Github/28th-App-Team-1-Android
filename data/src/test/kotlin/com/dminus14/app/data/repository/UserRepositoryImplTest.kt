@@ -1,6 +1,7 @@
 package com.dminus14.app.data.repository
 
 import com.dminus14.app.data.remote.datasource.UserRemoteDataSource
+import com.dminus14.app.data.remote.dto.user.JobListResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileFetchResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileUpdateRequestDto
 import com.dminus14.app.domain.exception.CustomException
@@ -189,6 +190,9 @@ class UserRepositoryImplTest {
             withdrawalFailure?.let { throw it }
             withdrawalCallCount += 1
         }
+
+        // TODO: 직군 목록 API 케이스 커버리지 미포함 — 최소 스텁만 두어 컴파일만 통과시킨다.
+        override suspend fun getJobs(): JobListResponseDto = JobListResponseDto(jobs = emptyList())
     }
 
     private fun httpException(

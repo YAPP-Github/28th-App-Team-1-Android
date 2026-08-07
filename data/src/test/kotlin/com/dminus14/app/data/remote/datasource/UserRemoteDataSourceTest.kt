@@ -2,6 +2,7 @@ package com.dminus14.app.data.remote.datasource
 
 import com.dminus14.app.data.remote.api.UserApi
 import com.dminus14.app.data.remote.dto.ApiResponseDto
+import com.dminus14.app.data.remote.dto.user.JobListResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileFetchResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileUpdateRequestDto
 import com.dminus14.app.data.remote.dto.user.UserProfileUpdateResponseDto
@@ -131,6 +132,10 @@ class UserRemoteDataSourceTest {
             withdrawalCallCount += 1
             return withdrawalResponse
         }
+
+        // TODO: 직군 목록 API 케이스 커버리지 미포함 — 최소 스텁만 두어 컴파일만 통과시킨다.
+        override suspend fun getJobs(): ApiResponseDto<JobListResponseDto> =
+            ApiResponseDto(success = true, data = JobListResponseDto(jobs = emptyList()))
     }
 
     private companion object {

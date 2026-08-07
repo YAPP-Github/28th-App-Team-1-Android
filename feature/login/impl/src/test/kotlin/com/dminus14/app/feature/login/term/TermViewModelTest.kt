@@ -747,6 +747,9 @@ class TermViewModelTest {
             throw AssertionError("이 테스트에서 프로필 수정은 일어나면 안 됩니다.")
 
         override suspend fun withdraw() = throw AssertionError("이 테스트에서 탈퇴는 일어나면 안 됩니다.")
+
+        // TODO: 직군 목록 조회 케이스 커버리지 미포함 — 컴파일 통과용 스텁.
+        override suspend fun getJobList() = throw AssertionError("이 테스트에서 직군 목록 조회는 일어나면 안 됩니다.")
     }
 
     /** 프로필 조회 미행사 테스트용. 호출되면 AssertionError. */
@@ -758,6 +761,8 @@ class TermViewModelTest {
             throw AssertionError("이 테스트에서 프로필 수정은 일어나면 안 됩니다.")
 
         override suspend fun withdraw() = throw AssertionError("이 테스트에서 탈퇴는 일어나면 안 됩니다.")
+
+        override suspend fun getJobList() = throw AssertionError("이 테스트에서 직군 목록 조회는 일어나면 안 됩니다.")
     }
 
     /** Load/ClickViewTerm/제출 검증용 fake. 필요한 것만 스텁하고 나머지는 AssertionError. */
