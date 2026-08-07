@@ -78,8 +78,8 @@ internal fun hilitFixedBottomButtonColors(
     enabled: Boolean,
     colors: HilitColors,
 ): BtnColorSet =
-    when {
-        type == HilitButtonType.Light && enabled -> {
+    when (type) {
+        HilitButtonType.Light if enabled -> {
             BtnColorSet(
                 contentColor = colors.hilitWhite,
                 backgroundColor = colors.hilitBlack800,
@@ -87,7 +87,7 @@ internal fun hilitFixedBottomButtonColors(
             )
         }
 
-        type == HilitButtonType.Dark && enabled -> {
+        HilitButtonType.Dark if enabled -> {
             BtnColorSet(
                 contentColor = colors.hilitBlack800,
                 backgroundColor = colors.hilitWhite,
@@ -95,7 +95,7 @@ internal fun hilitFixedBottomButtonColors(
             )
         }
 
-        type == HilitButtonType.Light -> {
+        HilitButtonType.Light -> {
             BtnColorSet(
                 contentColor = colors.gray300,
                 backgroundColor = colors.gray50,

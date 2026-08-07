@@ -22,6 +22,7 @@ import com.dminus14.app.domain.exception.ServerException
 import kotlinx.coroutines.runBlocking
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertSame
@@ -614,7 +615,7 @@ class InterviewRemoteDataSourceTest {
         ): ResponseBody {
             requestedStreamSessionId = sessionId
             requestedStreamQuestionId = questionId
-            return ResponseBody.create(null, "")
+            return "".toResponseBody(null)
         }
 
         override suspend fun getResume(
