@@ -1,6 +1,5 @@
 package com.dminus14.app.feature.login.onboarding.component
 
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.dminus14.app.feature.login.onboarding.OnboardingIntent
@@ -24,7 +23,7 @@ fun OnboardingBottomBar(
                 enabled = isContinueEnabled,
                 type = HilitButtonType.Light,
                 onClick = { onIntent(OnboardingIntent.ContinueClick) },
-                modifier = modifier.navigationBarsPadding(),
+                modifier = modifier,
             )
         }
 
@@ -37,7 +36,7 @@ fun OnboardingBottomBar(
                 type = HilitFixedBottomDualButtonType.Default,
                 onLeftClick = { onIntent(OnboardingIntent.PreviousClick) },
                 onRightClick = { onIntent(OnboardingIntent.ContinueClick) },
-                modifier = modifier.navigationBarsPadding(),
+                modifier = modifier,
             )
         }
 
@@ -50,7 +49,7 @@ fun OnboardingBottomBar(
                 type = HilitFixedBottomDualButtonType.Default,
                 onLeftClick = { onIntent(OnboardingIntent.PreviousClick) },
                 onRightClick = { onIntent(OnboardingIntent.ContinueClick) },
-                modifier = modifier.navigationBarsPadding(),
+                modifier = modifier,
             )
         }
 
@@ -60,7 +59,7 @@ fun OnboardingBottomBar(
                 enabled = true,
                 type = HilitButtonType.Light,
                 onClick = { onIntent(OnboardingIntent.ContinueClick) },
-                modifier = modifier.navigationBarsPadding(),
+                modifier = modifier,
             )
         }
     }

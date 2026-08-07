@@ -54,7 +54,7 @@ class PermissionConsentViewModel
                 checkUserProfile()
                     .onSuccess { profile ->
                         reduce { copy(isLoading = false) }
-                        if (profile.name.isNullOrBlank() || profile.email.isNullOrBlank()) {
+                        if (profile.name.isNullOrBlank()) {
                             sendEffect(PermissionConsentEffect.NavigateOnboarding)
                         } else {
                             sendEffect(PermissionConsentEffect.NavigateHome)

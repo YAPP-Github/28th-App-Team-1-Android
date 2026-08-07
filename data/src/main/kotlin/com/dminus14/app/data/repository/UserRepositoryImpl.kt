@@ -13,6 +13,7 @@ import com.dminus14.app.domain.exception.SocialReconnectRequiredException
 import com.dminus14.app.domain.exception.SocialUnlinkFailedException
 import com.dminus14.app.domain.exception.UserNotFoundException
 import com.dminus14.app.domain.exception.ValidationException
+import com.dminus14.app.domain.model.Job
 import com.dminus14.app.domain.model.UserProfile
 import com.dminus14.app.domain.model.UserProfileUpdate
 import com.dminus14.app.domain.repository.UserRepository
@@ -46,6 +47,12 @@ class UserRepositoryImpl
                     throw CommonApiErrorMapper.map(error, ::mapWithdrawalError)
                 }
         }
+
+        override suspend fun getJobList(): List<Job> =
+            runCatching { userRemoteDataSource.getJobs() }
+                .getOrElse { error ->
+                    throw CommonApiErrorMapper.map(error)
+                }.toDomain()
 
         private fun mapUserNotFound(
             httpError: HttpException,

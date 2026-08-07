@@ -1,6 +1,7 @@
 package com.dminus14.app.data.remote.datasource
 
 import com.dminus14.app.data.remote.api.UserApi
+import com.dminus14.app.data.remote.dto.user.JobListResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileFetchResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileUpdateRequestDto
 import com.dminus14.app.data.remote.mapper.ApiErrorCode
@@ -44,6 +45,15 @@ class UserRemoteDataSourceImpl
                     message = "회원 탈퇴 성공 응답 코드가 올바르지 않습니다.",
                 )
             }
+        }
+
+        override suspend fun getJobs(): JobListResponseDto {
+            val response = userApi.getJobs()
+            return response.data.takeIf { response.success }
+                ?: throw ServerException(
+                    errCode = ApiErrorCode.SERVER_ERROR,
+                    message = "직무 목록 조회 응답에 data가 없습니다.",
+                )
         }
 
         private companion object {
