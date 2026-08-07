@@ -3,6 +3,7 @@ package com.dminus14.app.feature.home
 import com.dminus14.app.core.common.mvi.MviEffect
 import com.dminus14.app.core.common.mvi.MviIntent
 import com.dminus14.app.core.common.mvi.MviState
+import com.dminus14.app.feature.home.component.HomeSessionStartOverlayState
 
 sealed interface HomeIntent : MviIntent {
     data object Load : HomeIntent
@@ -27,6 +28,11 @@ data class HomeState(
     val userName: String = "",
     val reports: List<HomeReportItem> = emptyList(),
     val expandedReportId: String? = null,
+    /**
+     * 홈에 페이드인으로 노출할 세션 시작 오버레이. null이면 아무것도 표시하지 않는다.
+     * 트리거 로직은 후속에서 인텐트/UseCase를 통해 채우며, 지금은 상태 필드만 준비해 둔다.
+     */
+    val sessionStartOverlay: HomeSessionStartOverlayState? = null,
 ) : MviState
 
 sealed interface HomeEffect : MviEffect

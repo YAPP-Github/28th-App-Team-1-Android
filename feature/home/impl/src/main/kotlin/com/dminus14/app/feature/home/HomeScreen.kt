@@ -34,6 +34,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dminus14.app.core.resources.Res
 import com.dminus14.app.core.resources.home_background
 import com.dminus14.app.feature.home.component.HomeReportSheet
+import com.dminus14.app.feature.home.component.HomeSessionStartCallbacks
+import com.dminus14.app.feature.home.component.HomeSessionStartOverlay
+import com.dminus14.app.feature.home.component.HomeSessionStartOverlayState
 import com.dminus14.app.feature.home.component.HomeSheetAnchor
 import com.dminus14.designsystem.component.topbar.HilitLogoTopBar
 import com.dminus14.designsystem.theme.HilitTheme
@@ -129,6 +132,14 @@ private fun HomeContent(
                 Modifier
                     .zIndex(1f)
                     .fillMaxWidth(),
+        )
+
+        // 세션 시작 오버레이. state가 non-null이면 페이드인으로 위에 얹혀 다른 UI를 가린다.
+        // 트리거·콜백 배선은 후속 작업에서 채운다.
+        HomeSessionStartOverlay(
+            state = state.sessionStartOverlay,
+            callbacks = HomeSessionStartCallbacks(),
+            modifier = Modifier.zIndex(2f),
         )
     }
 }
@@ -232,6 +243,32 @@ private fun HomeReportPreview() {
                     userName = "재원",
                     reports = PreviewHomeReports,
                     expandedReportId = PreviewHomeReports.first().id,
+                ),
+            onReportExpandClick = {},
+            onReportActionClick = {},
+        )
+    }
+}
+
+@Preview(
+    name = "HomeWithSessionStartOverlay",
+    showBackground = true,
+    widthDp = 375,
+    heightDp = 812,
+)
+@Composable
+private fun HomeWithSessionStartOverlayPreview() {
+    HilitTheme {
+        HomeContent(
+            state =
+                HomeState(
+                    userName = "재원",
+                    reports = PreviewHomeReports,
+                    sessionStartOverlay =
+                        HomeSessionStartOverlayState.Start(
+                            userName = "재원",
+                            remainingTicketCount = 3,
+                        ),
                 ),
             onReportExpandClick = {},
             onReportActionClick = {},
