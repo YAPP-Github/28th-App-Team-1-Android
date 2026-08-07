@@ -23,8 +23,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
-// TODO: 이전 프로덕션 코드의 `DefaultJobs` 하드코딩 목록이 서버 조회(GetJobListUseCase)로 대체되면서
-// 이 값은 이제 테스트의 "loadJobs가 채워 넣는 목록" 역할만 한다. 원래 어서션이 최소 3개 이상의
+// 이전 프로덕션의 `DefaultJobs` 하드코딩 목록이 서버 조회(GetJobListUseCase)로 대체되면서
+// 이 값은 테스트의 "loadJobs가 채워 넣는 목록" 역할만 한다. 원래 어서션이 최소 3개 이상의
 // 직군을 필요로 하기 때문에(예: `JobClick(2)`) 스텁이 반환하는 목록을 그대로 사용한다.
 private val DefaultJobs =
     listOf(

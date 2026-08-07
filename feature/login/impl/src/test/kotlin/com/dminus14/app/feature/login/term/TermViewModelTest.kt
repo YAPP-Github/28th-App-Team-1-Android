@@ -748,7 +748,7 @@ class TermViewModelTest {
 
         override suspend fun withdraw() = throw AssertionError("이 테스트에서 탈퇴는 일어나면 안 됩니다.")
 
-        // TODO: 직군 목록 조회 케이스 커버리지 미포함 — 컴파일 통과용 스텁.
+        // 직군 목록 조회는 이 테스트 대상이 아니라 컴파일 통과용 스텁만 둔다.
         override suspend fun getJobList() = throw AssertionError("이 테스트에서 직군 목록 조회는 일어나면 안 됩니다.")
     }
 

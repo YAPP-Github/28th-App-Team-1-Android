@@ -191,7 +191,7 @@ class UserRepositoryImplTest {
             withdrawalCallCount += 1
         }
 
-        // TODO: 직군 목록 API 케이스 커버리지 미포함 — 최소 스텁만 두어 컴파일만 통과시킨다.
+        // 직군 목록 API 케이스 커버리지는 별도 테스트에서 다루고, 여기서는 컴파일 통과용 스텁만 둔다.
         override suspend fun getJobs(): JobListResponseDto = JobListResponseDto(jobs = emptyList())
     }
 

@@ -666,7 +666,7 @@ class SplashViewModelTest {
 
         override suspend fun withdraw() = error("Not used in SplashViewModelTest")
 
-        // TODO: 직군 목록 조회 케이스 커버리지 미포함 — 컴파일 통과용 스텁.
+        // 직군 목록 조회는 이 테스트 대상이 아니라 컴파일 통과용 스텁만 둔다.
         override suspend fun getJobList() = error("Not used in SplashViewModelTest")
     }
 
