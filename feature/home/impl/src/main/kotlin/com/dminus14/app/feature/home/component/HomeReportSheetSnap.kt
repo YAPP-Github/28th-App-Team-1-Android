@@ -126,13 +126,22 @@ internal fun resolveSnapTargetPx(
     directionHint: Float = 0f,
 ): Float =
     when {
-        velocityY < -SNAP_VELOCITY_THRESHOLD_PX -> anchors.expandedTopPx
-        velocityY > SNAP_VELOCITY_THRESHOLD_PX -> anchors.collapsedTopPx
-        abs(directionHint) >= SNAP_DIRECTION_THRESHOLD_PX ->
+        velocityY < -SNAP_VELOCITY_THRESHOLD_PX -> {
+            anchors.expandedTopPx
+        }
+
+        velocityY > SNAP_VELOCITY_THRESHOLD_PX -> {
+            anchors.collapsedTopPx
+        }
+
+        abs(directionHint) >= SNAP_DIRECTION_THRESHOLD_PX -> {
             nextAnchorInDirection(currentTopPx, directionHint, anchors)
-        else ->
+        }
+
+        else -> {
             anchors.snapTargetsPx.minByOrNull { abs(it - currentTopPx) }
                 ?: anchors.peekTopPx
+        }
     }
 
 private fun nextAnchorInDirection(

@@ -154,7 +154,11 @@ private fun HomeTopBar(
                         .height(TopBarShadowHeight)
                         .background(
                             Brush.verticalGradient(
-                                colors = listOf(TopBarExpandedShadowColor, TopBarExpandedShadowColor.copy(alpha = 0f)),
+                                colors =
+                                    listOf(
+                                        TopBarExpandedShadowColor,
+                                        TopBarExpandedShadowColor.copy(alpha = 0f),
+                                    ),
                             ),
                         ),
             )
@@ -170,25 +174,24 @@ private fun HomeHeroSection(userName: String) {
                 .fillMaxWidth()
                 .padding(horizontal = HeroHorizontalPadding)
                 .padding(top = GreetingTopSpacing),
-        ) {
-            Text(
-                text = "오랜만이에요\n${userName}님!",
-                style = HilitTheme.typography.head1,
-                color = HilitTheme.colors.hilitBlack800,
-            )
-            Text(
-                text = "밑으로 스크롤해서 면접을 시작해 보세요!",
-                style = HilitTheme.typography.body3,
-                color = HilitTheme.colors.hilitGreen800,
-                textAlign = TextAlign.Center,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            horizontal = HintHorizontalPadding,
-                            vertical = HintVerticalPadding,
-                    )
-                    .padding(top = GreetingToHintSpacing),
+    ) {
+        Text(
+            text = "오랜만이에요\n${userName}님!",
+            style = HilitTheme.typography.head1,
+            color = HilitTheme.colors.hilitBlack800,
+        )
+        Text(
+            text = "밑으로 스크롤해서 면접을 시작해 보세요!",
+            style = HilitTheme.typography.body3,
+            color = HilitTheme.colors.hilitGreen800,
+            textAlign = TextAlign.Center,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = HintHorizontalPadding,
+                        vertical = HintVerticalPadding,
+                    ).padding(top = GreetingToHintSpacing),
         )
     }
 }

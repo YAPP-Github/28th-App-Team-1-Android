@@ -96,8 +96,7 @@ private fun HilitReportCardCollapsedContent(
                     indication = null,
                     role = Role.Button,
                     onClick = onExpandClick,
-                )
-                .padding(CollapsedPadding),
+                ).padding(CollapsedPadding),
     )
 }
 
@@ -148,8 +147,7 @@ private fun HilitReportCardExpandedContent(
                             indication = null,
                             role = Role.Button,
                             onClick = onActionClick,
-                        )
-                        .padding(ActionPadding),
+                        ).padding(ActionPadding),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 HilitIcon(

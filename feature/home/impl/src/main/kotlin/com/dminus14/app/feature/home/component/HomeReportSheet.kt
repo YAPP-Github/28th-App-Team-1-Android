@@ -135,7 +135,8 @@ fun HomeReportSheet(
                     onSheetTopPxChange = { value -> sheetTopPx = value },
                     onDragEnd = sheetLayout.onDragEnd,
                     showDragHandleIndicator =
-                        sheetTopPx > sheetLayout.anchors.expandedTopPx + EXPANDED_POSITION_TOLERANCE_PX,
+                        sheetTopPx >
+                            sheetLayout.anchors.expandedTopPx + EXPANDED_POSITION_TOLERANCE_PX,
                 ),
         )
     }
@@ -236,9 +237,7 @@ private data class HomeReportSheetHandleState(
 )
 
 @Composable
-private fun HomeReportSheetContainer(
-    contentState: HomeReportSheetContentState,
-) {
+private fun HomeReportSheetContainer(contentState: HomeReportSheetContentState) {
     val density = LocalDensity.current
 
     Box(
@@ -447,8 +446,7 @@ private fun HomeReportSheetHandle(
                     } else {
                         Modifier
                     },
-                )
-                .pointerInput(state.anchors) {
+                ).pointerInput(state.anchors) {
                     val velocityTracker = VelocityTracker()
                     detectVerticalDragGestures(
                         onDragStart = { velocityTracker.resetTracking() },
@@ -488,10 +486,18 @@ private fun HomeReportSheetHandle(
 private fun HomeReportSheetHeader(reportCount: Int) {
     val title =
         buildAnnotatedString {
-            withStyle(HilitTheme.typography.sub7.toSpanStyle().copy(color = HilitTheme.colors.hilitBlack800)) {
+            withStyle(
+                HilitTheme.typography.sub7.toSpanStyle().copy(
+                    color = HilitTheme.colors.hilitBlack800,
+                ),
+            ) {
                 append("면접 리포트 ")
             }
-            withStyle(HilitTheme.typography.sub7.toSpanStyle().copy(color = HilitTheme.colors.gray500)) {
+            withStyle(
+                HilitTheme.typography.sub7
+                    .toSpanStyle()
+                    .copy(color = HilitTheme.colors.gray500),
+            ) {
                 append("${reportCount}개")
             }
         }
@@ -518,7 +524,8 @@ private fun HomeReportVideoOverlay(modifier: Modifier = Modifier) {
                             colorStops =
                                 arrayOf(
                                     0f to Color.White.copy(alpha = 0f),
-                                    VIDEO_OVERLAY_MID_STOP to Color.White.copy(alpha = VIDEO_OVERLAY_MID_ALPHA),
+                                    VIDEO_OVERLAY_MID_STOP to
+                                        Color.White.copy(alpha = VIDEO_OVERLAY_MID_ALPHA),
                                     VIDEO_OVERLAY_END_STOP to Color.White,
                                 ),
                         ),

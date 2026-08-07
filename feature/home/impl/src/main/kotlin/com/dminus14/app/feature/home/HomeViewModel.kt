@@ -35,7 +35,9 @@ class HomeViewModel
                     }
                 }
 
-                is HomeIntent.ReportActionClick -> Unit
+                is HomeIntent.ReportActionClick -> {
+                    Unit
+                }
             }
         }
     }
