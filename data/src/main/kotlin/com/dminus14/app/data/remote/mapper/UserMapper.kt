@@ -1,7 +1,10 @@
 package com.dminus14.app.data.remote.mapper
 
+import com.dminus14.app.data.remote.dto.user.JobDto
+import com.dminus14.app.data.remote.dto.user.JobListResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileFetchResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileUpdateRequestDto
+import com.dminus14.app.domain.model.Job
 import com.dminus14.app.domain.model.UserProfile
 import com.dminus14.app.domain.model.UserProfileUpdate
 
@@ -23,4 +26,14 @@ internal fun UserProfileUpdate.toDto(): UserProfileUpdateRequestDto =
         name = name,
         jobRole = jobRole,
         careerYears = careerYears,
+    )
+
+/** 직무 목록 응답 DTO를 Domain 모델 리스트로 변환한다. */
+internal fun JobListResponseDto.toDomain(): List<Job> = jobs.map { it.toDomain() }
+
+internal fun JobDto.toDomain(): Job =
+    Job(
+        jobId = jobId,
+        jobRole = jobRole,
+        label = label,
     )

@@ -1,6 +1,7 @@
 package com.dminus14.app.data.remote.api
 
 import com.dminus14.app.data.remote.dto.ApiResponseDto
+import com.dminus14.app.data.remote.dto.user.JobListResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileFetchResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileUpdateRequestDto
 import com.dminus14.app.data.remote.dto.user.UserProfileUpdateResponseDto
@@ -21,4 +22,7 @@ interface UserApi {
 
     @DELETE("api/v1/users/me")
     suspend fun withdraw(): Response<Unit>
+
+    @GET("api/v1/jobs")
+    suspend fun getJobs(): ApiResponseDto<JobListResponseDto>
 }

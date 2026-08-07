@@ -13,30 +13,35 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 
 /**
- * [ActivityResultContracts.RequestPermission]로 권한을 요청하는 함수를 반환한다.
+ * [permissions]를 한 번에 요청하는 함수를 반환한다. 시스템이 다이얼로그를 순차로 노출하고
+ * 전체 결과를 한 번에 돌려준다.
  *
- * 반환된 함수에 [permission]을 넘기면 시스템 권한 다이얼로그가 뜨고,
- * 결과에 따라 [onGrant] 또는 [onDenied]가 호출된다.
+ * - 모두 허용되면 [onAllGranted] 호출.
+ * - 하나라도 거부되면 [onAnyDenied] 호출.
+ * - 이미 전부 허용돼 있으면 다이얼로그 없이 즉시 [onAllGranted] 호출.
  */
 @Composable
-fun PermissionManager.rememberPermissionRequester(
-    onGrant: () -> Unit = {},
-    onDenied: () -> Unit = {},
-): (AppPermission) -> Unit {
+fun PermissionManager.rememberMultiplePermissionRequester(
+    permissions: List<AppPermission>,
+    onAllGranted: () -> Unit = {},
+    onAnyDenied: () -> Unit = {},
+): () -> Unit {
     val launcher =
         rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.RequestPermission(),
-            onResult = { isGranted ->
-                if (isGranted) {
-                    onGrant()
-                } else {
-                    onDenied()
-                }
+            contract = ActivityResultContracts.RequestMultiplePermissions(),
+            onResult = { results ->
+                if (results.values.all { it }) onAllGranted() else onAnyDenied()
             },
         )
 
-    return { permission ->
-        launcher.launch(permission.manifestName)
+    val manifestNames = remember(permissions) { permissions.map { it.manifestName }.toTypedArray() }
+
+    return {
+        if (permissions.all { isGranted(it) }) {
+            onAllGranted()
+        } else {
+            launcher.launch(manifestNames)
+        }
     }
 }
 
