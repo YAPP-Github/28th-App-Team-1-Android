@@ -37,10 +37,10 @@ fun validatePdf(
     }
 
 private fun validateOpenedPdf(assetFileDescriptor: AssetFileDescriptor): PdfValidationResult {
-    val fileSizeResult = validatePdfFileSize(assetFileDescriptor.length)
+    val fileSizeReason = validatePdfFileSize(assetFileDescriptor.length)
 
-    return if (fileSizeResult != PdfValidationResult.Valid) {
-        fileSizeResult
+    return if (fileSizeReason != null) {
+        PdfValidationResult.Invalid(fileSizeReason)
     } else {
         assetFileDescriptor.parcelFileDescriptor.validatePdfFileDescriptor(
             fileSize = assetFileDescriptor.length,
@@ -65,30 +65,31 @@ internal fun validatePdfMetadata(
     fileSize: Long,
     pageCount: Int,
 ): PdfValidationResult {
-    val fileSizeResult = validatePdfFileSize(fileSize)
-    if (fileSizeResult != PdfValidationResult.Valid) {
-        return fileSizeResult
+    val fileSizeReason = validatePdfFileSize(fileSize)
+    if (fileSizeReason != null) {
+        return PdfValidationResult.Invalid(fileSizeReason)
     }
 
     return if (pageCount in MIN_PDF_PAGE_COUNT..MAX_PDF_PAGE_COUNT) {
-        PdfValidationResult.Valid
+        PdfValidationResult.Valid(pageCount)
     } else {
         PdfValidationResult.Invalid(PdfInvalidReason.INVALID_PAGE_COUNT)
     }
 }
 
-private fun validatePdfFileSize(fileSize: Long): PdfValidationResult =
+/** 파일 크기가 유효하면 null, 아니면 거부 사유를 반환한다. 이 시점엔 페이지 수를 아직 모른다. */
+private fun validatePdfFileSize(fileSize: Long): PdfInvalidReason? =
     when {
         fileSize == AssetFileDescriptor.UNKNOWN_LENGTH -> {
-            PdfValidationResult.Invalid(PdfInvalidReason.UNKNOWN_FILE_SIZE)
+            PdfInvalidReason.UNKNOWN_FILE_SIZE
         }
 
         fileSize !in 1L..MAX_PDF_SIZE_BYTES -> {
-            PdfValidationResult.Invalid(PdfInvalidReason.INVALID_FILE_SIZE)
+            PdfInvalidReason.INVALID_FILE_SIZE
         }
 
         else -> {
-            PdfValidationResult.Valid
+            null
         }
     }
 
