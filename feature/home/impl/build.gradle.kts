@@ -8,6 +8,7 @@ android {
 
 dependencies {
     api(project(":feature:home:api"))
+    api(project(":feature:mypage:api"))
 
     implementation(project(":core:common"))
     implementation(project(":designsystem"))

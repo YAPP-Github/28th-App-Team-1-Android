@@ -14,6 +14,7 @@ class HomeViewModel
         override fun onIntent(intent: HomeIntent) {
             when (intent) {
                 HomeIntent.Load -> load()
+                HomeIntent.OpenMyPage -> sendEffect(HomeEffect.GoToHomeRequested)
             }
         }
 
