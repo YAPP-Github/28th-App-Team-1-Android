@@ -1,6 +1,9 @@
 package com.dminus14.app.data.remote.datasource
 
 import com.dminus14.app.data.remote.api.UserApi
+import com.dminus14.app.data.remote.dto.ApiResponseDto
+import com.dminus14.app.data.remote.dto.user.JobDto
+import com.dminus14.app.data.remote.dto.user.JobListResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileFetchResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileUpdateRequestDto
 import com.dminus14.app.data.remote.dto.user.UserProfileUpdateResponseDto
@@ -92,6 +95,44 @@ class UserRemoteDataSourceTest {
             assertTrue(actual is ServerException)
         }
 
+    @Test
+    fun `직무 목록 조회가 성공하면 응답 DTO를 그대로 돌려준다`() =
+        runBlocking {
+            val expected =
+                JobListResponseDto(
+                    jobs =
+                        listOf(
+                            JobDto(jobId = 1, jobRole = "BACKEND", label = "백엔드"),
+                            JobDto(jobId = 2, jobRole = "FRONTEND", label = "프론트엔드"),
+                        ),
+                )
+            val api = FakeUserApi(jobsResponse = ApiResponseDto(success = true, data = expected))
+            val dataSource = UserRemoteDataSourceImpl(api)
+
+            val actual = dataSource.getJobs()
+
+            assertSame(expected, actual)
+            assertEquals(1, api.jobsCallCount)
+        }
+
+    @Test
+    fun `직무 목록 응답이 success=false면 서버 오류를 던진다`() =
+        runBlocking {
+            val api =
+                FakeUserApi(
+                    jobsResponse =
+                        ApiResponseDto(
+                            success = false,
+                            data = JobListResponseDto(jobs = emptyList()),
+                        ),
+                )
+            val dataSource = UserRemoteDataSourceImpl(api)
+
+            val actual = captureFailure { dataSource.getJobs() }
+
+            assertTrue(actual is ServerException)
+        }
+
     private suspend fun captureFailure(block: suspend () -> Unit): Throwable =
         try {
             block()
@@ -106,6 +147,8 @@ class UserRemoteDataSourceTest {
         private val updateResponse: UserProfileUpdateResponseDto =
             UserProfileUpdateResponseDto(success = true),
         private val withdrawalResponse: Response<Unit> = Response.success<Unit>(204, null),
+        private val jobsResponse: ApiResponseDto<JobListResponseDto> =
+            ApiResponseDto(success = true, data = JobListResponseDto(jobs = emptyList())),
     ) : UserApi {
         var profileCallCount = 0
             private set
@@ -113,10 +156,12 @@ class UserRemoteDataSourceTest {
             private set
         var updateRequest: UserProfileUpdateRequestDto? = null
             private set
+        var jobsCallCount = 0
+            private set
 
-        override suspend fun getProfile(): UserProfileFetchResponseDto {
+        override suspend fun getProfile(): ApiResponseDto<UserProfileFetchResponseDto> {
             profileCallCount += 1
-            return profileResponse
+            return ApiResponseDto(success = true, data = profileResponse)
         }
 
         override suspend fun updateProfile(
@@ -129,6 +174,11 @@ class UserRemoteDataSourceTest {
         override suspend fun withdraw(): Response<Unit> {
             withdrawalCallCount += 1
             return withdrawalResponse
+        }
+
+        override suspend fun getJobs(): ApiResponseDto<JobListResponseDto> {
+            jobsCallCount += 1
+            return jobsResponse
         }
     }
 

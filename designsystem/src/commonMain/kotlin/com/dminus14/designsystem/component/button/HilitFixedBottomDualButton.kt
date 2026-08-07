@@ -29,6 +29,8 @@ import com.dminus14.designsystem.theme.HilitTheme
  * - [Default]: 양쪽 모두 검정 배경·흰 글자
  * - [Gray]: 양쪽 모두 흰 배경·회색 글자
  * - [TwoColor]: 왼쪽은 Gray, 오른쪽은 Default
+ *
+ * Figma 노드 번호 439-10165, 439-10173.
  */
 enum class HilitFixedBottomDualButtonType {
     Default,

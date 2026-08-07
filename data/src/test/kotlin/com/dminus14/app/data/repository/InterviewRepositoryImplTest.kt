@@ -87,7 +87,7 @@ class InterviewRepositoryImplTest {
     }
 
     @Test
-    fun `면접 레포트 목록 조회를 위임하고 도메인 결과를 반환한다`() {
+    fun `면접 리포트 목록 조회를 위임하고 도메인 결과를 반환한다`() {
         val dataSource = FakeInterviewRemoteDataSource()
         val repository = InterviewRepositoryImpl(dataSource)
 
@@ -163,7 +163,7 @@ class InterviewRepositoryImplTest {
     }
 
     @Test
-    fun `면접 레포트 상세 조회를 위임하고 도메인 결과를 반환한다`() {
+    fun `면접 리포트 상세 조회를 위임하고 도메인 결과를 반환한다`() {
         val dataSource = FakeInterviewRemoteDataSource()
         val repository = InterviewRepositoryImpl(dataSource)
 

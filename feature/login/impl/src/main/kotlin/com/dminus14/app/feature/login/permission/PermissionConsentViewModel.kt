@@ -45,15 +45,20 @@ class PermissionConsentViewModel
 
         /**
          * 프로필 등록 여부로 다음 화면을 분기한다.
-         * 등록돼 있으면 홈, 미등록(UserNotFound)이면 온보딩으로 보낸다.
+         * 이름·이메일 등 필수 프로필이 채워져 있으면 홈, 미등록(UserNotFound)이거나
+         * 필수 값이 비어 있으면 온보딩으로 보낸다.
          */
         private fun routeByProfile() {
             reduce { copy(isLoading = true) }
             viewModelScope.launch {
                 checkUserProfile()
-                    .onSuccess {
+                    .onSuccess { profile ->
                         reduce { copy(isLoading = false) }
-                        sendEffect(PermissionConsentEffect.NavigateHome)
+                        if (profile.name.isNullOrBlank()) {
+                            sendEffect(PermissionConsentEffect.NavigateOnboarding)
+                        } else {
+                            sendEffect(PermissionConsentEffect.NavigateHome)
+                        }
                     }.onFailure { error ->
                         when (error) {
                             // API 예외: 프로필 미등록은 온보딩으로 보낸다.

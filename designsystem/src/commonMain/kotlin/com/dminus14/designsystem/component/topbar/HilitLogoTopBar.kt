@@ -19,6 +19,8 @@ import com.dminus14.designsystem.theme.HilitTheme
  * 지원 [TopBarType]: [TopBarType.Max], [TopBarType.HideRight].
  * [TopBarType.HideLeft] / [TopBarType.HideMiddle]은 Max와 동일하게 처리한다.
  *
+ * Figma 노드 번호: 439-10401, 439-10402.
+ *
  * @param type 영역 노출 타입
  * @param rightIcon 우측 아이콘. null이면 우측을 비운다. 기본 profile
  * @param onRightClick 우측 아이콘 클릭

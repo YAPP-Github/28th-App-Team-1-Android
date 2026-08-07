@@ -24,5 +24,5 @@ interface UserApi {
     suspend fun withdraw(): Response<Unit>
 
     @GET("api/v1/jobs")
-    suspend fun getJobs(): JobListResponseDto
+    suspend fun getJobs(): ApiResponseDto<JobListResponseDto>
 }

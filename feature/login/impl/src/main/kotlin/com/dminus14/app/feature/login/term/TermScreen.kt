@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,6 +40,7 @@ import com.dminus14.designsystem.component.button.HilitButtonType
 import com.dminus14.designsystem.component.button.HilitFixedBottomButton
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
+import com.dminus14.designsystem.component.loading.HilitLoadingIndicator
 import com.dminus14.designsystem.component.term.TermBox
 import com.dminus14.designsystem.component.term.TermBoxType
 import com.dminus14.designsystem.component.topbar.HilitTopBar
@@ -98,37 +101,52 @@ private fun TermContent(
     onIntent: (TermIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(HilitTheme.colors.hilitWhite),
-    ) {
-        TermCloseTopBar(onCloseClick = { onIntent(TermIntent.ClickClose) })
-
-        TermAgreementBody(
-            state = state,
-            onIntent = onIntent,
+    Box {
+        Column(
             modifier =
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-        )
+                modifier
+                    .fillMaxSize()
+                    .background(HilitTheme.colors.hilitWhite),
+        ) {
+            TermCloseTopBar(onCloseClick = { onIntent(TermIntent.ClickClose) })
 
-        HilitFixedBottomButton(
-            text = "동의하고 시작하기",
-            enabled = state.canSubmit,
-            type = HilitButtonType.Light,
-            onClick = { onIntent(TermIntent.ClickAgree) },
-        )
-    }
+            TermAgreementBody(
+                state = state,
+                onIntent = onIntent,
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+            )
 
-    state.visibleTermDetail?.let { term ->
-        TermBottomSheet(
-            title = term.title,
-            body = term.content,
-            onDismissRequest = { onIntent(TermIntent.DismissTermDetail) },
-        )
+            HilitFixedBottomButton(
+                text = "동의하고 시작하기",
+                enabled = state.canSubmit,
+                type = HilitButtonType.Light,
+                onClick = { onIntent(TermIntent.ClickAgree) },
+            )
+        }
+
+        state.visibleTermDetail?.let { term ->
+            TermBottomSheet(
+                title = term.title,
+                body = term.content,
+                onDismissRequest = { onIntent(TermIntent.DismissTermDetail) },
+            )
+        }
+
+        if (state.isLoading) {
+            HilitLoadingIndicator(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null, // 리플 이펙트 제거
+                        ) { /* 아무것도 안 함, 클릭만 소비 */ }
+                        .background(HilitTheme.colors.hilitWhite.copy(alpha = 0.5f)),
+            )
+        }
     }
 }
 
@@ -209,16 +227,16 @@ private fun TermAgreementList(
             state.terms.forEachIndexed { index, term ->
                 TermBox(
                     type =
-                        if (term.hasDocument) {
+                        if (term.item.hasDocument) {
                             TermBoxType.Term
                         } else {
                             TermBoxType.Text
                         },
-                    text = term.label,
+                    text = term.item.label,
                     checked = term.isChecked,
                     onClick = { onIntent(TermIntent.ClickTerm(index)) },
                     onViewClick = {
-                        if (term.hasDocument) {
+                        if (term.item.hasDocument) {
                             onIntent(TermIntent.ClickViewTerm(index))
                         }
                     },
@@ -261,32 +279,16 @@ private fun TermContentCheckedPreview() {
 }
 
 private val PreviewTerms =
-    listOf(
-        ConsentItem(
-            code = ConsentItemCode.TERMS_OF_SERVICE,
-            rawCode = "",
-            label = "(필수) 만 14세 이상입니다.",
-            version = 0,
-            isRequired = true,
-            hasDocument = true,
-            isChecked = false,
-        ),
-        ConsentItem(
-            code = ConsentItemCode.TERMS_OF_SERVICE,
-            rawCode = "",
-            label = "(필수) 만 14세 이상입니다.",
-            version = 0,
-            isRequired = true,
-            hasDocument = true,
-            isChecked = false,
-        ),
-        ConsentItem(
-            code = ConsentItemCode.TERMS_OF_SERVICE,
-            rawCode = "",
-            label = "(필수) 만 14세 이상입니다.",
-            version = 0,
-            isRequired = true,
-            hasDocument = true,
-            isChecked = false,
-        ),
-    )
+    List(3) {
+        TermConsentItem(
+            item =
+                ConsentItem(
+                    code = ConsentItemCode.TERMS_OF_SERVICE,
+                    rawCode = "",
+                    label = "(필수) 만 14세 이상입니다.",
+                    version = 0,
+                    isRequired = true,
+                    hasDocument = true,
+                ),
+        )
+    }

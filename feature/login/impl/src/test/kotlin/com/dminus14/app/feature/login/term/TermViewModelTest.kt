@@ -122,7 +122,7 @@ class TermViewModelTest {
         val terms =
             SampleTerms.mapIndexed { index, term ->
                 if (index == SampleTerms.lastIndex) {
-                    term.copy(isRequired = false, isChecked = false)
+                    term.copy(item = term.item.copy(isRequired = false), isChecked = false)
                 } else {
                     term.copy(isChecked = true)
                 }
@@ -137,9 +137,17 @@ class TermViewModelTest {
         val terms =
             SampleTerms.mapIndexed { index, term ->
                 when (index) {
-                    0 -> term.copy(isChecked = false)
-                    SampleTerms.lastIndex -> term.copy(isRequired = false, isChecked = true)
-                    else -> term.copy(isChecked = true)
+                    0 -> {
+                        term.copy(isChecked = false)
+                    }
+
+                    SampleTerms.lastIndex -> {
+                        term.copy(item = term.item.copy(isRequired = false), isChecked = true)
+                    }
+
+                    else -> {
+                        term.copy(isChecked = true)
+                    }
                 }
             }
         val state = TermState(terms = terms)
@@ -155,7 +163,7 @@ class TermViewModelTest {
     fun `초기 상태는 terms가 비어 있고 canSubmit은 false다`() {
         val viewModel = createViewModel(terms = emptyList())
 
-        assertEquals(emptyList<ConsentItem>(), viewModel.state.value.terms)
+        assertEquals(emptyList<TermConsentItem>(), viewModel.state.value.terms)
         assertNull(viewModel.state.value.visibleTermDetail)
         assertFalse(viewModel.state.value.isLoading)
         assertFalse(viewModel.state.value.isAllChecked)
@@ -191,9 +199,9 @@ class TermViewModelTest {
 
             val terms = viewModel.state.value.terms
             assertEquals(1, terms.size)
-            assertEquals("서비스 이용약관", terms[0].label)
-            assertEquals("TERMS_OF_SERVICE", terms[0].rawCode)
-            assertTrue(terms[0].hasDocument)
+            assertEquals("서비스 이용약관", terms[0].item.label)
+            assertEquals("TERMS_OF_SERVICE", terms[0].item.rawCode)
+            assertTrue(terms[0].item.hasDocument)
             assertFalse(viewModel.state.value.isLoading)
         }
 
@@ -209,7 +217,7 @@ class TermViewModelTest {
 
         assertTrue(
             viewModel.state.value.terms
-                .all(ConsentItem::isChecked),
+                .all(TermConsentItem::isChecked),
         )
         assertTrue(viewModel.state.value.isAllChecked)
         assertTrue(viewModel.state.value.canSubmit)
@@ -226,7 +234,7 @@ class TermViewModelTest {
 
         assertTrue(
             viewModel.state.value.terms
-                .none(ConsentItem::isChecked),
+                .none(TermConsentItem::isChecked),
         )
         assertFalse(viewModel.state.value.isAllChecked)
         assertFalse(viewModel.state.value.canSubmit)
@@ -246,7 +254,7 @@ class TermViewModelTest {
 
         assertTrue(
             viewModel.state.value.terms
-                .all(ConsentItem::isChecked),
+                .all(TermConsentItem::isChecked),
         )
         assertTrue(viewModel.state.value.isAllChecked)
     }
@@ -642,7 +650,7 @@ class TermViewModelTest {
                 "TERMS_OF_SERVICE",
                 viewModel.state.value.terms
                     .first()
-                    .rawCode,
+                    .item.rawCode,
             )
             assertFalse(viewModel.state.value.isLoading)
         }
@@ -697,7 +705,7 @@ class TermViewModelTest {
     )
 
     private fun createViewModel(
-        terms: List<ConsentItem> = SampleTerms,
+        terms: List<TermConsentItem> = SampleTerms,
         isLoading: Boolean = false,
         visibleTermDetail: TermDetailContent? = null,
         deps: TermViewModelTestDeps = TermViewModelTestDeps(),
@@ -739,6 +747,9 @@ class TermViewModelTest {
             throw AssertionError("이 테스트에서 프로필 수정은 일어나면 안 됩니다.")
 
         override suspend fun withdraw() = throw AssertionError("이 테스트에서 탈퇴는 일어나면 안 됩니다.")
+
+        // 직군 목록 조회는 이 테스트 대상이 아니라 컴파일 통과용 스텁만 둔다.
+        override suspend fun getJobList() = throw AssertionError("이 테스트에서 직군 목록 조회는 일어나면 안 됩니다.")
     }
 
     /** 프로필 조회 미행사 테스트용. 호출되면 AssertionError. */
@@ -750,6 +761,8 @@ class TermViewModelTest {
             throw AssertionError("이 테스트에서 프로필 수정은 일어나면 안 됩니다.")
 
         override suspend fun withdraw() = throw AssertionError("이 테스트에서 탈퇴는 일어나면 안 됩니다.")
+
+        override suspend fun getJobList() = throw AssertionError("이 테스트에서 직군 목록 조회는 일어나면 안 됩니다.")
     }
 
     /** Load/ClickViewTerm/제출 검증용 fake. 필요한 것만 스텁하고 나머지는 AssertionError. */
@@ -836,30 +849,45 @@ class TermViewModelTest {
 
         val SampleTerms =
             listOf(
-                consentItem(
-                    code = ConsentItemCode.AGE_OVER_14,
-                    label = "만 14세 이상입니다.",
-                    hasDocument = false,
+                TermConsentItem(
+                    item =
+                        consentItem(
+                            code = ConsentItemCode.AGE_OVER_14,
+                            label = "만 14세 이상입니다.",
+                            hasDocument = false,
+                        ),
                 ),
-                consentItem(
-                    code = ConsentItemCode.TERMS_OF_SERVICE,
-                    label = "서비스 이용약관 동의",
-                    hasDocument = true,
+                TermConsentItem(
+                    item =
+                        consentItem(
+                            code = ConsentItemCode.TERMS_OF_SERVICE,
+                            label = "서비스 이용약관 동의",
+                            hasDocument = true,
+                        ),
                 ),
-                consentItem(
-                    code = ConsentItemCode.PERSONAL_INFO_COLLECTION,
-                    label = "개인정보 수집·이용 동의",
-                    hasDocument = true,
+                TermConsentItem(
+                    item =
+                        consentItem(
+                            code = ConsentItemCode.PERSONAL_INFO_COLLECTION,
+                            label = "개인정보 수집·이용 동의",
+                            hasDocument = true,
+                        ),
                 ),
-                consentItem(
-                    code = ConsentItemCode.INTERVIEW_RECORDING,
-                    label = "면접 영상·음성·촬영과 저장 동의",
-                    hasDocument = true,
+                TermConsentItem(
+                    item =
+                        consentItem(
+                            code = ConsentItemCode.INTERVIEW_RECORDING,
+                            label = "면접 영상·음성·촬영과 저장 동의",
+                            hasDocument = true,
+                        ),
                 ),
-                consentItem(
-                    code = ConsentItemCode.OVERSEAS_TRANSFER,
-                    label = "개인정보 국외 이전 동의",
-                    hasDocument = true,
+                TermConsentItem(
+                    item =
+                        consentItem(
+                            code = ConsentItemCode.OVERSEAS_TRANSFER,
+                            label = "개인정보 국외 이전 동의",
+                            hasDocument = true,
+                        ),
                 ),
             )
     }

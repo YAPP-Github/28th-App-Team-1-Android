@@ -26,6 +26,8 @@ import com.dminus14.designsystem.theme.HilitTheme
  *
  * 활성 상태를 기준으로 [Light]는 라이트 모드에서 검정 배경과 흰 글자를 사용하고,
  * [Dark]는 다크 모드에서 흰 배경과 검정 글자를 사용한다.
+ *
+ * Figma 노드 번호 439-10164, 439-10169.
  */
 enum class HilitButtonType { Dark, Light }
 

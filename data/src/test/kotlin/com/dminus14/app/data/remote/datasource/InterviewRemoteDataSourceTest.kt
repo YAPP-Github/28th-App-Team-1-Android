@@ -127,7 +127,7 @@ class InterviewRemoteDataSourceTest {
     }
 
     @Test
-    fun `면접 레포트 목록 응답을 그대로 반환한다`() {
+    fun `면접 리포트 목록 응답을 그대로 반환한다`() {
         val expected = InterviewReportListResponseDto(reports = emptyList())
         val api =
             FakeInterviewApi(reportListResponse = ApiResponseDto(success = true, data = expected))
@@ -139,7 +139,7 @@ class InterviewRemoteDataSourceTest {
     }
 
     @Test
-    fun `면접 레포트 목록 data가 null이면 ServerException을 던진다`() {
+    fun `면접 리포트 목록 data가 null이면 ServerException을 던진다`() {
         val api = FakeInterviewApi(reportListResponse = ApiResponseDto(success = true, data = null))
         val dataSource = InterviewRemoteDataSourceImpl(api)
 
@@ -149,7 +149,7 @@ class InterviewRemoteDataSourceTest {
             }
 
         assertEquals(ApiErrorCode.SERVER_ERROR, actual.errCode)
-        assertEquals("면접 레포트 목록 응답이 비어 있습니다.", actual.message)
+        assertEquals("면접 리포트 목록 응답이 비어 있습니다.", actual.message)
     }
 
     @Test
@@ -318,7 +318,7 @@ class InterviewRemoteDataSourceTest {
     }
 
     @Test
-    fun `면접 레포트 상세 응답을 그대로 반환한다`() {
+    fun `면접 리포트 상세 응답을 그대로 반환한다`() {
         val expected =
             InterviewReportResponseDto(
                 status = "READY",
@@ -339,7 +339,7 @@ class InterviewRemoteDataSourceTest {
     }
 
     @Test
-    fun `면접 레포트 상세 data가 null이면 ServerException을 던진다`() {
+    fun `면접 리포트 상세 data가 null이면 ServerException을 던진다`() {
         val api = FakeInterviewApi(getReportResponse = ApiResponseDto(success = true, data = null))
         val dataSource = InterviewRemoteDataSourceImpl(api)
 
@@ -349,7 +349,7 @@ class InterviewRemoteDataSourceTest {
             }
 
         assertEquals(ApiErrorCode.SERVER_ERROR, actual.errCode)
-        assertEquals("면접 레포트 응답이 비어 있습니다.", actual.message)
+        assertEquals("면접 리포트 응답이 비어 있습니다.", actual.message)
     }
 
     @Test
