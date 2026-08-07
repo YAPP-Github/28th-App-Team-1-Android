@@ -11,7 +11,7 @@ internal object OkHttpLoggingInterceptorFactory {
 
     fun createForUpload(
         logger: HttpLoggingInterceptor.Logger = HttpLoggingInterceptor.Logger.DEFAULT,
-    ): Interceptor = createInterceptor(logger, HttpLoggingInterceptor.Level.HEADERS)
+    ): Interceptor = createInterceptor(logger, HttpLoggingInterceptor.Level.BODY)
 
     private fun createInterceptor(
         logger: HttpLoggingInterceptor.Logger,
