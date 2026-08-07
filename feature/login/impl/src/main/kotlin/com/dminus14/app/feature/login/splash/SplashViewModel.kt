@@ -125,8 +125,8 @@ class SplashViewModel
             checkUserProfileUseCase()
                 .onSuccess { profile ->
                     reduce { copy(isLoading = false, showKakaoLoginButton = false) }
-                    if (profile.name.isNullOrBlank() || profile.email.isNullOrBlank()) {
-                        // 이름·이메일 등 필수 프로필이 비어 있으면 미완성으로 보고 온보딩으로 보낸다.
+                    if (profile.name.isNullOrBlank()) {
+                        // 이름이 비어 있으면 필수 프로필 미완성으로 보고 온보딩으로 보낸다.
                         sendEffect(SplashEffect.RequireOnboarding)
                     } else {
                         sendEffect(SplashEffect.Ready)
