@@ -36,7 +36,7 @@ fun InterviewTimer(
     val bgColor = if (isWarning) HilitTheme.colors.error200 else HilitTheme.colors.gray50
     val textColor = if (isWarning) HilitTheme.colors.error500 else HilitTheme.colors.gray500
 
-    // Format MM:SS
+    // 60초 이상일 땐 MM:SS, 이하일 땐 SS초
     val minutes = remainingSeconds / MINUTE_SECONDS
     val seconds = remainingSeconds % MINUTE_SECONDS
     val timeText =
