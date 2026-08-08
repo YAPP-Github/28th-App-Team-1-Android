@@ -71,12 +71,6 @@ class MyPageUiMapperTest {
     }
 
     @Test
-    fun `서버 목록 밖 직군 코드는 fromRaw에서 null을 반환한다`() {
-        assertEquals(MyPageJobRole.BACKEND, MyPageJobRole.fromRaw("BACKEND"))
-        assertNull(MyPageJobRole.fromRaw("NOT_A_ROLE"))
-    }
-
-    @Test
     fun `포트폴리오 상태 5종을 화면 상태로 매핑한다`() {
         assertEquals(
             MyPagePortfolioState.Empty,
@@ -92,6 +86,12 @@ class MyPageUiMapperTest {
             MyPagePortfolioState.Failed(fileName = "resume.pdf", portfolioId = "portfolio-1"),
             samplePortfolio(
                 PortfolioStatus.FAILED_FILE,
+            ).toPortfolioState(MyPagePortfolioState.Empty),
+        )
+        assertEquals(
+            MyPagePortfolioState.Failed(fileName = "resume.pdf", portfolioId = "portfolio-1"),
+            samplePortfolio(
+                PortfolioStatus.FAILED_SYSTEM,
             ).toPortfolioState(MyPagePortfolioState.Empty),
         )
         val ready =

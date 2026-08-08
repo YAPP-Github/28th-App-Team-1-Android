@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import com.dminus14.app.core.common.mvi.MviEffect
 import com.dminus14.app.core.common.mvi.MviIntent
 import com.dminus14.app.core.common.mvi.MviState
+import com.dminus14.app.core.common.pdf.PdfInvalidReason
 
 sealed interface MyPageIntent : MviIntent {
     data object Load : MyPageIntent
@@ -47,9 +48,13 @@ sealed interface MyPageIntent : MviIntent {
 
     data object ClickWithdrawal : MyPageIntent
 
-    data object ClickReportView : MyPageIntent
+    data class ClickReportView(
+        val reportId: String,
+    ) : MyPageIntent
 
-    data object ClickGuestFeedback : MyPageIntent
+    data class ClickGuestFeedback(
+        val reportId: String,
+    ) : MyPageIntent
 }
 
 @Immutable
@@ -64,6 +69,7 @@ data class MyPageState(
     val isPortfolioReplaceAvailable: Boolean = true,
     val isPortfolioDeleteAvailable: Boolean = true,
     val nextPortfolioAvailableAt: String? = null,
+    val nextPortfolioDeleteAvailableAt: String? = null,
     val isInterviewInProgress: Boolean = false,
     val isUploadFailureTooltipVisible: Boolean = false,
     val isTicketInfoTooltipVisible: Boolean = false,
@@ -117,6 +123,7 @@ sealed interface MyPagePortfolioState {
     data class Failed(
         val fileName: String,
         val portfolioId: String? = null,
+        val invalidReason: PdfInvalidReason? = null,
     ) : MyPagePortfolioState
 }
 
@@ -129,7 +136,7 @@ enum class MyPageReportStatus {
 }
 
 enum class MyPageJobRole(
-    private val displayName: String,
+    val label: String,
 ) {
     BACKEND("백엔드"),
     FRONTEND("프론트엔드"),
@@ -138,8 +145,6 @@ enum class MyPageJobRole(
     DATA_ENGINEER("데이터"),
     INFRA_SRE("인프라"),
     ;
-
-    override fun toString(): String = displayName
 
     companion object {
         fun fromRaw(rawJobRole: String?): MyPageJobRole? =
@@ -170,9 +175,13 @@ sealed interface MyPageEffect : MviEffect {
 
     data object ProfileEditRequested : MyPageEffect
 
-    data object ReportViewRequested : MyPageEffect
+    data class ReportViewRequested(
+        val reportId: String,
+    ) : MyPageEffect
 
-    data object GuestFeedbackRequested : MyPageEffect
+    data class GuestFeedbackRequested(
+        val reportId: String,
+    ) : MyPageEffect
 
     data class ShowToast(
         val message: String,

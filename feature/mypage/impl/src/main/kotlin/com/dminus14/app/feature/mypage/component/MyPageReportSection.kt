@@ -37,8 +37,8 @@ internal fun MyPageReportSection(
     reports: List<MyPageReportUiModel>,
     expandedReportIds: Set<String>,
     onReportToggleClick: (String) -> Unit,
-    onReportViewClick: () -> Unit,
-    onGuestFeedbackClick: () -> Unit,
+    onReportViewClick: (String) -> Unit,
+    onGuestFeedbackClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -66,8 +66,8 @@ internal fun MyPageReportSection(
                     report = report,
                     expanded = report.id in expandedReportIds,
                     onToggleClick = { onReportToggleClick(report.id) },
-                    onReportViewClick = onReportViewClick,
-                    onGuestFeedbackClick = onGuestFeedbackClick,
+                    onReportViewClick = { onReportViewClick(report.id) },
+                    onGuestFeedbackClick = { onGuestFeedbackClick(report.id) },
                 )
             }
         }
@@ -289,7 +289,7 @@ private fun sampleReport(
     MyPageReportUiModel(
         id = "sample-$status",
         jobRole = MyPageJobRole.ANDROID,
-        jobRoleLabel = MyPageJobRole.ANDROID.toString(),
+        jobRoleLabel = MyPageJobRole.ANDROID.label,
         experienceYears = 3,
         createdAt = "2026.08.04 14:20",
         status = status,

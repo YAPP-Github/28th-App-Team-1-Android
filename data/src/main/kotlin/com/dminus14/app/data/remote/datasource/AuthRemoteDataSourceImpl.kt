@@ -5,6 +5,7 @@ import com.dminus14.app.data.remote.dto.SocialLoginRequestDto
 import com.dminus14.app.data.remote.dto.SocialLoginResponseDto
 import com.dminus14.app.data.remote.dto.TokenRefreshRequestDto
 import com.dminus14.app.data.remote.dto.TokenRefreshResponseDto
+import retrofit2.HttpException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,7 +32,8 @@ class AuthRemoteDataSourceImpl
         }
 
         override suspend fun logout() {
-            authApi.logout()
+            val response = authApi.logout()
+            if (!response.isSuccessful) throw HttpException(response)
         }
 
         private companion object {

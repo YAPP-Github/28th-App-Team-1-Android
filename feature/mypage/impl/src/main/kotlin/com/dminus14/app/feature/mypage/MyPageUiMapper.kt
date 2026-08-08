@@ -111,7 +111,7 @@ internal fun InterviewReportListItem.toReportUiModel(): MyPageReportUiModel {
     return MyPageReportUiModel(
         id = sessionId.toString(),
         jobRole = jobRole,
-        jobRoleLabel = jobTypeLabel ?: jobRole?.toString() ?: jobType ?: NO_CONTENT,
+        jobRoleLabel = jobTypeLabel ?: jobRole?.label ?: jobType ?: NO_CONTENT,
         experienceYears = careerYears,
         createdAt = interviewedAt.orEmpty(),
         status = MyPageReportStatus.valueOf(reportStatus.name),

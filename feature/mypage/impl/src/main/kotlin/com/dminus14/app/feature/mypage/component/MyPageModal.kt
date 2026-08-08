@@ -51,7 +51,11 @@ internal fun MyPageModal(
 
     Dialog(
         onDismissRequest = onClose,
-        properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true),
+        properties =
+            DialogProperties(
+                dismissOnBackPress = !isSubmitting,
+                dismissOnClickOutside = !isSubmitting,
+            ),
     ) {
         Column(
             modifier =

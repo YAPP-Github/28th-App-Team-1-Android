@@ -40,8 +40,12 @@ import com.dminus14.designsystem.component.loading.HilitLoadingIndicator
 import com.dminus14.designsystem.theme.HilitTheme
 
 @Composable
+@Suppress("LongParameterList")
 fun MyPageScreen(
     onClose: () -> Unit,
+    onProfileEditRequested: () -> Unit,
+    onReportViewRequested: (String) -> Unit,
+    onGuestFeedbackRequested: (String) -> Unit,
     onLogoutCompleted: () -> Unit,
     onWithdrawalCompleted: () -> Unit,
     modifier: Modifier = Modifier,
@@ -69,11 +73,16 @@ fun MyPageScreen(
                     filePickerLauncher.launch(arrayOf("application/pdf"))
                 }
 
-                MyPageEffect.ProfileEditRequested,
-                MyPageEffect.ReportViewRequested,
-                MyPageEffect.GuestFeedbackRequested,
-                -> {
-                    Unit
+                MyPageEffect.ProfileEditRequested -> {
+                    onProfileEditRequested()
+                }
+
+                is MyPageEffect.ReportViewRequested -> {
+                    onReportViewRequested(effect.reportId)
+                }
+
+                is MyPageEffect.GuestFeedbackRequested -> {
+                    onGuestFeedbackRequested(effect.reportId)
                 }
 
                 is MyPageEffect.ShowToast -> {
@@ -161,8 +170,8 @@ fun MyPageContent(
                     reports = state.reports,
                     expandedReportIds = state.expandedReportIds,
                     onReportToggleClick = { onIntent(MyPageIntent.ToggleReport(it)) },
-                    onReportViewClick = { onIntent(MyPageIntent.ClickReportView) },
-                    onGuestFeedbackClick = { onIntent(MyPageIntent.ClickGuestFeedback) },
+                    onReportViewClick = { onIntent(MyPageIntent.ClickReportView(it)) },
+                    onGuestFeedbackClick = { onIntent(MyPageIntent.ClickGuestFeedback(it)) },
                 )
                 Spacer(modifier = Modifier.height(176.dp))
                 Text(
@@ -319,7 +328,7 @@ private fun previewState() =
                 MyPageReportUiModel(
                     id = "synthetic-complete",
                     jobRole = MyPageJobRole.ANDROID,
-                    jobRoleLabel = MyPageJobRole.ANDROID.toString(),
+                    jobRoleLabel = MyPageJobRole.ANDROID.label,
                     experienceYears = 3,
                     createdAt = "2026.08.03",
                     status = MyPageReportStatus.READY,
@@ -330,7 +339,7 @@ private fun previewState() =
                 MyPageReportUiModel(
                     id = "synthetic-deleted",
                     jobRole = MyPageJobRole.IOS,
-                    jobRoleLabel = MyPageJobRole.IOS.toString(),
+                    jobRoleLabel = MyPageJobRole.IOS.label,
                     experienceYears = 2,
                     createdAt = "2026.07.14",
                     status = MyPageReportStatus.READY,
@@ -341,7 +350,7 @@ private fun previewState() =
                 MyPageReportUiModel(
                     id = "synthetic-failed",
                     jobRole = MyPageJobRole.BACKEND,
-                    jobRoleLabel = MyPageJobRole.BACKEND.toString(),
+                    jobRoleLabel = MyPageJobRole.BACKEND.label,
                     experienceYears = 5,
                     createdAt = "2026.06.28",
                     status = MyPageReportStatus.FAILED,

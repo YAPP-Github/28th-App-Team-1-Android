@@ -10,7 +10,7 @@ class MyPageContractTest {
             MyPageReportUiModel(
                 id = "synthetic-report",
                 jobRole = MyPageJobRole.IOS,
-                jobRoleLabel = MyPageJobRole.IOS.toString(),
+                jobRoleLabel = MyPageJobRole.IOS.label,
                 experienceYears = 2,
                 createdAt = "2026.08.04",
                 status = MyPageReportStatus.READY,
@@ -19,7 +19,7 @@ class MyPageContractTest {
                 isFeedbackAvailable = true,
             )
 
-        assertEquals("iOS", MyPageJobRole.IOS.toString())
+        assertEquals("iOS", MyPageJobRole.IOS.label)
         assertEquals("iOS · 2년", report.jobRoleAndExperience)
     }
 

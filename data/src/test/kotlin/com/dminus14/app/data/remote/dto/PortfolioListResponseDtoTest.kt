@@ -25,11 +25,14 @@ class PortfolioListResponseDtoTest {
             """.trimIndent()
 
         val dto = gson.fromJson(json, PortfolioListResponseDto::class.java)
+        val overview = dto.toDomain()
 
         assertFalse(dto.replaceAvailable!!)
         assertEquals("2026-09-01T00:00:00", dto.nextAvailableAt)
         assertFalse(dto.deleteAvailable!!)
         assertEquals("2026-09-01T00:00:00", dto.nextDeleteAvailableAt)
+        assertFalse(overview.isReplaceAvailable)
+        assertFalse(overview.isDeleteAvailable)
     }
 
     @Test

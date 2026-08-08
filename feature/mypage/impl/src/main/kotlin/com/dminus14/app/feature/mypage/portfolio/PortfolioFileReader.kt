@@ -87,7 +87,12 @@ class PortfolioFileReaderImpl
             fileName: String,
             pageCount: Int,
         ): PortfolioFileResult.Valid {
-            val target = File(cacheDir(), "${System.currentTimeMillis()}_$fileName")
+            val safeFileName =
+                fileName
+                    .replace('/', '_')
+                    .replace('\\', '_')
+                    .replace("..", "_")
+            val target = File(cacheDir(), "${System.currentTimeMillis()}_$safeFileName")
             context.contentResolver.openInputStream(uri)?.use { input ->
                 target.outputStream().use { output -> input.copyTo(output) }
             } ?: error("PDF 파일을 열 수 없습니다.")

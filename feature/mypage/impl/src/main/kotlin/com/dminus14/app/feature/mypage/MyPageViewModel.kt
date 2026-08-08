@@ -119,12 +119,12 @@ class MyPageViewModel
                     requestWithdrawal()
                 }
 
-                MyPageIntent.ClickReportView -> {
-                    sendEffect(MyPageEffect.ReportViewRequested)
+                is MyPageIntent.ClickReportView -> {
+                    sendEffect(MyPageEffect.ReportViewRequested(intent.reportId))
                 }
 
-                MyPageIntent.ClickGuestFeedback -> {
-                    sendEffect(MyPageEffect.GuestFeedbackRequested)
+                is MyPageIntent.ClickGuestFeedback -> {
+                    sendEffect(MyPageEffect.GuestFeedbackRequested(intent.reportId))
                 }
             }
         }
@@ -208,6 +208,7 @@ class MyPageViewModel
                     isPortfolioReplaceAvailable = overview.isReplaceAvailable,
                     isPortfolioDeleteAvailable = overview.isDeleteAvailable,
                     nextPortfolioAvailableAt = overview.nextReplaceAvailableAt,
+                    nextPortfolioDeleteAvailableAt = overview.nextDeleteAvailableAt,
                     isInterviewInProgress = portfolio?.isInterviewInProgress ?: false,
                 )
             }
@@ -233,6 +234,7 @@ class MyPageViewModel
                                 portfolioState =
                                     MyPagePortfolioState.Failed(
                                         fileName = result.fileName,
+                                        invalidReason = result.reason,
                                     ),
                             )
                         }
@@ -441,8 +443,10 @@ class MyPageViewModel
 
             viewModelScope.launch {
                 reduce { copy(isSubmitting = true) }
-                val status = getPortfolioStatusUseCase(portfolioId).getOrNull()
+                val statusResult = getPortfolioStatusUseCase(portfolioId)
+                val status = statusResult.getOrNull()
                 if (status == null) {
+                    statusResult.exceptionOrNull()?.let(::handleGenericError)
                     reduce { copy(isSubmitting = false) }
                     return@launch
                 }
@@ -525,13 +529,14 @@ class MyPageViewModel
         }
 
         private fun deletePortfolio() {
+            if (state.value.isSubmitting) return
             val portfolioId = state.value.portfolioId
             if (portfolioId == null) {
                 reduce { copy(modalType = null) }
                 return
             }
+            reduce { copy(isSubmitting = true) }
             viewModelScope.launch {
-                reduce { copy(isSubmitting = true) }
                 val error = deletePortfolioUseCase(portfolioId).exceptionOrNull()
                 reduce { copy(isSubmitting = false, modalType = null) }
                 if (error == null) {
@@ -632,8 +637,9 @@ class MyPageViewModel
         // ---- 로그아웃 · 탈퇴 ----
 
         private fun logout() {
+            if (state.value.isSubmitting) return
+            reduce { copy(isSubmitting = true) }
             viewModelScope.launch {
-                reduce { copy(isSubmitting = true) }
                 val error = logoutUseCase().exceptionOrNull()
                 reduce { copy(isSubmitting = false, modalType = null) }
                 if (error == null) {
@@ -653,8 +659,9 @@ class MyPageViewModel
         }
 
         private fun withdraw() {
+            if (state.value.isSubmitting) return
+            reduce { copy(isSubmitting = true) }
             viewModelScope.launch {
-                reduce { copy(isSubmitting = true) }
                 val error = withdrawUserUseCase().exceptionOrNull()
                 reduce { copy(isSubmitting = false, modalType = null) }
                 if (error == null) {

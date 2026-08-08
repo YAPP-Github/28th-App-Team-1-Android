@@ -19,6 +19,9 @@ object MyPageNavigationModule {
         {
             myPageEntryBuilder(
                 onClose = navigator::goBack,
+                onProfileEditRequested = {},
+                onReportViewRequested = {},
+                onGuestFeedbackRequested = {},
                 onLogoutCompleted = { navigator.replaceAll(Splash) },
                 onWithdrawalCompleted = { navigator.replaceAll(Splash) },
             )

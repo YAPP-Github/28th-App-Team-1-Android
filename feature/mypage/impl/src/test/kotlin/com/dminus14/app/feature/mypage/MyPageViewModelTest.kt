@@ -2,6 +2,7 @@ package com.dminus14.app.feature.mypage
 
 import com.dminus14.app.core.common.event.GlobalAppEvent
 import com.dminus14.app.core.common.event.GlobalErrorHandler
+import com.dminus14.app.core.common.pdf.PdfInvalidReason
 import com.dminus14.app.domain.exception.NetworkUnavailableException
 import com.dminus14.app.domain.exception.PortfolioNotFoundException
 import com.dminus14.app.domain.model.AuthSession
@@ -94,6 +95,33 @@ class MyPageViewModelTest {
             assertTrue(state.portfolioState is MyPagePortfolioState.Uploaded)
             assertEquals(1, state.reports.size)
             assertFalse(state.isInitialLoading)
+        }
+
+    @Test
+    fun `포트폴리오 교체와 삭제 가능 일시는 각각 State에 반영된다`() =
+        runViewModelTest {
+            val repository =
+                FakePortfolioRepository(
+                    overview =
+                        overviewWith(
+                            portfolio = null,
+                            nextReplaceAvailableAt = "2026-09-01T00:00:00",
+                            nextDeleteAvailableAt = "2026-10-01T00:00:00",
+                        ),
+                )
+            val viewModel = createViewModel(portfolioRepository = repository)
+
+            viewModel.onIntent(MyPageIntent.Load)
+            advanceUntilIdle()
+
+            assertEquals(
+                "2026-09-01T00:00:00",
+                viewModel.state.value.nextPortfolioAvailableAt,
+            )
+            assertEquals(
+                "2026-10-01T00:00:00",
+                viewModel.state.value.nextPortfolioDeleteAvailableAt,
+            )
         }
 
     @Test
@@ -226,6 +254,27 @@ class MyPageViewModelTest {
         }
 
     @Test
+    fun `유효하지 않은 PDF 사유를 실패 상태에 보존한다`() =
+        runViewModelTest {
+            val reader =
+                FakePortfolioFileReader(
+                    PortfolioFileResult.Invalid(
+                        fileName = "resume.pdf",
+                        reason = PdfInvalidReason.PASSWORD_REQUIRED,
+                    ),
+                )
+            val viewModel = createViewModel(portfolioFileReader = reader)
+
+            viewModel.onIntent(MyPageIntent.SelectPortfolioFile("content://sample"))
+            advanceUntilIdle()
+
+            assertEquals(
+                PdfInvalidReason.PASSWORD_REQUIRED,
+                (viewModel.state.value.portfolioState as MyPagePortfolioState.Failed).invalidReason,
+            )
+        }
+
+    @Test
     fun `실패 레코드 삭제가 이미 없는 대상이면 그대로 업로드를 진행한다`() =
         runViewModelTest {
             val notFound = PortfolioNotFoundException("PORTFOLIO_NOT_FOUND", "없음")
@@ -342,6 +391,30 @@ class MyPageViewModelTest {
 
             assertTrue(repository.deletedPortfolioIds.isEmpty())
             assertEquals(MyPageModalType.UploadAlreadyCompleted, viewModel.state.value.modalType)
+        }
+
+    @Test
+    fun `취소 전 상태 조회가 실패하면 제출 상태를 복구하고 Toast를 발행한다`() =
+        runViewModelTest {
+            val repository =
+                FakePortfolioRepository(
+                    overview = overviewWith(portfolio = null),
+                    uploadResult = uploadAccepted(),
+                    defaultStatusResult = Result.failure(IllegalStateException("상태 조회 실패")),
+                )
+            val viewModel = createViewModel(portfolioRepository = repository)
+            val effects = mutableListOf<MyPageEffect>()
+            val effectJob = launch { viewModel.effect.collect(effects::add) }
+            viewModel.onIntent(MyPageIntent.Load)
+            advanceUntilIdle()
+            viewModel.onIntent(MyPageIntent.SelectPortfolioFile("content://sample"))
+
+            viewModel.onIntent(MyPageIntent.ClickUploadCancel)
+            advanceUntilIdle()
+
+            assertFalse(viewModel.state.value.isSubmitting)
+            assertTrue(effects.any { it is MyPageEffect.ShowToast })
+            effectJob.cancel()
         }
 
     @Test
@@ -481,6 +554,23 @@ class MyPageViewModelTest {
         }
 
     @Test
+    fun `탈퇴 최종 확인을 연속으로 눌러도 탈퇴 요청은 한 번만 실행된다`() =
+        runViewModelTest {
+            val withdrawGate = CompletableDeferred<Unit>()
+            val userRepository = FakeUserRepository(withdrawGate = withdrawGate)
+            val viewModel = createViewModel(userRepository = userRepository)
+            viewModel.onIntent(MyPageIntent.ClickWithdrawal)
+            viewModel.onIntent(MyPageIntent.ConfirmModal)
+
+            viewModel.onIntent(MyPageIntent.ConfirmModal)
+            viewModel.onIntent(MyPageIntent.ConfirmModal)
+
+            assertEquals(1, userRepository.withdrawCallCount)
+            withdrawGate.complete(Unit)
+            advanceUntilIdle()
+        }
+
+    @Test
     fun `진행 중 면접이 있으면 탈퇴 주의사항 모달 대신 차단 모달을 발행한다`() =
         runViewModelTest {
             val portfolio = samplePortfolio(PortfolioStatus.READY, isInterviewInProgress = true)
@@ -549,12 +639,14 @@ class MyPageViewModelTest {
         portfolio: Portfolio?,
         isReplaceAvailable: Boolean = true,
         isDeleteAvailable: Boolean = true,
+        nextReplaceAvailableAt: String? = null,
+        nextDeleteAvailableAt: String? = null,
     ) = PortfolioOverview(
         portfolio = portfolio,
         isReplaceAvailable = isReplaceAvailable,
-        nextReplaceAvailableAt = null,
+        nextReplaceAvailableAt = nextReplaceAvailableAt,
         isDeleteAvailable = isDeleteAvailable,
-        nextDeleteAvailableAt = null,
+        nextDeleteAvailableAt = nextDeleteAvailableAt,
     )
 
     private fun samplePortfolio(
@@ -608,8 +700,11 @@ class MyPageViewModelTest {
     private class FakeUserRepository(
         private val profileResult: Result<UserProfile> = Result.success(sampleUserProfile),
         private val withdrawResult: Result<Unit> = Result.success(Unit),
+        private val withdrawGate: CompletableDeferred<Unit>? = null,
     ) : UserRepository {
         var withdrawCalled = false
+            private set
+        var withdrawCallCount = 0
             private set
 
         override suspend fun getUserProfile(): UserProfile = profileResult.getOrThrow()
@@ -618,6 +713,8 @@ class MyPageViewModelTest {
 
         override suspend fun withdraw() {
             withdrawCalled = true
+            withdrawCallCount += 1
+            withdrawGate?.await()
             withdrawResult.getOrThrow()
         }
 
