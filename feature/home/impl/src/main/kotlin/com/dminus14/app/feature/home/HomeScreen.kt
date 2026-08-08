@@ -2,6 +2,7 @@ package com.dminus14.app.feature.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -75,16 +76,6 @@ private fun HomeContent(
     onReportActionClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (state.isLoading) {
-        Box(
-            modifier = modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
-            CircularProgressIndicator()
-        }
-        return
-    }
-
     Box(modifier = modifier.fillMaxSize()) {
         Image(
             painter = painterResource(Res.drawable.home_background),
@@ -138,6 +129,23 @@ private fun HomeContent(
             callbacks = HomeSessionStartCallbacks(),
             modifier = Modifier.zIndex(2f),
         )
+
+        if (state.isLoading) {
+            Box(
+                modifier = modifier
+                    .fillMaxSize()
+                    .background(HilitTheme.colors.hilitWhite.copy(alpha = 0.6f))
+                    .clickable(
+                        enabled = false,
+                        indication = null,
+                        interactionSource = null,
+                        onClick = { }
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator()
+            }
+        }
     }
 }
 
