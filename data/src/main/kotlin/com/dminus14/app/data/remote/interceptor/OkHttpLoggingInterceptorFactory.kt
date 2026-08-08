@@ -7,22 +7,23 @@ import okhttp3.logging.HttpLoggingInterceptor
 internal object OkHttpLoggingInterceptorFactory {
     fun create(
         logger: HttpLoggingInterceptor.Logger = HttpLoggingInterceptor.Logger.DEFAULT,
-    ): Interceptor = createInterceptor(logger, HttpLoggingInterceptor.Level.BODY)
+    ): Interceptor = createInterceptor(logger)
 
     fun createForUpload(
         logger: HttpLoggingInterceptor.Logger = HttpLoggingInterceptor.Logger.DEFAULT,
-    ): Interceptor = createInterceptor(logger, HttpLoggingInterceptor.Level.HEADERS)
+    ): Interceptor = createInterceptor(logger)
 
-    private fun createInterceptor(
-        logger: HttpLoggingInterceptor.Logger,
-        debugLevel: HttpLoggingInterceptor.Level,
-    ): Interceptor =
+    private fun createInterceptor(logger: HttpLoggingInterceptor.Logger): Interceptor =
         HttpLoggingInterceptor(logger).apply {
             redactHeader(HEADER_AUTHORIZATION)
             redactHeader(HEADER_DEVICE_ID)
             level =
                 if (BuildConfig.DEBUG) {
-                    debugLevel
+                    if (BuildConfig.HTTP_LOGGING_BODY == "true") {
+                        HttpLoggingInterceptor.Level.BODY
+                    } else {
+                        HttpLoggingInterceptor.Level.HEADERS
+                    }
                 } else {
                     HttpLoggingInterceptor.Level.NONE
                 }
