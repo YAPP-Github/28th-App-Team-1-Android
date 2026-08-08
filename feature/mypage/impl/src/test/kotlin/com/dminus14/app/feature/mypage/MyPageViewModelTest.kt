@@ -620,6 +620,8 @@ class MyPageViewModelTest {
             withdrawCalled = true
             withdrawResult.getOrThrow()
         }
+
+        override suspend fun getJobList() = error("사용하지 않음")
     }
 
     private class FakeSessionRepository(

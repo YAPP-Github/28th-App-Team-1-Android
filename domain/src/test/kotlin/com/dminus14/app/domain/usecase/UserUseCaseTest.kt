@@ -162,6 +162,8 @@ class UserUseCaseTest {
             calls += "withdraw"
             withdrawalFailure?.let { throw it }
         }
+
+        override suspend fun getJobList() = error("사용하지 않음")
     }
 
     private class FakeSessionRepository(
