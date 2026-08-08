@@ -1,6 +1,6 @@
 package com.dminus14.app.feature.home.component
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -16,15 +16,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.dminus14.app.core.resources.Res
+import com.dminus14.app.core.resources.home_background
 import com.dminus14.designsystem.component.button.HilitButtonType
 import com.dminus14.designsystem.component.button.HilitFixedBottomButton
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
 import com.dminus14.designsystem.component.text.GradientText
 import com.dminus14.designsystem.theme.HilitTheme
+import org.jetbrains.compose.resources.painterResource
 
 private val ClosePadding = 24.dp
 private val TitleHorizontalPadding = 20.dp
@@ -35,7 +38,7 @@ private val CardHorizontalPadding = 20.dp
  * 세션 시작 오버레이 5종이 공유하는 스캐폴드.
  *
  * 위→아래: 좌상단 X(닫기), 좌 정렬 GradientText 헤딩, 중앙 카드 슬롯, 화면 폭을 채우는 하단 버튼 슬롯.
- * 배경은 부드러운 세로 초록 그라디언트(top green → white).
+ * 배경은 홈과 동일한 `home_background` 이미지.
  */
 @Composable
 internal fun HomeSessionStartScaffold(
@@ -45,16 +48,14 @@ internal fun HomeSessionStartScaffold(
     onCloseClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val backgroundBrush =
-        Brush.verticalGradient(
-            colors =
-                listOf(
-                    HilitTheme.colors.hilitGreen500,
-                    HilitTheme.colors.hilitWhite,
-                ),
+    Box(modifier = modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(Res.drawable.home_background),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
         )
 
-    Box(modifier = modifier.fillMaxSize().background(backgroundBrush)) {
         Column(modifier = Modifier.fillMaxSize()) {
             HomeSessionStartCloseIcon(onClick = onCloseClick)
 
