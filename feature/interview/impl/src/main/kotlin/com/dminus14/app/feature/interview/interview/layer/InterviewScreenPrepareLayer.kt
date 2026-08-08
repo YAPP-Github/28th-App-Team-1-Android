@@ -1,6 +1,7 @@
-package com.dminus14.app.feature.interview.layer
+package com.dminus14.app.feature.interview.interview.layer
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,12 +25,14 @@ import com.dminus14.designsystem.component.text.HilitText
 import com.dminus14.designsystem.component.text.withHilitTextHighlight
 import com.dminus14.designsystem.theme.HilitTheme
 
+@Suppress("LongParameterList")
 @Composable
 fun InterviewScreenPrepareLayer(
     isReady: Boolean,
     isPermissionGranted: Boolean,
     interviewScreenState: InterviewScreenState,
     onInterviewStart: () -> Unit,
+    onPermissionDeniedBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val preparingText = buildAnnotatedString { append("면접을 준비하고 있어요") }
@@ -90,6 +93,7 @@ fun InterviewScreenPrepareLayer(
                 modifier =
                     Modifier
                         .align(Alignment.TopStart)
+                        .clickable(onClick = onPermissionDeniedBack)
                         .padding(start = 20.dp, top = 10.dp),
             )
         }
@@ -128,6 +132,7 @@ private fun InterviewScreenPreparingLayerPreview() {
                 isPermissionGranted = true,
                 interviewScreenState = InterviewScreenState.PREPARING,
                 onInterviewStart = {},
+                onPermissionDeniedBack = {},
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -149,6 +154,7 @@ private fun InterviewScreenPrepareLayerAlmostPreparedPreview() {
                 isPermissionGranted = true,
                 interviewScreenState = InterviewScreenState.ALMOST_PREPARED,
                 onInterviewStart = {},
+                onPermissionDeniedBack = {},
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -170,6 +176,7 @@ private fun InterviewScreenPrepareLayerPermissionNotGrantedPreview() {
                 isPermissionGranted = false,
                 interviewScreenState = InterviewScreenState.PREPARING,
                 onInterviewStart = {},
+                onPermissionDeniedBack = {},
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -191,6 +198,7 @@ private fun InterviewScreenPrepareLayerPreparedPreview() {
                 isPermissionGranted = true,
                 interviewScreenState = InterviewScreenState.PREPARED,
                 onInterviewStart = {},
+                onPermissionDeniedBack = {},
                 modifier = Modifier.fillMaxSize(),
             )
         }

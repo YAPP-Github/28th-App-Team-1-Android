@@ -1,4 +1,4 @@
-package com.dminus14.app.feature.interview.layer
+package com.dminus14.app.feature.interview.interview.layer
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,12 +15,19 @@ import com.dminus14.app.feature.interview.component.VideoOverlayDirection
 import com.dminus14.designsystem.theme.HilitTheme
 
 @Composable
-fun InterviewScreenBaseLayer(modifier: Modifier = Modifier) {
+fun InterviewScreenBaseLayer(
+    isCameraPermissionGranted: Boolean,
+    modifier: Modifier = Modifier,
+    onCameraBindingFailed: () -> Unit = {},
+) {
     Box(
         modifier = modifier,
     ) {
         // Camera View
-        InterviewCameraPreview()
+        InterviewCameraPreview(
+            isCameraPermissionGranted = isCameraPermissionGranted,
+            onCameraBindingFailed = onCameraBindingFailed,
+        )
 
         // Video Overlays
         VideoOverlay(
@@ -49,6 +56,6 @@ fun InterviewScreenBaseLayer(modifier: Modifier = Modifier) {
 @Composable
 private fun InterviewScreenBaseLayerPreview() {
     HilitTheme {
-        InterviewScreenBaseLayer()
+        InterviewScreenBaseLayer(isCameraPermissionGranted = true)
     }
 }
