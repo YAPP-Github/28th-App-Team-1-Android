@@ -14,8 +14,8 @@ import com.dminus14.app.domain.exception.PortfolioAlreadyExistsException
 import com.dminus14.app.domain.exception.PortfolioDeleteBlockedByInterviewException
 import com.dminus14.app.domain.exception.PortfolioNotFoundException
 import com.dminus14.app.domain.exception.ReplacementLimitExceededException
-import com.dminus14.app.domain.model.Portfolio
 import com.dminus14.app.domain.model.PortfolioDeleteResult
+import com.dminus14.app.domain.model.PortfolioOverview
 import com.dminus14.app.domain.model.PortfolioUploadResult
 import com.dminus14.app.domain.repository.PortfolioRepository
 import retrofit2.HttpException
@@ -35,7 +35,7 @@ class PortfolioRepositoryImpl
     constructor(
         private val portfolioRemoteDataSource: PortfolioRemoteDataSource,
     ) : PortfolioRepository {
-        override suspend fun getPortfolios(): List<Portfolio> {
+        override suspend fun getPortfolioOverview(): PortfolioOverview {
             val response =
                 runCatching { portfolioRemoteDataSource.getPortfolios() }
                     .getOrElse { error ->

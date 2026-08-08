@@ -9,4 +9,7 @@ import com.dminus14.app.domain.model.AuthSession
  */
 interface AuthRepository {
     suspend fun loginWithKakao(credential: String): AuthSession
+
+    /** 서버에 저장된 Refresh Token을 폐기한다. */
+    suspend fun logout()
 }
