@@ -41,28 +41,53 @@ import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import com.dminus14.app.feature.home.HomeReportItem
+import com.dminus14.app.feature.home.PreviewHomeReports
 import com.dminus14.designsystem.component.reportcard.HilitReportCard
 import com.dminus14.designsystem.theme.HilitTheme
 import kotlinx.coroutines.CoroutineScope
 
+/** Peek 앵커 위치 — 화면 top 기준 시트 상단 오프셋. Figma 시안 값. */
 private val SheetPeekTop = 331.dp
+
+/** Collapsed 앵커에서 최소한으로 보여야 하는 시트 높이. 화면 하단에 이만큼은 남긴다. */
 private val SheetMinVisibleHeight = 120.dp
+
+/** 드래그 핸들 인디케이터가 그려질 영역 높이 (히트박스 겸용). */
 private val DragHandleContainerHeight = 20.dp
 private val DragHandleWidth = 60.dp
 private val DragHandleHeight = 5.dp
 private val ReportHeaderPadding = 20.dp
 private val ReportItemSpacing = 1.dp
+
+/** 리스트 최하단에 얹는 흰색 페이드 오버레이(하단 재생 컨트롤 가림용) 높이. */
 private val VideoOverlayHeight = 76.dp
 private val EmptyStateTopSpacing = 64.dp
 private const val VIDEO_OVERLAY_MID_STOP = 0.5f
 private const val VIDEO_OVERLAY_MID_ALPHA = 0.4f
 private const val VIDEO_OVERLAY_END_STOP = 1.09f
+
+/** Expanded 앵커 판정 여유치(px). 부동소수 오차로 인디케이터 깜빡임을 방지. */
 private const val EXPANDED_POSITION_TOLERANCE_PX = 2f
 
+/**
+ * 홈 화면의 리포트 리스트 바텀시트.
+ *
+ * 3-앵커(Expanded / Peek / Collapsed) drag & fling 시트. 세로 드래그는 핸들 영역과
+ * 내부 리스트의 nested scroll 양쪽에서 잡고, gesture가 끝나면 velocity·이동 방향으로
+ * 가장 가까운 앵커에 snap 한다. 앵커 상태는 [rememberSaveable] 로 config change에 대비.
+ *
+ * @param reports 표시할 리포트 리스트. 비어 있으면 empty state 컴포넌트를 그린다.
+ * @param expandedReportId 리스트에서 현재 확장된 카드 id. null이면 모두 접힘.
+ * @param expandedTopPx Expanded 앵커의 화면 top 오프셋(px). 상단 topbar 아래 위치를
+ *   상위에서 측정해 넘긴다. NaN 대신 실측 전 fallback 값을 상위에서 보낼 것.
+ * @param onSheetAnchorChange 앵커가 실제로 settle된 뒤 호출. 상위에서 topbar shadow 등
+ *   앵커 종속 UI를 갱신하는 용도.
+ */
 @Composable
 fun HomeReportSheet(
     reports: List<HomeReportItem>,
@@ -107,12 +132,13 @@ fun HomeReportSheet(
             onSheetAnchorChange(settledAnchor)
         }
 
+        // fling 없이 리스트 스크롤이 그냥 멈춘 케이스(느린 손가락 놓기 등)를 커버.
+        // onPostFling 이 이미 실제 velocity·direction 으로 snap 을 시작했다면
+        // velocity=0 재호출로 그 애니메이션을 뒤엎지 않도록 skip 한다.
         LaunchedEffect(listState) {
             var wasScrolling = false
             snapshotFlow { listState.isScrollInProgress }
                 .collect { isScrolling ->
-                    // onPostFling 이 이미 실제 velocity + direction 으로 snap 을 시작한 경우
-                    // velocity=0 재호출로 그 애니메이션을 뒤엎지 않도록 skip.
                     if (wasScrolling && !isScrolling && !sheetLayout.isSnapping()) {
                         sheetLayout.onGestureEnd(0f, 0f)
                     }
@@ -142,14 +168,22 @@ fun HomeReportSheet(
     }
 }
 
+/**
+ * 앵커·nested scroll·snap 컨트롤러를 한 데 묶어 [HomeReportSheet]로 반환하는 번들.
+ * 개별 콜백을 시트 본체가 각각 remember 하지 않도록 하나로 묶었다.
+ */
 private data class HomeReportSheetLayout(
     val anchors: HomeSheetAnchors,
     val nestedScrollConnection: NestedScrollConnection,
+    /** 핸들의 vertical drag가 끝났을 때 호출. velocity만 넘긴다. */
     val onDragEnd: (Float) -> Unit,
+    /** 리스트 nested scroll·fling이 끝났을 때 호출. velocity + 이동 방향 힌트. */
     val onGestureEnd: (velocityY: Float, directionHint: Float) -> Unit,
+    /** 현재 snap 애니메이션이 진행 중인지. 중복 snap 방지용 가드에 사용. */
     val isSnapping: () -> Boolean,
 )
 
+/** [rememberHomeReportSheetLayout] 파라미터 묶음. 파라미터 6개 이상을 피하려는 형태. */
 private data class HomeReportSheetLayoutParams(
     val scope: CoroutineScope,
     val expandedTopPx: Float,
@@ -162,6 +196,10 @@ private data class HomeReportSheetLayoutParams(
     val onAnchorSettled: (HomeSheetAnchor) -> Unit,
 )
 
+/**
+ * 3-앵커, nested scroll connection, snap 컨트롤러를 조립해서 반환.
+ * collapsedTopPx는 화면 높이에서 [SheetMinVisibleHeight]를 뺀 값이며 peek 아래로 내려가지 않도록 clamp.
+ */
 @Composable
 private fun rememberHomeReportSheetLayout(
     params: HomeReportSheetLayoutParams,
@@ -214,6 +252,11 @@ private fun rememberHomeReportSheetLayout(
     )
 }
 
+/**
+ * [HomeReportSheetContainer] 렌더에 필요한 모든 값 묶음.
+ * @param showDragHandleIndicator 시트 위치가 expanded 앵커에서 [EXPANDED_POSITION_TOLERANCE_PX]
+ *   이상 떨어져 있을 때만 true — 완전히 펼쳐진 상태에선 핸들 인디케이터를 숨긴다.
+ */
 private data class HomeReportSheetContentState(
     val sheetTopPx: Float,
     val reports: List<HomeReportItem>,
@@ -229,6 +272,7 @@ private data class HomeReportSheetContentState(
     val showDragHandleIndicator: Boolean,
 )
 
+/** [HomeReportSheetHandle]에 넘길 값 묶음. */
 private data class HomeReportSheetHandleState(
     val anchors: HomeSheetAnchors,
     val getSheetTopPx: () -> Float,
@@ -236,6 +280,11 @@ private data class HomeReportSheetHandleState(
     val onDragEnd: (Float) -> Unit,
 )
 
+/**
+ * 시트 본체 렌더. top padding = [HomeReportSheetContentState.sheetTopPx] 만큼 밀어
+ * `Box`가 자연스레 시트 위치를 잡게 한다. header 아래에 핸들 인디케이터를 두거나,
+ * 완전 확장 상태에서는 header와 핸들을 겹쳐 인디케이터만 감춘다.
+ */
 @Composable
 private fun HomeReportSheetContainer(contentState: HomeReportSheetContentState) {
     val density = LocalDensity.current
@@ -287,6 +336,11 @@ private fun HomeReportSheetContainer(contentState: HomeReportSheetContentState) 
     }
 }
 
+/**
+ * 리포트 리스트 영역. 비어 있으면 [HomeReportEmptyState]로 대체.
+ * `weight(1f)`로 header 아래 남은 세로 공간을 전부 차지하고,
+ * nested scroll을 통해 시트 위치와 리스트 스크롤을 이어 붙인다.
+ */
 @Composable
 private fun ColumnScope.HomeReportSheetBody(
     reports: List<HomeReportItem>,
@@ -338,6 +392,17 @@ private fun ColumnScope.HomeReportSheetBody(
     }
 }
 
+/**
+ * 리스트-시트 사이의 nested scroll 브릿지.
+ *
+ * - **위로 드래그(delta < 0)** — 시트가 Expanded보다 아래에 있으면 리스트보다 먼저
+ *   시트를 위로 올린다 (`onPreScroll`).
+ * - **아래로 드래그(delta > 0)** — 리스트가 최상단까지 스크롤된 뒤 남은 델타로
+ *   시트를 내린다 (`onPostScroll`).
+ * - **Fling** — 위와 동일한 규칙을 velocity 단위로 적용 (`onPreFling`).
+ * - **gesture 종료** — 이번 gesture 동안 시트가 실제로 움직였다면
+ *   [onGestureEnd] 로 velocity + 순 이동 방향(directionHint) 을 넘겨 snap 시킨다.
+ */
 @Composable
 private fun rememberHomeReportSheetNestedScroll(
     listState: LazyListState,
@@ -349,6 +414,8 @@ private fun rememberHomeReportSheetNestedScroll(
     val currentGetSheetTopPx by rememberUpdatedState(getSheetTopPx)
     val currentOnSheetTopPxChange by rememberUpdatedState(onSheetTopPxChange)
     val currentOnGestureEnd by rememberUpdatedState(onGestureEnd)
+    // 이번 gesture 동안 시트가 한 번이라도 움직였는지. 리스트만 스크롤하고 끝난 경우엔
+    // snap을 호출하지 않아야 리스트 fling 애니메이션이 부드럽게 이어진다.
     var sheetMovedDuringGesture by remember { mutableStateOf(false) }
 
     return remember(listState, anchors) {
@@ -425,6 +492,13 @@ private fun rememberHomeReportSheetNestedScroll(
     }
 }
 
+/**
+ * 상단 드래그 핸들.
+ *
+ * @param showIndicator true면 회색 인디케이터 바를 그리고 [DragHandleContainerHeight] 만큼의
+ *   전용 히트박스를 차지. false면 인디케이터를 숨기고 header 위에 `matchParentSize`로 겹쳐
+ *   header 영역 전체를 드래그 히트박스로 사용한다(완전 확장 상태).
+ */
 @Composable
 private fun HomeReportSheetHandle(
     state: HomeReportSheetHandleState,
@@ -446,7 +520,8 @@ private fun HomeReportSheetHandle(
                     } else {
                         Modifier
                     },
-                ).pointerInput(state.anchors) {
+                )
+                .pointerInput(state.anchors) {
                     val velocityTracker = VelocityTracker()
                     detectVerticalDragGestures(
                         onDragStart = { velocityTracker.resetTracking() },
@@ -482,6 +557,7 @@ private fun HomeReportSheetHandle(
     }
 }
 
+/** "면접 리포트 N개" 텍스트를 그리는 시트 상단 헤더. 색 대비를 위해 count만 회색 처리. */
 @Composable
 private fun HomeReportSheetHeader(reportCount: Int) {
     val title =
@@ -511,6 +587,10 @@ private fun HomeReportSheetHeader(reportCount: Int) {
     )
 }
 
+/**
+ * 리스트 최하단에 얹는 white → transparent 세로 그라디언트.
+ * 시안상 하단 재생 컨트롤 영역이 리스트 위로 자연스레 페이드 아웃되도록 하는 장식용 오버레이.
+ */
 @Composable
 private fun HomeReportVideoOverlay(modifier: Modifier = Modifier) {
     Box(
@@ -531,4 +611,56 @@ private fun HomeReportVideoOverlay(modifier: Modifier = Modifier) {
                         ),
                 ),
     )
+}
+
+@Preview(name = "HomeReportSheet - empty", showBackground = true, widthDp = 375, heightDp = 812)
+@Composable
+private fun HomeReportSheetEmptyPreview() {
+    HilitTheme {
+        HomeReportSheet(
+            reports = emptyList(),
+            expandedReportId = null,
+            onReportExpandClick = {},
+            onReportActionClick = {},
+            expandedTopPx = 0f,
+        )
+    }
+}
+
+@Preview(
+    name = "HomeReportSheet - with reports",
+    showBackground = true,
+    widthDp = 375,
+    heightDp = 812,
+)
+@Composable
+private fun HomeReportSheetWithReportsPreview() {
+    HilitTheme {
+        HomeReportSheet(
+            reports = PreviewHomeReports,
+            expandedReportId = null,
+            onReportExpandClick = {},
+            onReportActionClick = {},
+            expandedTopPx = 0f,
+        )
+    }
+}
+
+@Preview(
+    name = "HomeReportSheet - expanded item",
+    showBackground = true,
+    widthDp = 375,
+    heightDp = 812,
+)
+@Composable
+private fun HomeReportSheetExpandedItemPreview() {
+    HilitTheme {
+        HomeReportSheet(
+            reports = PreviewHomeReports,
+            expandedReportId = PreviewHomeReports.first().id,
+            onReportExpandClick = {},
+            onReportActionClick = {},
+            expandedTopPx = 0f,
+        )
+    }
 }
