@@ -60,9 +60,16 @@ Process 종료 이후의 복원 정책으로 확대 해석하지 않는다.
 Feature `impl`은 다른 Feature의 `api`만 참조할 수 있다. 다른 Feature의 `impl`, Screen,
 ViewModel과 entry builder를 직접 참조하지 않는다.
 
+모든 `:feature:*:api` 모듈은 `dminus14.jvm.feature-api` Convention Plugin을 적용한다. API
+모듈에 정의하는 모든 route는 Kotlin Serialization의 `@Serializable`을 적용하고 Navigation
+3의 `NavKey`를 구현해야 한다.
+
 Feature entry builder는 route key와 Composable entry를 연결한다.
 
 ```kotlin
+@Serializable
+data object SampleRoute : NavKey
+
 fun EntryProviderScope<Any>.sampleEntryBuilder() {
     entry<SampleRoute> {
         SampleScreen(...)
