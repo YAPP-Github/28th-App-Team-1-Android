@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
@@ -53,5 +54,13 @@ internal fun HomeSessionStartInfoField(
             style = HilitTheme.typography.body9,
             color = HilitTheme.colors.gray500,
         )
+    }
+}
+
+@Preview(name = "HomeSessionStartInfoField", showBackground = true, widthDp = 335, heightDp = 60)
+@Composable
+private fun HomeSessionStartInfoFieldPreview() {
+    HilitTheme {
+        HomeSessionStartInfoField(text = "이용권이 하나 차감됩니다.")
     }
 }

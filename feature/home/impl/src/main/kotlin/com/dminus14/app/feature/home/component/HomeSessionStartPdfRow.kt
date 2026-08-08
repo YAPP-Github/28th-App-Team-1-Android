@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
@@ -76,5 +77,16 @@ internal fun HomeSessionStartPdfRow(
                 color = HilitTheme.colors.gray500,
             )
         }
+    }
+}
+
+@Preview(name = "HomeSessionStartPdfRow", showBackground = true, widthDp = 335, heightDp = 80)
+@Composable
+private fun HomeSessionStartPdfRowPreview() {
+    HilitTheme {
+        HomeSessionStartPdfRow(
+            fileName = "{파일명}.pdf",
+            subText = "20xx.xx.xx | {0}mb",
+        )
     }
 }

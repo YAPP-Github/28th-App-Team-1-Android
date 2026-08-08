@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dminus14.designsystem.theme.HilitTheme
 
@@ -38,5 +40,21 @@ internal fun HomeSessionStartCard(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         content()
+    }
+}
+
+@Preview(
+    name = "HomeSessionStartCard",
+    showBackground = true,
+    backgroundColor = 0xFFDDEEDD,
+    widthDp = 335,
+    heightDp = 220,
+)
+@Composable
+private fun HomeSessionStartCardPreview() {
+    HilitTheme {
+        HomeSessionStartCard {
+            Text(text = "카드 내용 슬롯", color = HilitTheme.colors.hilitBlack800)
+        }
     }
 }
