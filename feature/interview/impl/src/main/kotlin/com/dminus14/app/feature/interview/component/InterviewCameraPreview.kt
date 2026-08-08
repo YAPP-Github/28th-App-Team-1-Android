@@ -78,13 +78,16 @@ private fun CameraPreviewReal(
                 it.surfaceProvider = previewView.surfaceProvider
             }
         var cameraProvider: ProcessCameraProvider? = null
+        var isDisposed = false
 
         cameraProviderFuture.addListener(
             {
-                cameraProvider = cameraProviderFuture.get()
-                val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+                if (isDisposed) return@addListener
 
                 try {
+                    cameraProvider = cameraProviderFuture.get()
+                    val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+
                     cameraProvider?.unbind(preview)
                     cameraProvider?.bindToLifecycle(
                         lifecycleOwner,
@@ -99,6 +102,7 @@ private fun CameraPreviewReal(
         )
 
         onDispose {
+            isDisposed = true
             try {
                 cameraProvider?.unbind(preview)
             } catch (_: Exception) {
