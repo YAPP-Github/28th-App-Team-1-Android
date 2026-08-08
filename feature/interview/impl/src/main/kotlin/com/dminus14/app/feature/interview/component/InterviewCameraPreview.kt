@@ -63,19 +63,20 @@ private fun CameraPreviewReal(modifier: Modifier = Modifier) {
     DisposableEffect(lifecycleOwner) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         val executor = ContextCompat.getMainExecutor(context)
+        val preview =
+            Preview.Builder().build().also {
+                it.surfaceProvider = previewView.surfaceProvider
+            }
+        var cameraProvider: ProcessCameraProvider? = null
 
         cameraProviderFuture.addListener(
             {
-                val cameraProvider = cameraProviderFuture.get()
-                val preview =
-                    Preview.Builder().build().also {
-                        it.surfaceProvider = previewView.surfaceProvider
-                    }
+                cameraProvider = cameraProviderFuture.get()
                 val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
 
                 try {
-                    cameraProvider.unbindAll()
-                    cameraProvider.bindToLifecycle(
+                    cameraProvider?.unbind(preview)
+                    cameraProvider?.bindToLifecycle(
                         lifecycleOwner,
                         cameraSelector,
                         preview,
@@ -89,8 +90,7 @@ private fun CameraPreviewReal(modifier: Modifier = Modifier) {
 
         onDispose {
             try {
-                val cameraProvider = cameraProviderFuture.get()
-                cameraProvider.unbindAll()
+                cameraProvider?.unbind(preview)
             } catch (_: Exception) {
                 // Ignore cleanup error
             }
