@@ -409,7 +409,7 @@ class InterviewRepositoryImplTest {
             questionId: Long,
         ): okhttp3.ResponseBody {
             failure?.let { throw it }
-            return okhttp3.ResponseBody.create(null, "")
+            return "".toResponseBody(null)
         }
 
         override suspend fun getResume(sessionId: Long): InterviewResumeStatusResponseDto {
