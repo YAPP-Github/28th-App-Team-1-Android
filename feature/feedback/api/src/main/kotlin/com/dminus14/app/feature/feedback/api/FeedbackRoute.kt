@@ -1,8 +1,12 @@
 package com.dminus14.app.feature.feedback.api
 
-class FeedbackOnboarding(
+import androidx.navigation3.runtime.NavKey
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class FeedbackOnboarding(
     val token: String,
-) {
+) : NavKey {
     override fun equals(other: Any?): Boolean = other is FeedbackOnboarding && token == other.token
 
     override fun hashCode(): Int = token.hashCode()
@@ -10,6 +14,8 @@ class FeedbackOnboarding(
     override fun toString(): String = "FeedbackOnboarding(token=**redacted**)"
 }
 
-object Feedback
+@Serializable
+data object Feedback : NavKey
 
-object FeedbackReview
+@Serializable
+data object FeedbackReview : NavKey

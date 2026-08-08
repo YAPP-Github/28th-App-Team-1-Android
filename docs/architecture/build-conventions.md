@@ -29,11 +29,13 @@
 | Base | `dminus14.compose.multiplatform.ui-library` | `designsystem` common UI 환경 |
 | Base | `dminus14.compose.multiplatform.wasm-application` | `catalog` executable Wasm UI 환경 |
 | Composite | `dminus14.android.feature` | 모든 `feature:*:impl`의 표준 capability 조합 |
+| Composite | `dminus14.jvm.feature-api` | 모든 `feature:*:api`의 JVM, route와 quality capability 조합 |
 | Capability | `dminus14.android.compose` | Android Compose 제품 UI |
 | Capability | `dminus14.compose.preview` | Android/CMP Preview annotation과 tooling |
 | Capability | `dminus14.compose.resources` | 허용된 UI consumer의 `core:resources` 의존 |
 | Capability | `dminus14.android.hilt` | Hilt, KSP, runtime과 compiler |
 | Capability | `dminus14.android.navigation3` | Navigation 3 Android dependency |
+| Capability | `dminus14.kotlin.navigation-route` | route 계약용 Kotlin Serialization Plugin과 Navigation 3 runtime dependency |
 | Capability | `dminus14.android.test` | Android 기본 unit/instrumentation test stack |
 | Capability | `dminus14.android.compose.test` | Android Compose UI test stack |
 | Capability | `dminus14.android.room` | Room과 KSP dependency |
@@ -55,8 +57,16 @@ implementation이 공통으로 요구하는 Android Library, Compose, Preview, s
 Hilt, Navigation과 quality capability를 조합한다. Child Plugin이 소유하는 DSL과 dependency를
 composite에서 다시 선언하지 않는다.
 
-Feature `api` 모듈에는 이 composite를 적용하지 않고 해당 platform과 책임에 맞는 최소 Plugin을
-사용한다.
+Feature `api` 모듈에는 이 composite를 적용하지 않는다.
+
+### 3.1 Feature API composite
+
+`dminus14.jvm.feature-api`는 모든 `:feature:*:api`에 적용하는 표준 composite Plugin이다. JVM
+Library, Navigation route와 Kotlin quality capability를 조합한다. Route capability는 Kotlin
+Serialization Plugin과 Navigation 3 runtime dependency를 제공한다.
+
+각 `:feature:*:api` build script는 개별 Kotlin Serialization Plugin이나 Navigation 3 runtime
+dependency를 반복 선언하지 않고 이 composite만 적용한다.
 
 ## 4. Preview capability
 
