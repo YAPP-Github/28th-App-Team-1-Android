@@ -9,14 +9,13 @@ import androidx.compose.ui.Modifier
 import com.dminus14.app.feature.home.component.screen.HomeSessionStartConfirmRestartVariant
 import com.dminus14.app.feature.home.component.screen.HomeSessionStartInProgressVariant
 import com.dminus14.app.feature.home.component.screen.HomeSessionStartNoTicketsVariant
-import com.dminus14.app.feature.home.component.screen.HomeSessionStartResumePortfolioVariant
 import com.dminus14.app.feature.home.component.screen.HomeSessionStartStartVariant
 
 /**
  * 홈에서 상태에 따라 페이드인으로 노출되는 세션 시작 오버레이 dispatcher.
  *
  * navigation destination은 아니고 `HomeScreen`의 상위 `Box`에 sibling으로 얹혀
- * [state]가 non-null일 때만 자기 자신을 그린다. 5개 variant는
+ * [state]가 non-null일 때만 자기 자신을 그린다. 4개 variant는
  * `feature/home/impl/.../component/screen/`에 각각 stateless composable로 존재하고,
  * 이 컴포저블은 sealed [HomeSessionStartOverlayState] 값에 따라 그 중 하나를 라우팅한다.
  *
@@ -39,10 +38,6 @@ internal fun HomeSessionStartOverlay(
                 HomeSessionStartStartVariant(state = current, callbacks = callbacks)
             }
 
-            is HomeSessionStartOverlayState.ResumePortfolio -> {
-                HomeSessionStartResumePortfolioVariant(state = current, callbacks = callbacks)
-            }
-
             is HomeSessionStartOverlayState.NoTickets -> {
                 HomeSessionStartNoTicketsVariant(state = current, callbacks = callbacks)
             }
@@ -62,19 +57,12 @@ internal fun HomeSessionStartOverlay(
     }
 }
 
-/** 홈 오버레이 5종의 데이터 payload. */
+/** 홈 오버레이 4종의 데이터 payload. */
 sealed interface HomeSessionStartOverlayState {
     /** 이용권이 남아 있고 처음 시작하는 사용자. */
     data class Start(
         val userName: String,
         val remainingTicketCount: Int,
-    ) : HomeSessionStartOverlayState
-
-    /** 이전 포트폴리오로 이어서 시작할지 확인. */
-    data class ResumePortfolio(
-        val fileName: String,
-        val uploadedAt: String,
-        val sizeText: String,
     ) : HomeSessionStartOverlayState
 
     /** 무료 이용권을 모두 사용한 상태. */
@@ -93,13 +81,12 @@ sealed interface HomeSessionStartOverlayState {
 }
 
 /**
- * 오버레이 5종이 발생시킬 수 있는 모든 클릭 콜백.
+ * 오버레이 4종이 발생시킬 수 있는 모든 클릭 콜백.
  * 각 variant는 자신에게 필요한 콜백만 호출한다.
  */
 data class HomeSessionStartCallbacks(
     val onCloseClick: () -> Unit = {},
     val onStartClick: () -> Unit = {},
-    val onEditPortfolioClick: () -> Unit = {},
     val onGoHomeClick: () -> Unit = {},
     val onRestartClick: () -> Unit = {},
     val onResumeClick: () -> Unit = {},

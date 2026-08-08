@@ -520,8 +520,7 @@ private fun HomeReportSheetHandle(
                     } else {
                         Modifier
                     },
-                )
-                .pointerInput(state.anchors) {
+                ).pointerInput(state.anchors) {
                     val velocityTracker = VelocityTracker()
                     detectVerticalDragGestures(
                         onDragStart = { velocityTracker.resetTracking() },

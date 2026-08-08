@@ -274,24 +274,6 @@ private fun HomeOverlayStartPreview() {
 }
 
 @Preview(
-    name = "HomeOverlay - ResumePortfolio",
-    showBackground = true,
-    widthDp = 375,
-    heightDp = 812,
-)
-@Composable
-private fun HomeOverlayResumePortfolioPreview() {
-    HomeOverlayPreviewScaffold(
-        overlay =
-            HomeSessionStartOverlayState.ResumePortfolio(
-                fileName = "{파일명}.pdf",
-                uploadedAt = "20xx.xx.xx",
-                sizeText = "{0}mb",
-            ),
-    )
-}
-
-@Preview(
     name = "HomeOverlay - NoTickets",
     showBackground = true,
     widthDp = 375,
