@@ -1,4 +1,4 @@
-@file:Suppress("ktlint:standard:filename")
+@file:Suppress("MatchingDeclarationName", "ktlint:standard:filename")
 
 package com.dminus14.app.feature.onboarding.api
 
