@@ -3,7 +3,6 @@ package com.dminus14.app.feature.home
 import com.dminus14.app.core.common.mvi.MviEffect
 import com.dminus14.app.core.common.mvi.MviIntent
 import com.dminus14.app.core.common.mvi.MviState
-import com.dminus14.app.feature.home.component.HomeSessionStartOverlayState
 
 sealed interface HomeIntent : MviIntent {
     data object Load : HomeIntent

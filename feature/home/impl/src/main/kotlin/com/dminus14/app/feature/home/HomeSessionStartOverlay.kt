@@ -1,4 +1,4 @@
-package com.dminus14.app.feature.home.component
+package com.dminus14.app.feature.home
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -6,14 +6,21 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.dminus14.app.feature.home.component.screen.HomeSessionStartConfirmRestartVariant
+import com.dminus14.app.feature.home.component.screen.HomeSessionStartInProgressVariant
+import com.dminus14.app.feature.home.component.screen.HomeSessionStartNoTicketsVariant
+import com.dminus14.app.feature.home.component.screen.HomeSessionStartResumePortfolioVariant
+import com.dminus14.app.feature.home.component.screen.HomeSessionStartStartVariant
 
 /**
- * 홈 화면에서 상태에 따라 페이드인으로 노출되는 세션 시작 오버레이 5종의 dispatcher.
+ * 홈에서 상태에 따라 페이드인으로 노출되는 세션 시작 오버레이 dispatcher.
  *
- * [state]가 null이면 아무것도 렌더하지 않고, non-null이면 해당 [HomeSessionStartOverlayState]
- * variant를 페이드인으로 표시한다.
+ * navigation destination은 아니고 `HomeScreen`의 상위 `Box`에 sibling으로 얹혀
+ * [state]가 non-null일 때만 자기 자신을 그린다. 5개 variant는
+ * `feature/home/impl/.../component/screen/`에 각각 stateless composable로 존재하고,
+ * 이 컴포저블은 sealed [HomeSessionStartOverlayState] 값에 따라 그 중 하나를 라우팅한다.
  *
- * 실제 상태 트리거/버튼 콜백 배선은 후속 작업에서 [HomeSessionStartCallbacks]를 통해 주입.
+ * 상태 트리거·버튼 콜백은 [HomeSessionStartCallbacks]로 주입.
  */
 @Composable
 internal fun HomeSessionStartOverlay(
@@ -49,7 +56,7 @@ internal fun HomeSessionStartOverlay(
             }
 
             null -> {
-                // AnimatedVisibility exit 애니메이션이 재생되는 동안 잠깐 걸릴 수 있음.
+                // AnimatedVisibility exit 애니메이션 재생 도중 잠깐 걸릴 수 있음.
             }
         }
     }

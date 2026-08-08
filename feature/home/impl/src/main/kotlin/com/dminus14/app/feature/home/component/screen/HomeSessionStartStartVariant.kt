@@ -1,4 +1,4 @@
-package com.dminus14.app.feature.home.component
+package com.dminus14.app.feature.home.component.screen
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -10,6 +10,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.dminus14.app.feature.home.HomeSessionStartCallbacks
+import com.dminus14.app.feature.home.HomeSessionStartOverlayState
+import com.dminus14.app.feature.home.component.HomeSessionStartCard
+import com.dminus14.app.feature.home.component.HomeSessionStartScaffold
 import com.dminus14.designsystem.component.button.HilitButtonType
 import com.dminus14.designsystem.component.button.HilitFixedBottomButton
 import com.dminus14.designsystem.component.icon.HilitIcon
@@ -21,27 +25,27 @@ private val LabelToValueSpacing = 8.dp
 private val IconToTextSpacing = 16.dp
 
 /**
- * Figma 443:5857 — 무료 이용권을 모두 소진한 상태에서 표시하는 오버레이.
+ * Figma 443:5821 — 이용권이 남은 사용자에게 면접 시작을 제안하는 오버레이.
  *
- * "슬픈 러너" 아이콘이 designsystem에 없어 임시로 `HilitIconAsset.Pause`로 표시한다.
- * SVG 조달 후 `HilitIconAsset`에 slot 추가 → 교체.
+ * 러너(뛰는 사람) 아이콘이 designsystem에 아직 없어 임시로 `HilitIconAsset.Play`로 표시한다.
+ * 아이콘 SVG 조달 후 `HilitIconAsset`에 러너 엔트리 추가하고 교체하면 된다.
  */
 @Composable
-internal fun HomeSessionStartNoTicketsVariant(
-    state: HomeSessionStartOverlayState.NoTickets,
+internal fun HomeSessionStartStartVariant(
+    state: HomeSessionStartOverlayState.Start,
     callbacks: HomeSessionStartCallbacks,
     modifier: Modifier = Modifier,
 ) {
     HomeSessionStartScaffold(
-        title = "${state.userName}님,\n무료 횟수를 모두\n사용했어요",
+        title = "${state.userName}님,\n지금부터 면접을\n시작해 볼까요?",
         onCloseClick = callbacks.onCloseClick,
         card = {
             HomeSessionStartCard {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     HilitIcon(
-                        asset = HilitIconAsset.Pause,
+                        asset = HilitIconAsset.Play,
                         contentDescription = null,
-                        tint = HilitTheme.colors.gray400,
+                        tint = HilitTheme.colors.hilitGreen800,
                         modifier = Modifier.size(IconSize),
                     )
                     Text(
@@ -51,7 +55,7 @@ internal fun HomeSessionStartNoTicketsVariant(
                         modifier = Modifier.padding(top = IconToTextSpacing),
                     )
                     Text(
-                        text = "0회",
+                        text = "${state.remainingTicketCount}회",
                         style = HilitTheme.typography.sub7,
                         color = HilitTheme.colors.hilitBlack800,
                         modifier = Modifier.padding(top = LabelToValueSpacing),
@@ -62,21 +66,21 @@ internal fun HomeSessionStartNoTicketsVariant(
         },
         bottomButton = {
             HilitFixedBottomButton(
-                text = "홈으로",
+                text = "시작하기",
                 type = HilitButtonType.Light,
-                onClick = callbacks.onGoHomeClick,
+                onClick = callbacks.onStartClick,
             )
         },
         modifier = modifier,
     )
 }
 
-@Preview(name = "NoTickets variant", showBackground = true, widthDp = 375, heightDp = 812)
+@Preview(name = "Start variant", showBackground = true, widthDp = 375, heightDp = 812)
 @Composable
-private fun HomeSessionStartNoTicketsVariantPreview() {
+private fun HomeSessionStartStartVariantPreview() {
     HilitTheme {
-        HomeSessionStartNoTicketsVariant(
-            state = HomeSessionStartOverlayState.NoTickets(userName = "재원"),
+        HomeSessionStartStartVariant(
+            state = HomeSessionStartOverlayState.Start(userName = "재원", remainingTicketCount = 3),
             callbacks = HomeSessionStartCallbacks(),
         )
     }

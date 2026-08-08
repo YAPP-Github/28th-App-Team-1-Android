@@ -34,9 +34,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dminus14.app.core.resources.Res
 import com.dminus14.app.core.resources.home_background
 import com.dminus14.app.feature.home.component.HomeReportSheet
-import com.dminus14.app.feature.home.component.HomeSessionStartCallbacks
-import com.dminus14.app.feature.home.component.HomeSessionStartOverlay
-import com.dminus14.app.feature.home.component.HomeSessionStartOverlayState
 import com.dminus14.app.feature.home.component.HomeSheetAnchor
 import com.dminus14.designsystem.component.topbar.HilitLogoTopBar
 import com.dminus14.designsystem.theme.HilitTheme
