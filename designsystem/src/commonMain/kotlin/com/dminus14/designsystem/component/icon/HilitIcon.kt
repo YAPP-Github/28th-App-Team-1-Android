@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.dminus14.app.core.resources.Res
 import com.dminus14.app.core.resources.ai_sparkle
+import com.dminus14.app.core.resources.alert_red
 import com.dminus14.app.core.resources.apple_logo
 import com.dminus14.app.core.resources.book
 import com.dminus14.app.core.resources.cancel
@@ -21,10 +22,13 @@ import com.dminus14.app.core.resources.edit
 import com.dminus14.app.core.resources.expand
 import com.dminus14.app.core.resources.file
 import com.dminus14.app.core.resources.fill_warning
+import com.dminus14.app.core.resources.finish
 import com.dminus14.app.core.resources.hiiii_logo
 import com.dminus14.app.core.resources.info
 import com.dminus14.app.core.resources.kakao_logo
 import com.dminus14.app.core.resources.left
+import com.dminus14.app.core.resources.mic
+import com.dminus14.app.core.resources.network
 import com.dminus14.app.core.resources.pause
 import com.dminus14.app.core.resources.play
 import com.dminus14.app.core.resources.plus
@@ -92,6 +96,10 @@ enum class HilitIconAsset(
     Undo("undo", 16.dp, Res.drawable.undo, preservesOriginalColors = true),
     Voice("voice", 28.dp, Res.drawable.voice, preservesOriginalColors = true),
     Book("book", 63.dp, Res.drawable.book, preservesOriginalColors = true),
+    Mic("mic", 24.dp, Res.drawable.mic),
+    Network("network", 24.dp, Res.drawable.network),
+    AlertRed("alert", 14.dp, Res.drawable.alert_red, preservesOriginalColors = true),
+    Finish("finish", 74.dp, Res.drawable.finish, preservesOriginalColors = true),
 }
 
 /**
