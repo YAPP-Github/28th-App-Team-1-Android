@@ -26,6 +26,7 @@ import com.dminus14.app.core.resources.info
 import com.dminus14.app.core.resources.kakao_logo
 import com.dminus14.app.core.resources.left
 import com.dminus14.app.core.resources.opp
+import com.dminus14.app.core.resources.opp_x
 import com.dminus14.app.core.resources.pause
 import com.dminus14.app.core.resources.play
 import com.dminus14.app.core.resources.plus
@@ -94,6 +95,7 @@ enum class HilitIconAsset(
     Voice("voice", 28.dp, Res.drawable.voice, preservesOriginalColors = true),
     Book("book", 63.dp, Res.drawable.book, preservesOriginalColors = true),
     Opp("opp", 74.dp, Res.drawable.opp, preservesOriginalColors = true),
+    OppX("opp_x", 74.dp, Res.drawable.opp_x, preservesOriginalColors = true),
 }
 
 /**

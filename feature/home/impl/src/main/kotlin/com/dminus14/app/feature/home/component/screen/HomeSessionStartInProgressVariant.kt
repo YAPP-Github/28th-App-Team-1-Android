@@ -20,7 +20,7 @@ import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
 import com.dminus14.designsystem.theme.HilitTheme
 
-private val IconSize = 48.dp
+private val IconSize = 74.dp
 private val LabelToValueSpacing = 8.dp
 private val IconToTextSpacing = 16.dp
 
@@ -42,7 +42,7 @@ internal fun HomeSessionStartInProgressVariant(
             HomeSessionStartCard {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     HilitIcon(
-                        asset = HilitIconAsset.Script,
+                        asset = HilitIconAsset.Opp,
                         contentDescription = null,
                         tint = HilitTheme.colors.hilitGreen800,
                         modifier = Modifier.size(IconSize),
