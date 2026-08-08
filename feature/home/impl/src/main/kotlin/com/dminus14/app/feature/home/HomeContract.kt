@@ -16,5 +16,5 @@ data class HomeState(
 ) : MviState
 
 sealed interface HomeEffect : MviEffect {
-    data object GoToHomeRequested : HomeEffect
+    data object GoToMyPageRequested : HomeEffect
 }

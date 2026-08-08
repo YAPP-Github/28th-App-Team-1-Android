@@ -31,7 +31,7 @@ fun HomeScreen(
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                HomeEffect.GoToHomeRequested -> {
+                HomeEffect.GoToMyPageRequested -> {
                     onOpenMyPage()
                 }
             }

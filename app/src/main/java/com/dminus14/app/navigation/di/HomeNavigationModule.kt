@@ -2,6 +2,7 @@ package com.dminus14.app.navigation.di
 
 import androidx.navigation3.runtime.EntryProviderScope
 import com.dminus14.app.feature.home.navigation.homeEntryBuilder
+import com.dminus14.app.feature.mypage.MyPage
 import com.dminus14.app.navigation.Navigator
 import dagger.Module
 import dagger.Provides
@@ -16,6 +17,6 @@ object HomeNavigationModule {
     @Provides
     fun provideHomeEntryInstaller(navigator: Navigator): EntryProviderScope<Any>.() -> Unit =
         {
-            homeEntryBuilder(goTo = navigator::goTo)
+            homeEntryBuilder(onOpenMyPage = { navigator.goTo(MyPage) })
         }
 }

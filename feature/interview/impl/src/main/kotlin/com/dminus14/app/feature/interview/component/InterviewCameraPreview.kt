@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -33,22 +35,30 @@ private const val MOCK_TEXT_REPEAT_COUNT = 4
  */
 @Composable
 fun InterviewCameraPreview(
+    isCameraPermissionGranted: Boolean,
     modifier: Modifier = Modifier,
-    isCameraPermissionGranted: Boolean = true,
+    onCameraBindingFailed: () -> Unit = {},
 ) {
     val isPreview = LocalInspectionMode.current
 
     if (isPreview || !isCameraPermissionGranted) {
         CameraPreviewMock(modifier = modifier)
     } else {
-        CameraPreviewReal(modifier = modifier)
+        CameraPreviewReal(
+            modifier = modifier,
+            onCameraBindingFailed = onCameraBindingFailed,
+        )
     }
 }
 
 @Composable
-private fun CameraPreviewReal(modifier: Modifier = Modifier) {
+private fun CameraPreviewReal(
+    modifier: Modifier = Modifier,
+    onCameraBindingFailed: () -> Unit,
+) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val currentOnCameraBindingFailed by rememberUpdatedState(onCameraBindingFailed)
     val previewView =
         remember {
             PreviewView(context).apply {
@@ -63,34 +73,38 @@ private fun CameraPreviewReal(modifier: Modifier = Modifier) {
     DisposableEffect(lifecycleOwner) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         val executor = ContextCompat.getMainExecutor(context)
+        val preview =
+            Preview.Builder().build().also {
+                it.surfaceProvider = previewView.surfaceProvider
+            }
+        var cameraProvider: ProcessCameraProvider? = null
+        var isDisposed = false
 
         cameraProviderFuture.addListener(
             {
-                val cameraProvider = cameraProviderFuture.get()
-                val preview =
-                    Preview.Builder().build().also {
-                        it.surfaceProvider = previewView.surfaceProvider
-                    }
-                val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+                if (isDisposed) return@addListener
 
                 try {
-                    cameraProvider.unbindAll()
-                    cameraProvider.bindToLifecycle(
+                    cameraProvider = cameraProviderFuture.get()
+                    val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+
+                    cameraProvider?.unbind(preview)
+                    cameraProvider?.bindToLifecycle(
                         lifecycleOwner,
                         cameraSelector,
                         preview,
                     )
                 } catch (_: Exception) {
-                    // Camera binding fallback
+                    currentOnCameraBindingFailed()
                 }
             },
             executor,
         )
 
         onDispose {
+            isDisposed = true
             try {
-                val cameraProvider = cameraProviderFuture.get()
-                cameraProvider.unbindAll()
+                cameraProvider?.unbind(preview)
             } catch (_: Exception) {
                 // Ignore cleanup error
             }

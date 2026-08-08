@@ -1,4 +1,4 @@
-package com.dminus14.app.feature.interview.layer
+package com.dminus14.app.feature.interview.interview.layer
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -17,6 +17,7 @@ import com.dminus14.designsystem.component.button.HilitMiniButton
 import com.dminus14.designsystem.component.button.HilitMiniButtonColor
 import com.dminus14.designsystem.theme.HilitTheme
 
+@Suppress("LongParameterList")
 @Composable
 fun InterviewScreenOngoingLayer(
     interviewSpeaker: InterviewSpeaker,
@@ -24,6 +25,7 @@ fun InterviewScreenOngoingLayer(
     canFinishedEarly: Boolean,
     isInterviewOngoing: Boolean,
     modifier: Modifier = Modifier,
+    onFinishRequest: () -> Unit = {},
 ) {
     Box(
         modifier = modifier,
@@ -51,7 +53,7 @@ fun InterviewScreenOngoingLayer(
         if (canFinishedEarly) {
             HilitMiniButton(
                 color = HilitMiniButtonColor.Dark,
-                onClick = {},
+                onClick = onFinishRequest,
                 enabled = isInterviewOngoing,
                 modifier =
                     Modifier

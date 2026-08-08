@@ -50,6 +50,7 @@ fun InterviewErrorScreen(
     errorType: InterviewErrorType,
     onNavigateHome: () -> Unit,
     onResumeInterview: () -> Unit,
+    modifier: Modifier = Modifier,
     viewModel: InterviewErrorViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -70,6 +71,7 @@ fun InterviewErrorScreen(
     InterviewErrorContent(
         state = state,
         onIntent = viewModel::onIntent,
+        modifier = modifier,
     )
 }
 
