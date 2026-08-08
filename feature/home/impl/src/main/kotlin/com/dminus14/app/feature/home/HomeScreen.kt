@@ -76,6 +76,16 @@ private fun HomeContent(
     onReportActionClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val density = LocalDensity.current
+    var topBarBottomPx by remember { mutableFloatStateOf(Float.NaN) }
+    var sheetAnchor by remember { mutableStateOf(HomeSheetAnchor.Peek) }
+    val expandedTopPx =
+        if (topBarBottomPx.isNaN()) {
+            with(density) { FallbackExpandedTop.toPx() }
+        } else {
+            topBarBottomPx
+        }
+
     Box(modifier = modifier.fillMaxSize()) {
         Image(
             painter = painterResource(Res.drawable.home_background),
@@ -92,16 +102,6 @@ private fun HomeContent(
         ) {
             HomeHeroSection(userName = state.userName)
         }
-
-        val density = LocalDensity.current
-        var topBarBottomPx by remember { mutableFloatStateOf(Float.NaN) }
-        var sheetAnchor by remember { mutableStateOf(HomeSheetAnchor.Peek) }
-        val expandedTopPx =
-            if (topBarBottomPx.isNaN()) {
-                with(density) { FallbackExpandedTop.toPx() }
-            } else {
-                topBarBottomPx
-            }
 
         HomeReportSheet(
             reports = state.reports,
@@ -139,7 +139,7 @@ private fun HomeContent(
                         enabled = false,
                         indication = null,
                         interactionSource = null,
-                        onClick = { }
+                        onClick = { },
                     ),
                 contentAlignment = Alignment.Center,
             ) {
@@ -207,7 +207,8 @@ private fun HomeHeroSection(userName: String) {
                     .padding(
                         horizontal = HintHorizontalPadding,
                         vertical = HintVerticalPadding,
-                    ).padding(top = GreetingToHintSpacing),
+                    )
+                    .padding(top = GreetingToHintSpacing),
         )
     }
 }
