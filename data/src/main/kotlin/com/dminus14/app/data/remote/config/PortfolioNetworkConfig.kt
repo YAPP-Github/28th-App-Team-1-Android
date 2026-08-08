@@ -9,5 +9,5 @@ internal object PortfolioNetworkConfig {
 
     const val MIME_PDF = "application/pdf"
 
-    const val PDF_PART_NAME = "pdf"
+    const val PDF_PART_NAME = "file"
 }

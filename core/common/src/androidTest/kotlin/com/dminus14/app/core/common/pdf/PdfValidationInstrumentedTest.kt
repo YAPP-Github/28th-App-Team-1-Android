@@ -29,7 +29,10 @@ class PdfValidationInstrumentedTest {
         val pdf = createPdf(pageCount = 1)
 
         withPdfResolver(pdf) { contentResolver, uri ->
-            assertEquals(PdfValidationResult.Valid, validatePdf(contentResolver, uri))
+            assertEquals(
+                PdfValidationResult.Valid(pageCount = 1),
+                validatePdf(contentResolver, uri),
+            )
         }
     }
 
@@ -39,7 +42,10 @@ class PdfValidationInstrumentedTest {
         val pdf = createPdf(pageCount = 30)
 
         withPdfResolver(pdf) { contentResolver, uri ->
-            assertEquals(PdfValidationResult.Valid, validatePdf(contentResolver, uri))
+            assertEquals(
+                PdfValidationResult.Valid(pageCount = 30),
+                validatePdf(contentResolver, uri),
+            )
         }
     }
 

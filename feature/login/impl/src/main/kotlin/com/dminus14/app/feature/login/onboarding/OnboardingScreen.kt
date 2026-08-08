@@ -213,7 +213,7 @@ private fun OnboardingStepContent(
         OnboardingStep.JobSelection -> {
             OnboardingJobStep(
                 userName = state.name,
-                jobs = state.jobs,
+                jobs = state.jobs.map { it.label },
                 selectedJobIndex = state.selectedJobIndex,
                 onJobClick = { onIntent(OnboardingIntent.JobClick(it)) },
                 modifier = modifier,

@@ -9,6 +9,7 @@ android {
 dependencies {
     api(project(":feature:login:api"))
     implementation(project(":core:common"))
+    implementation(project(":core:permission"))
     implementation(project(":designsystem"))
     implementation(project(":domain"))
     implementation(project(":feature:home:api"))

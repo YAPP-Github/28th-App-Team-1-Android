@@ -1,18 +1,57 @@
 package com.dminus14.app.feature.login.onboarding
 
+import com.dminus14.app.domain.exception.InvalidJobRoleException
+import com.dminus14.app.domain.exception.NameAlreadyTakenException
+import com.dminus14.app.domain.exception.ValidationException
+import com.dminus14.app.domain.model.Job
+import com.dminus14.app.domain.model.UserProfile
+import com.dminus14.app.domain.model.UserProfileUpdate
+import com.dminus14.app.domain.repository.UserRepository
+import com.dminus14.app.domain.usecase.GetJobListUseCase
+import com.dminus14.app.domain.usecase.UpdateUserProfileUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
+
+// 이전 프로덕션의 `DefaultJobs` 하드코딩 목록이 서버 조회(GetJobListUseCase)로 대체되면서
+// 이 값은 테스트의 "loadJobs가 채워 넣는 목록" 역할만 한다. 원래 어서션이 최소 3개 이상의
+// 직군을 필요로 하기 때문에(예: `JobClick(2)`) 스텁이 반환하는 목록을 그대로 사용한다.
+private val DefaultJobs =
+    listOf(
+        Job(jobId = 1, jobRole = "BACKEND", label = "백엔드"),
+        Job(jobId = 2, jobRole = "FRONTEND", label = "프론트엔드"),
+        Job(jobId = 3, jobRole = "ANDROID", label = "안드로이드"),
+        Job(jobId = 4, jobRole = "IOS", label = "iOS"),
+        Job(jobId = 5, jobRole = "DATA", label = "데이터"),
+    )
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class OnboardingViewModelTest {
+    // OnboardingViewModel.Load는 viewModelScope.launch로 loadJobs를 실행하므로
+    // 단위 테스트에서도 Main dispatcher가 필요하다. Unconfined로 즉시 실행되게 한다.
+    @Before
+    fun setUp() {
+        Dispatchers.setMain(UnconfinedTestDispatcher())
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
+
     @Test
     fun `초기 상태는 Naming 단계이고 계속하기 버튼이 비활성화된다`() {
         val viewModel = createViewModel()
@@ -456,7 +495,140 @@ class OnboardingViewModelTest {
             assertEquals(emptyList<OnboardingEffect>(), receivedEffects)
         }
 
-    private fun createViewModel(): OnboardingViewModel = OnboardingViewModel()
+    // region 직군 목록 로드
+
+    @Test
+    fun `Load 시 GetJobListUseCase 결과가 jobs에 반영된다`() {
+        val viewModel = createViewModel()
+
+        assertEquals(DefaultJobs, viewModel.state.value.jobs)
+    }
+
+    // endregion
+
+    // region 프로필 등록 제출
+
+    @Test
+    fun `RegisterDone에서 ContinueClick하면 UpdateUserProfileUseCase가 호출되고 Completed Effect가 발행된다`() =
+        runTest {
+            val viewModel = createViewModel()
+            advanceToRegisterDone(viewModel)
+            val effect = async { viewModel.effect.first() }
+
+            viewModel.onIntent(OnboardingIntent.ContinueClick)
+
+            assertEquals(OnboardingEffect.Completed, effect.await())
+            assertFalse(viewModel.state.value.isSubmitting)
+        }
+
+    @Test
+    fun `NameAlreadyTakenException 이면 Naming 단계로 되돌리고 errorMessage를 설정한다`() =
+        runTest {
+            val viewModel =
+                createViewModel(
+                    updateProfileFailure =
+                        NameAlreadyTakenException(
+                            errCode = "NAME_ALREADY_TAKEN",
+                            message = "이미 사용 중인 이름이에요.",
+                        ),
+                )
+            advanceToRegisterDone(viewModel)
+            val receivedEffects = mutableListOf<OnboardingEffect>()
+            val collector = launch { viewModel.effect.collect(receivedEffects::add) }
+
+            viewModel.onIntent(OnboardingIntent.ContinueClick)
+            advanceUntilIdle()
+            collector.cancel()
+
+            assertEquals(OnboardingStep.Naming, viewModel.state.value.step)
+            assertEquals("이미 사용 중인 이름이에요.", viewModel.state.value.errorMessage)
+            assertFalse(viewModel.state.value.isSubmitting)
+            assertEquals(emptyList<OnboardingEffect>(), receivedEffects)
+        }
+
+    @Test
+    fun `InvalidJobRoleException 이면 JobSelection 단계로 되돌리고 errorMessage를 설정한다`() =
+        runTest {
+            val viewModel =
+                createViewModel(
+                    updateProfileFailure =
+                        InvalidJobRoleException(
+                            errCode = "INVALID_JOB_ROLE",
+                            message = "잘못된 직무 코드예요.",
+                        ),
+                )
+            advanceToRegisterDone(viewModel)
+
+            viewModel.onIntent(OnboardingIntent.ContinueClick)
+            advanceUntilIdle()
+
+            assertEquals(OnboardingStep.JobSelection, viewModel.state.value.step)
+            assertEquals("잘못된 직무 코드예요.", viewModel.state.value.errorMessage)
+            assertFalse(viewModel.state.value.isSubmitting)
+        }
+
+    @Test
+    fun `ValidationException 이면 step은 유지되고 errorMessage만 설정된다`() =
+        runTest {
+            val viewModel =
+                createViewModel(
+                    updateProfileFailure =
+                        ValidationException(
+                            errCode = "VALIDATION_ERROR",
+                            message = "입력값이 올바르지 않아요.",
+                        ),
+                )
+            advanceToRegisterDone(viewModel)
+
+            viewModel.onIntent(OnboardingIntent.ContinueClick)
+            advanceUntilIdle()
+
+            assertEquals(OnboardingStep.RegisterDone, viewModel.state.value.step)
+            assertEquals("입력값이 올바르지 않아요.", viewModel.state.value.errorMessage)
+            assertFalse(viewModel.state.value.isSubmitting)
+        }
+
+    // endregion
+
+    private fun createViewModel(updateProfileFailure: Throwable? = null): OnboardingViewModel {
+        val fakeUserRepository = StubUserRepository(updateFailure = updateProfileFailure)
+        val viewModel =
+            OnboardingViewModel(
+                getJobList = GetJobListUseCase(fakeUserRepository),
+                updateUserProfile = UpdateUserProfileUseCase(fakeUserRepository),
+            )
+        // 기존 테스트들은 jobs 목록이 즉시 채워져 있다는 전제(예: JobClick(2))를 가지므로
+        // ViewModel 생성 직후 Load를 흘려 loadJobs가 DefaultJobs를 반영하게 한다.
+        // UnconfinedTestDispatcher 덕분에 여기서 동기적으로 완료된다.
+        viewModel.onIntent(OnboardingIntent.Load)
+        return viewModel
+    }
+
+    /**
+     * OnboardingViewModel 생성자 요구를 만족시키는 스텁.
+     * 직군 목록은 [DefaultJobs]를 반환하고, updateUserProfile은 [updateFailure]가 주어지면 그것을 던진다.
+     */
+    private class StubUserRepository(
+        private val updateFailure: Throwable? = null,
+    ) : UserRepository {
+        var updateCallCount: Int = 0
+            private set
+        var lastUpdate: UserProfileUpdate? = null
+            private set
+
+        override suspend fun getUserProfile(): UserProfile =
+            error("Not used in OnboardingViewModelTest")
+
+        override suspend fun updateUserProfile(update: UserProfileUpdate) {
+            updateCallCount += 1
+            lastUpdate = update
+            updateFailure?.let { throw it }
+        }
+
+        override suspend fun withdraw() = error("Not used in OnboardingViewModelTest")
+
+        override suspend fun getJobList(): List<Job> = DefaultJobs
+    }
 
     private fun advanceToJobSelection(viewModel: OnboardingViewModel) {
         viewModel.onIntent(OnboardingIntent.NameChange("재원"))

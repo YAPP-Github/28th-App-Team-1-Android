@@ -207,6 +207,32 @@ class SplashViewModelTest {
         }
 
     @Test
+    fun `Load 시 프로필 조회 성공했지만 이름이 없으면 RequireOnboarding Effect를 발행한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = sampleSession,
+                        pendingResult = Result.success(upToDatePending),
+                        profileResult = Result.success(sampleUserProfile.copy(name = null)),
+                    )
+                val effect = async { viewModel.effect.first() }
+
+                viewModel.onIntent(SplashIntent.Load)
+
+                assertEquals(SplashEffect.RequireOnboarding, effect.await())
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    // "이메일이 없으면 RequireOnboarding" 테스트는 필수 프로필 판정 정책이
+    // name·email → name 으로 변경되면서 의미가 사라졌다. 동일한 커버리지는
+    // 바로 위 "이름이 없으면 RequireOnboarding" 테스트가 대체한다.
+
+    @Test
     fun `Load 시 세션은 있지만 동의 조회 네트워크 오류면 ShowNetworkErrorAndExit를 발행한다`() =
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
@@ -281,6 +307,60 @@ class SplashViewModelTest {
                 viewModel.onIntent(SplashIntent.Load)
 
                 assertEquals(GlobalAppEvent.ShowUnknownError, globalEvent.await())
+                assertEquals(emptyList<SplashEffect>(), receivedEffects)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun `Load 시 세션은 있지만 동의 조회가 세션 만료면 토스트 없이 카카오 로그인 버튼을 노출한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = sampleSession,
+                        pendingResult =
+                            Result.failure(UnknownException(errCode = "TOKEN_EXPIRED")),
+                        profileResult = Result.success(sampleUserProfile),
+                    )
+                val receivedEffects = mutableListOf<SplashEffect>()
+                backgroundScope.launch { viewModel.effect.collect(receivedEffects::add) }
+
+                viewModel.onIntent(SplashIntent.Load)
+                advanceUntilIdle()
+
+                assertTrue(viewModel.state.value.showKakaoLoginButton)
+                assertFalse(viewModel.state.value.isLoading)
+                assertEquals(emptyList<SplashEffect>(), receivedEffects)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun `Load 시 프로필 조회가 세션 만료면 토스트 없이 카카오 로그인 버튼을 노출한다`() =
+        runTest {
+            val dispatcher = UnconfinedTestDispatcher(testScheduler)
+            Dispatchers.setMain(dispatcher)
+            try {
+                val viewModel =
+                    createViewModel(
+                        session = sampleSession,
+                        pendingResult = Result.success(upToDatePending),
+                        profileResult =
+                            Result.failure(UnknownException(errCode = "LOGIN_EXPIRED")),
+                    )
+                val receivedEffects = mutableListOf<SplashEffect>()
+                backgroundScope.launch { viewModel.effect.collect(receivedEffects::add) }
+
+                viewModel.onIntent(SplashIntent.Load)
+                advanceUntilIdle()
+
+                assertTrue(viewModel.state.value.showKakaoLoginButton)
+                assertFalse(viewModel.state.value.isLoading)
                 assertEquals(emptyList<SplashEffect>(), receivedEffects)
             } finally {
                 Dispatchers.resetMain()
@@ -585,6 +665,9 @@ class SplashViewModelTest {
             error("Not used in SplashViewModelTest")
 
         override suspend fun withdraw() = error("Not used in SplashViewModelTest")
+
+        // 직군 목록 조회는 이 테스트 대상이 아니라 컴파일 통과용 스텁만 둔다.
+        override suspend fun getJobList() = error("Not used in SplashViewModelTest")
     }
 
     private class FakeAuthRepository(
