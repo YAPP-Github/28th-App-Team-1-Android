@@ -251,24 +251,91 @@ private fun HomeReportPreview() {
 }
 
 @Preview(
-    name = "HomeWithSessionStartOverlay",
+    name = "HomeOverlay - Start",
     showBackground = true,
     widthDp = 375,
     heightDp = 812,
 )
 @Composable
-private fun HomeWithSessionStartOverlayPreview() {
+private fun HomeOverlayStartPreview() {
+    HomeOverlayPreviewScaffold(
+        overlay =
+            HomeSessionStartOverlayState.Start(
+                userName = "재원",
+                remainingTicketCount = 3,
+            ),
+    )
+}
+
+@Preview(
+    name = "HomeOverlay - ResumePortfolio",
+    showBackground = true,
+    widthDp = 375,
+    heightDp = 812,
+)
+@Composable
+private fun HomeOverlayResumePortfolioPreview() {
+    HomeOverlayPreviewScaffold(
+        overlay =
+            HomeSessionStartOverlayState.ResumePortfolio(
+                fileName = "{파일명}.pdf",
+                uploadedAt = "20xx.xx.xx",
+                sizeText = "{0}mb",
+            ),
+    )
+}
+
+@Preview(
+    name = "HomeOverlay - NoTickets",
+    showBackground = true,
+    widthDp = 375,
+    heightDp = 812,
+)
+@Composable
+private fun HomeOverlayNoTicketsPreview() {
+    HomeOverlayPreviewScaffold(
+        overlay = HomeSessionStartOverlayState.NoTickets(userName = "재원"),
+    )
+}
+
+@Preview(
+    name = "HomeOverlay - InProgress",
+    showBackground = true,
+    widthDp = 375,
+    heightDp = 812,
+)
+@Composable
+private fun HomeOverlayInProgressPreview() {
+    HomeOverlayPreviewScaffold(
+        overlay =
+            HomeSessionStartOverlayState.InProgress(
+                userName = "재원",
+                remainingQuestionCount = 2,
+            ),
+    )
+}
+
+@Preview(
+    name = "HomeOverlay - ConfirmRestart",
+    showBackground = true,
+    widthDp = 375,
+    heightDp = 812,
+)
+@Composable
+private fun HomeOverlayConfirmRestartPreview() {
+    HomeOverlayPreviewScaffold(overlay = HomeSessionStartOverlayState.ConfirmRestart)
+}
+
+/** 오버레이 5종을 홈 위에 얹은 프리뷰용 공통 스캐폴드. */
+@Composable
+private fun HomeOverlayPreviewScaffold(overlay: HomeSessionStartOverlayState) {
     HilitTheme {
         HomeContent(
             state =
                 HomeState(
                     userName = "재원",
                     reports = PreviewHomeReports,
-                    sessionStartOverlay =
-                        HomeSessionStartOverlayState.Start(
-                            userName = "재원",
-                            remainingTicketCount = 3,
-                        ),
+                    sessionStartOverlay = overlay,
                 ),
             onReportExpandClick = {},
             onReportActionClick = {},
