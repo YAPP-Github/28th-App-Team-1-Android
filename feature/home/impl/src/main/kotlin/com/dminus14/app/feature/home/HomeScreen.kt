@@ -132,15 +132,16 @@ private fun HomeContent(
 
         if (state.isLoading) {
             Box(
-                modifier = modifier
-                    .fillMaxSize()
-                    .background(HilitTheme.colors.hilitWhite.copy(alpha = 0.6f))
-                    .clickable(
-                        enabled = false,
-                        indication = null,
-                        interactionSource = null,
-                        onClick = { },
-                    ),
+                modifier =
+                    modifier
+                        .fillMaxSize()
+                        .background(HilitTheme.colors.hilitWhite.copy(alpha = 0.6f))
+                        .clickable(
+                            enabled = false,
+                            indication = null,
+                            interactionSource = null,
+                            onClick = { },
+                        ),
                 contentAlignment = Alignment.Center,
             ) {
                 CircularProgressIndicator()
@@ -207,8 +208,7 @@ private fun HomeHeroSection(userName: String) {
                     .padding(
                         horizontal = HintHorizontalPadding,
                         vertical = HintVerticalPadding,
-                    )
-                    .padding(top = GreetingToHintSpacing),
+                    ).padding(top = GreetingToHintSpacing),
         )
     }
 }
