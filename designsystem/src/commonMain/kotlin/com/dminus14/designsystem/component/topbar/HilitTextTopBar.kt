@@ -75,7 +75,10 @@ fun HilitTextTopBar(
                 color = HilitMiniButtonColor.Non,
                 onClick = onButtonClick,
             ) {
-                Text(text = buttonText)
+                Text(
+                    text = buttonText,
+                    style = HilitTheme.typography.body5
+                )
             }
         },
     )
