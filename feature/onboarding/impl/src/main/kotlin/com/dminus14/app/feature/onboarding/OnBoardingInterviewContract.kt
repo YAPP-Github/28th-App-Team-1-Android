@@ -112,6 +112,11 @@ data class OnBoardingInterviewState(
     /** 포트폴리오 스텝 인라인 에러(필수 누락·PDF 검증 실패 등). null이면 숨긴다. */
     val portfolioErrorMessage: String? = null,
     val isPortfolioProcessing: Boolean = false,
+    /**
+     * 포트폴리오 업로드 진행률(0~100). 폴링 1회당 10%씩 상승하고 서버가 READY 를 반환하면 100.
+     * 폴링이 최대치를 넘어 타임아웃되는 구간에서는 90에서 캡해 완료로 오해되지 않도록 한다.
+     */
+    val portfolioUploadProgress: Int = 0,
     val mainProjectText: String = "",
     /** 집중 프로젝트 입력의 검증 에러 메시지. 표기 방식은 디자이너 협의 예정이라 저장만 한다. */
     val mainProjectError: String? = null,

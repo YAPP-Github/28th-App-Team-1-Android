@@ -45,6 +45,7 @@ private val RequiredErrorIconTextGap = 8.dp
 fun OnBoardingPortfolioStep(
     fileName: String?,
     isProcessing: Boolean,
+    uploadProgress: Int,
     showExistingPortfolioModal: Boolean,
     errorMessage: String?,
     onIntent: (OnBoardingInterviewIntent) -> Unit,
@@ -93,7 +94,7 @@ fun OnBoardingPortfolioStep(
                         else -> PdfUploadType.Ready
                     },
                 fileName = fileName.orEmpty(),
-                progress = if (fileName != null) 100f else 0f,
+                progress = uploadProgress.toFloat(),
                 onCloseClick =
                     if (fileName != null && !isProcessing) {
                         { onIntent(OnBoardingInterviewIntent.ClickPortfolioRemove) }
@@ -171,6 +172,7 @@ private fun OnBoardingPortfolioStepEmptyPreview() {
         OnBoardingPortfolioStep(
             fileName = null,
             isProcessing = false,
+            uploadProgress = 0,
             showExistingPortfolioModal = false,
             errorMessage = null,
             onIntent = {},
@@ -185,6 +187,7 @@ private fun OnBoardingPortfolioStepUploadedPreview() {
         OnBoardingPortfolioStep(
             fileName = "포트폴리오.pdf",
             isProcessing = false,
+            uploadProgress = 100,
             showExistingPortfolioModal = false,
             errorMessage = null,
             onIntent = {},
@@ -199,6 +202,7 @@ private fun OnBoardingPortfolioStepRequiredErrorPreview() {
         OnBoardingPortfolioStep(
             fileName = null,
             isProcessing = false,
+            uploadProgress = 0,
             showExistingPortfolioModal = false,
             errorMessage = "포트폴리오를 업로드해주세요",
             onIntent = {},
@@ -213,6 +217,7 @@ private fun OnBoardingPortfolioStepModalPreview() {
         OnBoardingPortfolioStep(
             fileName = null,
             isProcessing = false,
+            uploadProgress = 0,
             showExistingPortfolioModal = true,
             errorMessage = null,
             onIntent = {},

@@ -199,7 +199,12 @@ class OnBoardingInterviewViewModel
                         // (스펙 S2: "정상 저장(READY) 포폴은 이탈해도 보존, 다음 진입 시 재사용")
                         if (portfolio != null && portfolio.status == PortfolioStatus.READY) {
                             readyPortfolioId = portfolio.portfolioId
-                            reduce { copy(portfolioFileName = portfolio.fileName) }
+                            reduce {
+                                copy(
+                                    portfolioFileName = portfolio.fileName,
+                                    portfolioUploadProgress = PORTFOLIO_PROGRESS_COMPLETE,
+                                )
+                            }
                         }
                     }.onFailure { error ->
                         // 조회 실패를 무음 처리하면 사용자에게는 "포폴 없음"으로 보여, 재업로드 시
@@ -393,7 +398,11 @@ class OnBoardingInterviewViewModel
                         existingPortfolioId = null
                         existingPortfolioFileName = null
                         reduce {
-                            copy(portfolioFileName = null, isPortfolioProcessing = false)
+                            copy(
+                                portfolioFileName = null,
+                                isPortfolioProcessing = false,
+                                portfolioUploadProgress = 0,
+                            )
                         }
                     }.onFailure { error ->
                         reduce {
@@ -412,27 +421,35 @@ class OnBoardingInterviewViewModel
                     portfolioFileName = intent.fileName,
                     isPortfolioProcessing = true,
                     portfolioErrorMessage = null,
+                    portfolioUploadProgress = 0,
                 )
             }
             viewModelScope.launch {
-                val validationMessage =
+                val validation =
                     withContext(Dispatchers.IO) {
                         validatePdf(context.contentResolver, Uri.fromFile(intent.file))
-                            .toErrorMessageOrNull()
                     }
+                val validationMessage = validation.toErrorMessageOrNull()
                 if (validationMessage != null) {
                     reduce {
                         copy(
                             isPortfolioProcessing = false,
                             portfolioFileName = null,
                             portfolioErrorMessage = validationMessage,
+                            portfolioUploadProgress = 0,
                         )
                     }
                     return@launch
                 }
 
-                uploadPortfolio(file = intent.file, fileName = intent.fileName)
-                    .onSuccess { result -> pollPortfolioStatus(result.portfolioId) }
+                // 서버 스펙: pageCount 는 Positive int 필수. null 로 보내면 400.
+                // validatePdf 가 Valid 를 반환한 시점에 이미 pageCount 를 알고 있으므로 그대로 전달한다.
+                val pageCount = (validation as? PdfValidationResult.Valid)?.pageCount
+                uploadPortfolio(
+                    file = intent.file,
+                    fileName = intent.fileName,
+                    pageCount = pageCount,
+                ).onSuccess { result -> pollPortfolioStatus(result.portfolioId) }
                     .onFailure { error ->
                         // 서버 매핑된 예외 메시지(스펙 6장 문구)를 그대로 보여준다.
                         // 매핑되지 않은 실패는 시스템 실패 안내로 폴백한다.
@@ -442,6 +459,7 @@ class OnBoardingInterviewViewModel
                                 portfolioFileName = null,
                                 portfolioErrorMessage =
                                     error.message ?: MESSAGE_PORTFOLIO_SYSTEM_FAILED,
+                                portfolioUploadProgress = 0,
                             )
                         }
                     }
@@ -449,7 +467,7 @@ class OnBoardingInterviewViewModel
         }
 
         private suspend fun pollPortfolioStatus(portfolioId: String) {
-            repeat(MAX_POLL_ATTEMPTS) {
+            repeat(MAX_POLL_ATTEMPTS) { attempt ->
                 val status =
                     getPortfolioStatus(portfolioId).getOrElse { error ->
                         reduce {
@@ -457,6 +475,7 @@ class OnBoardingInterviewViewModel
                                 isPortfolioProcessing = false,
                                 portfolioErrorMessage =
                                     error.message ?: MESSAGE_PORTFOLIO_SYSTEM_FAILED,
+                                portfolioUploadProgress = 0,
                             )
                         }
                         return
@@ -464,7 +483,12 @@ class OnBoardingInterviewViewModel
                 when (status.status) {
                     PortfolioStatus.READY -> {
                         readyPortfolioId = portfolioId
-                        reduce { copy(isPortfolioProcessing = false) }
+                        reduce {
+                            copy(
+                                isPortfolioProcessing = false,
+                                portfolioUploadProgress = PORTFOLIO_PROGRESS_COMPLETE,
+                            )
+                        }
                         return
                     }
 
@@ -474,6 +498,7 @@ class OnBoardingInterviewViewModel
                                 isPortfolioProcessing = false,
                                 portfolioFileName = null,
                                 portfolioErrorMessage = MESSAGE_PDF_UNREADABLE,
+                                portfolioUploadProgress = 0,
                             )
                         }
                         return
@@ -485,12 +510,19 @@ class OnBoardingInterviewViewModel
                                 isPortfolioProcessing = false,
                                 portfolioFileName = null,
                                 portfolioErrorMessage = MESSAGE_PORTFOLIO_SYSTEM_FAILED,
+                                portfolioUploadProgress = 0,
                             )
                         }
                         return
                     }
 
                     else -> {
+                        // 폴링 1회 완료마다 10%씩 상승시키되, 완료 응답(100%)과 구분되도록
+                        // 대기 구간은 90%에서 캡한다.
+                        val nextProgress =
+                            ((attempt + 1) * PORTFOLIO_PROGRESS_STEP_PER_POLL)
+                                .coerceAtMost(PORTFOLIO_PROGRESS_POLLING_CAP)
+                        reduce { copy(portfolioUploadProgress = nextProgress) }
                         delay(POLL_INTERVAL_MS)
                     }
                 }
@@ -499,6 +531,7 @@ class OnBoardingInterviewViewModel
                 copy(
                     isPortfolioProcessing = false,
                     portfolioErrorMessage = MESSAGE_PORTFOLIO_SYSTEM_FAILED,
+                    portfolioUploadProgress = 0,
                 )
             }
         }
@@ -679,6 +712,15 @@ class OnBoardingInterviewViewModel
         private companion object {
             const val POLL_INTERVAL_MS = 3_000L
             const val MAX_POLL_ATTEMPTS = 40
+
+            /** 포트폴리오 업로드 진행률: 폴링 1회당 상승 폭. */
+            const val PORTFOLIO_PROGRESS_STEP_PER_POLL = 10
+
+            /** 폴링 대기 구간 진행률 캡. READY 응답 전에는 이 값을 넘지 않는다. */
+            const val PORTFOLIO_PROGRESS_POLLING_CAP = 90
+
+            /** READY 응답을 받아 업로드 완료를 표시할 때의 최종 진행률. */
+            const val PORTFOLIO_PROGRESS_COMPLETE = 100
 
             /**
              * 세션 준비 완료 후 결과 화면으로 넘어가기 전 사용자가 완료 애니메이션
