@@ -115,7 +115,7 @@ private fun HomeContent(
 
         HomeReportSheet(
             reports = state.reports,
-            expandedReportId = state.expandedReportId,
+            expandedReportIds = state.expandedReportIds,
             onReportExpandClick = onReportExpandClick,
             onReportActionClick = onReportActionClick,
             expandedTopPx = expandedTopPx,
@@ -258,7 +258,7 @@ private fun HomeReportPreview() {
                 HomeState(
                     userName = "재원",
                     reports = PreviewHomeReports,
-                    expandedReportId = PreviewHomeReports.first().id,
+                    expandedReportIds = setOf(PreviewHomeReports.first().id),
                 ),
             onReportExpandClick = {},
             onReportActionClick = {},

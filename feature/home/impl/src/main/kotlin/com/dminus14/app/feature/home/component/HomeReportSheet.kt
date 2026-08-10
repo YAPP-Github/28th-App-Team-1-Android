@@ -82,7 +82,7 @@ private const val EXPANDED_POSITION_TOLERANCE_PX = 2f
  * 가장 가까운 앵커에 snap 한다. 앵커 상태는 [rememberSaveable] 로 config change에 대비.
  *
  * @param reports 표시할 리포트 리스트. 비어 있으면 empty state 컴포넌트를 그린다.
- * @param expandedReportId 리스트에서 현재 확장된 카드 id. null이면 모두 접힘.
+ * @param expandedReportIds 현재 펼쳐진 카드 id 집합. 각 카드는 독립적으로 열고 닫힌다.
  * @param expandedTopPx Expanded 앵커의 화면 top 오프셋(px). 상단 topbar 아래 위치를
  *   상위에서 측정해 넘긴다. NaN 대신 실측 전 fallback 값을 상위에서 보낼 것.
  * @param onSheetAnchorChange 앵커가 실제로 settle된 뒤 호출. 상위에서 topbar shadow 등
@@ -91,7 +91,7 @@ private const val EXPANDED_POSITION_TOLERANCE_PX = 2f
 @Composable
 fun HomeReportSheet(
     reports: List<HomeReportItem>,
-    expandedReportId: String?,
+    expandedReportIds: Set<String>,
     onReportExpandClick: (String) -> Unit,
     onReportActionClick: (String) -> Unit,
     expandedTopPx: Float,
@@ -151,7 +151,7 @@ fun HomeReportSheet(
                 HomeReportSheetContentState(
                     sheetTopPx = sheetTopPx,
                     reports = reports,
-                    expandedReportId = expandedReportId,
+                    expandedReportIds = expandedReportIds,
                     listState = listState,
                     anchors = sheetLayout.anchors,
                     nestedScrollConnection = sheetLayout.nestedScrollConnection,
@@ -260,7 +260,7 @@ private fun rememberHomeReportSheetLayout(
 private data class HomeReportSheetContentState(
     val sheetTopPx: Float,
     val reports: List<HomeReportItem>,
-    val expandedReportId: String?,
+    val expandedReportIds: Set<String>,
     val listState: LazyListState,
     val anchors: HomeSheetAnchors,
     val nestedScrollConnection: NestedScrollConnection,
@@ -326,7 +326,7 @@ private fun HomeReportSheetContainer(contentState: HomeReportSheetContentState) 
             }
             HomeReportSheetBody(
                 reports = contentState.reports,
-                expandedReportId = contentState.expandedReportId,
+                expandedReportIds = contentState.expandedReportIds,
                 listState = contentState.listState,
                 nestedScrollConnection = contentState.nestedScrollConnection,
                 onReportExpandClick = contentState.onReportExpandClick,
@@ -344,7 +344,7 @@ private fun HomeReportSheetContainer(contentState: HomeReportSheetContentState) 
 @Composable
 private fun ColumnScope.HomeReportSheetBody(
     reports: List<HomeReportItem>,
-    expandedReportId: String?,
+    expandedReportIds: Set<String>,
     listState: LazyListState,
     nestedScrollConnection: NestedScrollConnection,
     onReportExpandClick: (String) -> Unit,
@@ -379,7 +379,7 @@ private fun ColumnScope.HomeReportSheetBody(
                 HilitReportCard(
                     date = report.date,
                     title = report.title.orEmpty(),
-                    expanded = expandedReportId == report.id,
+                    expanded = report.id in expandedReportIds,
                     onExpandClick = { onReportExpandClick(report.id) },
                     onActionClick = { onReportActionClick(report.id) },
                 )
@@ -618,7 +618,7 @@ private fun HomeReportSheetEmptyPreview() {
     HilitTheme {
         HomeReportSheet(
             reports = emptyList(),
-            expandedReportId = null,
+            expandedReportIds = emptySet(),
             onReportExpandClick = {},
             onReportActionClick = {},
             expandedTopPx = 0f,
@@ -637,7 +637,7 @@ private fun HomeReportSheetWithReportsPreview() {
     HilitTheme {
         HomeReportSheet(
             reports = PreviewHomeReports,
-            expandedReportId = null,
+            expandedReportIds = emptySet(),
             onReportExpandClick = {},
             onReportActionClick = {},
             expandedTopPx = 0f,
@@ -646,7 +646,7 @@ private fun HomeReportSheetWithReportsPreview() {
 }
 
 @Preview(
-    name = "HomeReportSheet - expanded item",
+    name = "HomeReportSheet - expanded items",
     showBackground = true,
     widthDp = 375,
     heightDp = 812,
@@ -656,7 +656,7 @@ private fun HomeReportSheetExpandedItemPreview() {
     HilitTheme {
         HomeReportSheet(
             reports = PreviewHomeReports,
-            expandedReportId = PreviewHomeReports.first().id,
+            expandedReportIds = setOf(PreviewHomeReports[0].id, PreviewHomeReports[2].id),
             onReportExpandClick = {},
             onReportActionClick = {},
             expandedTopPx = 0f,

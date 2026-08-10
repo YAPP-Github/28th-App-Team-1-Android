@@ -1,7 +1,6 @@
 package com.dminus14.app.feature.home
 
 import com.dminus14.app.core.common.mvi.MviViewModel
-import com.dminus14.designsystem.component.reportcard.resolveHilitReportCardExpansion
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -18,7 +17,7 @@ class HomeViewModel
                             isLoading = false,
                             userName = "재원",
                             reports = PreviewHomeReports,
-                            expandedReportId = PreviewHomeReports.firstOrNull()?.id,
+                            expandedReportIds = setOfNotNull(PreviewHomeReports.firstOrNull()?.id),
                         )
                     }
                 }
@@ -30,11 +29,12 @@ class HomeViewModel
                 is HomeIntent.ReportExpandClick -> {
                     reduce {
                         copy(
-                            expandedReportId =
-                                resolveHilitReportCardExpansion(
-                                    currentExpandedId = expandedReportId,
-                                    requestedId = intent.reportId,
-                                ),
+                            expandedReportIds =
+                                if (intent.reportId in expandedReportIds) {
+                                    expandedReportIds - intent.reportId
+                                } else {
+                                    expandedReportIds + intent.reportId
+                                },
                         )
                     }
                 }
