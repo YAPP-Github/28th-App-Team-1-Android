@@ -32,8 +32,26 @@ sealed interface OnBoardingInterviewIntent : MviIntent {
 
     data object ClickPortfolioRemove : OnBoardingInterviewIntent
 
-    /** 기존 포트폴리오 확인 모달을 닫기만 한다 (두 버튼 공용). */
-    data object ClickExistingPortfolioModalDismiss : OnBoardingInterviewIntent
+    /** Portfolio 스텝 진입 시 화면이 발화한다. ViewModel 가드로 세션당 1회만 처리된다. */
+    data object PortfolioStepEntered : OnBoardingInterviewIntent
+
+    /** Case1 1차: 기존 포트폴리오로 진행할게요. */
+    data object ClickExistingPortfolioContinue : OnBoardingInterviewIntent
+
+    /** Case1 1차: 취소 → 2차(마이페이지 이동) 모달로 전환. */
+    data object ClickExistingPortfolioCancel : OnBoardingInterviewIntent
+
+    /** Case1 2차: 마이페이지로 이동. */
+    data object ClickLeaveToMyPageConfirm : OnBoardingInterviewIntent
+
+    /** Case1 2차: 취소 → 1차 모달로 복귀. */
+    data object ClickLeaveToMyPageCancel : OnBoardingInterviewIntent
+
+    /** Case2: 안내 팝업 배경/본문 탭 dismiss. */
+    data object ClickAutoDismissNotice : OnBoardingInterviewIntent
+
+    /** Case2: 3초 자동 dismiss. */
+    data object AutoDismissNoticeTimedOut : OnBoardingInterviewIntent
 
     /** SAF 파일 선택기가 PDF를 캐시로 복사해 돌려준 결과. */
     data class PortfolioFileSelected(
@@ -62,6 +80,13 @@ sealed interface OnBoardingInterviewIntent : MviIntent {
      * 이전 스텝(MainProject)으로 되돌려 재시도 가능하게 만든다.
      */
     data object ClickPreloadFailureAcknowledged : OnBoardingInterviewIntent
+}
+
+enum class ExistingPortfolioModalPhase {
+    None,
+    ConfirmContinue,
+    ConfirmLeaveToMyPage,
+    AutoDismissNotice,
 }
 
 enum class OnBoardingInterviewStep {
@@ -108,7 +133,11 @@ data class OnBoardingInterviewState(
     /** 직접 입력(Text) 탭의 검증 에러 메시지. 표기 방식은 디자이너 협의 예정이라 저장만 한다. */
     val jdTextError: String? = null,
     val portfolioFileName: String? = null,
-    val showExistingPortfolioModal: Boolean = false,
+    val existingPortfolioModalPhase: ExistingPortfolioModalPhase = ExistingPortfolioModalPhase.None,
+    /** 기존 포폴 안내 모달/팝업을 이번 온보딩 세션에서 이미 노출했는지. */
+    val hasShownExistingPortfolioNotice: Boolean = false,
+    /** 이번 달 삭제 잔여 횟수(0 또는 1). MyPage와 동일 규칙. */
+    val deleteRemainingCount: Int = 1,
     /** 포트폴리오 스텝 인라인 에러(필수 누락·PDF 검증 실패 등). null이면 숨긴다. */
     val portfolioErrorMessage: String? = null,
     val isPortfolioProcessing: Boolean = false,
@@ -145,4 +174,7 @@ sealed interface OnBoardingInterviewEffect : MviEffect {
     data class NavigateToResult(
         val sessionId: Long,
     ) : OnBoardingInterviewEffect
+
+    /** Case1 2차 "이동" 선택 시 마이페이지로 이탈한다. */
+    data object NavigateToMyPage : OnBoardingInterviewEffect
 }
