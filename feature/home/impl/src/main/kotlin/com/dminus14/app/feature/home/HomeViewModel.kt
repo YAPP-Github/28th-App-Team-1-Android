@@ -174,9 +174,14 @@ constructor(
     private suspend fun checkInterviewSession() {
         // 면접 세션이 클라이언트 내에 있는지 조회.
         // 현재는 연동되어있지 않으므로 항상 없다고 표기.
-        val interviewSessionId = "" // 투두 - 활성 세션 ID 조회 연동
-        val sessionId = interviewSessionId.toLongOrNull() ?: return
-        getInterviewState(sessionId)
+        val interviewSessionId: Long? = null // 투두 - 활성 세션 ID 조회 연동
+
+        if (interviewSessionId != null) {
+            getInterviewState(interviewSessionId)
+        } else {
+            showSessionStartOverlayByTicket()
+        }
+
     }
 
     /**
