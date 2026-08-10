@@ -27,7 +27,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -35,6 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dminus14.app.core.resources.Res
 import com.dminus14.app.core.resources.home_background
 import com.dminus14.app.feature.home.component.HomeReportSheet
+import com.dminus14.app.feature.home.component.HomeReportSheetCallbacks
 import com.dminus14.app.feature.home.component.HomeSheetAnchor
 import com.dminus14.app.feature.mypage.MyPage
 import com.dminus14.designsystem.component.topbar.HilitLogoTopBar
@@ -80,7 +80,7 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HomeContent(
+internal fun HomeContent(
     state: HomeState,
     onReportExpandClick: (String) -> Unit,
     onReportActionClick: (String) -> Unit,
@@ -97,29 +97,18 @@ private fun HomeContent(
         }
 
     Box(modifier = modifier.fillMaxSize()) {
-        Image(
-            painter = painterResource(Res.drawable.home_background),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize(),
-        )
-
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(top = HomeTopBarHeight),
-        ) {
-            HomeHeroSection(userName = state.userName)
-        }
+        HomeBackgroundWithHero(userName = state.userName)
 
         HomeReportSheet(
             reports = state.reports,
             expandedReportIds = state.expandedReportIds,
-            onReportExpandClick = onReportExpandClick,
-            onReportActionClick = onReportActionClick,
             expandedTopPx = expandedTopPx,
-            onSheetAnchorChange = { sheetAnchor = it },
+            callbacks =
+                HomeReportSheetCallbacks(
+                    onReportExpandClick = onReportExpandClick,
+                    onReportActionClick = onReportActionClick,
+                    onSheetAnchorChange = { sheetAnchor = it },
+                ),
             modifier = Modifier.fillMaxSize(),
         )
 
@@ -141,22 +130,48 @@ private fun HomeContent(
         )
 
         if (state.isLoading) {
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .background(HilitTheme.colors.hilitWhite.copy(alpha = 0.6f))
-                        .clickable(
-                            enabled = false,
-                            indication = null,
-                            interactionSource = null,
-                            onClick = { },
-                        ),
-                contentAlignment = Alignment.Center,
-            ) {
-                CircularProgressIndicator()
-            }
+            HomeLoadingOverlay()
         }
+    }
+}
+
+@Composable
+private fun HomeBackgroundWithHero(userName: String) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(Res.drawable.home_background),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
+        )
+
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = HomeTopBarHeight),
+        ) {
+            HomeHeroSection(userName = userName)
+        }
+    }
+}
+
+@Composable
+private fun HomeLoadingOverlay() {
+    Box(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(HilitTheme.colors.hilitWhite.copy(alpha = 0.6f))
+                .clickable(
+                    enabled = false,
+                    indication = null,
+                    interactionSource = null,
+                    onClick = { },
+                ),
+        contentAlignment = Alignment.Center,
+    ) {
+        CircularProgressIndicator()
     }
 }
 
@@ -219,124 +234,6 @@ private fun HomeHeroSection(userName: String) {
                         horizontal = HintHorizontalPadding,
                         vertical = HintVerticalPadding,
                     ).padding(top = GreetingToHintSpacing),
-        )
-    }
-}
-
-@Preview(
-    name = "HomeDefault",
-    showBackground = true,
-    widthDp = 375,
-    heightDp = 812,
-)
-@Composable
-private fun HomeDefaultPreview() {
-    HilitTheme {
-        HomeContent(
-            state =
-                HomeState(
-                    userName = "재원",
-                    reports = emptyList(),
-                ),
-            onReportExpandClick = {},
-            onReportActionClick = {},
-        )
-    }
-}
-
-@Preview(
-    name = "HomeReport",
-    showBackground = true,
-    widthDp = 375,
-    heightDp = 812,
-)
-@Composable
-private fun HomeReportPreview() {
-    HilitTheme {
-        HomeContent(
-            state =
-                HomeState(
-                    userName = "재원",
-                    reports = PreviewHomeReports,
-                    expandedReportIds = setOf(PreviewHomeReports.first().id),
-                ),
-            onReportExpandClick = {},
-            onReportActionClick = {},
-        )
-    }
-}
-
-@Preview(
-    name = "HomeOverlay - Start",
-    showBackground = true,
-    widthDp = 375,
-    heightDp = 812,
-)
-@Composable
-private fun HomeOverlayStartPreview() {
-    HomeOverlayPreviewScaffold(
-        overlay =
-            HomeSessionStartOverlayState.Start(
-                userName = "재원",
-                remainingTicketCount = 3,
-            ),
-    )
-}
-
-@Preview(
-    name = "HomeOverlay - NoTickets",
-    showBackground = true,
-    widthDp = 375,
-    heightDp = 812,
-)
-@Composable
-private fun HomeOverlayNoTicketsPreview() {
-    HomeOverlayPreviewScaffold(
-        overlay = HomeSessionStartOverlayState.NoTickets(userName = "재원"),
-    )
-}
-
-@Preview(
-    name = "HomeOverlay - InProgress",
-    showBackground = true,
-    widthDp = 375,
-    heightDp = 812,
-)
-@Composable
-private fun HomeOverlayInProgressPreview() {
-    HomeOverlayPreviewScaffold(
-        overlay =
-            HomeSessionStartOverlayState.InProgress(
-                userName = "재원",
-                remainingQuestionCount = 2,
-            ),
-    )
-}
-
-@Preview(
-    name = "HomeOverlay - ConfirmRestart",
-    showBackground = true,
-    widthDp = 375,
-    heightDp = 812,
-)
-@Composable
-private fun HomeOverlayConfirmRestartPreview() {
-    HomeOverlayPreviewScaffold(overlay = HomeSessionStartOverlayState.ConfirmRestart)
-}
-
-/** 오버레이 4종을 홈 위에 얹은 프리뷰용 공통 스캐폴드. */
-@Composable
-private fun HomeOverlayPreviewScaffold(overlay: HomeSessionStartOverlayState) {
-    HilitTheme {
-        HomeContent(
-            state =
-                HomeState(
-                    userName = "재원",
-                    reports = PreviewHomeReports,
-                    sessionStartOverlay = overlay,
-                ),
-            onReportExpandClick = {},
-            onReportActionClick = {},
         )
     }
 }
