@@ -77,7 +77,7 @@ fun HilitTextTopBar(
             ) {
                 Text(
                     text = buttonText,
-                    style = HilitTheme.typography.body5
+                    style = HilitTheme.typography.body5,
                 )
             }
         },
