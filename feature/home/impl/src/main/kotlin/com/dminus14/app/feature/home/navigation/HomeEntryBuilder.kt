@@ -4,8 +4,14 @@ import androidx.navigation3.runtime.EntryProviderScope
 import com.dminus14.app.feature.home.HomeScreen
 import com.dminus14.app.feature.home.api.Home
 
-fun EntryProviderScope<Any>.homeEntryBuilder(onNavigate: (Any) -> Unit) {
+fun EntryProviderScope<Any>.homeEntryBuilder(
+    onNavigate: (Any) -> Unit,
+    onReplaceAll: (Any) -> Unit,
+) {
     entry<Home> {
-        HomeScreen(onNavigate = onNavigate)
+        HomeScreen(
+            onNavigate = onNavigate,
+            onReplaceAll = onReplaceAll,
+        )
     }
 }

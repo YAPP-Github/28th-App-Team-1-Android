@@ -61,13 +61,26 @@ internal class HomeSheetSnapController(
 ) {
     private var snapJob: Job? = null
 
+    /** 현재 위치에서 가장 가까운 앵커로 애니메이션 이동. 드래그 종료 경로에서 호출한다. */
     fun snap() {
+        launchAnimateTo { currentAnchors -> resolveSnapTargetPx(getOffsetPx(), currentAnchors) }
+    }
+
+    /**
+     * 지정한 앵커로 애니메이션 이동. 세션 오버레이 닫기 등 외부 신호로 시트를 특정 앵커로
+     * 강제 이동시킬 때 사용한다. 이미 해당 앵커 위치이면 애니메이션 없이 즉시 settle 한다.
+     */
+    fun snapTo(target: HomeSheetAnchor) {
+        launchAnimateTo { currentAnchors -> target.toTopPx(currentAnchors) }
+    }
+
+    private fun launchAnimateTo(resolveTargetOffsetPx: (HomeSheetAnchors) -> Float) {
         snapJob?.cancel()
         snapJob =
             scope.launch {
                 val currentAnchors = anchors()
                 val startOffsetPx = getOffsetPx()
-                val targetOffsetPx = resolveSnapTargetPx(startOffsetPx, currentAnchors)
+                val targetOffsetPx = resolveTargetOffsetPx(currentAnchors)
                 if (abs(targetOffsetPx - startOffsetPx) < SNAP_POSITION_TOLERANCE_PX) {
                     setOffsetPx(targetOffsetPx)
                     onAnchorSettled(HomeSheetAnchor.fromTopPx(targetOffsetPx, currentAnchors))
