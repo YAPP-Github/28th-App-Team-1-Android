@@ -63,13 +63,21 @@ private val VideoOverlayHeight = 76.dp
 private val EmptyStateTopSpacing = 64.dp
 private const val VIDEO_OVERLAY_MID_STOP = 0.5f
 private const val VIDEO_OVERLAY_MID_ALPHA = 0.4f
-private const val VIDEO_OVERLAY_END_STOP = 1.09f
+private const val VIDEO_OVERLAY_END_STOP = 1f
 
 /** [HomeReportSheet]에 주입하는 콜백 묶음. */
 data class HomeReportSheetCallbacks(
     val onReportExpandClick: (String) -> Unit,
     val onReportActionClick: (String) -> Unit,
     val onSheetAnchorChange: (HomeSheetAnchor) -> Unit = {},
+)
+
+/** [HomeReportSheet] 표시 데이터·레이아웃 입력 묶음. */
+data class HomeReportSheetContent(
+    val reports: List<HomeReportItem>,
+    val expandedReportIds: Set<String>,
+    val expandedTopPx: Float,
+    val peekResetSignal: Int = 0,
 )
 
 /**
@@ -88,12 +96,9 @@ data class HomeReportSheetCallbacks(
  */
 @Composable
 fun HomeReportSheet(
-    reports: List<HomeReportItem>,
-    expandedReportIds: Set<String>,
-    expandedTopPx: Float,
+    content: HomeReportSheetContent,
     callbacks: HomeReportSheetCallbacks,
     modifier: Modifier = Modifier,
-    peekResetSignal: Int = 0,
 ) {
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
@@ -110,7 +115,7 @@ fun HomeReportSheet(
             rememberHomeReportSheetLayout(
                 HomeReportSheetLayoutParams(
                     scope = scope,
-                    expandedTopPx = expandedTopPx,
+                    expandedTopPx = content.expandedTopPx,
                     peekTopPx = peekTopPx,
                     maxHeight = maxHeight,
                     density = density,
@@ -132,8 +137,8 @@ fun HomeReportSheet(
         // 초기값 0에서는 동작하지 않고, 신호가 증가할 때만 리셋한다.
         // 드래그 종료 경로(snap)와 동일한 spring 애니메이션을 재사용해 톤을 맞춘다.
         // settledAnchor 갱신은 snap 컨트롤러의 onAnchorSettled 콜백에서 수행된다.
-        LaunchedEffect(peekResetSignal) {
-            if (peekResetSignal > 0) {
+        LaunchedEffect(content.peekResetSignal) {
+            if (content.peekResetSignal > 0) {
                 sheetLayout.snapTo(HomeSheetAnchor.Peek)
             }
         }
@@ -142,8 +147,8 @@ fun HomeReportSheet(
             contentState =
                 HomeReportSheetContentState(
                     sheetTopPx = sheetTopPx,
-                    reports = reports,
-                    expandedReportIds = expandedReportIds,
+                    reports = content.reports,
+                    expandedReportIds = content.expandedReportIds,
                     listState = listState,
                     anchors = sheetLayout.anchors,
                     onReportExpandClick = callbacks.onReportExpandClick,
@@ -460,9 +465,12 @@ private fun HomeReportVideoOverlay(modifier: Modifier = Modifier) {
 private fun HomeReportSheetEmptyPreview() {
     HilitTheme {
         HomeReportSheet(
-            reports = emptyList(),
-            expandedReportIds = emptySet(),
-            expandedTopPx = 0f,
+            content =
+                HomeReportSheetContent(
+                    reports = emptyList(),
+                    expandedReportIds = emptySet(),
+                    expandedTopPx = 0f,
+                ),
             callbacks =
                 HomeReportSheetCallbacks(
                     onReportExpandClick = {},
@@ -482,9 +490,12 @@ private fun HomeReportSheetEmptyPreview() {
 private fun HomeReportSheetWithReportsPreview() {
     HilitTheme {
         HomeReportSheet(
-            reports = PreviewHomeReports,
-            expandedReportIds = emptySet(),
-            expandedTopPx = 0f,
+            content =
+                HomeReportSheetContent(
+                    reports = PreviewHomeReports,
+                    expandedReportIds = emptySet(),
+                    expandedTopPx = 0f,
+                ),
             callbacks =
                 HomeReportSheetCallbacks(
                     onReportExpandClick = {},
@@ -504,9 +515,12 @@ private fun HomeReportSheetWithReportsPreview() {
 private fun HomeReportSheetExpandedItemPreview() {
     HilitTheme {
         HomeReportSheet(
-            reports = PreviewHomeReports,
-            expandedReportIds = setOf(PreviewHomeReports[0].id, PreviewHomeReports[2].id),
-            expandedTopPx = 0f,
+            content =
+                HomeReportSheetContent(
+                    reports = PreviewHomeReports,
+                    expandedReportIds = setOf(PreviewHomeReports[0].id, PreviewHomeReports[2].id),
+                    expandedTopPx = 0f,
+                ),
             callbacks =
                 HomeReportSheetCallbacks(
                     onReportExpandClick = {},

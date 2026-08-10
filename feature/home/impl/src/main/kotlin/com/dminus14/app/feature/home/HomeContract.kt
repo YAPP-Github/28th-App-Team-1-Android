@@ -33,7 +33,7 @@ sealed interface HomeIntent : MviIntent {
      */
     data object ClickSessionOverlayDismiss : HomeIntent
 
-    /** 진행 중 면접 "이어서 진행". (TODO: 재개 플로우 연동 대기) */
+    /** 진행 중 면접 "이어서 진행". 후속 구현: 재개 플로우 연동 대기. */
     data object ClickSessionResume : HomeIntent
 }
 
@@ -79,12 +79,23 @@ sealed interface HomeEffect : MviEffect {
 
     /**
      * 펼친 리포트 카드의 화살표(">") 클릭 시 해당 리포트 상세 화면으로 이동해야 함을 알린다.
-     * (TODO: ReportScreen 화면 연동 대기)
+     * 후속 구현: ReportScreen 화면 연동 대기.
      */
     data class GoToReportRequested(
         val reportId: String,
     ) : HomeEffect
 }
+
+/** [HomeContent]에 주입하는 콜백·시트 리셋 신호 묶음. */
+data class HomeContentCallbacks(
+    val onReportExpandClick: (String) -> Unit,
+    val onReportActionClick: (String) -> Unit,
+    val onReportSheetCollapsed: () -> Unit = {},
+    val onSessionStartClick: () -> Unit = {},
+    val onSessionOverlayDismiss: () -> Unit = {},
+    val onSessionResumeClick: () -> Unit = {},
+    val peekResetSignal: Int = 0,
+)
 
 internal val PreviewHomeReports =
     listOf(

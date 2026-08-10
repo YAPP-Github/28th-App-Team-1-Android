@@ -36,6 +36,7 @@ import com.dminus14.app.core.resources.Res
 import com.dminus14.app.core.resources.home_background
 import com.dminus14.app.feature.home.component.HomeReportSheet
 import com.dminus14.app.feature.home.component.HomeReportSheetCallbacks
+import com.dminus14.app.feature.home.component.HomeReportSheetContent
 import com.dminus14.app.feature.home.component.HomeSheetAnchor
 import com.dminus14.app.feature.login.api.Onboarding
 import com.dminus14.app.feature.login.api.Splash
@@ -74,12 +75,27 @@ fun HomeScreen(
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                HomeEffect.GoToMyPageRequested -> onNavigate(MyPage)
+                HomeEffect.GoToMyPageRequested -> {
+                    onNavigate(MyPage)
+                }
+
                 // 온보딩·스플래시로 이동할 때는 홈으로 되돌아오지 못하도록 스택을 비운다.
-                HomeEffect.UserNameNotRegistered -> onReplaceAll(Onboarding)
-                HomeEffect.UserNotFound -> onReplaceAll(Splash)
-                HomeEffect.GoToOnboardingInterviewRequested -> onNavigate(OnBoardingInterview)
-                HomeEffect.ReportSheetResetRequested -> peekResetSignal++
+                HomeEffect.UserNameNotRegistered -> {
+                    onReplaceAll(Onboarding)
+                }
+
+                HomeEffect.UserNotFound -> {
+                    onReplaceAll(Splash)
+                }
+
+                HomeEffect.GoToOnboardingInterviewRequested -> {
+                    onNavigate(OnBoardingInterview)
+                }
+
+                HomeEffect.ReportSheetResetRequested -> {
+                    peekResetSignal++
+                }
+
                 is HomeEffect.GoToReportRequested -> {
                     // 보고서 화면 생성시 Route 배선만 연결
                 }
@@ -89,13 +105,20 @@ fun HomeScreen(
 
     HomeContent(
         state = state,
-        onReportExpandClick = { viewModel.onIntent(HomeIntent.ClickReportExpand(it)) },
-        onReportActionClick = { viewModel.onIntent(HomeIntent.ClickReportOpen(it)) },
-        onReportSheetCollapsed = { viewModel.onIntent(HomeIntent.ReportSheetCollapsed) },
-        onSessionStartClick = { viewModel.onIntent(HomeIntent.ClickSessionStart) },
-        onSessionOverlayDismiss = { viewModel.onIntent(HomeIntent.ClickSessionOverlayDismiss) },
-        onSessionResumeClick = { viewModel.onIntent(HomeIntent.ClickSessionResume) },
-        peekResetSignal = peekResetSignal,
+        callbacks =
+            HomeContentCallbacks(
+                onReportExpandClick = { viewModel.onIntent(HomeIntent.ClickReportExpand(it)) },
+                onReportActionClick = { viewModel.onIntent(HomeIntent.ClickReportOpen(it)) },
+                onReportSheetCollapsed = { viewModel.onIntent(HomeIntent.ReportSheetCollapsed) },
+                onSessionStartClick = { viewModel.onIntent(HomeIntent.ClickSessionStart) },
+                onSessionOverlayDismiss = {
+                    viewModel.onIntent(
+                        HomeIntent.ClickSessionOverlayDismiss,
+                    )
+                },
+                onSessionResumeClick = { viewModel.onIntent(HomeIntent.ClickSessionResume) },
+                peekResetSignal = peekResetSignal,
+            ),
         modifier = modifier,
     )
 }
@@ -103,14 +126,8 @@ fun HomeScreen(
 @Composable
 internal fun HomeContent(
     state: HomeState,
-    onReportExpandClick: (String) -> Unit,
-    onReportActionClick: (String) -> Unit,
+    callbacks: HomeContentCallbacks,
     modifier: Modifier = Modifier,
-    onReportSheetCollapsed: () -> Unit = {},
-    onSessionStartClick: () -> Unit = {},
-    onSessionOverlayDismiss: () -> Unit = {},
-    onSessionResumeClick: () -> Unit = {},
-    peekResetSignal: Int = 0,
 ) {
     val density = LocalDensity.current
     var topBarBottomPx by remember { mutableFloatStateOf(Float.NaN) }
@@ -126,19 +143,22 @@ internal fun HomeContent(
         HomeBackgroundWithHero(userName = state.userName)
 
         HomeReportSheet(
-            reports = state.reports,
-            expandedReportIds = state.expandedReportIds,
-            expandedTopPx = expandedTopPx,
+            content =
+                HomeReportSheetContent(
+                    reports = state.reports,
+                    expandedReportIds = state.expandedReportIds,
+                    expandedTopPx = expandedTopPx,
+                    peekResetSignal = callbacks.peekResetSignal,
+                ),
             callbacks =
                 HomeReportSheetCallbacks(
-                    onReportExpandClick = onReportExpandClick,
-                    onReportActionClick = onReportActionClick,
+                    onReportExpandClick = callbacks.onReportExpandClick,
+                    onReportActionClick = callbacks.onReportActionClick,
                     onSheetAnchorChange = { anchor ->
                         sheetAnchor = anchor
-                        if (anchor == HomeSheetAnchor.Collapsed) onReportSheetCollapsed()
+                        if (anchor == HomeSheetAnchor.Collapsed) callbacks.onReportSheetCollapsed()
                     },
                 ),
-            peekResetSignal = peekResetSignal,
             modifier = Modifier.fillMaxSize(),
         )
 
@@ -153,17 +173,17 @@ internal fun HomeContent(
 
         // 세션 시작 오버레이. state가 non-null이면 페이드인으로 위에 얹혀 다른 UI를 가린다.
         // 시작 계열(시작하기·처음부터 시작)은 티켓 분기, 닫기 계열(닫기·홈으로·뒤로가기)은 오버레이
-        // 해제 + 시트 중간 복귀, 이어서 진행은 아직 TODO.
+        // 해제 + 시트 중간 복귀, 이어서 진행은 후속 구현.
         HomeSessionStartOverlay(
             state = state.sessionStartOverlay,
             callbacks =
                 HomeSessionStartCallbacks(
-                    onCloseClick = onSessionOverlayDismiss,
-                    onStartClick = onSessionStartClick,
-                    onGoHomeClick = onSessionOverlayDismiss,
-                    onRestartClick = onSessionStartClick,
-                    onResumeClick = onSessionResumeClick,
-                    onBackClick = onSessionOverlayDismiss,
+                    onCloseClick = callbacks.onSessionOverlayDismiss,
+                    onStartClick = callbacks.onSessionStartClick,
+                    onGoHomeClick = callbacks.onSessionOverlayDismiss,
+                    onRestartClick = callbacks.onSessionStartClick,
+                    onResumeClick = callbacks.onSessionResumeClick,
+                    onBackClick = callbacks.onSessionOverlayDismiss,
                 ),
             modifier = Modifier.zIndex(2f),
         )
@@ -272,8 +292,7 @@ private fun HomeHeroSection(userName: String) {
                     .padding(
                         horizontal = HintHorizontalPadding,
                         vertical = HintVerticalPadding,
-                    )
-                    .padding(top = GreetingToHintSpacing),
+                    ).padding(top = GreetingToHintSpacing),
         )
     }
 }

@@ -314,7 +314,10 @@ class HomeViewModelTest {
 
             viewModel.onIntent(HomeIntent.ClickReportExpand("A"))
 
-            assertTrue(viewModel.state.value.expandedReportIds.isEmpty())
+            assertTrue(
+                viewModel.state.value.expandedReportIds
+                    .isEmpty(),
+            )
         }
 
     @Test
@@ -637,7 +640,9 @@ class HomeViewModelTest {
             val interviewRepo =
                 FakeInterviewRepository(
                     resumeResult =
-                        Result.failure(NetworkUnavailableException(errCode = "NETWORK_UNAVAILABLE")),
+                        Result.failure(
+                            NetworkUnavailableException(errCode = "NETWORK_UNAVAILABLE"),
+                        ),
                 )
             val viewModel = createViewModel(interviewRepository = interviewRepo)
             viewModel.onIntent(HomeIntent.Load)
