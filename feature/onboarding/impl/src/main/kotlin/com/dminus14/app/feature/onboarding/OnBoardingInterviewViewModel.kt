@@ -275,15 +275,17 @@ class OnBoardingInterviewViewModel
                 }
 
                 else -> {
-                    if (HTTPS_SCHEME.startsWith(value)) {
-                        reduce {
-                            copy(
-                                jobDescriptionLink = value,
-                                jdLinkSubText = "",
-                            )
-                        }
-                        scheduleJdValidation(value)
+                    // https:// 스킴을 포함한 완전한 URL을 입력·붙여넣은 경우.
+                    // debounce 후 validation 이 상태를 확정할 때까지는 중립(Idle)로 두고,
+                    // 이전 Invalid 문구/색을 즉시 걷어 낸다.
+                    reduce {
+                        copy(
+                            jobDescriptionLink = value,
+                            jdLinkStatus = JdLinkStatus.Idle,
+                            jdLinkSubText = "",
+                        )
                     }
+                    scheduleJdValidation(value)
                 }
             }
         }
