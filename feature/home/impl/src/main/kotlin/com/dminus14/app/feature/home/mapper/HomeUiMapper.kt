@@ -1,6 +1,7 @@
 package com.dminus14.app.feature.home.mapper
 
 import com.dminus14.app.domain.model.InterviewReportListItem
+import com.dminus14.app.feature.home.HomeReportItem
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -12,8 +13,8 @@ import java.util.Locale
 private val HomeReportDateFormatter: DateTimeFormatter =
     DateTimeFormatter.ofPattern("M월 d일 E", Locale.KOREAN)
 
-internal fun InterviewReportListItem.toHomeReportItem(): com.dminus14.app.feature.home.HomeReportItem =
-    _root_ide_package_.com.dminus14.app.feature.home.HomeReportItem(
+internal fun InterviewReportListItem.toHomeReportItem(): HomeReportItem =
+    HomeReportItem(
         id = sessionId.toString(),
         date = formatInterviewedAt(interviewedAt),
         title = title,
