@@ -7,4 +7,9 @@ package com.dminus14.app.feature.interview
 object InterviewConstants {
     const val MAX_INTERVIEW_SECONDS: Int = 720
     const val CAN_FINISH_INTERVIEW_SECONDS: Int = 480
+    const val REQUIRED_STORAGE_BYTES: Long = 450L * 1024L * 1024L
+    const val SPEECH_START_AMPLITUDE: Double = 0.08
+    const val SILENCE_AMPLITUDE: Double = 0.03
+    const val SPEECH_START_SAMPLE_COUNT: Int = 2
+    const val ANSWER_SILENCE_MILLIS: Long = 10_000L
 }
