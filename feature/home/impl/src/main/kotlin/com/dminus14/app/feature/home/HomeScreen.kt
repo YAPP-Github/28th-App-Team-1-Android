@@ -102,12 +102,12 @@ internal fun HomeContent(
     state: HomeState,
     onReportExpandClick: (String) -> Unit,
     onReportActionClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
     onReportSheetCollapsed: () -> Unit = {},
     onSessionStartClick: () -> Unit = {},
     onSessionOverlayDismiss: () -> Unit = {},
     onSessionResumeClick: () -> Unit = {},
     peekResetSignal: Int = 0,
-    modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
     var topBarBottomPx by remember { mutableFloatStateOf(Float.NaN) }
