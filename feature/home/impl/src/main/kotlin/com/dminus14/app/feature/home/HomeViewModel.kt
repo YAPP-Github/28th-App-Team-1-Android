@@ -7,6 +7,7 @@ import com.dminus14.app.core.common.mvi.MviViewModel
 import com.dminus14.app.domain.exception.NetworkUnavailableException
 import com.dminus14.app.domain.exception.ServerException
 import com.dminus14.app.domain.exception.UserNotFoundException
+import com.dminus14.app.domain.model.InterviewSessionResumeState
 import com.dminus14.app.domain.usecase.CheckUserProfileUseCase
 import com.dminus14.app.domain.usecase.GetInterviewReportListUseCase
 import com.dminus14.app.domain.usecase.GetInterviewResumeUseCase
@@ -141,30 +142,57 @@ constructor(
     /**
      * 존재하는 세션 아이디가 이어서 진행 가능한 상태인지 조회한다.
      *
-     * `resumeState`가 [RESUME_STATE_RESUMABLE]일 때만 재개 가능으로 보고 진행중 오버레이를 띄운다.
-     * resume 응답에 남은 질문 수 필드가 없어 [TEMP_REMAINING_QUESTION_COUNT] 임시값을 사용한다.
+     * - [InterviewSessionResumeState.RESUMABLE]: 진행중(InProgress) 오버레이를 띄운다.
+     *   resume 응답에 남은 질문 수 필드가 없어 [TEMP_REMAINING_QUESTION_COUNT] 임시값을 사용한다.
+     * - [InterviewSessionResumeState.ENDED]: 잔여 이용권에 따라 시작(Start)/소진(NoTickets) 분기.
+     * - 그 외/미정의 값: 오버레이를 띄우지 않는다.
      */
     private suspend fun getInterviewState(sessionId: Long) {
         getInterviewResumeUseCase(sessionId)
             .onSuccess { resume ->
-                if (resume.resumeState == RESUME_STATE_RESUMABLE) {
-                    reduce {
-                        copy(
-                            sessionStartOverlay =
-                                HomeSessionStartOverlayState.InProgress(
-                                    userName = userName,
-                                    remainingQuestionCount = TEMP_REMAINING_QUESTION_COUNT,
-                                ),
-                        )
-                    }
-                } else {
-
+                when (InterviewSessionResumeState.fromRaw(resume.resumeState)) {
+                    InterviewSessionResumeState.RESUMABLE -> showResumableOverlay()
+                    InterviewSessionResumeState.ENDED -> showSessionStartOverlayByTicket()
+                    null -> Unit
                 }
             }
-            // 재개 확인 실패는 치명적이지 않아 오버레이 미표시로 처리(공통 에러 처리 도입 시 재검토).
             .onFailure { error ->
                 handleBootstrapFailure(error)
             }
+    }
+
+    /** 재개 가능한 세션이 있을 때 진행중 오버레이를 띄운다. */
+    private fun showResumableOverlay() {
+        reduce {
+            copy(
+                sessionStartOverlay =
+                    HomeSessionStartOverlayState.InProgress(
+                        userName = userName,
+                        remainingQuestionCount = TEMP_REMAINING_QUESTION_COUNT,
+                    ),
+            )
+        }
+    }
+
+    /**
+     * 종료된 세션일 때 잔여 이용권에 따라 세션 시작 오버레이를 분기한다.
+     * 1회 이상이면 시작(Start), 0회(또는 미확인)면 소진(NoTickets).
+     */
+    private fun showSessionStartOverlayByTicket() {
+        reduce {
+            val tickets = remainingTicketCount ?: 0
+            copy(
+                sessionStartOverlay =
+                    if (tickets > 0) {
+                        HomeSessionStartOverlayState.Start(
+                            userName = userName,
+                            remainingTicketCount = tickets,
+                        )
+                    } else {
+                        HomeSessionStartOverlayState.NoTickets(userName = userName)
+                    },
+            )
+        }
     }
 
     // 아래 에러 처리 사항은 임시입니다. 공통 처리 기획자 문의 모든 ViewModel 일괄 수정 예정
@@ -186,8 +214,6 @@ constructor(
     }
 }
 
-/** 재개 가능한 세션 상태 값. 서버 값 규격 확정 시 도메인 상수로 이전 예정. */
-private const val RESUME_STATE_RESUMABLE = "RESUMABLE"
-
-/** resume 응답에 남은 질문 수가 없어 사용하는 임시값. 필드 확보 후 제거 예정. */
+/** resume 응답에 남은 질문 수가 없어 사용하는 임시값.
+ * 이후 클라이언트에서 동영상 시간 체크해서 임시로 부여할 것이므로, 필드 확보 후 제거 예정. */
 private const val TEMP_REMAINING_QUESTION_COUNT = 2
