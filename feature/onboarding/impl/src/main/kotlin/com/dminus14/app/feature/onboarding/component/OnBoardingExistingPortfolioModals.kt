@@ -54,9 +54,7 @@ internal fun OnBoardingExistingPortfolioConfirmModal(
 
 /** Case2: 기존 포트폴리오 자동 사용 안내(3초 후 또는 배경 탭 시 dismiss). */
 @Composable
-internal fun OnBoardingUseExistingPortfolioNotice(
-    onIntent: (OnBoardingInterviewIntent) -> Unit,
-) {
+internal fun OnBoardingUseExistingPortfolioNotice(onIntent: (OnBoardingInterviewIntent) -> Unit) {
     LaunchedEffect(Unit) {
         delay(AUTO_DISMISS_NOTICE_MS)
         onIntent(OnBoardingInterviewIntent.AutoDismissNoticeTimedOut)

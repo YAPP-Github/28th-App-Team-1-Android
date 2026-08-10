@@ -41,7 +41,12 @@ private fun OnBoardingInterviewPortfolioPreview() {
     }
 }
 
-@Preview(name = "Portfolio - Case1 ConfirmContinue", showBackground = true, widthDp = 375, heightDp = 812)
+@Preview(
+    name = "Portfolio - Case1 ConfirmContinue",
+    showBackground = true,
+    widthDp = 375,
+    heightDp = 812,
+)
 @Composable
 private fun OnBoardingInterviewPortfolioCase1ConfirmContinuePreview() {
     HilitTheme {
@@ -58,7 +63,12 @@ private fun OnBoardingInterviewPortfolioCase1ConfirmContinuePreview() {
     }
 }
 
-@Preview(name = "Portfolio - Case2 AutoDismiss", showBackground = true, widthDp = 375, heightDp = 812)
+@Preview(
+    name = "Portfolio - Case2 AutoDismiss",
+    showBackground = true,
+    widthDp = 375,
+    heightDp = 812,
+)
 @Composable
 private fun OnBoardingInterviewPortfolioCase2AutoDismissPreview() {
     HilitTheme {

@@ -595,7 +595,9 @@ class OnBoardingInterviewViewModel
         }
 
         private fun dismissAutoNoticeAndAdvance() {
-            if (state.value.existingPortfolioModalPhase != ExistingPortfolioModalPhase.AutoDismissNotice) {
+            if (state.value.existingPortfolioModalPhase !=
+                ExistingPortfolioModalPhase.AutoDismissNotice
+            ) {
                 return
             }
             reduce { copy(existingPortfolioModalPhase = ExistingPortfolioModalPhase.None) }
