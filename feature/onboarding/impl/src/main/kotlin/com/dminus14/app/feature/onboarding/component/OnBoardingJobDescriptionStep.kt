@@ -26,6 +26,7 @@ private val BubbleBottomPadding = 16.dp
 private const val JOB_DESCRIPTION_TEXT_MAX_LENGTH = 3000
 
 @Composable
+@Suppress("LongParameterList")
 fun OnBoardingJobDescriptionStep(
     tab: JobDescriptionTab,
     link: String,
@@ -79,6 +80,7 @@ fun OnBoardingJobDescriptionStep(
 }
 
 @Composable
+@Suppress("LongParameterList")
 private fun OnBoardingJobDescriptionField(
     tab: JobDescriptionTab,
     link: String,

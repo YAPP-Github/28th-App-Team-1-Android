@@ -31,8 +31,10 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
+@Suppress("TooManyFunctions", "LargeClass")
 class OnBoardingInterviewViewModel
     @Inject
+    @Suppress("LongParameterList")
     constructor(
         @ApplicationContext private val context: Context,
         private val checkUserProfile: CheckUserProfileUseCase,
@@ -55,11 +57,13 @@ class OnBoardingInterviewViewModel
         private var readyPortfolioId: String? = null
         private var existingPortfolioId: String? = null
         private var existingPortfolioFileName: String? = null
+        private var existingReplaceAvailable: Boolean = false
+        private var existingDeleteAvailable: Boolean = false
         private var jdUrl: String? = null
         private var jdText: String? = null
         private var jdValidationJob: Job? = null
 
-        @Suppress("detekt:LongMethod")
+        @Suppress("detekt:LongMethod", "detekt:CyclomaticComplexMethod")
         override fun onIntent(intent: OnBoardingInterviewIntent) {
             when (intent) {
                 OnBoardingInterviewIntent.Load -> {
@@ -107,19 +111,43 @@ class OnBoardingInterviewViewModel
                 }
 
                 OnBoardingInterviewIntent.ClickPortfolioUpload -> {
-                    if (existingPortfolioId != null) {
-                        reduce { copy(showExistingPortfolioModal = true) }
-                    } else {
-                        sendEffect(OnBoardingInterviewEffect.LaunchPortfolioPicker)
-                    }
+                    sendEffect(OnBoardingInterviewEffect.LaunchPortfolioPicker)
                 }
 
                 OnBoardingInterviewIntent.ClickPortfolioRemove -> {
                     removePortfolio()
                 }
 
-                OnBoardingInterviewIntent.ClickExistingPortfolioModalDismiss -> {
-                    reduce { copy(showExistingPortfolioModal = false) }
+                OnBoardingInterviewIntent.PortfolioStepEntered -> {
+                    maybeShowExistingPortfolioNotice()
+                }
+
+                OnBoardingInterviewIntent.ClickExistingPortfolioContinue -> {
+                    reduce { copy(existingPortfolioModalPhase = ExistingPortfolioModalPhase.None) }
+                    advanceStep()
+                }
+
+                OnBoardingInterviewIntent.ClickExistingPortfolioCancel -> {
+                    reduce {
+                        copy(existingPortfolioModalPhase = ExistingPortfolioModalPhase.ConfirmLeaveToMyPage)
+                    }
+                }
+
+                OnBoardingInterviewIntent.ClickLeaveToMyPageConfirm -> {
+                    reduce { copy(existingPortfolioModalPhase = ExistingPortfolioModalPhase.None) }
+                    sendEffect(OnBoardingInterviewEffect.NavigateToMyPage)
+                }
+
+                OnBoardingInterviewIntent.ClickLeaveToMyPageCancel -> {
+                    reduce {
+                        copy(existingPortfolioModalPhase = ExistingPortfolioModalPhase.ConfirmContinue)
+                    }
+                }
+
+                OnBoardingInterviewIntent.ClickAutoDismissNotice,
+                OnBoardingInterviewIntent.AutoDismissNoticeTimedOut,
+                -> {
+                    dismissAutoNoticeAndAdvance()
                 }
 
                 is OnBoardingInterviewIntent.PortfolioFileSelected -> {
@@ -195,6 +223,13 @@ class OnBoardingInterviewViewModel
                         val portfolio = overview.portfolio
                         existingPortfolioId = portfolio?.portfolioId
                         existingPortfolioFileName = portfolio?.fileName
+                        existingReplaceAvailable = overview.isReplaceAvailable
+                        existingDeleteAvailable = overview.isDeleteAvailable
+                        reduce {
+                            copy(
+                                deleteRemainingCount = if (overview.isDeleteAvailable) 1 else 0,
+                            )
+                        }
                         // 재진입 시 기존 READY 포트폴리오는 즉시 노출·재사용한다.
                         // (스펙 S2: "정상 저장(READY) 포폴은 이탈해도 보존, 다음 진입 시 재사용")
                         if (portfolio != null && portfolio.status == PortfolioStatus.READY) {
@@ -206,6 +241,7 @@ class OnBoardingInterviewViewModel
                                 )
                             }
                         }
+                        maybeShowExistingPortfolioNotice()
                     }.onFailure { error ->
                         // 조회 실패를 무음 처리하면 사용자에게는 "포폴 없음"으로 보여, 재업로드 시
                         // 서버가 PORTFOLIO_ALREADY_EXISTS로 튕겨내는 혼란을 만든다.
@@ -402,6 +438,8 @@ class OnBoardingInterviewViewModel
                                 portfolioFileName = null,
                                 isPortfolioProcessing = false,
                                 portfolioUploadProgress = 0,
+                                hasShownExistingPortfolioNotice = false,
+                                existingPortfolioModalPhase = ExistingPortfolioModalPhase.None,
                             )
                         }
                     }.onFailure { error ->
@@ -466,6 +504,7 @@ class OnBoardingInterviewViewModel
             }
         }
 
+        @Suppress("detekt:LongMethod", "detekt:ReturnCount")
         private suspend fun pollPortfolioStatus(portfolioId: String) {
             repeat(MAX_POLL_ATTEMPTS) { attempt ->
                 val status =
@@ -540,6 +579,7 @@ class OnBoardingInterviewViewModel
             val next =
                 when (state.value.step) {
                     OnBoardingInterviewStep.JobDescription -> OnBoardingInterviewStep.Portfolio
+                    OnBoardingInterviewStep.Portfolio -> OnBoardingInterviewStep.MainProject
                     OnBoardingInterviewStep.MainProject -> OnBoardingInterviewStep.Preload
                     else -> return
                 }
@@ -547,6 +587,42 @@ class OnBoardingInterviewViewModel
             if (next == OnBoardingInterviewStep.Preload) {
                 startPreload()
             }
+        }
+
+        /**
+         * READY 포트폴리오가 있는 사용자가 Portfolio 스텝에 진입했을 때 Case1/Case2 안내를 1회만 노출한다.
+         * load() 완료 시점에도 Portfolio 스텝이면 동일 로직을 재시도한다.
+         */
+        private fun shouldShowExistingPortfolioNotice(current: OnBoardingInterviewState): Boolean =
+            !current.hasShownExistingPortfolioNotice &&
+                existingPortfolioId != null &&
+                current.step == OnBoardingInterviewStep.Portfolio &&
+                current.existingPortfolioModalPhase == ExistingPortfolioModalPhase.None
+
+        private fun maybeShowExistingPortfolioNotice() {
+            val current = state.value
+            if (shouldShowExistingPortfolioNotice(current)) {
+                val phase =
+                    if (existingReplaceAvailable && existingDeleteAvailable) {
+                        ExistingPortfolioModalPhase.ConfirmContinue
+                    } else {
+                        ExistingPortfolioModalPhase.AutoDismissNotice
+                    }
+                reduce {
+                    copy(
+                        existingPortfolioModalPhase = phase,
+                        hasShownExistingPortfolioNotice = true,
+                    )
+                }
+            }
+        }
+
+        private fun dismissAutoNoticeAndAdvance() {
+            if (state.value.existingPortfolioModalPhase != ExistingPortfolioModalPhase.AutoDismissNotice) {
+                return
+            }
+            reduce { copy(existingPortfolioModalPhase = ExistingPortfolioModalPhase.None) }
+            advanceStep()
         }
 
         private fun startPreload() {
@@ -622,6 +698,7 @@ class OnBoardingInterviewViewModel
             }
         }
 
+        @Suppress("detekt:ReturnCount")
         private suspend fun pollInterviewSession(sessionId: Long) {
             repeat(MAX_POLL_ATTEMPTS) {
                 val status =

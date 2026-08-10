@@ -23,18 +23,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dminus14.app.feature.mypage.MyPage
+import com.dminus14.app.feature.onboarding.component.OnBoardingExistingPortfolioModals
 import com.dminus14.app.feature.onboarding.component.OnBoardingJobDescriptionStep
 import com.dminus14.app.feature.onboarding.component.OnBoardingMainProjectStep
 import com.dminus14.app.feature.onboarding.component.OnBoardingPortfolioStep
+import com.dminus14.app.feature.onboarding.component.OnBoardingPortfolioStepUiState
 import com.dminus14.app.feature.onboarding.component.OnBoardingPreloadStep
-import com.dminus14.designsystem.component.button.HilitFixedBottomButton
 import com.dminus14.designsystem.component.button.HilitFixedBottomDualButton
-import com.dminus14.designsystem.component.modal.HilitModal
-import com.dminus14.designsystem.component.modal.HilitModalType
 import com.dminus14.designsystem.component.progressbar.HilitProgressBar
 import com.dminus14.designsystem.component.topbar.HilitIconTopBar
 import com.dminus14.designsystem.component.topbar.HilitTextTopBar
@@ -96,7 +95,17 @@ fun OnBoardingInterviewScreen(
                 is OnBoardingInterviewEffect.NavigateToResult -> {
                     onNavigate(effect.sessionId)
                 }
+
+                OnBoardingInterviewEffect.NavigateToMyPage -> {
+                    onNavigate(MyPage)
+                }
             }
+        }
+    }
+
+    LaunchedEffect(state.step) {
+        if (state.step == OnBoardingInterviewStep.Portfolio) {
+            viewModel.onIntent(OnBoardingInterviewIntent.PortfolioStepEntered)
         }
     }
 
@@ -136,9 +145,8 @@ private fun android.content.ContentResolver.queryDisplayName(uri: Uri): String? 
         if (index >= 0 && cursor.moveToFirst()) cursor.getString(index) else null
     }
 
-@Suppress("UnusedParameter")
 @Composable
-private fun OnBoardingInterviewContent(
+internal fun OnBoardingInterviewContent(
     state: OnBoardingInterviewState,
     onIntent: (OnBoardingInterviewIntent) -> Unit,
     modifier: Modifier = Modifier,
@@ -187,8 +195,8 @@ private fun OnBoardingInterviewContent(
         HilitFixedBottomDualButton(
             leftText = "이전으로",
             rightText = "계속하기",
-            leftEnabled = true,
-            rightEnabled = state.isContinueEnabled(),
+            leftEnabled = state.isBottomBarEnabled(),
+            rightEnabled = state.isBottomBarEnabled() && state.isContinueEnabled(),
             onLeftClick = { onIntent(OnBoardingInterviewIntent.ClickPrevious) },
             onRightClick = { onIntent(OnBoardingInterviewIntent.ClickContinue) },
         )
@@ -197,56 +205,10 @@ private fun OnBoardingInterviewContent(
     if (state.showRelevanceFailDialog) {
         OnBoardingRelevanceFailDialog(onIntent = onIntent)
     }
-}
 
-/**
- * Preload(세션 생성/준비) 실패 안내 다이얼로그. 그 외 실패는 Preload 화면 아래
- * 로딩 인디케이터 그대로였는데, 다이얼로그로 사용자에게 알리고 이전 스텝으로 복귀시킨다.
- */
-@Composable
-private fun OnBoardingPreloadFailureDialog(
-    message: String,
-    onIntent: (OnBoardingInterviewIntent) -> Unit,
-) {
-    HilitModal(
-        type = HilitModalType.InvisibleInfo,
-        title = "면접 준비에 실패했어요",
-        subtitle = message,
-        dismissible = false,
-        buttons = {
-            HilitFixedBottomButton(
-                text = "확인",
-                onClick = {
-                    onIntent(OnBoardingInterviewIntent.ClickPreloadFailureAcknowledged)
-                },
-            )
-        },
-    )
-}
-
-/**
- * S3.5 연관성 판단이 4회 연속 실패했을 때 뜨는 이스케이프 다이얼로그.
- * 스펙: 포트폴리오 다시 올리기 vs 집중 프로젝트 없이 진행.
- */
-@Composable
-private fun OnBoardingRelevanceFailDialog(onIntent: (OnBoardingInterviewIntent) -> Unit) {
-    HilitModal(
-        type = HilitModalType.InvisibleInfo,
-        title = "포트폴리오에서\n그 내용을 계속 찾지 못했어요",
-        subtitle = "포트폴리오를 다시 올리거나, 집중 프로젝트 없이 진행할 수 있어요.",
-        dismissible = false,
-        buttons = {
-            HilitFixedBottomDualButton(
-                leftText = "집중 프로젝트 없이 진행",
-                rightText = "포트폴리오 다시 올리기",
-                onLeftClick = {
-                    onIntent(OnBoardingInterviewIntent.ClickRelevanceProceedWithoutMainProject)
-                },
-                onRightClick = {
-                    onIntent(OnBoardingInterviewIntent.ClickRelevanceRetryPortfolio)
-                },
-            )
-        },
+    OnBoardingExistingPortfolioModals(
+        state = state,
+        onIntent = onIntent,
     )
 }
 
@@ -349,11 +311,13 @@ private fun OnBoardingInterviewStepContent(
 
         OnBoardingInterviewStep.Portfolio -> {
             OnBoardingPortfolioStep(
-                fileName = state.portfolioFileName,
-                isProcessing = state.isPortfolioProcessing,
-                uploadProgress = state.portfolioUploadProgress,
-                showExistingPortfolioModal = state.showExistingPortfolioModal,
-                errorMessage = state.portfolioErrorMessage,
+                uiState =
+                    OnBoardingPortfolioStepUiState(
+                        fileName = state.portfolioFileName,
+                        isProcessing = state.isPortfolioProcessing,
+                        uploadProgress = state.portfolioUploadProgress,
+                        errorMessage = state.portfolioErrorMessage,
+                    ),
                 onIntent = onIntent,
                 modifier = modifier,
             )
@@ -372,6 +336,9 @@ private fun OnBoardingInterviewStepContent(
         }
     }
 }
+
+private fun OnBoardingInterviewState.isBottomBarEnabled(): Boolean =
+    existingPortfolioModalPhase == ExistingPortfolioModalPhase.None
 
 /**
  * 계속하기 버튼 활성 여부를 스텝별로 파생한다.
@@ -401,51 +368,3 @@ private fun OnBoardingInterviewStep.toProgressStep(): Int =
         OnBoardingInterviewStep.Preload,
         -> PROGRESS_MAX_STEP
     }
-
-@Preview(name = "JobDescription", showBackground = true, widthDp = 375, heightDp = 812)
-@Composable
-private fun OnBoardingInterviewJobDescriptionPreview() {
-    HilitTheme {
-        OnBoardingInterviewContent(
-            state = OnBoardingInterviewState(step = OnBoardingInterviewStep.JobDescription),
-            onIntent = {},
-        )
-    }
-}
-
-@Preview(name = "Portfolio", showBackground = true, widthDp = 375, heightDp = 812)
-@Composable
-private fun OnBoardingInterviewPortfolioPreview() {
-    HilitTheme {
-        OnBoardingInterviewContent(
-            state =
-                OnBoardingInterviewState(
-                    step = OnBoardingInterviewStep.Portfolio,
-                    showExistingPortfolioModal = true,
-                ),
-            onIntent = {},
-        )
-    }
-}
-
-@Preview(name = "MainProject", showBackground = true, widthDp = 375, heightDp = 812)
-@Composable
-private fun OnBoardingInterviewMainProjectPreview() {
-    HilitTheme {
-        OnBoardingInterviewContent(
-            state = OnBoardingInterviewState(step = OnBoardingInterviewStep.MainProject),
-            onIntent = {},
-        )
-    }
-}
-
-@Preview(name = "Preload", showBackground = true, widthDp = 375, heightDp = 812)
-@Composable
-private fun OnBoardingInterviewPreloadPreview() {
-    HilitTheme {
-        OnBoardingInterviewContent(
-            state = OnBoardingInterviewState(step = OnBoardingInterviewStep.Preload),
-            onIntent = {},
-        )
-    }
-}

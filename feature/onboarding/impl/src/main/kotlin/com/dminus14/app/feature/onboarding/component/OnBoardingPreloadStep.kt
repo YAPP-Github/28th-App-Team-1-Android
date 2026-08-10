@@ -76,6 +76,7 @@ private val PreloadRotatingCopies =
 private const val PRELOAD_COPY_ROTATION_MS = 3_000L
 
 @Composable
+@Suppress("LongMethod")
 fun OnBoardingPreloadStep(
     basicInfoStatus: OnBoardingLoadingStepStatus,
     jdStatus: OnBoardingLoadingStepStatus,
