@@ -57,21 +57,24 @@ feature/{name}/
 
 ### 3.1 Intent
 
-Intent는 사용자 행동 또는 UI lifecycle event만 표현하고 ViewModel의 외부 event 진입점을
-`onIntent()` 하나로 통일한다.
+Intent는 사용자 행동, UI lifecycle event 또는 Screen이 요청한 Android 작업의 결과 callback을
+표현하고 ViewModel의 외부 event 진입점을 `onIntent()` 하나로 통일한다.
 
 ```kotlin
 sealed interface SampleIntent {
     data object Load : SampleIntent
     data object Refresh : SampleIntent
     data class ClickItem(val id: Long) : SampleIntent
+    data class ReportPermissionResult(val isGranted: Boolean) : SampleIntent
 }
 ```
 
 - Intent 구현 시, 네이밍 컨벤션은 "V + O"(동사 + 목적어, 예: `ClickClose`, `ClickItem`, `ToggleReport`)의 형태로 작성한다.
 - State 전체를 Intent에 담지 않는다.
 - 처리에 필요한 최소 값만 전달한다.
-- 이름은 사용자의 행동이나 lifecycle event가 드러나게 작성한다.
+- 이름은 사용자의 행동, lifecycle event 또는 Android 작업 결과가 드러나게 작성한다.
+- Android 작업 결과 callback은 `Report...`처럼 결과 보고임을 드러내고 Android Framework,
+  CameraX, Media3, WorkManager 객체나 실제 사용자 미디어를 Intent에 담지 않는다.
 - 최초 로드도 필요한 경우 명시적 Intent로 표현한다.
 
 ### 3.2 State
