@@ -38,6 +38,18 @@ data class HomeState(
 
 sealed interface HomeEffect : MviEffect {
     data object GoToMyPageRequested : HomeEffect
+
+    /**
+     * 프로필 이름이 비어 있어 온보딩(직무·연차 입력)으로 라우팅해야 함을 알린다.
+     * 스플래시가 동일 조건을 [com.dminus14.app.feature.login.splash.SplashEffect.RequireOnboarding]
+     * 으로 처리하는 것과 대응한다.
+     */
+    data object UserNameNotRegistered : HomeEffect
+
+    /**
+     * 유저가 존재하지 않아(`UserNotFoundException`) 스플래시로 되돌려야 함을 알린다.
+     */
+    data object UserNotFound : HomeEffect
 }
 
 internal val PreviewHomeReports =

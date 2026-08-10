@@ -36,6 +36,8 @@ import com.dminus14.app.core.resources.home_background
 import com.dminus14.app.feature.home.component.HomeReportSheet
 import com.dminus14.app.feature.home.component.HomeReportSheetCallbacks
 import com.dminus14.app.feature.home.component.HomeSheetAnchor
+import com.dminus14.app.feature.login.api.Onboarding
+import com.dminus14.app.feature.login.api.Splash
 import com.dminus14.app.feature.mypage.MyPage
 import com.dminus14.designsystem.component.topbar.HilitLogoTopBar
 import com.dminus14.designsystem.theme.HilitTheme
@@ -54,6 +56,7 @@ private val FallbackExpandedTop = HomeTopBarHeight
 @Composable
 fun HomeScreen(
     onNavigate: (Any) -> Unit,
+    onReplaceAll: (Any) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -67,6 +70,9 @@ fun HomeScreen(
         viewModel.effect.collect { effect ->
             when (effect) {
                 HomeEffect.GoToMyPageRequested -> onNavigate(MyPage)
+                // 온보딩·스플래시로 이동할 때는 홈으로 되돌아오지 못하도록 스택을 비운다.
+                HomeEffect.UserNameNotRegistered -> onReplaceAll(Onboarding)
+                HomeEffect.UserNotFound -> onReplaceAll(Splash)
             }
         }
     }
