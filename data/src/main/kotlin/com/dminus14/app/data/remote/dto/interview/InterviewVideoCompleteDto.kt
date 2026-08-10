@@ -12,8 +12,4 @@ data class InterviewVideoCompleteRequestDto(
     val wrapUpStartSec: Float? = null,
     @SerializedName("wrapUpEndSec")
     val wrapUpEndSec: Float? = null,
-    @SerializedName("videoFileName")
-    val videoFileName: String? = null,
-    @SerializedName("s3Key")
-    val s3Key: String? = null,
 )

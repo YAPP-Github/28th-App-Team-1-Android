@@ -1,6 +1,7 @@
 package com.dminus14.app.domain.usecase
 
 import com.dminus14.app.domain.model.InterviewAbandon
+import com.dminus14.app.domain.model.InterviewAbandonRequestCause
 import com.dminus14.app.domain.repository.InterviewRepository
 import com.dminus14.app.domain.util.runCatchingCancellable
 import javax.inject.Inject
@@ -12,7 +13,7 @@ class AbandonInterviewUseCase
     ) {
         suspend operator fun invoke(
             sessionId: Long,
-            cause: String,
+            cause: InterviewAbandonRequestCause,
         ): Result<InterviewAbandon> =
             runCatchingCancellable { interviewRepository.abandon(sessionId, cause) }
     }

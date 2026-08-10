@@ -1,6 +1,7 @@
 package com.dminus14.app.data.remote.dto.interview
 
 import com.dminus14.app.domain.model.InterviewAbandon
+import com.dminus14.app.domain.model.InterviewTicketOutcome
 import com.google.gson.annotations.SerializedName
 
 /**
@@ -28,10 +29,17 @@ data class InterviewAbandonResponseDto(
     fun toDomain(): InterviewAbandon =
         InterviewAbandon(
             sessionId = sessionId,
-            status = status,
-            abandonCause = abandonCause,
+            status = status.toInterviewTerminalStatus(),
+            abandonCause = abandonCause.toInterviewAbandonCause(),
             endedAt = endedAt,
-            ticketOutcome = ticketOutcome,
+            ticketOutcome = ticketOutcome.toInterviewTicketOutcome(),
             reportGenerating = reportGenerating,
         )
 }
+
+private fun String.toInterviewTicketOutcome(): InterviewTicketOutcome =
+    when (this) {
+        "COMMITTED" -> InterviewTicketOutcome.Committed
+        "RELEASED" -> InterviewTicketOutcome.Released
+        else -> InterviewTicketOutcome.Unknown(this)
+    }

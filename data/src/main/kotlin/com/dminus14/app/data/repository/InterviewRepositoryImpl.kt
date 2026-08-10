@@ -8,9 +8,15 @@ import com.dminus14.app.data.remote.dto.interview.InterviewAbandonRequestDto
 import com.dminus14.app.data.remote.dto.interview.InterviewVideoCompleteRequestDto
 import com.dminus14.app.data.remote.mapper.ApiErrorCode
 import com.dminus14.app.data.remote.mapper.CommonApiErrorMapper
+import com.dminus14.app.data.remote.uploader.InterviewVideoUploader
+import com.dminus14.app.domain.exception.AiTemporarilyUnavailableException
+import com.dminus14.app.domain.exception.AnswerAlreadySubmittedException
 import com.dminus14.app.domain.exception.CustomException
 import com.dminus14.app.domain.exception.FreeTextNotRelevantException
+import com.dminus14.app.domain.exception.InterviewSessionAlreadyEndedException
 import com.dminus14.app.domain.exception.InterviewSessionNotFoundException
+import com.dminus14.app.domain.exception.InterviewSessionNotStartedException
+import com.dminus14.app.domain.exception.InterviewSessionPreloadFailedException
 import com.dminus14.app.domain.exception.InvalidFreeTextLengthException
 import com.dminus14.app.domain.exception.InvalidJdLengthException
 import com.dminus14.app.domain.exception.InvalidJdUrlException
@@ -25,6 +31,8 @@ import com.dminus14.app.domain.exception.PortfolioUploadFailedException
 import com.dminus14.app.domain.exception.UserProfileNotRegisteredException
 import com.dminus14.app.domain.exception.ValidationException
 import com.dminus14.app.domain.model.InterviewAbandon
+import com.dminus14.app.domain.model.InterviewAbandonRequestCause
+import com.dminus14.app.domain.model.InterviewAnswerEndRequest
 import com.dminus14.app.domain.model.InterviewReport
 import com.dminus14.app.domain.model.InterviewReportList
 import com.dminus14.app.domain.model.InterviewResumeConfirm
@@ -36,12 +44,14 @@ import com.dminus14.app.domain.model.InterviewVideoExpiry
 import com.dminus14.app.domain.model.InterviewVideoUploadUrl
 import com.dminus14.app.domain.model.JdValidationResult
 import com.dminus14.app.domain.model.SubmitAnswerResult
+import com.dminus14.app.domain.model.SubmitInterviewAnswerCommand
+import com.dminus14.app.domain.model.UploadInterviewVideoCommand
+import com.dminus14.app.domain.repository.InterviewLocalRepository
 import com.dminus14.app.domain.repository.InterviewRepository
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import retrofit2.HttpException
-import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -57,6 +67,8 @@ class InterviewRepositoryImpl
     @Inject
     constructor(
         private val interviewRemoteDataSource: InterviewRemoteDataSource,
+        private val interviewLocalRepository: InterviewLocalRepository? = null,
+        private val interviewVideoUploader: InterviewVideoUploader? = null,
     ) : InterviewRepository {
         override suspend fun validateJdUrl(jdUrl: String): JdValidationResult {
             val response =
@@ -140,40 +152,35 @@ class InterviewRepositoryImpl
             return response.toDomain()
         }
 
-        @Suppress("LongParameterList")
         override suspend fun submitAnswer(
-            sessionId: Long,
-            questionId: Long,
-            isWrapUp: Boolean,
-            questionAudioStartAt: Float?,
-            questionAudioEndAt: Float?,
-            answerStartAt: Float?,
-            answerEndAt: Float?,
-            answerDuration: Float?,
-            endType: String?,
-            audioFile: File?,
+            command: SubmitInterviewAnswerCommand,
         ): SubmitAnswerResult {
             val audioPart =
-                audioFile?.let { file ->
-                    val requestBody = file.asRequestBody("audio/*".toMediaTypeOrNull())
-                    MultipartBody.Part.createFormData("audio", file.name, requestBody)
+                command.audioFile?.let { mediaRef ->
+                    val file = requireNotNull(interviewLocalRepository).resolveMediaFile(mediaRef)
+                    val requestBody = file.asRequestBody("audio/mp4".toMediaTypeOrNull())
+                    MultipartBody.Part.createFormData(
+                        "audio",
+                        "${file.nameWithoutExtension}.m4a",
+                        requestBody,
+                    )
                 }
             val response =
                 runCatching {
                     interviewRemoteDataSource.submitAnswer(
-                        sessionId = sessionId,
-                        questionId = questionId,
-                        isWrapUp = isWrapUp,
-                        questionAudioStartAt = questionAudioStartAt,
-                        questionAudioEndAt = questionAudioEndAt,
-                        answerStartAt = answerStartAt,
-                        answerEndAt = answerEndAt,
-                        answerDuration = answerDuration,
-                        endType = endType,
+                        sessionId = command.sessionId,
+                        questionId = command.questionId,
+                        isWrapUp = command.isWrapUp,
+                        questionAudioStartAt = command.questionAudioStartAt,
+                        questionAudioEndAt = command.questionAudioEndAt,
+                        answerStartAt = command.answerStartAt,
+                        answerEndAt = command.answerEndAt,
+                        answerDuration = command.answerDuration,
+                        endType = command.endType?.toApiValue(),
                         audio = audioPart,
                     )
                 }.getOrElse { error ->
-                    throw CommonApiErrorMapper.map(error)
+                    throw CommonApiErrorMapper.map(error, ::mapInterviewRecoveryError)
                 }
             return response.toDomain()
         }
@@ -208,9 +215,9 @@ class InterviewRepositoryImpl
 
         override suspend fun abandon(
             sessionId: Long,
-            cause: String,
+            cause: InterviewAbandonRequestCause,
         ): InterviewAbandon {
-            val request = InterviewAbandonRequestDto(cause = cause)
+            val request = InterviewAbandonRequestDto(cause = cause.toApiValue())
             val response =
                 runCatching { interviewRemoteDataSource.abandon(sessionId, request) }
                     .getOrElse { error ->
@@ -253,7 +260,7 @@ class InterviewRepositoryImpl
                 }
             runCatching { interviewRemoteDataSource.completeUpload(sessionId, request) }
                 .getOrElse { error ->
-                    throw CommonApiErrorMapper.map(error)
+                    throw CommonApiErrorMapper.map(error, ::mapInterviewRecoveryError)
                 }
         }
 
@@ -387,4 +394,59 @@ class InterviewRepositoryImpl
                 }
             }
         }
+
+        override suspend fun uploadVideo(command: UploadInterviewVideoCommand) {
+            requireNotNull(interviewVideoUploader).upload(
+                uploadUrl = command.uploadUrl,
+                contentType = command.contentType,
+                file = requireNotNull(interviewLocalRepository).resolveMediaFile(command.mediaRef),
+            )
+        }
+
+        private fun mapInterviewRecoveryError(
+            httpError: HttpException,
+            apiError: ApiErrorResponseDto?,
+        ): CustomException? {
+            val code = apiError?.code ?: return null
+            val message = apiError.message
+            return when (code) {
+                ApiErrorCode.AI_TEMPORARILY_UNAVAILABLE -> {
+                    AiTemporarilyUnavailableException(code, message, httpError)
+                }
+
+                ApiErrorCode.ANSWER_ALREADY_SUBMITTED -> {
+                    AnswerAlreadySubmittedException(code, message, httpError)
+                }
+
+                ApiErrorCode.SESSION_ALREADY_ENDED -> {
+                    InterviewSessionAlreadyEndedException(code, message, httpError)
+                }
+
+                ApiErrorCode.SESSION_NOT_STARTED -> {
+                    InterviewSessionNotStartedException(code, message, httpError)
+                }
+
+                ApiErrorCode.SESSION_PRELOAD_FAILED -> {
+                    InterviewSessionPreloadFailedException(code, message, httpError)
+                }
+
+                else -> {
+                    null
+                }
+            }
+        }
+
+        private fun InterviewAnswerEndRequest.toApiValue(): String =
+            when (this) {
+                InterviewAnswerEndRequest.Skip -> "SKIP"
+                InterviewAnswerEndRequest.ManualEnd -> "MANUAL_END"
+                InterviewAnswerEndRequest.HardCap -> "HARD_CAP"
+                InterviewAnswerEndRequest.BackExit -> "BACK_EXIT"
+            }
+
+        private fun InterviewAbandonRequestCause.toApiValue(): String =
+            when (this) {
+                InterviewAbandonRequestCause.NetworkDisconnect -> "NETWORK_DISCONNECT"
+                InterviewAbandonRequestCause.UserExit -> "USER_EXIT"
+            }
     }

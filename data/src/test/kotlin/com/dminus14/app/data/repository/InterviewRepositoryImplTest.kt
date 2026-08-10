@@ -36,9 +36,12 @@ import com.dminus14.app.domain.exception.ServerException
 import com.dminus14.app.domain.exception.UnknownException
 import com.dminus14.app.domain.exception.UserProfileNotRegisteredException
 import com.dminus14.app.domain.exception.ValidationException
+import com.dminus14.app.domain.model.InterviewAbandonRequestCause
 import com.dminus14.app.domain.model.InterviewReportStatus
+import com.dminus14.app.domain.model.InterviewResumeState
 import com.dminus14.app.domain.model.InterviewSessionRequest
 import com.dminus14.app.domain.model.InterviewSessionStatusType
+import com.dminus14.app.domain.model.SubmitInterviewAnswerCommand
 import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
@@ -105,9 +108,11 @@ class InterviewRepositoryImplTest {
         val actual =
             runBlocking {
                 repository.submitAnswer(
-                    sessionId = 42L,
-                    questionId = 1L,
-                    isWrapUp = false,
+                    SubmitInterviewAnswerCommand(
+                        sessionId = 42L,
+                        questionId = 1L,
+                        isWrapUp = false,
+                    ),
                 )
             }
 
@@ -134,7 +139,7 @@ class InterviewRepositoryImplTest {
 
         val actual = runBlocking { repository.getResume(42L) }
 
-        assertEquals("NONE", actual.resumeState)
+        assertEquals(InterviewResumeState.Unknown("NONE"), actual.resumeState)
         assertEquals(42L, dataSource.requestedGetResumeSessionId)
     }
 
@@ -154,12 +159,15 @@ class InterviewRepositoryImplTest {
         val dataSource = FakeInterviewRemoteDataSource()
         val repository = InterviewRepositoryImpl(dataSource)
 
-        val actual = runBlocking { repository.abandon(42L, "USER_REQUESTED") }
+        val actual =
+            runBlocking {
+                repository.abandon(42L, InterviewAbandonRequestCause.UserExit)
+            }
 
         assertEquals(42L, actual.sessionId)
-        assertEquals("ABANDONED", actual.status)
+        assertEquals(com.dminus14.app.domain.model.InterviewTerminalStatus.Abandoned, actual.status)
         assertEquals(42L, dataSource.requestedAbandonSessionId)
-        assertEquals("USER_REQUESTED", dataSource.requestedAbandonRequest?.cause)
+        assertEquals("USER_EXIT", dataSource.requestedAbandonRequest?.cause)
     }
 
     @Test

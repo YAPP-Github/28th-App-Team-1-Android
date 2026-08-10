@@ -76,3 +76,33 @@ class InterviewSessionNotFoundException(
     message: String,
     cause: Throwable? = null,
 ) : CustomException(errCode = errCode, message = message, cause = cause)
+
+class AiTemporarilyUnavailableException(
+    errCode: String,
+    message: String,
+    cause: Throwable? = null,
+) : CustomException(errCode, message, cause)
+
+class AnswerAlreadySubmittedException(
+    errCode: String,
+    message: String,
+    cause: Throwable? = null,
+) : CustomException(errCode, message, cause)
+
+class InterviewSessionAlreadyEndedException(
+    errCode: String,
+    message: String,
+    cause: Throwable? = null,
+) : CustomException(errCode, message, cause)
+
+class InterviewSessionNotStartedException(
+    errCode: String,
+    message: String,
+    cause: Throwable? = null,
+) : CustomException(errCode, message, cause)
+
+class InterviewSessionPreloadFailedException(
+    errCode: String,
+    message: String,
+    cause: Throwable? = null,
+) : CustomException(errCode, message, cause)

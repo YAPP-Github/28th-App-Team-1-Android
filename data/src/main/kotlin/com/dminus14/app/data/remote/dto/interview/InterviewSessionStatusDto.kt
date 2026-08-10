@@ -2,6 +2,7 @@ package com.dminus14.app.data.remote.dto.interview
 
 import com.dminus14.app.domain.model.InterviewSessionStatus
 import com.dminus14.app.domain.model.InterviewSessionStatusType
+import com.dminus14.app.domain.model.QuestionTurn
 import com.dminus14.app.domain.model.SummaryQuestion
 import com.google.gson.annotations.SerializedName
 
@@ -33,10 +34,13 @@ data class SummaryQuestionResponseDto(
     val questionId: Long,
     @SerializedName("ttsAudio")
     val ttsAudio: String?,
+    @SerializedName("turn")
+    val turn: QuestionTurnDto,
 ) {
     fun toDomain(): SummaryQuestion =
         SummaryQuestion(
             questionId = questionId,
             ttsAudio = ttsAudio,
+            turn = turn.toDomain(),
         )
 }
