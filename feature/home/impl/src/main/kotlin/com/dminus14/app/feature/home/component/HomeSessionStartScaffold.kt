@@ -78,7 +78,7 @@ internal fun HomeSessionStartScaffold(
                         .padding(horizontal = CardHorizontalPadding)
                         .background(
                             color = HilitTheme.colors.hilitWhite,
-                            shape = RectangleShape
+                            shape = RectangleShape,
                         ),
                 contentAlignment = Alignment.Center,
             ) {
