@@ -54,7 +54,41 @@ constructor(
             HomeIntent.ReportSheetCollapsed -> {
                 viewModelScope.launch { checkInterviewSession() }
             }
+
+            HomeIntent.SessionStartClick -> {
+                startInterview()
+            }
+
+            HomeIntent.SessionOverlayDismissClick -> {
+                dismissSessionOverlay()
+            }
+
+            HomeIntent.SessionResumeClick -> {
+                Unit // TODO: 진행 중 면접 이어서 진행 플로우 연동
+            }
         }
+    }
+
+    /**
+     * 면접 시작 계열 버튼 처리.
+     * 잔여 이용권이 1회 이상이면 온보딩 인터뷰로 이동하고, 0회(또는 미확인)면 소진(NoTickets)
+     * 오버레이를 띄운다.
+     */
+    private fun startInterview() {
+        val tickets = state.value.remainingTicketCount ?: 0
+        if (tickets > 0) {
+            sendEffect(HomeEffect.GoToOnboardingInterviewRequested)
+        } else {
+            reduce {
+                copy(sessionStartOverlay = HomeSessionStartOverlayState.NoTickets(userName = userName))
+            }
+        }
+    }
+
+    /** 세션 오버레이를 닫고 리포트 시트를 중간(Peek)으로 되돌린다. */
+    private fun dismissSessionOverlay() {
+        reduce { copy(sessionStartOverlay = null) }
+        sendEffect(HomeEffect.ReportSheetResetRequested)
     }
 
     /**

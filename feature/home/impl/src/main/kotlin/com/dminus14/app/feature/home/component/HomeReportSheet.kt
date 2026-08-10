@@ -93,6 +93,7 @@ fun HomeReportSheet(
     expandedTopPx: Float,
     callbacks: HomeReportSheetCallbacks,
     modifier: Modifier = Modifier,
+    peekResetSignal: Int = 0,
 ) {
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
@@ -125,6 +126,15 @@ fun HomeReportSheet(
 
         LaunchedEffect(settledAnchor) {
             callbacks.onSheetAnchorChange(settledAnchor)
+        }
+
+        // 세션 오버레이를 닫을 때 등 외부 신호로 시트를 중간(Peek)으로 되돌린다.
+        // 초기값 0에서는 동작하지 않고, 신호가 증가할 때만 리셋한다.
+        LaunchedEffect(peekResetSignal) {
+            if (peekResetSignal > 0) {
+                settledAnchor = HomeSheetAnchor.Peek
+                sheetTopPx = HomeSheetAnchor.Peek.toTopPx(sheetLayout.anchors)
+            }
         }
 
         HomeReportSheetContainer(

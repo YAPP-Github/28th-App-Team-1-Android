@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,6 +40,7 @@ import com.dminus14.app.feature.home.component.HomeSheetAnchor
 import com.dminus14.app.feature.login.api.Onboarding
 import com.dminus14.app.feature.login.api.Splash
 import com.dminus14.app.feature.mypage.MyPage
+import com.dminus14.app.feature.onboarding.api.OnBoardingInterview
 import com.dminus14.designsystem.component.topbar.HilitLogoTopBar
 import com.dminus14.designsystem.theme.HilitTheme
 import org.jetbrains.compose.resources.painterResource
@@ -62,6 +64,9 @@ fun HomeScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
+    // 세션 오버레이 닫을 때 리포트 시트를 중간(Peek)으로 되돌리라는 신호. 값이 바뀌면 시트가 리셋된다.
+    var peekResetSignal by remember { mutableIntStateOf(0) }
+
     LaunchedEffect(Unit) {
         viewModel.onIntent(HomeIntent.Load)
     }
@@ -73,6 +78,8 @@ fun HomeScreen(
                 // 온보딩·스플래시로 이동할 때는 홈으로 되돌아오지 못하도록 스택을 비운다.
                 HomeEffect.UserNameNotRegistered -> onReplaceAll(Onboarding)
                 HomeEffect.UserNotFound -> onReplaceAll(Splash)
+                HomeEffect.GoToOnboardingInterviewRequested -> onNavigate(OnBoardingInterview)
+                HomeEffect.ReportSheetResetRequested -> peekResetSignal++
             }
         }
     }
@@ -82,6 +89,10 @@ fun HomeScreen(
         onReportExpandClick = { viewModel.onIntent(HomeIntent.ReportExpandClick(it)) },
         onReportActionClick = { viewModel.onIntent(HomeIntent.ReportActionClick(it)) },
         onReportSheetCollapsed = { viewModel.onIntent(HomeIntent.ReportSheetCollapsed) },
+        onSessionStartClick = { viewModel.onIntent(HomeIntent.SessionStartClick) },
+        onSessionOverlayDismiss = { viewModel.onIntent(HomeIntent.SessionOverlayDismissClick) },
+        onSessionResumeClick = { viewModel.onIntent(HomeIntent.SessionResumeClick) },
+        peekResetSignal = peekResetSignal,
         modifier = modifier,
     )
 }
@@ -92,6 +103,10 @@ internal fun HomeContent(
     onReportExpandClick: (String) -> Unit,
     onReportActionClick: (String) -> Unit,
     onReportSheetCollapsed: () -> Unit = {},
+    onSessionStartClick: () -> Unit = {},
+    onSessionOverlayDismiss: () -> Unit = {},
+    onSessionResumeClick: () -> Unit = {},
+    peekResetSignal: Int = 0,
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
@@ -120,6 +135,7 @@ internal fun HomeContent(
                         if (anchor == HomeSheetAnchor.Collapsed) onReportSheetCollapsed()
                     },
                 ),
+            peekResetSignal = peekResetSignal,
             modifier = Modifier.fillMaxSize(),
         )
 
@@ -133,10 +149,19 @@ internal fun HomeContent(
         )
 
         // 세션 시작 오버레이. state가 non-null이면 페이드인으로 위에 얹혀 다른 UI를 가린다.
-        // 트리거·콜백 배선은 후속 작업에서 채운다.
+        // 시작 계열(시작하기·처음부터 시작)은 티켓 분기, 닫기 계열(닫기·홈으로·뒤로가기)은 오버레이
+        // 해제 + 시트 중간 복귀, 이어서 진행은 아직 TODO.
         HomeSessionStartOverlay(
             state = state.sessionStartOverlay,
-            callbacks = HomeSessionStartCallbacks(),
+            callbacks =
+                HomeSessionStartCallbacks(
+                    onCloseClick = onSessionOverlayDismiss,
+                    onStartClick = onSessionStartClick,
+                    onGoHomeClick = onSessionOverlayDismiss,
+                    onRestartClick = onSessionStartClick,
+                    onResumeClick = onSessionResumeClick,
+                    onBackClick = onSessionOverlayDismiss,
+                ),
             modifier = Modifier.zIndex(2f),
         )
 
