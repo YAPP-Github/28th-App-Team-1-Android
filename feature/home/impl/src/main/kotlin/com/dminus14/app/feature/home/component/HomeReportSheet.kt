@@ -65,9 +65,6 @@ private const val VIDEO_OVERLAY_MID_STOP = 0.5f
 private const val VIDEO_OVERLAY_MID_ALPHA = 0.4f
 private const val VIDEO_OVERLAY_END_STOP = 1.09f
 
-/** Expanded 앵커 판정 여유치(px). 부동소수 오차로 인디케이터 깜빡임을 방지. */
-private const val EXPANDED_POSITION_TOLERANCE_PX = 2f
-
 /**
  * 홈 화면의 리포트 리스트 바텀시트.
  *
@@ -139,9 +136,7 @@ fun HomeReportSheet(
                     getSheetTopPx = { currentSheetTopPx },
                     onSheetTopPxChange = { value -> sheetTopPx = value },
                     onDragEnd = sheetLayout.onDragEnd,
-                    showDragHandleIndicator =
-                        sheetTopPx >
-                            sheetLayout.anchors.expandedTopPx/* + EXPANDED_POSITION_TOLERANCE_PX*/,
+                    showDragHandleIndicator = sheetTopPx > sheetLayout.anchors.expandedTopPx,
                 ),
         )
     }
@@ -207,8 +202,8 @@ private fun rememberHomeReportSheetLayout(
 
 /**
  * [HomeReportSheetContainer] 렌더에 필요한 모든 값 묶음.
- * @param showDragHandleIndicator 시트 위치가 expanded 앵커에서 [EXPANDED_POSITION_TOLERANCE_PX]
- *   이상 떨어져 있을 때만 true — 완전히 펼쳐진 상태에선 핸들 인디케이터를 숨긴다.
+ * @param showDragHandleIndicator 시트가 expanded 앵커에서 벗어나 있을 때만 true —
+ *   완전히 펼쳐진 상태에선 핸들 인디케이터를 숨긴다.
  */
 private data class HomeReportSheetContentState(
     val sheetTopPx: Float,

@@ -143,7 +143,7 @@ private fun HomeContent(
         if (state.isLoading) {
             Box(
                 modifier =
-                    modifier
+                    Modifier
                         .fillMaxSize()
                         .background(HilitTheme.colors.hilitWhite.copy(alpha = 0.6f))
                         .clickable(
