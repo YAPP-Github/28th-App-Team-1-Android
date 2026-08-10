@@ -89,12 +89,12 @@ fun HomeScreen(
 
     HomeContent(
         state = state,
-        onReportExpandClick = { viewModel.onIntent(HomeIntent.ReportExpandClick(it)) },
-        onReportActionClick = { viewModel.onIntent(HomeIntent.ReportActionClick(it)) },
+        onReportExpandClick = { viewModel.onIntent(HomeIntent.ClickReportExpand(it)) },
+        onReportActionClick = { viewModel.onIntent(HomeIntent.ClickReportOpen(it)) },
         onReportSheetCollapsed = { viewModel.onIntent(HomeIntent.ReportSheetCollapsed) },
-        onSessionStartClick = { viewModel.onIntent(HomeIntent.SessionStartClick) },
-        onSessionOverlayDismiss = { viewModel.onIntent(HomeIntent.SessionOverlayDismissClick) },
-        onSessionResumeClick = { viewModel.onIntent(HomeIntent.SessionResumeClick) },
+        onSessionStartClick = { viewModel.onIntent(HomeIntent.ClickSessionStart) },
+        onSessionOverlayDismiss = { viewModel.onIntent(HomeIntent.ClickSessionOverlayDismiss) },
+        onSessionResumeClick = { viewModel.onIntent(HomeIntent.ClickSessionResume) },
         peekResetSignal = peekResetSignal,
         modifier = modifier,
     )

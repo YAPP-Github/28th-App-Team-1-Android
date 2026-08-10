@@ -7,13 +7,14 @@ import com.dminus14.app.core.common.mvi.MviState
 sealed interface HomeIntent : MviIntent {
     data object Load : HomeIntent
 
-    data object OpenMyPage : HomeIntent
+    data object ClickMyPage : HomeIntent
 
-    data class ReportExpandClick(
+    data class ClickReportExpand(
         val reportId: String,
     ) : HomeIntent
 
-    data class ReportActionClick(
+    /** 펼친 리포트 카드의 화살표(">") 버튼. 리포트 상세 화면으로 이동한다. */
+    data class ClickReportOpen(
         val reportId: String,
     ) : HomeIntent
 
@@ -24,16 +25,16 @@ sealed interface HomeIntent : MviIntent {
      * 세션 시작 오버레이의 시작 계열 버튼(시작하기·처음부터 시작).
      * 잔여 이용권에 따라 온보딩 인터뷰로 이동하거나 소진(NoTickets) 오버레이를 띄운다.
      */
-    data object SessionStartClick : HomeIntent
+    data object ClickSessionStart : HomeIntent
 
     /**
      * 세션 시작 오버레이의 닫기 계열 버튼(닫기·홈으로·뒤로가기).
      * 오버레이를 닫고 리포트 시트를 중간(Peek)으로 되돌린다.
      */
-    data object SessionOverlayDismissClick : HomeIntent
+    data object ClickSessionOverlayDismiss : HomeIntent
 
     /** 진행 중 면접 "이어서 진행". (TODO: 재개 플로우 연동 대기) */
-    data object SessionResumeClick : HomeIntent
+    data object ClickSessionResume : HomeIntent
 }
 
 data class HomeReportItem(

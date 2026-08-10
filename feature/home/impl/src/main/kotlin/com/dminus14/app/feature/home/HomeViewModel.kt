@@ -30,11 +30,11 @@ constructor(
                 load()
             }
 
-            HomeIntent.OpenMyPage -> {
+            HomeIntent.ClickMyPage -> {
                 sendEffect(HomeEffect.GoToMyPageRequested)
             }
 
-            is HomeIntent.ReportExpandClick -> {
+            is HomeIntent.ClickReportExpand -> {
                 reduce {
                     copy(
                         expandedReportIds =
@@ -47,7 +47,7 @@ constructor(
                 }
             }
 
-            is HomeIntent.ReportActionClick -> {
+            is HomeIntent.ClickReportOpen -> {
                 sendEffect(HomeEffect.GoToReportRequested(intent.reportId))
             }
 
@@ -55,15 +55,15 @@ constructor(
                 viewModelScope.launch { checkInterviewSession() }
             }
 
-            HomeIntent.SessionStartClick -> {
+            HomeIntent.ClickSessionStart -> {
                 startInterview()
             }
 
-            HomeIntent.SessionOverlayDismissClick -> {
+            HomeIntent.ClickSessionOverlayDismiss -> {
                 dismissSessionOverlay()
             }
 
-            HomeIntent.SessionResumeClick -> {
+            HomeIntent.ClickSessionResume -> {
                 Unit // TODO: 진행 중 면접 이어서 진행 플로우 연동
             }
         }
