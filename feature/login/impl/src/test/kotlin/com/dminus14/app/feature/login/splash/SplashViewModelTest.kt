@@ -675,6 +675,8 @@ class SplashViewModelTest {
     ) : AuthRepository {
         override suspend fun loginWithKakao(credential: String): AuthSession =
             loginResult.getOrThrow()
+
+        override suspend fun logout() = error("Not used in SplashViewModelTest")
     }
 
     private class FakeConsentRepository(

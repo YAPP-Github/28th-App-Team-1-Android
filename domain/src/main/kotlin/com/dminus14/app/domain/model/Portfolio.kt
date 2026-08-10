@@ -9,5 +9,6 @@ data class Portfolio(
     val fileSize: Long,
     val pageCount: Int,
     val status: PortfolioStatus,
-    val uploadedAt: String,
+    val uploadedAt: String?,
+    val isInterviewInProgress: Boolean,
 )

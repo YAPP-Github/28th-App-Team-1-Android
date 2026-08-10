@@ -9,7 +9,7 @@ class PdfValidationRulesTest {
     @Test
     fun `유효한 메타데이터는 유효함을 반환한다`() {
         assertEquals(
-            PdfValidationResult.Valid,
+            PdfValidationResult.Valid(pageCount = 30),
             validatePdfMetadata(
                 fileSize = 20L * 1024L * 1024L,
                 pageCount = 30,

@@ -5,7 +5,9 @@ import com.dminus14.app.data.remote.dto.SocialLoginRequestDto
 import com.dminus14.app.data.remote.dto.SocialLoginResponseDto
 import com.dminus14.app.data.remote.dto.TokenRefreshRequestDto
 import com.dminus14.app.data.remote.dto.TokenRefreshResponseDto
+import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.POST
 
 interface AuthApi {
@@ -18,4 +20,8 @@ interface AuthApi {
     suspend fun refreshToken(
         @Body request: TokenRefreshRequestDto,
     ): ApiResponseDto<TokenRefreshResponseDto>
+
+    /** DELETE api/v1/auth/logout */
+    @DELETE("api/v1/auth/logout")
+    suspend fun logout(): Response<Unit>
 }

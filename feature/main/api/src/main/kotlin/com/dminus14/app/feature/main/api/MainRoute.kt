@@ -1,5 +1,9 @@
+@file:Suppress("MatchingDeclarationName", "ktlint:standard:filename")
+
 package com.dminus14.app.feature.main.api
 
-object MainHome
+import androidx.navigation3.runtime.NavKey
+import kotlinx.serialization.Serializable
 
-object MainTemp // 일시적 린트 오류 방지를 위한 코드 (이 파일에 다른 라우트가 추가되면 지워도 됨)
+@Serializable
+data object MainHome : NavKey

@@ -45,6 +45,30 @@ Composable 내부에는 animation progress, focus와 press처럼 외부 의미�
 없는 짧은 수명의 구현 상태만 둘 수 있다. 선택, 입력값, 열림 여부, loading과 error처럼 호출자가
 제어하거나 Story에서 재현해야 하는 상태는 끌어올린다.
 
+### 2.1 공용 Composable
+
+구현 전 아래 목록을 확인한다. Figma 기반 Composable은 KDoc의 원천 노드도 확인한다.
+
+| 분류 | Composable | 주 용도 |
+|---|---|---|
+| 버튼 | `HilitFixedBottomButton`, `HilitFixedBottomDualButton` | 하단 고정 CTA |
+| 버튼 | `HilitMediumButton`, `HilitMiniButton`, `HilitOptionalButton` | 크기·선택형 버튼 |
+| 버튼 | `KakaoLoginButton` | 카카오 로그인 |
+| 상단 바 | `HilitTopBar` | 슬롯형 공용 뼈대 |
+| 상단 바 | `HilitTextTopBar`, `HilitLogoTopBar`, `HilitIconTopBar` | 텍스트·로고·아이콘형 |
+| Modal | `HilitModalScaffold`, `HilitModal` | Modal 뼈대·Figma preset |
+| Modal | `HilitGlobalModal`, `HilitBookIllustration` | 전역 알림·책 일러스트 |
+| 입력 | `HilitAsyncTextField`, `HilitBottomOutlinedTextField`, `HilitJDTextField` | 비동기·밑줄·장문 입력 |
+| 선택 | `HilitChip`, `HilitToggle`, `TermBox` | 칩·토글·약관 동의 |
+| 선택 | `HilitTab`, `HilitTabRow`, `HilitWheelPicker` | 탭·휠 선택 |
+| 파일 | `FileUploadGuide`, `PdfUpload` | 업로드 안내·PDF 상태 |
+| 상태 | `HilitLoadingIndicator`, `HilitProgressBar`, `HilitSubText` | 로딩·진행·보조 상태 |
+| 표시 | `BubbleField`, `HilitTag` | 말풍선·태그 |
+| 표시 | `HilitText`, `HilitIcon` | 강조 텍스트·공용 아이콘 |
+| Sheet | `HilitBottomSheet` | 공용 Modal Bottom Sheet |
+
+공용 Composable을 추가하면 이 표도 같은 변경에서 갱신한다.
+
 ## 3. 제품 Theme 계약
 
 `designsystem`은 다음 타입과 진입점을 제공한다.

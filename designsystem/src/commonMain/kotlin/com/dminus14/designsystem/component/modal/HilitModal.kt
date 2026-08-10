@@ -329,7 +329,7 @@ private fun HilitModalDualButtonPreview() {
 }
 
 @Composable
-private fun HilitModalPreviewHost(content: @Composable () -> Unit) {
+fun HilitModalPreviewHost(content: @Composable () -> Unit) {
     HilitTheme {
         Box(modifier = Modifier.fillMaxSize()) {
             content()

@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.dminus14.app.feature.mypage.component
 
 import androidx.compose.foundation.background
@@ -35,8 +37,8 @@ internal fun MyPageReportSection(
     reports: List<MyPageReportUiModel>,
     expandedReportIds: Set<String>,
     onReportToggleClick: (String) -> Unit,
-    onReportViewClick: () -> Unit,
-    onGuestFeedbackClick: () -> Unit,
+    onReportViewClick: (String) -> Unit,
+    onGuestFeedbackClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -64,13 +66,33 @@ internal fun MyPageReportSection(
                     report = report,
                     expanded = report.id in expandedReportIds,
                     onToggleClick = { onReportToggleClick(report.id) },
-                    onReportViewClick = onReportViewClick,
-                    onGuestFeedbackClick = onGuestFeedbackClick,
+                    onReportViewClick = { onReportViewClick(report.id) },
+                    onGuestFeedbackClick = { onGuestFeedbackClick(report.id) },
                 )
             }
         }
     }
 }
+
+/** [MyPageReportStatus.GENERATING]·[MyPageReportStatus.FAILED]만 상단 배지를 노출한다. */
+private fun MyPageReportStatus.badgeText(): String? =
+    when (this) {
+        MyPageReportStatus.GENERATING -> "생성 중"
+
+        MyPageReportStatus.FAILED -> "생성 실패"
+
+        MyPageReportStatus.READY,
+        MyPageReportStatus.INSUFFICIENT_ANALYSIS,
+        MyPageReportStatus.UNKNOWN,
+        -> null
+    }
+
+private fun MyPageReportStatus.badgeColor(): TagColorType =
+    if (this == MyPageReportStatus.FAILED) TagColorType.Red else TagColorType.Gray
+
+/** [MyPageReportStatus.READY]·[MyPageReportStatus.INSUFFICIENT_ANALYSIS]만 하단 액션을 노출한다. */
+private fun MyPageReportStatus.showsActions(): Boolean =
+    this == MyPageReportStatus.READY || this == MyPageReportStatus.INSUFFICIENT_ANALYSIS
 
 @Composable
 @Suppress("LongMethod", "MagicNumber")
@@ -125,11 +147,11 @@ private fun ReportCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(15.dp),
                 ) {
-                    if (report.status == MyPageReportStatus.Failed) {
+                    report.status.badgeText()?.let { badgeText ->
                         HilitTag(
-                            colorType = TagColorType.Red,
+                            colorType = report.status.badgeColor(),
                             tagType = TagType.Small,
-                            text = "생성 실패",
+                            text = badgeText,
                         )
                     }
                     HilitIcon(
@@ -165,7 +187,7 @@ private fun ReportCard(
                         value = report.jobDescription,
                     )
                 }
-                if (report.status == MyPageReportStatus.Failed) {
+                if (report.status == MyPageReportStatus.FAILED) {
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier =
@@ -181,7 +203,7 @@ private fun ReportCard(
                         )
                     }
                 }
-                if (report.status == MyPageReportStatus.Completed) {
+                if (report.status.showsActions()) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         ReportAction(
                             text = "리포트 보기",
@@ -189,12 +211,14 @@ private fun ReportCard(
                             onClick = onReportViewClick,
                             modifier = Modifier.weight(1f),
                         )
-                        ReportAction(
-                            text = "지인 피드백 받기",
-                            isPrimary = true,
-                            onClick = onGuestFeedbackClick,
-                            modifier = Modifier.weight(1f),
-                        )
+                        if (report.isFeedbackAvailable) {
+                            ReportAction(
+                                text = "지인 피드백 받기",
+                                isPrimary = true,
+                                onClick = onGuestFeedbackClick,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
                     }
                 }
             }
@@ -258,19 +282,26 @@ private fun ReportAction(
     )
 }
 
+private fun sampleReport(
+    status: MyPageReportStatus,
+    isFeedbackAvailable: Boolean = true,
+): MyPageReportUiModel =
+    MyPageReportUiModel(
+        id = "sample-$status",
+        jobRole = MyPageJobRole.ANDROID,
+        jobRoleLabel = MyPageJobRole.ANDROID.label,
+        experienceYears = 3,
+        createdAt = "2026.08.04 14:20",
+        status = status,
+        portfolioFileName = "sample_portfolio.pdf",
+        jobDescription = "careers.example.com/jobs/1024",
+        isFeedbackAvailable = isFeedbackAvailable,
+    )
+
 @Preview(showBackground = true, widthDp = 375)
 @Composable
 private fun MyPageReportSectionPreview() {
-    val report =
-        MyPageReportUiModel(
-            id = "sample-report",
-            jobRole = MyPageJobRole.Android,
-            experienceYears = 3,
-            createdAt = "2026.08.04 14:20",
-            status = MyPageReportStatus.Completed,
-            portfolioFileName = "sample_portfolio.pdf",
-            jobDescription = "careers.example.com/jobs/1024",
-        )
+    val report = sampleReport(MyPageReportStatus.READY)
     HilitTheme {
         MyPageReportSection(
             reports = listOf(report),
@@ -285,19 +316,80 @@ private fun MyPageReportSectionPreview() {
 
 @Preview(showBackground = true, widthDp = 375)
 @Composable
-private fun ReportCardPreview() {
+private fun ReportCardGeneratingPreview() {
     HilitTheme {
         ReportCard(
-            report =
-                MyPageReportUiModel(
-                    id = "failed-report",
-                    jobRole = MyPageJobRole.Ios,
-                    experienceYears = 2,
-                    createdAt = "2026.08.04 14:20",
-                    status = MyPageReportStatus.Failed,
-                    portfolioFileName = "sample_portfolio.pdf",
-                    jobDescription = "JD 직접 입력",
-                ),
+            report = sampleReport(MyPageReportStatus.GENERATING),
+            expanded = true,
+            onToggleClick = {},
+            onReportViewClick = {},
+            onGuestFeedbackClick = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 375)
+@Composable
+private fun ReportCardReadyFeedbackAvailablePreview() {
+    HilitTheme {
+        ReportCard(
+            report = sampleReport(MyPageReportStatus.READY, isFeedbackAvailable = true),
+            expanded = true,
+            onToggleClick = {},
+            onReportViewClick = {},
+            onGuestFeedbackClick = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 375)
+@Composable
+private fun ReportCardReadyFeedbackUnavailablePreview() {
+    HilitTheme {
+        ReportCard(
+            report = sampleReport(MyPageReportStatus.READY, isFeedbackAvailable = false),
+            expanded = true,
+            onToggleClick = {},
+            onReportViewClick = {},
+            onGuestFeedbackClick = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 375)
+@Composable
+private fun ReportCardInsufficientAnalysisPreview() {
+    HilitTheme {
+        ReportCard(
+            report = sampleReport(MyPageReportStatus.INSUFFICIENT_ANALYSIS),
+            expanded = true,
+            onToggleClick = {},
+            onReportViewClick = {},
+            onGuestFeedbackClick = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 375)
+@Composable
+private fun ReportCardFailedPreview() {
+    HilitTheme {
+        ReportCard(
+            report = sampleReport(MyPageReportStatus.FAILED),
+            expanded = true,
+            onToggleClick = {},
+            onReportViewClick = {},
+            onGuestFeedbackClick = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 375)
+@Composable
+private fun ReportCardUnknownPreview() {
+    HilitTheme {
+        ReportCard(
+            report = sampleReport(MyPageReportStatus.UNKNOWN),
             expanded = true,
             onToggleClick = {},
             onReportViewClick = {},

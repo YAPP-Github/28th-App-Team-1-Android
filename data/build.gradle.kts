@@ -21,6 +21,7 @@ val localProperties =
 val serverUrl =
     localProperties.getProperty("SERVER_URL")
         ?: throw GradleException("SERVER_URL is required in local.properties")
+val httpLoggingBody = localProperties.getProperty("HTTP_LOGGING_BODY") ?: "false"
 
 android {
     namespace = "com.dminus14.app.data"
@@ -31,6 +32,7 @@ android {
 
     defaultConfig {
         buildConfigField("String", "SERVER_URL", "\"$serverUrl\"")
+        buildConfigField("String", "HTTP_LOGGING_BODY", "\"$httpLoggingBody\"")
     }
 
     testOptions {
