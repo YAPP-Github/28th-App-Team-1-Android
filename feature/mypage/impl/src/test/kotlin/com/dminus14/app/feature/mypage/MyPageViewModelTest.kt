@@ -164,7 +164,7 @@ class MyPageViewModelTest {
                 }
             val globalEventJob =
                 launch(start = CoroutineStart.UNDISPATCHED) {
-                    GlobalErrorHandler.events.collect(globalEvents::add)
+                    GlobalErrorHandler.events.collect { globalEvents.add(it.event) }
                 }
 
             viewModel.onIntent(MyPageIntent.Load)

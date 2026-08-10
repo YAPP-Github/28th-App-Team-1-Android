@@ -18,6 +18,29 @@ class GlobalErrorHandlerTest {
 
             GlobalErrorHandler.emit(GlobalAppEvent.ShowUnknownError)
 
-            assertEquals(GlobalAppEvent.ShowUnknownError, received.await())
+            assertEquals(
+                GlobalAppEventEnvelope(event = GlobalAppEvent.ShowUnknownError),
+                received.await(),
+            )
+        }
+
+    @Test
+    fun `지연 전역 오류 이벤트의 표시 확인 식별자를 보존한다`() =
+        runTest {
+            val received = async { GlobalErrorHandler.events.first() }
+            runCurrent()
+
+            GlobalErrorHandler.emit(
+                event = GlobalAppEvent.ShowServerErrorAndExit,
+                deliveryId = "delivery-id",
+            )
+
+            assertEquals(
+                GlobalAppEventEnvelope(
+                    event = GlobalAppEvent.ShowServerErrorAndExit,
+                    deliveryId = "delivery-id",
+                ),
+                received.await(),
+            )
         }
 }

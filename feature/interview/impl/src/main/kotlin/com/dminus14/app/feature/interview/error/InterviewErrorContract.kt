@@ -14,7 +14,7 @@ sealed interface InterviewErrorIntent : MviIntent {
 
 /** 면접 오류 MVI State */
 data class InterviewErrorState(
-    val errorType: InterviewErrorType = InterviewErrorType.MIC,
+    val errorType: InterviewErrorType = InterviewErrorType.MIC_DEVICE,
 ) : MviState
 
 /** 면접 오류 MVI Effect */

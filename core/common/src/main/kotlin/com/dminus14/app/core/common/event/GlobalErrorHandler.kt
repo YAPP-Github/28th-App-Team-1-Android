@@ -8,14 +8,17 @@ import kotlinx.coroutines.flow.asSharedFlow
 /** Feature가 분류한 공통 오류를 app에 전달하는 단일 전역 통로다. */
 object GlobalErrorHandler {
     private val mutableEvents =
-        MutableSharedFlow<GlobalAppEvent>(
+        MutableSharedFlow<GlobalAppEventEnvelope>(
             extraBufferCapacity = 1,
             onBufferOverflow = BufferOverflow.DROP_OLDEST,
         )
 
-    val events: SharedFlow<GlobalAppEvent> = mutableEvents.asSharedFlow()
+    val events: SharedFlow<GlobalAppEventEnvelope> = mutableEvents.asSharedFlow()
 
-    suspend fun emit(event: GlobalAppEvent) {
-        mutableEvents.emit(event)
+    suspend fun emit(
+        event: GlobalAppEvent,
+        deliveryId: String? = null,
+    ) {
+        mutableEvents.emit(GlobalAppEventEnvelope(event = event, deliveryId = deliveryId))
     }
 }

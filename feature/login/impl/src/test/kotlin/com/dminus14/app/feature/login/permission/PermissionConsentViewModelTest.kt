@@ -147,7 +147,7 @@ class PermissionConsentViewModelTest {
 
                 viewModel.onIntent(PermissionConsentIntent.ClickLater)
 
-                assertEquals(GlobalAppEvent.ShowNetworkErrorAndExit, globalEvent.await())
+                assertEquals(GlobalAppEvent.ShowNetworkErrorAndExit, globalEvent.await().event)
                 assertEquals(emptyList<PermissionConsentEffect>(), receivedEffects)
                 assertFalse(viewModel.state.value.isLoading)
             } finally {
@@ -174,7 +174,7 @@ class PermissionConsentViewModelTest {
 
                 viewModel.onIntent(PermissionConsentIntent.ClickLater)
 
-                assertEquals(GlobalAppEvent.ShowServerErrorAndExit, globalEvent.await())
+                assertEquals(GlobalAppEvent.ShowServerErrorAndExit, globalEvent.await().event)
                 assertEquals(emptyList<PermissionConsentEffect>(), receivedEffects)
                 assertFalse(viewModel.state.value.isLoading)
             } finally {
@@ -199,7 +199,7 @@ class PermissionConsentViewModelTest {
 
                 viewModel.onIntent(PermissionConsentIntent.ClickLater)
 
-                assertEquals(GlobalAppEvent.ShowUnknownError, globalEvent.await())
+                assertEquals(GlobalAppEvent.ShowUnknownError, globalEvent.await().event)
                 assertEquals(emptyList<PermissionConsentEffect>(), receivedEffects)
                 assertFalse(viewModel.state.value.isLoading)
             } finally {

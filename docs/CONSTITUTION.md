@@ -292,9 +292,9 @@ real ViewModel instance.
 
 Client errors must be handled by the relevant feature through feature `State` or feature `Effect`.
 
-Network errors must be handled through the global app event mechanism.
+Network errors must be handled through the global app event mechanism, except that recoverable network errors within Interview feature workflows may be handled through Interview feature State or Effect, or through persistent Android work state, when this repository explicitly defines the recovery behavior and safely persists required local session and media checkpoints. Interview network errors without an explicitly defined recovery path, and all network errors outside Interview, must continue to use the global app event mechanism.
 
-Server errors must be handled through the global app event mechanism.
+Server errors must be handled through the global app event mechanism, except that recoverable server errors within Interview feature workflows may be handled through Interview feature State or Effect, or through persistent Android work state, when the server or API contract explicitly guarantees that the request can be safely retried without duplicate side effects and this repository explicitly defines the recovery behavior. Interview server errors without an explicitly documented safe-retry and recovery path, and all server errors outside Interview, must continue to use the global app event mechanism.
 
 Unknown errors must be handled through the global app event mechanism.
 
