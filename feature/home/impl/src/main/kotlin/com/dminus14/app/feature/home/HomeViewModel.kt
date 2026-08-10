@@ -181,7 +181,6 @@ constructor(
         } else {
             showSessionStartOverlayByTicket()
         }
-
     }
 
     /**
@@ -192,7 +191,7 @@ constructor(
      * - [InterviewSessionResumeState.ENDED]: 잔여 이용권에 따라 시작(Start)/소진(NoTickets) 분기.
      * - 그 외/미정의 값: 오버레이를 띄우지 않는다.
      */
-    private suspend fun getInterviewState(sessionId: Long) {
+    internal suspend fun getInterviewState(sessionId: Long) {
         getInterviewResumeUseCase(sessionId)
             .onSuccess { resume ->
                 when (InterviewSessionResumeState.fromRaw(resume.resumeState)) {
