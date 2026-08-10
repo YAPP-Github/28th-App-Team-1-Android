@@ -65,6 +65,13 @@ private const val VIDEO_OVERLAY_MID_STOP = 0.5f
 private const val VIDEO_OVERLAY_MID_ALPHA = 0.4f
 private const val VIDEO_OVERLAY_END_STOP = 1.09f
 
+/** [HomeReportSheet]에 주입하는 콜백 묶음. */
+data class HomeReportSheetCallbacks(
+    val onReportExpandClick: (String) -> Unit,
+    val onReportActionClick: (String) -> Unit,
+    val onSheetAnchorChange: (HomeSheetAnchor) -> Unit = {},
+)
+
 /**
  * 홈 화면의 리포트 리스트 바텀시트.
  *
@@ -77,18 +84,15 @@ private const val VIDEO_OVERLAY_END_STOP = 1.09f
  * @param expandedReportIds 현재 펼쳐진 카드 id 집합. 각 카드는 독립적으로 열고 닫힌다.
  * @param expandedTopPx Expanded 앵커의 화면 top 오프셋(px). 상단 topbar 아래 위치를
  *   상위에서 측정해 넘긴다. NaN 대신 실측 전 fallback 값을 상위에서 보낼 것.
- * @param onSheetAnchorChange 앵커가 실제로 settle된 뒤 호출. 상위에서 topbar shadow 등
- *   앵커 종속 UI를 갱신하는 용도.
+ * @param callbacks 리포트·시트 앵커 이벤트 콜백.
  */
 @Composable
 fun HomeReportSheet(
     reports: List<HomeReportItem>,
     expandedReportIds: Set<String>,
-    onReportExpandClick: (String) -> Unit,
-    onReportActionClick: (String) -> Unit,
     expandedTopPx: Float,
+    callbacks: HomeReportSheetCallbacks,
     modifier: Modifier = Modifier,
-    onSheetAnchorChange: (HomeSheetAnchor) -> Unit = {},
 ) {
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
@@ -120,7 +124,7 @@ fun HomeReportSheet(
         }
 
         LaunchedEffect(settledAnchor) {
-            onSheetAnchorChange(settledAnchor)
+            callbacks.onSheetAnchorChange(settledAnchor)
         }
 
         HomeReportSheetContainer(
@@ -131,8 +135,8 @@ fun HomeReportSheet(
                     expandedReportIds = expandedReportIds,
                     listState = listState,
                     anchors = sheetLayout.anchors,
-                    onReportExpandClick = onReportExpandClick,
-                    onReportActionClick = onReportActionClick,
+                    onReportExpandClick = callbacks.onReportExpandClick,
+                    onReportActionClick = callbacks.onReportActionClick,
                     getSheetTopPx = { currentSheetTopPx },
                     onSheetTopPxChange = { value -> sheetTopPx = value },
                     onDragEnd = sheetLayout.onDragEnd,
@@ -443,9 +447,12 @@ private fun HomeReportSheetEmptyPreview() {
         HomeReportSheet(
             reports = emptyList(),
             expandedReportIds = emptySet(),
-            onReportExpandClick = {},
-            onReportActionClick = {},
             expandedTopPx = 0f,
+            callbacks =
+                HomeReportSheetCallbacks(
+                    onReportExpandClick = {},
+                    onReportActionClick = {},
+                ),
         )
     }
 }
@@ -462,9 +469,12 @@ private fun HomeReportSheetWithReportsPreview() {
         HomeReportSheet(
             reports = PreviewHomeReports,
             expandedReportIds = emptySet(),
-            onReportExpandClick = {},
-            onReportActionClick = {},
             expandedTopPx = 0f,
+            callbacks =
+                HomeReportSheetCallbacks(
+                    onReportExpandClick = {},
+                    onReportActionClick = {},
+                ),
         )
     }
 }
@@ -481,9 +491,12 @@ private fun HomeReportSheetExpandedItemPreview() {
         HomeReportSheet(
             reports = PreviewHomeReports,
             expandedReportIds = setOf(PreviewHomeReports[0].id, PreviewHomeReports[2].id),
-            onReportExpandClick = {},
-            onReportActionClick = {},
             expandedTopPx = 0f,
+            callbacks =
+                HomeReportSheetCallbacks(
+                    onReportExpandClick = {},
+                    onReportActionClick = {},
+                ),
         )
     }
 }
