@@ -41,10 +41,11 @@ enum class HilitMiniButtonColor {
 fun HilitMiniButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     color: HilitMiniButtonColor = HilitMiniButtonColor.Light,
     content: @Composable () -> Unit,
 ) {
-    val style = hilitMiniButtonStyle(color = color, colors = HilitTheme.colors)
+    val style = hilitMiniButtonStyle(color = color, colors = HilitTheme.colors, enabled = enabled)
     val interactionSource = remember { MutableInteractionSource() }
 
     CompositionLocalProvider(LocalContentColor provides style.contentColor) {
@@ -54,6 +55,7 @@ fun HilitMiniButton(
                     modifier
                         .background(style.backgroundColor)
                         .clickable(
+                            enabled = enabled,
                             interactionSource = interactionSource,
                             indication = null,
                             role = Role.Button,
@@ -78,9 +80,10 @@ internal data class HilitMiniButtonStyle(
 internal fun hilitMiniButtonStyle(
     color: HilitMiniButtonColor,
     colors: HilitColors,
+    enabled: Boolean,
 ): HilitMiniButtonStyle =
     when (color) {
-        HilitMiniButtonColor.Light -> {
+        HilitMiniButtonColor.Light if enabled -> {
             HilitMiniButtonStyle(
                 backgroundColor = colors.gray100,
                 contentColor = colors.hilitBlack800,
@@ -89,7 +92,7 @@ internal fun hilitMiniButtonStyle(
             )
         }
 
-        HilitMiniButtonColor.Dark -> {
+        HilitMiniButtonColor.Dark if enabled -> {
             HilitMiniButtonStyle(
                 backgroundColor = colors.gray900,
                 contentColor = colors.hilitWhite,
@@ -102,6 +105,15 @@ internal fun hilitMiniButtonStyle(
             HilitMiniButtonStyle(
                 backgroundColor = Color.Unspecified,
                 contentColor = colors.gray400,
+                contentPadding = 8.dp,
+                contentSpacing = 8.dp,
+            )
+        }
+
+        else -> {
+            HilitMiniButtonStyle(
+                backgroundColor = colors.hilitWhite,
+                contentColor = colors.gray300,
                 contentPadding = 8.dp,
                 contentSpacing = 8.dp,
             )

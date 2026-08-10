@@ -4,13 +4,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -18,12 +21,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dminus14.app.feature.mypage.MyPageProfileUiModel
 import com.dminus14.app.feature.mypage.MyPageSocialAccountUiModel
+import com.dminus14.designsystem.component.bubblefield.BubbleField
+import com.dminus14.designsystem.component.bubblefield.BubbleFieldTailAlign
+import com.dminus14.designsystem.component.bubblefield.BubbleFieldTailEdge
+import com.dminus14.designsystem.component.bubblefield.BubbleFieldTailShape
+import com.dminus14.designsystem.component.bubblefield.BubbleFieldType
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
 import com.dminus14.designsystem.component.tag.HilitTag
 import com.dminus14.designsystem.component.tag.TagColorType
 import com.dminus14.designsystem.component.tag.TagType
 import com.dminus14.designsystem.theme.HilitTheme
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 @Suppress("LongMethod", "LongParameterList")
@@ -31,11 +41,20 @@ internal fun MyPageProfileSection(
     profile: MyPageProfileUiModel?,
     remainingTicketCount: Int?,
     socialAccount: MyPageSocialAccountUiModel?,
+    isTicketInfoTooltipVisible: Boolean,
     onProfileEditClick: () -> Unit,
     onTicketInfoClick: () -> Unit,
+    onTicketInfoTooltipDismiss: () -> Unit,
     onLogoutClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    LaunchedEffect(isTicketInfoTooltipVisible) {
+        if (isTicketInfoTooltipVisible) {
+            delay(TICKET_INFO_TOOLTIP_DURATION_MS.milliseconds)
+            onTicketInfoTooltipDismiss()
+        }
+    }
+
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Column(
             modifier =
@@ -85,46 +104,61 @@ internal fun MyPageProfileSection(
                 )
             }
 
-            Row(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .background(
-                            HilitTheme.colors.gray50,
-                        ).padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
+            Box {
                 Row(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .background(
+                                HilitTheme.colors.gray50,
+                            ).padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    HilitIcon(
-                        asset = HilitIconAsset.Coupon,
-                        contentDescription = null,
-                        tint = HilitTheme.colors.hilitBlack800,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Text(
-                        text = "남은 면접 티켓",
-                        style = HilitTheme.typography.body6,
-                        color = HilitTheme.colors.gray700,
-                    )
-                    HilitIcon(
-                        asset = HilitIconAsset.Info,
-                        contentDescription = "남은 면접 티켓 개수",
-                        tint = HilitTheme.colors.gray200,
-                        modifier =
-                            Modifier
-                                .size(16.dp)
-                                .clickable(role = Role.Button, onClick = onTicketInfoClick),
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        HilitIcon(
+                            asset = HilitIconAsset.Coupon,
+                            contentDescription = null,
+                            tint = HilitTheme.colors.hilitBlack800,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(
+                            text = "남은 면접 티켓",
+                            style = HilitTheme.typography.body6,
+                            color = HilitTheme.colors.gray700,
+                        )
+                        HilitIcon(
+                            asset = HilitIconAsset.Info,
+                            contentDescription = "남은 면접 티켓 개수",
+                            tint = HilitTheme.colors.gray200,
+                            modifier =
+                                Modifier
+                                    .size(16.dp)
+                                    .clickable(role = Role.Button, onClick = onTicketInfoClick),
+                        )
+                    }
+                    HilitTag(
+                        colorType = TagColorType.Green,
+                        tagType = TagType.Small,
+                        text = remainingTicketCount?.let { "${it}장" } ?: "내용 없음",
                     )
                 }
-                HilitTag(
-                    colorType = TagColorType.Green,
-                    tagType = TagType.Small,
-                    text = remainingTicketCount?.let { "${it}장" } ?: "내용 없음",
-                )
+                if (isTicketInfoTooltipVisible && remainingTicketCount != null) {
+                    BubbleField(
+                        text = "${remainingTicketCount}개",
+                        type = BubbleFieldType.Small,
+                        tailEdge = BubbleFieldTailEdge.Bottom,
+                        tailAlign = BubbleFieldTailAlign.Left,
+                        tailShape = BubbleFieldTailShape.Left,
+                        modifier =
+                            Modifier
+                                .align(Alignment.TopStart)
+                                .offset(x = 60.dp, y = (-44).dp),
+                    )
+                }
             }
         }
 
@@ -141,11 +175,13 @@ internal fun MyPageProfileSection(
             if (socialAccount == null) {
                 EmptyText(modifier = Modifier.weight(1f))
             } else {
-                HilitIcon(
-                    asset = HilitIconAsset.KakaoLogo,
-                    contentDescription = socialAccount.provider,
-                    modifier = Modifier.size(16.dp),
-                )
+                if (socialAccount.isKakaoProvider) {
+                    HilitIcon(
+                        asset = HilitIconAsset.KakaoLogo,
+                        contentDescription = socialAccount.providerLabel,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
                 Text(
                     text = socialAccount.displayAccount,
                     modifier = Modifier.weight(1f),
@@ -178,6 +214,8 @@ private fun EmptyText(modifier: Modifier = Modifier) {
     )
 }
 
+private const val TICKET_INFO_TOOLTIP_DURATION_MS = 3_000L
+
 @Preview(showBackground = true, widthDp = 375)
 @Composable
 private fun MyPageProfileSectionPreview() {
@@ -192,11 +230,70 @@ private fun MyPageProfileSectionPreview() {
             remainingTicketCount = 3,
             socialAccount =
                 MyPageSocialAccountUiModel(
-                    provider = "카카오",
-                    displayAccount = "sample****@example.com",
+                    providerLabel = "카카오",
+                    displayAccount = "sam****@example.com",
+                    isKakaoProvider = true,
                 ),
+            isTicketInfoTooltipVisible = false,
             onProfileEditClick = {},
             onTicketInfoClick = {},
+            onTicketInfoTooltipDismiss = {},
+            onLogoutClick = {},
+            modifier = Modifier.padding(20.dp),
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 375)
+@Composable
+private fun MyPageProfileSectionUnknownProviderPreview() {
+    HilitTheme {
+        MyPageProfileSection(
+            profile =
+                MyPageProfileUiModel(
+                    name = "사용자",
+                    role = "Android",
+                    experience = "3년차",
+                ),
+            remainingTicketCount = 3,
+            socialAccount =
+                MyPageSocialAccountUiModel(
+                    providerLabel = "APPLE",
+                    displayAccount = "sam****@example.com",
+                    isKakaoProvider = false,
+                ),
+            isTicketInfoTooltipVisible = false,
+            onProfileEditClick = {},
+            onTicketInfoClick = {},
+            onTicketInfoTooltipDismiss = {},
+            onLogoutClick = {},
+            modifier = Modifier.padding(20.dp),
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 375)
+@Composable
+private fun MyPageProfileSectionTicketTooltipPreview() {
+    HilitTheme {
+        MyPageProfileSection(
+            profile =
+                MyPageProfileUiModel(
+                    name = "사용자",
+                    role = "Android",
+                    experience = "3년차",
+                ),
+            remainingTicketCount = 3,
+            socialAccount =
+                MyPageSocialAccountUiModel(
+                    providerLabel = "카카오",
+                    displayAccount = "sam****@example.com",
+                    isKakaoProvider = true,
+                ),
+            isTicketInfoTooltipVisible = true,
+            onProfileEditClick = {},
+            onTicketInfoClick = {},
+            onTicketInfoTooltipDismiss = {},
             onLogoutClick = {},
             modifier = Modifier.padding(20.dp),
         )

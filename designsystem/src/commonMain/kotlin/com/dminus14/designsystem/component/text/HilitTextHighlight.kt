@@ -42,6 +42,7 @@ enum class HilitTextHighlightColor {
     Green,
     Red,
     Blue,
+    Black,
 }
 
 /**
@@ -276,6 +277,13 @@ internal fun hilitTextHighlightStyle(
             HilitTextHighlightStyle(
                 backgroundColor = colors.positive200,
                 contentColor = colors.positive800,
+            )
+        }
+
+        HilitTextHighlightColor.Black -> {
+            HilitTextHighlightStyle(
+                backgroundColor = colors.hilitBlack800,
+                contentColor = colors.hilitGreen500,
             )
         }
     }

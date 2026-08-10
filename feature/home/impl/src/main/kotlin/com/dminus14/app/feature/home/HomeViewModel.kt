@@ -23,6 +23,10 @@ class HomeViewModel
                     }
                 }
 
+                HomeIntent.OpenMyPage -> {
+                    sendEffect(HomeEffect.GoToMyPageRequested)
+                }
+
                 is HomeIntent.ReportExpandClick -> {
                     reduce {
                         copy(

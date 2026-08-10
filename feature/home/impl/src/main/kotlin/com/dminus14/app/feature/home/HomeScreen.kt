@@ -52,6 +52,7 @@ private val FallbackExpandedTop = HomeTopBarHeight
 
 @Composable
 fun HomeScreen(
+    onOpenMyPage: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -59,6 +60,14 @@ fun HomeScreen(
 
     LaunchedEffect(Unit) {
         viewModel.onIntent(HomeIntent.Load)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                HomeEffect.GoToMyPageRequested -> onOpenMyPage()
+            }
+        }
     }
 
     HomeContent(
@@ -314,7 +323,7 @@ private fun HomeOverlayConfirmRestartPreview() {
     HomeOverlayPreviewScaffold(overlay = HomeSessionStartOverlayState.ConfirmRestart)
 }
 
-/** 오버레이 5종을 홈 위에 얹은 프리뷰용 공통 스캐폴드. */
+/** 오버레이 4종을 홈 위에 얹은 프리뷰용 공통 스캐폴드. */
 @Composable
 private fun HomeOverlayPreviewScaffold(overlay: HomeSessionStartOverlayState) {
     HilitTheme {

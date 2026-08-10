@@ -1,6 +1,7 @@
 package com.dminus14.app.navigation.di
 
 import androidx.navigation3.runtime.EntryProviderScope
+import com.dminus14.app.feature.login.api.Splash
 import com.dminus14.app.feature.mypage.navigation.myPageEntryBuilder
 import com.dminus14.app.navigation.Navigator
 import dagger.Module
@@ -18,7 +19,11 @@ object MyPageNavigationModule {
         {
             myPageEntryBuilder(
                 onClose = navigator::goBack,
-                onPortfolioSelectionRequested = {},
+                onProfileEditRequested = {},
+                onReportViewRequested = {},
+                onGuestFeedbackRequested = {},
+                onLogoutCompleted = { navigator.replaceAll(Splash) },
+                onWithdrawalCompleted = { navigator.replaceAll(Splash) },
             )
         }
 }

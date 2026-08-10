@@ -39,7 +39,6 @@ import kotlin.time.Duration.Companion.milliseconds
 @Suppress("LongMethod", "LongParameterList")
 internal fun MyPagePortfolioSection(
     portfolioState: MyPagePortfolioState,
-    progress: Float,
     isUploadFailureTooltipVisible: Boolean,
     onUploadClick: () -> Unit,
     onUploadCancelClick: () -> Unit,
@@ -68,7 +67,7 @@ internal fun MyPagePortfolioSection(
                 )
                 PdfUpload(
                     type = PdfUploadType.Ready,
-                    progress = progress,
+                    progress = 0f,
                 )
             }
 
@@ -84,7 +83,7 @@ internal fun MyPagePortfolioSection(
                 PdfUpload(
                     type = PdfUploadType.Processing,
                     fileName = portfolioState.fileName,
-                    progress = progress,
+                    progress = portfolioState.progress,
                     onCloseClick = onUploadCancelClick,
                 )
             }
@@ -93,7 +92,7 @@ internal fun MyPagePortfolioSection(
                 PdfUpload(
                     type = PdfUploadType.Completed,
                     fileName = portfolioState.fileName,
-                    progress = progress,
+                    progress = 100f,
                     onCloseClick = onPortfolioDeleteClick,
                 )
             }
@@ -103,7 +102,7 @@ internal fun MyPagePortfolioSection(
                     PdfUpload(
                         type = PdfUploadType.Failed,
                         fileName = portfolioState.fileName,
-                        progress = progress,
+                        progress = 0f,
                         onInfoClick = onUploadFailureInfoClick,
                         onRetryClick = onUploadRetryClick,
                     )
@@ -240,7 +239,6 @@ private fun MyPagePortfolioSectionPreview() {
     HilitTheme {
         MyPagePortfolioSection(
             portfolioState = MyPagePortfolioState.Failed(fileName = "sample_portfolio.pdf"),
-            progress = 0f,
             isUploadFailureTooltipVisible = true,
             onUploadClick = {},
             onUploadCancelClick = {},
@@ -268,8 +266,73 @@ private fun MyPagePortfolioSectionSuccessPreview() {
                             fileSize = "20.3 MB",
                         ),
                 ),
-            progress = 0f,
             isUploadFailureTooltipVisible = true,
+            onUploadClick = {},
+            onUploadCancelClick = {},
+            onUploadRetryClick = {},
+            onUploadFailureInfoClick = {},
+            onUploadFailureTooltipDismiss = {},
+            onPortfolioDeleteClick = {},
+            onPortfolioReuploadClick = {},
+            modifier = Modifier.padding(20.dp),
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 375)
+@Composable
+private fun MyPagePortfolioSectionUploadingBeforeAcceptedPreview() {
+    HilitTheme {
+        MyPagePortfolioSection(
+            portfolioState =
+                MyPagePortfolioState.Uploading(
+                    fileName = "portfolio.pdf",
+                    progress = 20f,
+                ),
+            isUploadFailureTooltipVisible = false,
+            onUploadClick = {},
+            onUploadCancelClick = {},
+            onUploadRetryClick = {},
+            onUploadFailureInfoClick = {},
+            onUploadFailureTooltipDismiss = {},
+            onPortfolioDeleteClick = {},
+            onPortfolioReuploadClick = {},
+            modifier = Modifier.padding(20.dp),
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 375)
+@Composable
+private fun MyPagePortfolioSectionUploadingAfterAcceptedPreview() {
+    HilitTheme {
+        MyPagePortfolioSection(
+            portfolioState =
+                MyPagePortfolioState.Uploading(
+                    fileName = "portfolio.pdf",
+                    progress = 60f,
+                    portfolioId = "portfolio-1",
+                ),
+            isUploadFailureTooltipVisible = false,
+            onUploadClick = {},
+            onUploadCancelClick = {},
+            onUploadRetryClick = {},
+            onUploadFailureInfoClick = {},
+            onUploadFailureTooltipDismiss = {},
+            onPortfolioDeleteClick = {},
+            onPortfolioReuploadClick = {},
+            modifier = Modifier.padding(20.dp),
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 375)
+@Composable
+private fun MyPagePortfolioSectionCompletedPreview() {
+    HilitTheme {
+        MyPagePortfolioSection(
+            portfolioState = MyPagePortfolioState.Completed(fileName = "portfolio.pdf"),
+            isUploadFailureTooltipVisible = false,
             onUploadClick = {},
             onUploadCancelClick = {},
             onUploadRetryClick = {},

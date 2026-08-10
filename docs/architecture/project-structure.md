@@ -71,13 +71,15 @@ android-project/
 │       │   │   ├── ComposeResourcesConventionPlugin.kt
 │       │   │   ├── AndroidHiltConventionPlugin.kt
 │       │   │   ├── AndroidNavigation3ConventionPlugin.kt
+│       │   │   ├── KotlinNavigationRouteConventionPlugin.kt
 │       │   │   ├── AndroidTestConventionPlugin.kt
 │       │   │   ├── AndroidComposeTestConventionPlugin.kt
 │       │   │   ├── AndroidRoomConventionPlugin.kt
 │       │   │   ├── AndroidNetworkConventionPlugin.kt
 │       │   │   └── AndroidDataStoreConventionPlugin.kt
 │       │   ├── composite/                         # Child Plugin 조합
-│       │   │   └── AndroidFeatureConventionPlugin.kt
+│       │   │   ├── AndroidFeatureConventionPlugin.kt
+│       │   │   └── JvmFeatureApiConventionPlugin.kt
 │       │   └── quality/                           # Quality leaf와 bundle
 │       │       ├── SpotlessConventionPlugin.kt
 │       │       ├── DetektConventionPlugin.kt

@@ -1,14 +1,47 @@
 package com.dminus14.app.data.remote.mapper
 
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.APP_VERSION_POLICY_NOT_FOUND
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.CONSENT_VERSION_MISMATCH
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.DELETE_LIMIT_EXCEEDED
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.DOCUMENT_NOT_FOUND
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.FILE_TOO_LARGE
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.FREETEXT_NOT_RELEVANT
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.INTERVIEW_SESSION_NOT_FOUND
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_CONSENT_ITEM
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_CREDENTIAL
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_FILE_TYPE
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_FREETEXT_LENGTH
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_JD_LENGTH
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_JD_URL
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_JOB_ROLE
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_PDF_FILE
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_PLATFORM
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_TOKEN
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_VERSION_FORMAT
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.JD_CONTENT_NOT_FOUND
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.JD_NOT_VALIDATED
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.JD_URL_AND_TEXT_BOTH_PROVIDED
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.JD_VALIDATION_LIMIT_EXCEEDED
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.LOGIN_EXPIRED
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.NAME_ALREADY_TAKEN
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.NETWORK_UNAVAILABLE
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.NO_REMAINING_TICKET
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.PAGE_COUNT_EXCEEDED
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.PORTFOLIO_ALREADY_EXISTS
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.PORTFOLIO_DELETE_BLOCKED_BY_INTERVIEW
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.PORTFOLIO_NOT_FOUND
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.PORTFOLIO_PROCESSING
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.PORTFOLIO_UPLOAD_FAILED
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.REPLACEMENT_LIMIT_EXCEEDED
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.REQUIRED_CONSENT_MISSING
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.SERVER_ERROR
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.SOCIAL_LOGIN_FAILED
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.SOCIAL_RECONNECT_REQUIRED
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.SOCIAL_UNLINK_FAILED
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.TOKEN_EXPIRED
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.UNKNOWN
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.USER_NOT_FOUND
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.USER_PROFILE_NOT_REGISTERED
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.VALIDATION_ERROR
 
 /**

@@ -7,6 +7,8 @@ import com.dminus14.app.core.common.mvi.MviState
 sealed interface HomeIntent : MviIntent {
     data object Load : HomeIntent
 
+    data object OpenMyPage : HomeIntent
+
     data class ReportExpandClick(
         val reportId: String,
     ) : HomeIntent
@@ -34,7 +36,9 @@ data class HomeState(
     val sessionStartOverlay: HomeSessionStartOverlayState? = null,
 ) : MviState
 
-sealed interface HomeEffect : MviEffect
+sealed interface HomeEffect : MviEffect {
+    data object GoToMyPageRequested : HomeEffect
+}
 
 internal val PreviewHomeReports =
     listOf(

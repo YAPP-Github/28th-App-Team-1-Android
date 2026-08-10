@@ -5,6 +5,7 @@ import com.dminus14.app.data.remote.dto.SocialLoginRequestDto
 import com.dminus14.app.data.remote.dto.SocialLoginResponseDto
 import com.dminus14.app.data.remote.dto.TokenRefreshRequestDto
 import com.dminus14.app.data.remote.dto.TokenRefreshResponseDto
+import retrofit2.HttpException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -28,6 +29,11 @@ class AuthRemoteDataSourceImpl
         override suspend fun refreshToken(refreshToken: String): TokenRefreshResponseDto {
             val response = authApi.refreshToken(TokenRefreshRequestDto(refreshToken = refreshToken))
             return response.data ?: error("토큰 재발급 응답에 토큰이 없습니다.")
+        }
+
+        override suspend fun logout() {
+            val response = authApi.logout()
+            if (!response.isSuccessful) throw HttpException(response)
         }
 
         private companion object {

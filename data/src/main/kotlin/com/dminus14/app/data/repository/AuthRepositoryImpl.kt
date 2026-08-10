@@ -53,4 +53,9 @@ class AuthRepositoryImpl
                 refreshToken = response.refreshToken,
             )
         }
+
+        override suspend fun logout() {
+            runCatching { authRemoteDataSource.logout() }
+                .getOrElse { error -> throw CommonApiErrorMapper.map(error) }
+        }
     }
