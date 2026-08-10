@@ -17,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -32,9 +31,10 @@ import com.dminus14.designsystem.theme.HilitTheme
  *
  * @param date 날짜 라벨
  * @param title 펼친 상태에서 표시할 제목. 접힌 상태에서는 사용하지 않는다
- * @param expanded 펼침 여부. 목록에서는 [resolveHilitReportCardExpansion]으로 단일 expand를 유지한다
- * @param onExpandClick 접힌 카드 전체 클릭 시 호출된다
- * @param onActionClick 펼친 카드의 화살표 버튼 클릭 시 호출된다
+ * @param expanded 펼침 여부. 목록에서는 소비자가 `Set<String>` 등으로 자유롭게 정책을 정한다.
+ *   단일 expand가 필요하면 [resolveHilitReportCardExpansion]을 사용한다.
+ * @param onExpandClick 접힌 카드 전체·펼친 카드 배경 클릭 시 호출된다(펼침·접힘 토글).
+ * @param onActionClick 펼친 카드의 화살표 버튼 클릭 시 호출된다.
  */
 @Composable
 fun HilitReportCard(
@@ -55,6 +55,7 @@ fun HilitReportCard(
             HilitReportCardExpandedContent(
                 date = date,
                 title = title,
+                onExpandClick = onExpandClick,
                 onActionClick = onActionClick,
             )
         } else {
@@ -66,44 +67,11 @@ fun HilitReportCard(
     }
 }
 
-/**
- * 단일 expand 정책.
- *
- * - 다른 항목을 펼치면 [requestedId]만 반환되어 기존 expand는 해제된다.
- * - 이미 펼쳐진 항목을 다시 요청하면 접힌다(`null`).
- */
-fun resolveHilitReportCardExpansion(
-    currentExpandedId: String?,
-    requestedId: String,
-): String? = if (currentExpandedId == requestedId) null else requestedId
-
-@Composable
-private fun HilitReportCardCollapsedContent(
-    date: String,
-    onExpandClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        text = date,
-        style = HilitTheme.typography.body3,
-        color = HilitTheme.colors.hilitBlack800,
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .background(HilitReportCardCollapsedBackground)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    role = Role.Button,
-                    onClick = onExpandClick,
-                ).padding(CollapsedPadding),
-    )
-}
-
 @Composable
 private fun HilitReportCardExpandedContent(
     date: String,
     title: String,
+    onExpandClick: () -> Unit,
     onActionClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -112,7 +80,12 @@ private fun HilitReportCardExpandedContent(
             modifier
                 .fillMaxWidth()
                 .background(HilitTheme.colors.hilitBlack800)
-                .padding(
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    role = Role.Button,
+                    onClick = onExpandClick,
+                ).padding(
                     horizontal = ExpandedHorizontalPadding,
                     vertical = ExpandedVerticalPadding,
                 ),
@@ -160,8 +133,39 @@ private fun HilitReportCardExpandedContent(
     }
 }
 
-// Figma hilit green/200 (#D2EFCC). 제품 token 미정의 — spec 확정 시 HilitColors로 이전.
-private val HilitReportCardCollapsedBackground = Color(0xFFD2EFCC)
+/**
+ * 단일 expand 정책.
+ *
+ * - 다른 항목을 펼치면 [requestedId]만 반환되어 기존 expand는 해제된다.
+ * - 이미 펼쳐진 항목을 다시 요청하면 접힌다(`null`).
+ */
+fun resolveHilitReportCardExpansion(
+    currentExpandedId: String?,
+    requestedId: String,
+): String? = if (currentExpandedId == requestedId) null else requestedId
+
+@Composable
+private fun HilitReportCardCollapsedContent(
+    date: String,
+    onExpandClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = date,
+        style = HilitTheme.typography.body3,
+        color = HilitTheme.colors.hilitBlack800,
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .background(HilitTheme.colors.hilitGreen200)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    role = Role.Button,
+                    onClick = onExpandClick,
+                ).padding(CollapsedPadding),
+    )
+}
 
 private val CollapsedPadding = 20.dp
 private val ExpandedHorizontalPadding = 20.dp
