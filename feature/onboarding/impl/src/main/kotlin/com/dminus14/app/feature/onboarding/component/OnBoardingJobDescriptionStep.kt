@@ -24,6 +24,9 @@ private val SubtitleToTabSpacing = 34.dp
 private val TabToFieldSpacing = 16.dp
 private val BubbleBottomPadding = 16.dp
 private const val JOB_DESCRIPTION_TEXT_MAX_LENGTH = 3000
+private const val JOB_DESCRIPTION_TEXT_MIN_LENGTH = 200
+private const val JOB_DESCRIPTION_TEXT_VALIDATION_ERROR = "공고 내용은 200자 이상으로 입력해 주세요"
+private const val JOB_DESCRIPTION_TEXT_VALIDATION_SUCCESS = "공고 내용을 확인했어요"
 
 @Composable
 @Suppress("LongParameterList")
@@ -117,6 +120,9 @@ private fun OnBoardingJobDescriptionField(
                     )
                 },
                 maxLength = JOB_DESCRIPTION_TEXT_MAX_LENGTH,
+                minLength = JOB_DESCRIPTION_TEXT_MIN_LENGTH,
+                validationErrorText = JOB_DESCRIPTION_TEXT_VALIDATION_ERROR,
+                validationSuccessText = JOB_DESCRIPTION_TEXT_VALIDATION_SUCCESS,
                 modifier = modifier,
             )
         }
@@ -222,7 +228,7 @@ private fun OnBoardingJobDescriptionStepTextPreview() {
     }
 }
 
-@Preview(name = "Text - Filled", showBackground = true, widthDp = 375, heightDp = 812)
+@Preview(name = "Text - Filled (under min)", showBackground = true, widthDp = 375, heightDp = 812)
 @Composable
 private fun OnBoardingJobDescriptionStepTextFilledPreview() {
     HilitTheme {
@@ -232,6 +238,25 @@ private fun OnBoardingJobDescriptionStepTextFilledPreview() {
             linkStatus = JdLinkStatus.Idle,
             linkSubText = "",
             text = "당사 서비스의 백엔드 API를 설계하고 운영하실 시니어 개발자를 찾고 있습니다.",
+            onIntent = {},
+        )
+    }
+}
+
+@Preview(name = "Text - Valid", showBackground = true, widthDp = 375, heightDp = 812)
+@Composable
+private fun OnBoardingJobDescriptionStepTextValidPreview() {
+    HilitTheme {
+        OnBoardingJobDescriptionStep(
+            tab = JobDescriptionTab.Text,
+            link = "",
+            linkStatus = JdLinkStatus.Idle,
+            linkSubText = "",
+            text =
+                "당사 서비스의 백엔드 API를 설계하고 운영하실 시니어 개발자를 찾고 있습니다. " +
+                    "Kotlin, Spring Boot 기반 마이크로서비스 경험이 필요하며, " +
+                    "대용량 트래픽 처리와 데이터 파이프라인 구축 경험을 우대합니다. " +
+                    "협업과 코드 리뷰 문화를 중시하는 팀에서 함께 성장할 분을 기다립니다.",
             onIntent = {},
         )
     }
