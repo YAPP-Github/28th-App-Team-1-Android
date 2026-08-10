@@ -141,7 +141,7 @@ fun HomeReportSheet(
                     onDragEnd = sheetLayout.onDragEnd,
                     showDragHandleIndicator =
                         sheetTopPx >
-                            sheetLayout.anchors.expandedTopPx + EXPANDED_POSITION_TOLERANCE_PX,
+                            sheetLayout.anchors.expandedTopPx/* + EXPANDED_POSITION_TOLERANCE_PX*/,
                 ),
         )
     }
