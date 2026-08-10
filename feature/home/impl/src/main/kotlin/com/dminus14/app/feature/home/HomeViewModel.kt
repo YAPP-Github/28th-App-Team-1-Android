@@ -9,6 +9,7 @@ import com.dminus14.app.domain.exception.ServerException
 import com.dminus14.app.domain.exception.UserNotFoundException
 import com.dminus14.app.domain.usecase.CheckUserProfileUseCase
 import com.dminus14.app.domain.usecase.GetInterviewReportListUseCase
+import com.dminus14.app.domain.usecase.GetInterviewResumeUseCase
 import com.dminus14.app.feature.home.mapper.toHomeReportItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -20,6 +21,7 @@ class HomeViewModel
 constructor(
     private val checkUserProfileUseCase: CheckUserProfileUseCase,
     private val getInterviewReportListUseCase: GetInterviewReportListUseCase,
+    private val getInterviewResumeUseCase: GetInterviewResumeUseCase,
 ) : MviViewModel<HomeIntent, HomeState, HomeEffect>(HomeState()) {
     override fun onIntent(intent: HomeIntent) {
         when (intent) {
@@ -62,6 +64,7 @@ constructor(
         viewModelScope.launch {
             if (!loadProfile()) return@launch
             loadReports()
+            checkInterviewSession()
         }
     }
 
@@ -95,7 +98,12 @@ constructor(
             return false
         }
 
-        reduce { copy(userName = displayName) }
+        reduce {
+            copy(
+                userName = displayName,
+                remainingTicketCount = profile.remainingTicketCount,
+            )
+        }
         return true
     }
 
@@ -122,6 +130,43 @@ constructor(
         }
     }
 
+    private suspend fun checkInterviewSession() {
+        // 면접 세션이 클라이언트 내에 있는지 조회.
+        // 현재는 연동되어있지 않으므로 항상 없다고 표기.
+        val interviewSessionId = "" // 투두 - 활성 세션 ID 조회 연동
+        val sessionId = interviewSessionId.toLongOrNull() ?: return
+        getInterviewState(sessionId)
+    }
+
+    /**
+     * 존재하는 세션 아이디가 이어서 진행 가능한 상태인지 조회한다.
+     *
+     * `resumeState`가 [RESUME_STATE_RESUMABLE]일 때만 재개 가능으로 보고 진행중 오버레이를 띄운다.
+     * resume 응답에 남은 질문 수 필드가 없어 [TEMP_REMAINING_QUESTION_COUNT] 임시값을 사용한다.
+     */
+    private suspend fun getInterviewState(sessionId: Long) {
+        getInterviewResumeUseCase(sessionId)
+            .onSuccess { resume ->
+                if (resume.resumeState == RESUME_STATE_RESUMABLE) {
+                    reduce {
+                        copy(
+                            sessionStartOverlay =
+                                HomeSessionStartOverlayState.InProgress(
+                                    userName = userName,
+                                    remainingQuestionCount = TEMP_REMAINING_QUESTION_COUNT,
+                                ),
+                        )
+                    }
+                } else {
+
+                }
+            }
+            // 재개 확인 실패는 치명적이지 않아 오버레이 미표시로 처리(공통 에러 처리 도입 시 재검토).
+            .onFailure { error ->
+                handleBootstrapFailure(error)
+            }
+    }
+
     // 아래 에러 처리 사항은 임시입니다. 공통 처리 기획자 문의 모든 ViewModel 일괄 수정 예정
     private suspend fun handleBootstrapFailure(error: Throwable) {
         reduce { copy(isLoading = false) }
@@ -140,3 +185,9 @@ constructor(
         }
     }
 }
+
+/** 재개 가능한 세션 상태 값. 서버 값 규격 확정 시 도메인 상수로 이전 예정. */
+private const val RESUME_STATE_RESUMABLE = "RESUMABLE"
+
+/** resume 응답에 남은 질문 수가 없어 사용하는 임시값. 필드 확보 후 제거 예정. */
+private const val TEMP_REMAINING_QUESTION_COUNT = 2

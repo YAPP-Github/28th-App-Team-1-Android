@@ -27,6 +27,7 @@ data class HomeReportItem(
 data class HomeState(
     val isLoading: Boolean = false,
     val userName: String = "",
+    val remainingTicketCount: Int? = null,
     val reports: List<HomeReportItem> = emptyList(),
     val expandedReportIds: Set<String> = emptySet(),
     /**
