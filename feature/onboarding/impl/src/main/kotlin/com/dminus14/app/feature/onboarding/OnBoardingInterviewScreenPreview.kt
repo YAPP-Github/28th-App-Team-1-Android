@@ -9,7 +9,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dminus14.app.feature.onboarding.component.OnBoardingExistingPortfolioConfirmModal
 import com.dminus14.app.feature.onboarding.component.OnBoardingHintBubble
-import com.dminus14.app.feature.onboarding.component.OnBoardingLeaveToMyPageModal
 import com.dminus14.app.feature.onboarding.component.OnBoardingUseExistingPortfolioNotice
 import com.dminus14.designsystem.theme.HilitTheme
 
@@ -59,24 +58,6 @@ private fun OnBoardingInterviewPortfolioCase1ConfirmContinuePreview() {
     }
 }
 
-@Preview(name = "Portfolio - Case1 LeaveToMyPage", showBackground = true, widthDp = 375, heightDp = 812)
-@Composable
-private fun OnBoardingInterviewPortfolioCase1LeaveToMyPagePreview() {
-    HilitTheme {
-        OnBoardingInterviewContent(
-            state =
-                OnBoardingInterviewState(
-                    step = OnBoardingInterviewStep.Portfolio,
-                    portfolioFileName = "포트폴리오.pdf",
-                    portfolioUploadProgress = 100,
-                    existingPortfolioModalPhase = ExistingPortfolioModalPhase.ConfirmLeaveToMyPage,
-                    deleteRemainingCount = 1,
-                ),
-            onIntent = {},
-        )
-    }
-}
-
 @Preview(name = "Portfolio - Case2 AutoDismiss", showBackground = true, widthDp = 375, heightDp = 812)
 @Composable
 private fun OnBoardingInterviewPortfolioCase2AutoDismissPreview() {
@@ -88,7 +69,6 @@ private fun OnBoardingInterviewPortfolioCase2AutoDismissPreview() {
                     portfolioFileName = "포트폴리오.pdf",
                     portfolioUploadProgress = 100,
                     existingPortfolioModalPhase = ExistingPortfolioModalPhase.AutoDismissNotice,
-                    deleteRemainingCount = 0,
                 ),
             onIntent = {},
         )
@@ -154,17 +134,6 @@ private fun OnBoardingHintBubbleMainProjectPreview() {
 private fun OnBoardingExistingPortfolioConfirmModalPreview() {
     HilitTheme {
         OnBoardingExistingPortfolioConfirmModal(onIntent = {})
-    }
-}
-
-@Preview(name = "Modal - LeaveToMyPage", showBackground = true, widthDp = 375, heightDp = 812)
-@Composable
-private fun OnBoardingLeaveToMyPageModalPreview() {
-    HilitTheme {
-        OnBoardingLeaveToMyPageModal(
-            deleteRemainingCount = 1,
-            onIntent = {},
-        )
     }
 }
 

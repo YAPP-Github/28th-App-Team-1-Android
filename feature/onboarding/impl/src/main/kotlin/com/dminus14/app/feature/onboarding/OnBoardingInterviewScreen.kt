@@ -26,7 +26,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.dminus14.app.feature.mypage.MyPage
 import com.dminus14.app.feature.onboarding.component.OnBoardingExistingPortfolioModals
 import com.dminus14.app.feature.onboarding.component.OnBoardingJobDescriptionStep
 import com.dminus14.app.feature.onboarding.component.OnBoardingMainProjectStep
@@ -94,10 +93,6 @@ fun OnBoardingInterviewScreen(
 
                 is OnBoardingInterviewEffect.NavigateToResult -> {
                     onNavigate(effect.sessionId)
-                }
-
-                OnBoardingInterviewEffect.NavigateToMyPage -> {
-                    onNavigate(MyPage)
                 }
             }
         }

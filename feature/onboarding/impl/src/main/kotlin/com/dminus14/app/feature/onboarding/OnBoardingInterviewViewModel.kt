@@ -122,26 +122,8 @@ class OnBoardingInterviewViewModel
                     maybeShowExistingPortfolioNotice()
                 }
 
-                OnBoardingInterviewIntent.ClickExistingPortfolioContinue -> {
+                OnBoardingInterviewIntent.ClickExistingPortfolioConfirm -> {
                     reduce { copy(existingPortfolioModalPhase = ExistingPortfolioModalPhase.None) }
-                    advanceStep()
-                }
-
-                OnBoardingInterviewIntent.ClickExistingPortfolioCancel -> {
-                    reduce {
-                        copy(existingPortfolioModalPhase = ExistingPortfolioModalPhase.ConfirmLeaveToMyPage)
-                    }
-                }
-
-                OnBoardingInterviewIntent.ClickLeaveToMyPageConfirm -> {
-                    reduce { copy(existingPortfolioModalPhase = ExistingPortfolioModalPhase.None) }
-                    sendEffect(OnBoardingInterviewEffect.NavigateToMyPage)
-                }
-
-                OnBoardingInterviewIntent.ClickLeaveToMyPageCancel -> {
-                    reduce {
-                        copy(existingPortfolioModalPhase = ExistingPortfolioModalPhase.ConfirmContinue)
-                    }
                 }
 
                 OnBoardingInterviewIntent.ClickAutoDismissNotice,
@@ -225,11 +207,6 @@ class OnBoardingInterviewViewModel
                         existingPortfolioFileName = portfolio?.fileName
                         existingReplaceAvailable = overview.isReplaceAvailable
                         existingDeleteAvailable = overview.isDeleteAvailable
-                        reduce {
-                            copy(
-                                deleteRemainingCount = if (overview.isDeleteAvailable) 1 else 0,
-                            )
-                        }
                         // 재진입 시 기존 READY 포트폴리오는 즉시 노출·재사용한다.
                         // (스펙 S2: "정상 저장(READY) 포폴은 이탈해도 보존, 다음 진입 시 재사용")
                         if (portfolio != null && portfolio.status == PortfolioStatus.READY) {
