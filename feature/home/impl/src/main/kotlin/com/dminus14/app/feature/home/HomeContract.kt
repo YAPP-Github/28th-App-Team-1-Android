@@ -16,6 +16,9 @@ sealed interface HomeIntent : MviIntent {
     data class ReportActionClick(
         val reportId: String,
     ) : HomeIntent
+
+    /** 리포트 바텀시트를 하단(Collapsed)까지 내렸을 때. 진행 중 세션 여부를 확인한다. */
+    data object ReportSheetCollapsed : HomeIntent
 }
 
 data class HomeReportItem(

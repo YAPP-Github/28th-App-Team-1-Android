@@ -81,6 +81,7 @@ fun HomeScreen(
         state = state,
         onReportExpandClick = { viewModel.onIntent(HomeIntent.ReportExpandClick(it)) },
         onReportActionClick = { viewModel.onIntent(HomeIntent.ReportActionClick(it)) },
+        onReportSheetCollapsed = { viewModel.onIntent(HomeIntent.ReportSheetCollapsed) },
         modifier = modifier,
     )
 }
@@ -90,6 +91,7 @@ internal fun HomeContent(
     state: HomeState,
     onReportExpandClick: (String) -> Unit,
     onReportActionClick: (String) -> Unit,
+    onReportSheetCollapsed: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
@@ -113,7 +115,10 @@ internal fun HomeContent(
                 HomeReportSheetCallbacks(
                     onReportExpandClick = onReportExpandClick,
                     onReportActionClick = onReportActionClick,
-                    onSheetAnchorChange = { sheetAnchor = it },
+                    onSheetAnchorChange = { anchor ->
+                        sheetAnchor = anchor
+                        if (anchor == HomeSheetAnchor.Collapsed) onReportSheetCollapsed()
+                    },
                 ),
             modifier = Modifier.fillMaxSize(),
         )

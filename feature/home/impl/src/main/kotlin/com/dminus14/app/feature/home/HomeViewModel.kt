@@ -50,6 +50,10 @@ constructor(
             is HomeIntent.ReportActionClick -> {
                 Unit
             }
+
+            HomeIntent.ReportSheetCollapsed -> {
+                viewModelScope.launch { checkInterviewSession() }
+            }
         }
     }
 
@@ -59,13 +63,15 @@ constructor(
      *
      * 프로필 조회 결과로 라우팅이 결정되므로(온보딩·스플래시로 이동) 홈에 남는 경우에만
      * 리포트를 조회하면 되고, 이 경우 두 호출을 병렬로 돌릴 이점이 없어 순차로 호출한다.
+     *
+     * 진행 중 세션 확인([checkInterviewSession])은 로드 시점이 아니라 리포트 시트를
+     * 하단까지 내렸을 때([HomeIntent.ReportSheetCollapsed]) 수행한다.
      */
     private fun load() {
         reduce { copy(isLoading = true) }
         viewModelScope.launch {
             if (!loadProfile()) return@launch
             loadReports()
-            checkInterviewSession()
         }
     }
 
