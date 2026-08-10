@@ -15,7 +15,7 @@ import com.dminus14.app.domain.model.PortfolioStatus
 import com.dminus14.app.domain.usecase.CheckUserProfileUseCase
 import com.dminus14.app.domain.usecase.DeletePortfolioUseCase
 import com.dminus14.app.domain.usecase.GetInterviewSessionUseCase
-import com.dminus14.app.domain.usecase.GetPortfolioIdUseCase
+import com.dminus14.app.domain.usecase.GetPortfolioOverviewUseCase
 import com.dminus14.app.domain.usecase.GetPortfolioStatusUseCase
 import com.dminus14.app.domain.usecase.MakeInterviewSessionUseCase
 import com.dminus14.app.domain.usecase.UploadPortfolioUseCase
@@ -36,7 +36,7 @@ class OnBoardingInterviewViewModel
     constructor(
         @ApplicationContext private val context: Context,
         private val checkUserProfile: CheckUserProfileUseCase,
-        private val getPortfolioId: GetPortfolioIdUseCase,
+        private val getPortfolioOverview: GetPortfolioOverviewUseCase,
         private val uploadPortfolio: UploadPortfolioUseCase,
         private val getPortfolioStatus: GetPortfolioStatusUseCase,
         private val deletePortfolio: DeletePortfolioUseCase,
@@ -190,8 +190,9 @@ class OnBoardingInterviewViewModel
                         reduce { copy(errorMessage = error.message) }
                     }
 
-                getPortfolioId()
-                    .onSuccess { portfolio ->
+                getPortfolioOverview()
+                    .onSuccess { overview ->
+                        val portfolio = overview.portfolio
                         existingPortfolioId = portfolio?.portfolioId
                         existingPortfolioFileName = portfolio?.fileName
                         // 재진입 시 기존 READY 포트폴리오는 즉시 노출·재사용한다.
@@ -649,7 +650,7 @@ class OnBoardingInterviewViewModel
         /** PDF 검증 결과를 사용자 메시지로 변환한다. [PdfValidationResult.Valid]이면 null. */
         private fun PdfValidationResult.toErrorMessageOrNull(): String? =
             when (this) {
-                PdfValidationResult.Valid -> {
+                is PdfValidationResult.Valid -> {
                     null
                 }
 
