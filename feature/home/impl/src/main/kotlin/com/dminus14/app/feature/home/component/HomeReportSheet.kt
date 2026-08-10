@@ -187,11 +187,12 @@ private fun rememberHomeReportSheetLayout(
                 collapsedTopPx = collapsedTopPx,
             )
         }
+    val currentAnchors by rememberUpdatedState(anchors)
     val snapController =
         remember(params.scope) {
             HomeSheetSnapController(
                 scope = params.scope,
-                anchors = { anchors },
+                anchors = { currentAnchors },
                 getOffsetPx = params.currentSheetTopPx,
                 setOffsetPx = params.onSheetTopPxChange,
                 onAnchorSettled = params.onAnchorSettled,
