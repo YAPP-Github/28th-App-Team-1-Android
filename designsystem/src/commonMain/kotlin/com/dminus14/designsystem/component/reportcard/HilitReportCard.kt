@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -111,7 +112,7 @@ private fun HilitReportCardExpandedContent(
                     .fillMaxWidth(),
             horizontalArrangement = Arrangement.End,
         ) {
-            Row(
+            Box(
                 modifier =
                     Modifier
                         .background(HilitTheme.colors.hilitGreen500)
@@ -121,7 +122,7 @@ private fun HilitReportCardExpandedContent(
                             role = Role.Button,
                             onClick = onActionClick,
                         ).padding(ActionPadding),
-                verticalAlignment = Alignment.CenterVertically,
+                contentAlignment = Alignment.Center,
             ) {
                 HilitIcon(
                     asset = HilitIconAsset.Right,
