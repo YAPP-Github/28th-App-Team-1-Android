@@ -130,10 +130,11 @@ fun HomeReportSheet(
 
         // 세션 오버레이를 닫을 때 등 외부 신호로 시트를 중간(Peek)으로 되돌린다.
         // 초기값 0에서는 동작하지 않고, 신호가 증가할 때만 리셋한다.
+        // 드래그 종료 경로(snap)와 동일한 spring 애니메이션을 재사용해 톤을 맞춘다.
+        // settledAnchor 갱신은 snap 컨트롤러의 onAnchorSettled 콜백에서 수행된다.
         LaunchedEffect(peekResetSignal) {
             if (peekResetSignal > 0) {
-                settledAnchor = HomeSheetAnchor.Peek
-                sheetTopPx = HomeSheetAnchor.Peek.toTopPx(sheetLayout.anchors)
+                sheetLayout.snapTo(HomeSheetAnchor.Peek)
             }
         }
 
@@ -163,6 +164,8 @@ private data class HomeReportSheetLayout(
     val anchors: HomeSheetAnchors,
     /** 핸들의 vertical drag가 끝났을 때 호출. 가장 가까운 앵커로 snap 시킨다. */
     val onDragEnd: () -> Unit,
+    /** 외부 신호로 시트를 지정 앵커로 애니메이션 이동시킨다. */
+    val snapTo: (HomeSheetAnchor) -> Unit,
 )
 
 /** [rememberHomeReportSheetLayout] 파라미터 묶음. 파라미터 6개 이상을 피하려는 형태. */
@@ -212,6 +215,7 @@ private fun rememberHomeReportSheetLayout(
     return HomeReportSheetLayout(
         anchors = anchors,
         onDragEnd = { snapController.snap() },
+        snapTo = { target -> snapController.snapTo(target) },
     )
 }
 
