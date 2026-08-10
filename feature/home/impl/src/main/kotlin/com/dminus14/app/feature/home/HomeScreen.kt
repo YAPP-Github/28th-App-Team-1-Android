@@ -80,6 +80,9 @@ fun HomeScreen(
                 HomeEffect.UserNotFound -> onReplaceAll(Splash)
                 HomeEffect.GoToOnboardingInterviewRequested -> onNavigate(OnBoardingInterview)
                 HomeEffect.ReportSheetResetRequested -> peekResetSignal++
+                is HomeEffect.GoToReportRequested -> {
+                    // 보고서 화면 생성시 Route 배선만 연결
+                }
             }
         }
     }
@@ -269,7 +272,8 @@ private fun HomeHeroSection(userName: String) {
                     .padding(
                         horizontal = HintHorizontalPadding,
                         vertical = HintVerticalPadding,
-                    ).padding(top = GreetingToHintSpacing),
+                    )
+                    .padding(top = GreetingToHintSpacing),
         )
     }
 }

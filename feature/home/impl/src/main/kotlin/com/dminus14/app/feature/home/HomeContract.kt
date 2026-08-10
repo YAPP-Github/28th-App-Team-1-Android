@@ -75,6 +75,14 @@ sealed interface HomeEffect : MviEffect {
 
     /** 세션 오버레이를 닫은 뒤 리포트 시트를 중간(Peek)으로 되돌려야 함을 알린다. */
     data object ReportSheetResetRequested : HomeEffect
+
+    /**
+     * 펼친 리포트 카드의 화살표(">") 클릭 시 해당 리포트 상세 화면으로 이동해야 함을 알린다.
+     * (TODO: ReportScreen 화면 연동 대기)
+     */
+    data class GoToReportRequested(
+        val reportId: String,
+    ) : HomeEffect
 }
 
 internal val PreviewHomeReports =

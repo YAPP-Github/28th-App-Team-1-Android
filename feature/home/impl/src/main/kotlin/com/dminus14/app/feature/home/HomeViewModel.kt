@@ -48,7 +48,7 @@ constructor(
             }
 
             is HomeIntent.ReportActionClick -> {
-                Unit
+                sendEffect(HomeEffect.GoToReportRequested(intent.reportId))
             }
 
             HomeIntent.ReportSheetCollapsed -> {
