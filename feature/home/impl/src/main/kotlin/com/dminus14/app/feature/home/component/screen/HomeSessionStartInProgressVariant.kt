@@ -67,7 +67,7 @@ internal fun HomeSessionStartInProgressVariant(
             HilitFixedBottomDualButton(
                 leftText = "처음부터 시작",
                 rightText = "이어서 진행",
-                type = HilitFixedBottomDualButtonType.TwoColor,
+                type = HilitFixedBottomDualButtonType.Default,
                 onLeftClick = callbacks.onRestartClick,
                 onRightClick = callbacks.onResumeClick,
             )

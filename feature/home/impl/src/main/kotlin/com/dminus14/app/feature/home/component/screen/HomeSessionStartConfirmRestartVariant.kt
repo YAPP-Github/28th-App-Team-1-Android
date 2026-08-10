@@ -71,7 +71,7 @@ internal fun HomeSessionStartConfirmRestartVariant(
             HilitFixedBottomDualButton(
                 leftText = "뒤로가기",
                 rightText = "처음부터 시작",
-                type = HilitFixedBottomDualButtonType.TwoColor,
+                type = HilitFixedBottomDualButtonType.Default,
                 onLeftClick = callbacks.onBackClick,
                 onRightClick = callbacks.onRestartClick,
             )
