@@ -27,23 +27,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import com.dminus14.app.feature.home.HomeReportItem
 import com.dminus14.app.feature.home.PreviewHomeReports
@@ -57,10 +50,11 @@ private val SheetPeekTop = 331.dp
 /** Collapsed 앵커에서 최소한으로 보여야 하는 시트 높이. 화면 하단에 이만큼은 남긴다. */
 private val SheetMinVisibleHeight = 120.dp
 
-/** 드래그 핸들 인디케이터가 그려질 영역 높이 (히트박스 겸용). */
-private val DragHandleContainerHeight = 20.dp
 private val DragHandleWidth = 60.dp
 private val DragHandleHeight = 5.dp
+
+/** 인디케이터 바를 시트 top에서 얼마나 내릴지 (header 텍스트 위쪽 여백 안에 자리). */
+private val DragHandleTopPadding = 8.dp
 private val ReportHeaderPadding = 20.dp
 private val ReportItemSpacing = 1.dp
 
@@ -77,9 +71,10 @@ private const val EXPANDED_POSITION_TOLERANCE_PX = 2f
 /**
  * 홈 화면의 리포트 리스트 바텀시트.
  *
- * 3-앵커(Expanded / Peek / Collapsed) drag & fling 시트. 세로 드래그는 핸들 영역과
- * 내부 리스트의 nested scroll 양쪽에서 잡고, gesture가 끝나면 velocity·이동 방향으로
- * 가장 가까운 앵커에 snap 한다. 앵커 상태는 [rememberSaveable] 로 config change에 대비.
+ * 3-앵커(Expanded / Peek / Collapsed) 시트. 시트 위치 이동은 **상단 드래그 핸들 전용**.
+ * 리스트 내부 스크롤은 시트에 영향을 주지 않는다(nested scroll bridging 없음).
+ * gesture 종료 시 velocity·이동 방향으로 가장 가까운 앵커에 snap. 앵커 상태는
+ * [rememberSaveable] 로 config change에 대비.
  *
  * @param reports 표시할 리포트 리스트. 비어 있으면 empty state 컴포넌트를 그린다.
  * @param expandedReportIds 현재 펼쳐진 카드 id 집합. 각 카드는 독립적으로 열고 닫힌다.
@@ -118,7 +113,6 @@ fun HomeReportSheet(
                     maxHeight = maxHeight,
                     density = density,
                     currentSheetTopPx = { currentSheetTopPx },
-                    listState = listState,
                     onSheetTopPxChange = { sheetTopPx = it },
                     onAnchorSettled = { settledAnchor = it },
                 ),
@@ -132,20 +126,6 @@ fun HomeReportSheet(
             onSheetAnchorChange(settledAnchor)
         }
 
-        // fling 없이 리스트 스크롤이 그냥 멈춘 케이스(느린 손가락 놓기 등)를 커버.
-        // onPostFling 이 이미 실제 velocity·direction 으로 snap 을 시작했다면
-        // velocity=0 재호출로 그 애니메이션을 뒤엎지 않도록 skip 한다.
-        LaunchedEffect(listState) {
-            var wasScrolling = false
-            snapshotFlow { listState.isScrollInProgress }
-                .collect { isScrolling ->
-                    if (wasScrolling && !isScrolling && !sheetLayout.isSnapping()) {
-                        sheetLayout.onGestureEnd(0f, 0f)
-                    }
-                    wasScrolling = isScrolling
-                }
-        }
-
         HomeReportSheetContainer(
             contentState =
                 HomeReportSheetContentState(
@@ -154,7 +134,6 @@ fun HomeReportSheet(
                     expandedReportIds = expandedReportIds,
                     listState = listState,
                     anchors = sheetLayout.anchors,
-                    nestedScrollConnection = sheetLayout.nestedScrollConnection,
                     onReportExpandClick = onReportExpandClick,
                     onReportActionClick = onReportActionClick,
                     getSheetTopPx = { currentSheetTopPx },
@@ -169,18 +148,12 @@ fun HomeReportSheet(
 }
 
 /**
- * 앵커·nested scroll·snap 컨트롤러를 한 데 묶어 [HomeReportSheet]로 반환하는 번들.
- * 개별 콜백을 시트 본체가 각각 remember 하지 않도록 하나로 묶었다.
+ * 앵커와 snap 컨트롤러를 한 데 묶어 [HomeReportSheet]로 반환하는 번들.
  */
 private data class HomeReportSheetLayout(
     val anchors: HomeSheetAnchors,
-    val nestedScrollConnection: NestedScrollConnection,
-    /** 핸들의 vertical drag가 끝났을 때 호출. velocity만 넘긴다. */
-    val onDragEnd: (Float) -> Unit,
-    /** 리스트 nested scroll·fling이 끝났을 때 호출. velocity + 이동 방향 힌트. */
-    val onGestureEnd: (velocityY: Float, directionHint: Float) -> Unit,
-    /** 현재 snap 애니메이션이 진행 중인지. 중복 snap 방지용 가드에 사용. */
-    val isSnapping: () -> Boolean,
+    /** 핸들의 vertical drag가 끝났을 때 호출. 가장 가까운 앵커로 snap 시킨다. */
+    val onDragEnd: () -> Unit,
 )
 
 /** [rememberHomeReportSheetLayout] 파라미터 묶음. 파라미터 6개 이상을 피하려는 형태. */
@@ -191,13 +164,12 @@ private data class HomeReportSheetLayoutParams(
     val maxHeight: androidx.compose.ui.unit.Dp,
     val density: Density,
     val currentSheetTopPx: () -> Float,
-    val listState: LazyListState,
     val onSheetTopPxChange: (Float) -> Unit,
     val onAnchorSettled: (HomeSheetAnchor) -> Unit,
 )
 
 /**
- * 3-앵커, nested scroll connection, snap 컨트롤러를 조립해서 반환.
+ * 3-앵커와 snap 컨트롤러를 조립해서 반환.
  * collapsedTopPx는 화면 높이에서 [SheetMinVisibleHeight]를 뺀 값이며 peek 아래로 내려가지 않도록 clamp.
  */
 @Composable
@@ -226,29 +198,10 @@ private fun rememberHomeReportSheetLayout(
                 onAnchorSettled = params.onAnchorSettled,
             )
         }
-    val onGestureEndState =
-        rememberUpdatedState<(Float, Float) -> Unit> { velocityY, directionHint ->
-            snapController.snap(velocityY = velocityY, directionHint = directionHint)
-        }
-    val nestedScrollConnection =
-        rememberHomeReportSheetNestedScroll(
-            listState = params.listState,
-            anchors = anchors,
-            getSheetTopPx = params.currentSheetTopPx,
-            onSheetTopPxChange = params.onSheetTopPxChange,
-            onGestureEnd = { velocityY, directionHint ->
-                onGestureEndState.value(velocityY, directionHint)
-            },
-        )
 
     return HomeReportSheetLayout(
         anchors = anchors,
-        nestedScrollConnection = nestedScrollConnection,
-        onDragEnd = { velocityY -> snapController.snap(velocityY = velocityY) },
-        onGestureEnd = { velocityY, directionHint ->
-            onGestureEndState.value(velocityY, directionHint)
-        },
-        isSnapping = { snapController.isSnapping },
+        onDragEnd = { snapController.snap() },
     )
 }
 
@@ -263,12 +216,11 @@ private data class HomeReportSheetContentState(
     val expandedReportIds: Set<String>,
     val listState: LazyListState,
     val anchors: HomeSheetAnchors,
-    val nestedScrollConnection: NestedScrollConnection,
     val onReportExpandClick: (String) -> Unit,
     val onReportActionClick: (String) -> Unit,
     val getSheetTopPx: () -> Float,
     val onSheetTopPxChange: (Float) -> Unit,
-    val onDragEnd: (Float) -> Unit,
+    val onDragEnd: () -> Unit,
     val showDragHandleIndicator: Boolean,
 )
 
@@ -277,7 +229,7 @@ private data class HomeReportSheetHandleState(
     val anchors: HomeSheetAnchors,
     val getSheetTopPx: () -> Float,
     val onSheetTopPxChange: (Float) -> Unit,
-    val onDragEnd: (Float) -> Unit,
+    val onDragEnd: () -> Unit,
 )
 
 /**
@@ -308,27 +260,21 @@ private fun HomeReportSheetContainer(contentState: HomeReportSheetContentState) 
                     onSheetTopPxChange = contentState.onSheetTopPxChange,
                     onDragEnd = contentState.onDragEnd,
                 )
-            if (contentState.showDragHandleIndicator) {
+            // header 위에 handle을 항상 겹쳐서 트리 구조 고정.
+            // 인디케이터 유무는 handle 내부에서만 결정 — 드래그로 앵커 근처에서
+            // showDragHandleIndicator가 flip 되어도 pointerInput이 재생성되지 않는다.
+            Box(modifier = Modifier.fillMaxWidth()) {
+                HomeReportSheetHeader(reportCount = contentState.reports.size)
                 HomeReportSheetHandle(
                     state = handleState,
-                    showIndicator = true,
+                    showIndicator = contentState.showDragHandleIndicator,
+                    modifier = Modifier.matchParentSize(),
                 )
-                HomeReportSheetHeader(reportCount = contentState.reports.size)
-            } else {
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    HomeReportSheetHeader(reportCount = contentState.reports.size)
-                    HomeReportSheetHandle(
-                        state = handleState,
-                        showIndicator = false,
-                        modifier = Modifier.matchParentSize(),
-                    )
-                }
             }
             HomeReportSheetBody(
                 reports = contentState.reports,
                 expandedReportIds = contentState.expandedReportIds,
                 listState = contentState.listState,
-                nestedScrollConnection = contentState.nestedScrollConnection,
                 onReportExpandClick = contentState.onReportExpandClick,
                 onReportActionClick = contentState.onReportActionClick,
             )
@@ -338,15 +284,14 @@ private fun HomeReportSheetContainer(contentState: HomeReportSheetContentState) 
 
 /**
  * 리포트 리스트 영역. 비어 있으면 [HomeReportEmptyState]로 대체.
- * `weight(1f)`로 header 아래 남은 세로 공간을 전부 차지하고,
- * nested scroll을 통해 시트 위치와 리스트 스크롤을 이어 붙인다.
+ * `weight(1f)`로 header 아래 남은 세로 공간을 전부 차지한다.
+ * 리스트 스크롤은 시트 위치에 영향을 주지 않는다.
  */
 @Composable
 private fun ColumnScope.HomeReportSheetBody(
     reports: List<HomeReportItem>,
     expandedReportIds: Set<String>,
     listState: LazyListState,
-    nestedScrollConnection: NestedScrollConnection,
     onReportExpandClick: (String) -> Unit,
     onReportActionClick: (String) -> Unit,
 ) {
@@ -367,10 +312,7 @@ private fun ColumnScope.HomeReportSheetBody(
     Box(modifier = Modifier.weight(1f)) {
         LazyColumn(
             state = listState,
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .nestedScroll(nestedScrollConnection),
+            modifier = Modifier.fillMaxSize(),
         ) {
             items(
                 items = reports,
@@ -393,111 +335,12 @@ private fun ColumnScope.HomeReportSheetBody(
 }
 
 /**
- * 리스트-시트 사이의 nested scroll 브릿지.
- *
- * - **위로 드래그(delta < 0)** — 시트가 Expanded보다 아래에 있으면 리스트보다 먼저
- *   시트를 위로 올린다 (`onPreScroll`).
- * - **아래로 드래그(delta > 0)** — 리스트가 최상단까지 스크롤된 뒤 남은 델타로
- *   시트를 내린다 (`onPostScroll`).
- * - **Fling** — 위와 동일한 규칙을 velocity 단위로 적용 (`onPreFling`).
- * - **gesture 종료** — 이번 gesture 동안 시트가 실제로 움직였다면
- *   [onGestureEnd] 로 velocity + 순 이동 방향(directionHint) 을 넘겨 snap 시킨다.
- */
-@Composable
-private fun rememberHomeReportSheetNestedScroll(
-    listState: LazyListState,
-    anchors: HomeSheetAnchors,
-    getSheetTopPx: () -> Float,
-    onSheetTopPxChange: (Float) -> Unit,
-    onGestureEnd: (velocityY: Float, directionHint: Float) -> Unit,
-): NestedScrollConnection {
-    val currentGetSheetTopPx by rememberUpdatedState(getSheetTopPx)
-    val currentOnSheetTopPxChange by rememberUpdatedState(onSheetTopPxChange)
-    val currentOnGestureEnd by rememberUpdatedState(onGestureEnd)
-    // 이번 gesture 동안 시트가 한 번이라도 움직였는지. 리스트만 스크롤하고 끝난 경우엔
-    // snap을 호출하지 않아야 리스트 fling 애니메이션이 부드럽게 이어진다.
-    var sheetMovedDuringGesture by remember { mutableStateOf(false) }
-
-    return remember(listState, anchors) {
-        object : NestedScrollConnection {
-            /**
-             * 이번 gesture 동안 시트가 이동한 순수 y 델타.
-             * 양수 = 아래, 음수 = 위. onPostFling 에서 direction hint 로 snap 에 전달하고 리셋한다.
-             */
-            var gestureNetDeltaY: Float = 0f
-
-            override fun onPreScroll(
-                available: Offset,
-                source: NestedScrollSource,
-            ): Offset {
-                val delta = available.y
-                val currentTopPx = currentGetSheetTopPx()
-                if (delta < 0f && currentTopPx > anchors.expandedTopPx) {
-                    val consumed = (-delta).coerceAtMost(currentTopPx - anchors.expandedTopPx)
-                    currentOnSheetTopPxChange(currentTopPx - consumed)
-                    sheetMovedDuringGesture = consumed > 0f
-                    gestureNetDeltaY -= consumed
-                    return Offset(0f, -consumed)
-                }
-                return Offset.Zero
-            }
-
-            override fun onPostScroll(
-                consumed: Offset,
-                available: Offset,
-                source: NestedScrollSource,
-            ): Offset {
-                val delta = available.y
-                val currentTopPx = currentGetSheetTopPx()
-                val isListAtTop =
-                    listState.firstVisibleItemIndex == 0 &&
-                        listState.firstVisibleItemScrollOffset == 0
-                if (delta > 0f && isListAtTop && currentTopPx < anchors.collapsedTopPx) {
-                    val consumedDelta = delta.coerceAtMost(anchors.collapsedTopPx - currentTopPx)
-                    currentOnSheetTopPxChange(currentTopPx + consumedDelta)
-                    sheetMovedDuringGesture = sheetMovedDuringGesture || consumedDelta > 0f
-                    gestureNetDeltaY += consumedDelta
-                    return Offset(0f, consumedDelta)
-                }
-                return Offset.Zero
-            }
-
-            override suspend fun onPreFling(available: Velocity): Velocity {
-                val currentTopPx = currentGetSheetTopPx()
-                val isListAtTop =
-                    listState.firstVisibleItemIndex == 0 &&
-                        listState.firstVisibleItemScrollOffset == 0
-                if (available.y > 0f && isListAtTop && currentTopPx < anchors.collapsedTopPx) {
-                    val consumed = available.y.coerceAtMost(anchors.collapsedTopPx - currentTopPx)
-                    currentOnSheetTopPxChange(currentTopPx + consumed)
-                    sheetMovedDuringGesture = sheetMovedDuringGesture || consumed > 0f
-                    gestureNetDeltaY += consumed
-                    return Velocity(0f, consumed)
-                }
-                return Velocity.Zero
-            }
-
-            override suspend fun onPostFling(
-                consumed: Velocity,
-                available: Velocity,
-            ): Velocity {
-                if (sheetMovedDuringGesture) {
-                    currentOnGestureEnd(available.y, gestureNetDeltaY)
-                    sheetMovedDuringGesture = false
-                    gestureNetDeltaY = 0f
-                }
-                return Velocity.Zero
-            }
-        }
-    }
-}
-
-/**
  * 상단 드래그 핸들.
  *
- * @param showIndicator true면 회색 인디케이터 바를 그리고 [DragHandleContainerHeight] 만큼의
- *   전용 히트박스를 차지. false면 인디케이터를 숨기고 header 위에 `matchParentSize`로 겹쳐
- *   header 영역 전체를 드래그 히트박스로 사용한다(완전 확장 상태).
+ * 항상 부모(header 영역) 를 `matchParentSize`로 덮어 pointerInput 트리 위치를 고정한다.
+ * 시트 위치·앵커 flip에 따라 [showIndicator]만 바뀌고 gesture는 끊기지 않는다.
+ *
+ * @param showIndicator true면 상단 중앙에 회색 인디케이터 바를 그린다. false여도 히트박스는 유지.
  */
 @Composable
 private fun HomeReportSheetHandle(
@@ -511,43 +354,29 @@ private fun HomeReportSheetHandle(
 
     Box(
         modifier =
-            modifier
-                .then(
-                    if (showIndicator) {
-                        Modifier
-                            .fillMaxWidth()
-                            .height(DragHandleContainerHeight)
-                    } else {
-                        Modifier
+            modifier.pointerInput(state.anchors) {
+                detectVerticalDragGestures(
+                    onDragEnd = { currentOnDragEnd() },
+                    onDragCancel = { currentOnDragEnd() },
+                    onVerticalDrag = { change, dragAmount ->
+                        change.consume()
+                        val currentTopPx = currentGetSheetTopPx()
+                        currentOnSheetTopPxChange(
+                            (currentTopPx + dragAmount).coerceIn(
+                                state.anchors.expandedTopPx,
+                                state.anchors.collapsedTopPx,
+                            ),
+                        )
                     },
-                ).pointerInput(state.anchors) {
-                    val velocityTracker = VelocityTracker()
-                    detectVerticalDragGestures(
-                        onDragStart = { velocityTracker.resetTracking() },
-                        onDragEnd = {
-                            val velocity = velocityTracker.calculateVelocity().y
-                            currentOnDragEnd(velocity)
-                        },
-                        onDragCancel = { currentOnDragEnd(0f) },
-                        onVerticalDrag = { change, dragAmount ->
-                            change.consume()
-                            velocityTracker.addPosition(change.uptimeMillis, change.position)
-                            val currentTopPx = currentGetSheetTopPx()
-                            currentOnSheetTopPxChange(
-                                (currentTopPx + dragAmount).coerceIn(
-                                    state.anchors.expandedTopPx,
-                                    state.anchors.collapsedTopPx,
-                                ),
-                            )
-                        },
-                    )
-                },
-        contentAlignment = Alignment.Center,
+                )
+            },
+        contentAlignment = Alignment.TopCenter,
     ) {
         if (showIndicator) {
             Box(
                 modifier =
                     Modifier
+                        .padding(top = DragHandleTopPadding)
                         .width(DragHandleWidth)
                         .height(DragHandleHeight)
                         .background(HilitTheme.colors.gray400),
