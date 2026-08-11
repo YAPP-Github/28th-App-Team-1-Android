@@ -157,6 +157,13 @@ internal fun OnBoardingInterviewContent(
     onIntent: (OnBoardingInterviewIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // 모든 스텝 공통으로 BackHandler를 등록해 시스템 back이 온보딩 전체를 이탈시키지 않게 한다.
+    // Preload 스텝에서는 VM의 onPreviousClick 이 no-op로 처리해(세션 이중 생성 방지),
+    // 화면은 그대로 유지된다.
+    BackHandler {
+        onIntent(OnBoardingInterviewIntent.ClickPrevious)
+    }
+
     if (state.step == OnBoardingInterviewStep.Preload) {
         OnBoardingPreloadStep(
             basicInfoStatus = state.loadingBasicInfo,
@@ -174,10 +181,6 @@ internal fun OnBoardingInterviewContent(
             )
         }
         return
-    }
-
-    BackHandler {
-        onIntent(OnBoardingInterviewIntent.ClickPrevious)
     }
 
     Column(
