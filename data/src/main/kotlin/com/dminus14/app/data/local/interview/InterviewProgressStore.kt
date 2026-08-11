@@ -33,39 +33,58 @@ class InterviewProgressStore
                 },
             )
 
-        suspend fun read(): InterviewProgress? {
-            val preferences = store.data.first()
-            val sessionId = preferences[SESSION_ID]
-            val retentionDeadline = preferences[RETENTION_DEADLINE]
-            if (sessionId == null || retentionDeadline == null) return null
-            return InterviewProgress(
-                sessionId = sessionId,
-                retentionDeadlineEpochMillis = retentionDeadline,
-                retentionRemainingAtCheckpointMillis = preferences[RETENTION_REMAINING] ?: 0L,
-                retentionCheckpointElapsedRealtimeMillis = preferences[RETENTION_REALTIME],
-                timerStartedAtEpochMillis = preferences[TIMER_STARTED_AT],
-                elapsedAtCheckpointMillis = preferences[ELAPSED_AT_CHECKPOINT],
-                checkpointedAtEpochMillis = preferences[CHECKPOINTED_AT],
-            )
-        }
+        suspend fun read(): InterviewProgress? = store.data.first().toProgress()
 
         suspend fun write(progress: InterviewProgress) {
+            store.edit { preferences -> preferences.putProgress(progress) }
+        }
+
+        /** 단일 edit 안에서 읽고 갱신해 동시 쓰기가 서로 덮어쓰지 않도록 한다. */
+        suspend fun update(
+            transform: (InterviewProgress) -> InterviewProgress,
+        ): InterviewProgress? {
+            var updated: InterviewProgress? = null
             store.edit { preferences ->
-                preferences[SESSION_ID] = progress.sessionId
-                preferences[RETENTION_DEADLINE] = progress.retentionDeadlineEpochMillis
-                preferences[RETENTION_REMAINING] = progress.retentionRemainingAtCheckpointMillis
-                progress.retentionCheckpointElapsedRealtimeMillis.setOrRemove(
-                    preferences,
-                    RETENTION_REALTIME,
-                )
-                progress.timerStartedAtEpochMillis.setOrRemove(preferences, TIMER_STARTED_AT)
-                progress.elapsedAtCheckpointMillis.setOrRemove(preferences, ELAPSED_AT_CHECKPOINT)
-                progress.checkpointedAtEpochMillis.setOrRemove(preferences, CHECKPOINTED_AT)
+                val current = preferences.toProgress() ?: return@edit
+                val next = transform(current)
+                updated = next
+                preferences.putProgress(next)
             }
+            return updated
         }
 
         suspend fun clear() {
             store.edit { it.clear() }
+        }
+
+        private fun Preferences.toProgress(): InterviewProgress? {
+            val sessionId = this[SESSION_ID]
+            val retentionDeadline = this[RETENTION_DEADLINE]
+            if (sessionId == null || retentionDeadline == null) return null
+            return InterviewProgress(
+                sessionId = sessionId,
+                retentionDeadlineEpochMillis = retentionDeadline,
+                retentionRemainingAtCheckpointMillis = this[RETENTION_REMAINING] ?: 0L,
+                retentionCheckpointElapsedRealtimeMillis = this[RETENTION_REALTIME],
+                timerStartedAtEpochMillis = this[TIMER_STARTED_AT],
+                elapsedAtCheckpointMillis = this[ELAPSED_AT_CHECKPOINT],
+                checkpointedAtEpochMillis = this[CHECKPOINTED_AT],
+                elapsedCheckpointElapsedRealtimeMillis = this[ELAPSED_CHECKPOINT_REALTIME],
+            )
+        }
+
+        private fun MutablePreferences.putProgress(progress: InterviewProgress) {
+            this[SESSION_ID] = progress.sessionId
+            this[RETENTION_DEADLINE] = progress.retentionDeadlineEpochMillis
+            this[RETENTION_REMAINING] = progress.retentionRemainingAtCheckpointMillis
+            progress.retentionCheckpointElapsedRealtimeMillis.setOrRemove(this, RETENTION_REALTIME)
+            progress.timerStartedAtEpochMillis.setOrRemove(this, TIMER_STARTED_AT)
+            progress.elapsedAtCheckpointMillis.setOrRemove(this, ELAPSED_AT_CHECKPOINT)
+            progress.checkpointedAtEpochMillis.setOrRemove(this, CHECKPOINTED_AT)
+            progress.elapsedCheckpointElapsedRealtimeMillis.setOrRemove(
+                this,
+                ELAPSED_CHECKPOINT_REALTIME,
+            )
         }
 
         private fun Long?.setOrRemove(
@@ -84,5 +103,7 @@ class InterviewProgressStore
             val TIMER_STARTED_AT = longPreferencesKey("timer_started_at_epoch_millis")
             val ELAPSED_AT_CHECKPOINT = longPreferencesKey("elapsed_at_checkpoint_millis")
             val CHECKPOINTED_AT = longPreferencesKey("checkpointed_at_epoch_millis")
+            val ELAPSED_CHECKPOINT_REALTIME =
+                longPreferencesKey("elapsed_checkpoint_realtime_millis")
         }
     }
