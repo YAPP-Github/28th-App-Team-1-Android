@@ -8,6 +8,7 @@ import com.dminus14.app.core.common.pdf.validatePdf
 import com.dminus14.app.domain.exception.FreeTextNotRelevantException
 import com.dminus14.app.domain.exception.JdValidationLimitExceededException
 import com.dminus14.app.domain.model.InterviewAbandon
+import com.dminus14.app.domain.model.InterviewAbandonRequestCause
 import com.dminus14.app.domain.model.InterviewReport
 import com.dminus14.app.domain.model.InterviewReportList
 import com.dminus14.app.domain.model.InterviewResumeConfirm
@@ -25,6 +26,8 @@ import com.dminus14.app.domain.model.PortfolioOverview
 import com.dminus14.app.domain.model.PortfolioStatus
 import com.dminus14.app.domain.model.PortfolioUploadResult
 import com.dminus14.app.domain.model.SubmitAnswerResult
+import com.dminus14.app.domain.model.SubmitInterviewAnswerCommand
+import com.dminus14.app.domain.model.UploadInterviewVideoCommand
 import com.dminus14.app.domain.model.UserProfile
 import com.dminus14.app.domain.model.UserProfileUpdate
 import com.dminus14.app.domain.repository.InterviewRepository
@@ -1495,22 +1498,15 @@ class OnBoardingInterviewViewModelTest {
         override suspend fun getReportList(): InterviewReportList = error("사용하지 않음")
 
         override suspend fun submitAnswer(
-            sessionId: Long,
-            questionId: Long,
-            isWrapUp: Boolean,
-            questionAudioStartAt: Float?,
-            questionAudioEndAt: Float?,
-            answerStartAt: Float?,
-            answerEndAt: Float?,
-            answerDuration: Float?,
-            endType: String?,
-            audioFile: File?,
+            command: SubmitInterviewAnswerCommand,
         ): SubmitAnswerResult = error("사용하지 않음")
 
         override fun getAudioStreamUrl(
             sessionId: Long,
             questionId: Long,
         ): String = error("사용하지 않음")
+
+        override suspend fun uploadVideo(command: UploadInterviewVideoCommand) = error("사용하지 않음")
 
         override suspend fun getResume(sessionId: Long): InterviewResumeStatus = error("사용하지 않음")
 
@@ -1519,7 +1515,7 @@ class OnBoardingInterviewViewModelTest {
 
         override suspend fun abandon(
             sessionId: Long,
-            cause: String,
+            cause: InterviewAbandonRequestCause,
         ): InterviewAbandon = error("사용하지 않음")
 
         override suspend fun getReport(sessionId: Long): InterviewReport = error("사용하지 않음")
