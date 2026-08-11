@@ -134,12 +134,14 @@ fun HilitJDTextField(
                 Modifier
                     .fillMaxWidth()
                     .padding(top = HilitJDTextFieldFooterSpacing),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.Top,
         ) {
             if (validationSubText != null) {
                 HilitSubText(
                     text = validationSubText.first,
                     type = validationSubText.second,
+                    // 서버 오류 등 길이가 가변인 문구가 잘리지 않게 wrap 을 허용한다.
+                    maxLines = Int.MAX_VALUE,
                     modifier = Modifier.weight(1f),
                 )
             } else {

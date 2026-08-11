@@ -41,12 +41,15 @@ private val IconTextGap = 6.dp
  * @param text 표시할 문구
  * @param type 아이콘과 텍스트 색을 결정하는 타입
  * @param modifier 외부 레이아웃 Modifier
+ * @param maxLines 텍스트 최대 줄 수. 기본 1(한 줄, 초과 시 말줄임). 서버 메시지 등 길이가
+ *   가변인 문구에는 [Int.MAX_VALUE]로 넘겨 wrap 을 허용한다.
  */
 @Composable
 fun HilitSubText(
     text: String,
     type: HilitSubTextType,
     modifier: Modifier = Modifier,
+    maxLines: Int = 1,
 ) {
     val textColor =
         when (type) {
@@ -57,7 +60,7 @@ fun HilitSubText(
 
     Row(
         modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(IconTextGap),
     ) {
         SubTextIcon(type = type)
@@ -65,7 +68,7 @@ fun HilitSubText(
             text = text,
             style = HilitTheme.typography.body6,
             color = textColor,
-            maxLines = 1,
+            maxLines = maxLines,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )
