@@ -335,6 +335,7 @@ private fun OnBoardingInterviewStepContent(
         OnBoardingInterviewStep.MainProject -> {
             OnBoardingMainProjectStep(
                 text = state.mainProjectText,
+                error = state.mainProjectError,
                 onIntent = onIntent,
                 modifier = modifier,
             )

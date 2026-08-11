@@ -18,6 +18,7 @@ import com.dminus14.designsystem.theme.HilitTheme
 
 private val SubtitleToLabelSpacing = 30.dp
 private val LabelToFieldSpacing = 10.dp
+private val FieldToErrorSpacing = 8.dp
 private val BubbleBottomPadding = 16.dp
 private const val MAIN_PROJECT_MAX_LENGTH = 300
 private const val MAIN_PROJECT_PLACEHOLDER =
@@ -27,6 +28,7 @@ private const val MAIN_PROJECT_PLACEHOLDER =
 @Composable
 fun OnBoardingMainProjectStep(
     text: String,
+    error: String?,
     onIntent: (OnBoardingInterviewIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -58,6 +60,20 @@ fun OnBoardingMainProjectStep(
                 maxLength = MAIN_PROJECT_MAX_LENGTH,
                 modifier = Modifier.padding(top = LabelToFieldSpacing),
             )
+
+            // 서버 연관성 판단(FREETEXT_NOT_RELEVANT) 등 필드 밖 오류를 필드 아래에 노출한다.
+            // 로컬 최소 길이 위반은 계속하기 버튼 자체가 비활성이라 이 자리로 오지 않는다.
+            if (error != null) {
+                Text(
+                    text = error,
+                    style = HilitTheme.typography.body9,
+                    color = HilitTheme.colors.error500,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(top = FieldToErrorSpacing),
+                )
+            }
         }
 
         OnBoardingHintBubble(
@@ -76,6 +92,7 @@ private fun OnBoardingMainProjectStepPreview() {
     HilitTheme {
         OnBoardingMainProjectStep(
             text = "",
+            error = null,
             onIntent = {},
         )
     }
@@ -87,6 +104,19 @@ private fun OnBoardingMainProjectStepFilledPreview() {
     HilitTheme {
         OnBoardingMainProjectStep(
             text = "결제 시스템 리뉴얼 프로젝트에서 백엔드 아키텍처 설계와 API 개발을 담당했습니다.",
+            error = null,
+            onIntent = {},
+        )
+    }
+}
+
+@Preview(name = "Server error", showBackground = true, widthDp = 375, heightDp = 812)
+@Composable
+private fun OnBoardingMainProjectStepErrorPreview() {
+    HilitTheme {
+        OnBoardingMainProjectStep(
+            text = "결제 시스템 리뉴얼 프로젝트에서 백엔드 아키텍처 설계와 API 개발을 담당했습니다.",
+            error = "포트폴리오에서 그 내용을 찾지 못했어요.",
             onIntent = {},
         )
     }
