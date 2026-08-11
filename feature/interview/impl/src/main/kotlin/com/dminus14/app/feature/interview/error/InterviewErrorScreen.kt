@@ -77,25 +77,42 @@ fun InterviewErrorScreen(
 
 /** ViewModel-free 오류 UI Content */
 @Composable
+@Suppress("CyclomaticComplexMethod")
 fun InterviewErrorContent(
     state: InterviewErrorState,
     onIntent: (InterviewErrorIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isMicError = state.errorType == InterviewErrorType.MIC
+    val isMicError = state.errorType == InterviewErrorType.MIC_DEVICE
+    val isSttError = state.errorType == InterviewErrorType.STT
+    val isSingleButton = isMicError || isSttError
     val subtitleText =
-        if (isMicError) {
-            "마이크 상태를 확인하고 조용한 곳에서\n" +
-                "면접을 다시 시작해주세요."
-        } else {
-            "네트워크가 불안정해 면접을 이어갈 수 없어요.\n" +
-                "연결을 확인하고 면접을 다시 시작해주세요."
+        when (state.errorType) {
+            InterviewErrorType.MIC_DEVICE -> {
+                "마이크 상태를 확인하고 조용한 곳에서\n면접을 다시 시작해주세요."
+            }
+
+            InterviewErrorType.NETWORK -> {
+                "네트워크가 불안정해 면접을 이어갈 수 없어요.\n연결을 확인하고 면접을 다시 시작해주세요."
+            }
+
+            InterviewErrorType.STT -> {
+                "답변을 정상적으로 인식하지 못해\n면접이 종료되었어요."
+            }
+
+            InterviewErrorType.SERVER_TEMPORARY -> {
+                "답변을 처리하지 못했어요.\n잠시 후 다시 시도해주세요."
+            }
         }
     val descriptionText =
-        if (isMicError) {
-            "면접을 중단해도 이용권은 차감되지 않아요"
-        } else {
-            "중단하기를 선택할 경우에, 이용권은 차감되지 않아요"
+        when (state.errorType) {
+            InterviewErrorType.MIC_DEVICE,
+            InterviewErrorType.STT,
+            -> "면접을 중단해도 이용권은 차감되지 않아요"
+
+            InterviewErrorType.NETWORK -> "중단하기를 선택하면 이용권은 차감되지 않아요"
+
+            InterviewErrorType.SERVER_TEMPORARY -> "중단하면 이용권이 차감돼요"
         }
 
     Column(
@@ -123,7 +140,12 @@ fun InterviewErrorContent(
                         .background(color = HilitTheme.colors.hilitBlack800),
             ) {
                 HilitIcon(
-                    asset = if (isMicError) HilitIconAsset.Mic else HilitIconAsset.Network,
+                    asset =
+                        if (isMicError || isSttError) {
+                            HilitIconAsset.Mic
+                        } else {
+                            HilitIconAsset.Network
+                        },
                     contentDescription = null,
                     tint = HilitTheme.colors.hilitGreen500,
                     modifier = Modifier.size(24.dp),
@@ -140,12 +162,26 @@ fun InterviewErrorContent(
             HilitText(
                 text =
                     buildAnnotatedString {
-                        if (isMicError) {
-                            withHilitTextHighlight { append("목소리") }
-                            append("가 잘 들리지 않아요")
-                        } else {
-                            withHilitTextHighlight { append("연결") }
-                            append("이 끊겼어요")
+                        when (state.errorType) {
+                            InterviewErrorType.MIC_DEVICE -> {
+                                withHilitTextHighlight { append("목소리") }
+                                append("가 잘 들리지 않아요")
+                            }
+
+                            InterviewErrorType.NETWORK -> {
+                                withHilitTextHighlight { append("연결") }
+                                append("이 끊겼어요")
+                            }
+
+                            InterviewErrorType.STT -> {
+                                withHilitTextHighlight { append("답변 인식") }
+                                append("에 실패했어요")
+                            }
+
+                            InterviewErrorType.SERVER_TEMPORARY -> {
+                                withHilitTextHighlight { append("답변 처리") }
+                                append("가 지연되고 있어요")
+                            }
                         }
                     },
                 highlightColor = HilitTextHighlightColor.Red,
@@ -187,7 +223,7 @@ fun InterviewErrorContent(
             }
         }
 
-        if (isMicError) {
+        if (isSingleButton) {
             HilitFixedBottomButton(
                 text = "중단하기",
                 type = HilitButtonType.Light,
@@ -210,7 +246,7 @@ fun InterviewErrorContent(
 private fun InterviewErrorMicPreview() {
     HilitTheme {
         InterviewErrorContent(
-            state = InterviewErrorState(errorType = InterviewErrorType.MIC),
+            state = InterviewErrorState(errorType = InterviewErrorType.MIC_DEVICE),
             onIntent = {},
         )
     }
@@ -222,6 +258,28 @@ private fun InterviewErrorNetworkPreview() {
     HilitTheme {
         InterviewErrorContent(
             state = InterviewErrorState(errorType = InterviewErrorType.NETWORK),
+            onIntent = {},
+        )
+    }
+}
+
+@Preview(name = "Interview Error STT", widthDp = 375, heightDp = 812)
+@Composable
+private fun InterviewErrorSttPreview() {
+    HilitTheme {
+        InterviewErrorContent(
+            state = InterviewErrorState(errorType = InterviewErrorType.STT),
+            onIntent = {},
+        )
+    }
+}
+
+@Preview(name = "Interview Error Server", widthDp = 375, heightDp = 812)
+@Composable
+private fun InterviewErrorServerPreview() {
+    HilitTheme {
+        InterviewErrorContent(
+            state = InterviewErrorState(errorType = InterviewErrorType.SERVER_TEMPORARY),
             onIntent = {},
         )
     }
