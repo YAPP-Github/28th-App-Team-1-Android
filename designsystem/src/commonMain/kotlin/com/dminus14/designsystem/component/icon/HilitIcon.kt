@@ -29,6 +29,8 @@ import com.dminus14.app.core.resources.kakao_logo
 import com.dminus14.app.core.resources.left
 import com.dminus14.app.core.resources.mic
 import com.dminus14.app.core.resources.network
+import com.dminus14.app.core.resources.opp
+import com.dminus14.app.core.resources.opp_x
 import com.dminus14.app.core.resources.pause
 import com.dminus14.app.core.resources.play
 import com.dminus14.app.core.resources.plus
@@ -100,6 +102,8 @@ enum class HilitIconAsset(
     Network("network", 24.dp, Res.drawable.network),
     AlertRed("alert", 14.dp, Res.drawable.alert_red, preservesOriginalColors = true),
     Finish("finish", 74.dp, Res.drawable.finish, preservesOriginalColors = true),
+    Opp("opp", 74.dp, Res.drawable.opp, preservesOriginalColors = true),
+    OppX("opp_x", 74.dp, Res.drawable.opp_x, preservesOriginalColors = true),
 }
 
 /**

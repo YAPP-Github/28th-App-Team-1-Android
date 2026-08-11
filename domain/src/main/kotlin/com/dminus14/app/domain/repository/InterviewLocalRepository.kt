@@ -5,7 +5,6 @@ import com.dminus14.app.domain.model.InterviewMediaManifest
 import com.dminus14.app.domain.model.InterviewMediaSegmentType
 import com.dminus14.app.domain.model.InterviewProgress
 import com.dminus14.app.domain.model.InterviewUploadTask
-import java.io.File
 
 @Suppress("TooManyFunctions")
 interface InterviewLocalRepository {
@@ -31,8 +30,6 @@ interface InterviewLocalRepository {
         uploadTaskId: String,
         extension: String,
     ): InterviewMediaFileRef
-
-    suspend fun resolveMediaFile(mediaRef: InterviewMediaFileRef): File
 
     suspend fun handoffUploadTask(task: InterviewUploadTask)
 

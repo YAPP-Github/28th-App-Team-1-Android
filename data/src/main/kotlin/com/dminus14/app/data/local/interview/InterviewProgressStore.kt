@@ -1,7 +1,9 @@
 package com.dminus14.app.data.local.interview
 
 import android.content.Context
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.preferencesDataStoreFile
@@ -33,10 +35,12 @@ class InterviewProgressStore
 
         suspend fun read(): InterviewProgress? {
             val preferences = store.data.first()
-            val sessionId = preferences[SESSION_ID] ?: return null
+            val sessionId = preferences[SESSION_ID]
+            val retentionDeadline = preferences[RETENTION_DEADLINE]
+            if (sessionId == null || retentionDeadline == null) return null
             return InterviewProgress(
                 sessionId = sessionId,
-                retentionDeadlineEpochMillis = preferences[RETENTION_DEADLINE] ?: 0L,
+                retentionDeadlineEpochMillis = retentionDeadline,
                 retentionRemainingAtCheckpointMillis = preferences[RETENTION_REMAINING] ?: 0L,
                 retentionCheckpointElapsedRealtimeMillis = preferences[RETENTION_REALTIME],
                 timerStartedAtEpochMillis = preferences[TIMER_STARTED_AT],
@@ -65,8 +69,8 @@ class InterviewProgressStore
         }
 
         private fun Long?.setOrRemove(
-            preferences: androidx.datastore.preferences.core.MutablePreferences,
-            key: androidx.datastore.preferences.core.Preferences.Key<Long>,
+            preferences: MutablePreferences,
+            key: Preferences.Key<Long>,
         ) {
             if (this == null) preferences.remove(key) else preferences[key] = this
         }
