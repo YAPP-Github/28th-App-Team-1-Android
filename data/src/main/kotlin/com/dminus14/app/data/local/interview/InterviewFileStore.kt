@@ -78,6 +78,13 @@ class InterviewFileStore
             ) { "Media reference does not exist" }
         }
 
+        /**
+         * 세션 미디어를 업로드 작업 디렉터리로 옮긴다.
+         *
+         * 업로드 작업 메타데이터가 먼저 기록되어 대상 디렉터리가 이미 존재할 수 있으므로,
+         * 디렉터리 자체를 이동하지 않고 항목 단위로 옮긴다. 같은 이름이 양쪽에 모두 있으면
+         * 충돌로 보고 즉시 실패하며, 부분 이동 후 재시도하면 남은 항목만 이어서 옮긴다.
+         */
         fun handoff(
             sessionId: Long,
             uploadTaskId: String,
@@ -85,11 +92,17 @@ class InterviewFileStore
             val source = sessionDirectory(sessionId)
             val target = uploadDirectory(uploadTaskId)
             check(source.isDirectory) { "Interview session directory does not exist" }
-            check(!target.exists()) { "Upload task directory already exists" }
-            check(target.parentFile?.let { it.isDirectory || it.mkdirs() } == true) {
-                "Failed to create upload directory"
+            check(target.isDirectory || target.mkdirs()) { "Failed to create upload directory" }
+            val entries = source.listFiles().orEmpty()
+            check(entries.none { entry -> target.resolve(entry.name).exists() }) {
+                "Upload task directory already contains interview media"
             }
-            check(source.renameTo(target)) { "Failed to hand off interview media" }
+            entries.forEach { entry ->
+                check(entry.renameTo(target.resolve(entry.name))) {
+                    "Failed to hand off interview media"
+                }
+            }
+            source.delete()
             return target
         }
 

@@ -14,27 +14,37 @@ class InterviewManifestStore
         private val fileStore: InterviewFileStore,
     ) {
         fun read(sessionId: Long): InterviewMediaManifest? =
-            read(fileStore.sessionDirectory(sessionId).resolve(FILE_NAME))
+            read(fileStore.sessionDirectory(sessionId).resolve(FILE_NAME), sessionId)
 
         fun readUpload(uploadTaskId: String): InterviewMediaManifest? =
-            read(fileStore.uploadDirectory(uploadTaskId).resolve(FILE_NAME))
+            read(
+                fileStore.uploadDirectory(uploadTaskId).resolve(FILE_NAME),
+                expectedSessionId = null,
+            )
 
         fun write(manifest: InterviewMediaManifest) {
             write(fileStore.sessionDirectory(manifest.sessionId).resolve(FILE_NAME), manifest)
         }
 
-        private fun read(file: File): InterviewMediaManifest? {
+        private fun read(
+            file: File,
+            expectedSessionId: Long?,
+        ): InterviewMediaManifest? {
             if (!file.exists()) return null
             return runCatching {
                 gson.fromJson(file.readText(Charsets.UTF_8), InterviewMediaManifest::class.java)
-            }.getOrNull()?.takeIf(::isComplete)
+            }.getOrNull()?.takeIf { manifest -> isComplete(manifest, expectedSessionId) }
         }
 
         /** Gson은 기본 생성자를 우회하므로 필수 필드가 누락된 JSON에서 null이 들어올 수 있다. */
         @Suppress("SENSELESS_COMPARISON")
-        private fun isComplete(manifest: InterviewMediaManifest): Boolean =
+        private fun isComplete(
+            manifest: InterviewMediaManifest,
+            expectedSessionId: Long?,
+        ): Boolean =
             manifest.segments != null &&
-                manifest.schemaVersion == InterviewMediaManifest.SCHEMA_VERSION
+                manifest.schemaVersion == InterviewMediaManifest.SCHEMA_VERSION &&
+                (expectedSessionId == null || manifest.sessionId == expectedSessionId)
 
         private fun write(
             file: File,
