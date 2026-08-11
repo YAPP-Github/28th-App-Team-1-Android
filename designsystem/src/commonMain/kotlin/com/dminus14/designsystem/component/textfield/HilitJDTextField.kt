@@ -26,7 +26,6 @@ import com.dminus14.designsystem.component.subtext.HilitSubText
 import com.dminus14.designsystem.component.subtext.HilitSubTextType
 import com.dminus14.designsystem.theme.HilitTheme
 
-/** figma spec확인에 이편이 편해보여서 이렇게 했는데, 보다가 어떤지 코멘트 주세용 */
 private val HilitJDTextFieldShape = RectangleShape
 private val HilitJDTextFieldBorderWidth = 1.dp
 private val HilitJDTextFieldHorizontalPadding = 16.dp
