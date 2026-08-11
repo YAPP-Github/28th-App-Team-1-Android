@@ -14,6 +14,7 @@ import com.dminus14.app.domain.usecase.GetInterviewReportListUseCase
 import com.dminus14.app.domain.usecase.GetInterviewResumeUseCase
 import com.dminus14.app.feature.home.mapper.toHomeReportItem
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -81,6 +82,7 @@ class HomeViewModel
             val tickets = state.value.remainingTicketCount ?: 0
             if (tickets > 0) {
                 sendEffect(HomeEffect.GoToOnboardingInterviewRequested)
+                dismissSessionOverlay()
             } else {
                 reduce {
                     copy(
