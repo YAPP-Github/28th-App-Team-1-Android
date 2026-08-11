@@ -46,7 +46,8 @@ abstract class MviViewModel<I : MviIntent, S : MviState, E : MviEffect>(
         _effect
             .trySend(effect)
             .onFailure { cause ->
-                Log.w(TAG, "Effect 발행 실패: $effect", cause)
+                // Effect data에는 인증 URL이나 불투명 미디어 참조가 포함될 수 있다.
+                Log.w(TAG, "Effect 발행 실패: ${effect::class.simpleName}", cause)
             }
     }
 
