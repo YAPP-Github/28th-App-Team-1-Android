@@ -9,6 +9,7 @@ import com.dminus14.app.domain.exception.ServerException
 import com.dminus14.app.domain.exception.UserNotFoundException
 import com.dminus14.app.domain.model.InterviewResumeState
 import com.dminus14.app.domain.usecase.CheckUserProfileUseCase
+import com.dminus14.app.domain.usecase.GetInterviewProgressUseCase
 import com.dminus14.app.domain.usecase.GetInterviewReportListUseCase
 import com.dminus14.app.domain.usecase.GetInterviewResumeUseCase
 import com.dminus14.app.feature.home.mapper.toHomeReportItem
@@ -24,6 +25,7 @@ class HomeViewModel
         private val checkUserProfileUseCase: CheckUserProfileUseCase,
         private val getInterviewReportListUseCase: GetInterviewReportListUseCase,
         private val getInterviewResumeUseCase: GetInterviewResumeUseCase,
+        private val getInterviewProgressUseCase: GetInterviewProgressUseCase,
     ) : MviViewModel<HomeIntent, HomeState, HomeEffect>(HomeState()) {
         override fun onIntent(intent: HomeIntent) {
             when (intent) {
@@ -180,9 +182,9 @@ class HomeViewModel
         }
 
         private suspend fun checkInterviewSession() {
-            // 면접 세션이 클라이언트 내에 있는지 조회.
-            // 현재는 연동되어있지 않으므로 항상 없다고 표기.
-            val interviewSessionId: Long? = null // 투두 - 활성 세션 ID 조회 연동
+            // 로컬에 저장된 진행 중 면접이 있으면 그 sessionId로 재개 가능 여부를 조회하고,
+            // 없으면 잔여 이용권 기준의 시작 오버레이를 띄운다.
+            val interviewSessionId = getInterviewProgressUseCase()?.sessionId
 
             if (interviewSessionId != null) {
                 getInterviewState(interviewSessionId)
