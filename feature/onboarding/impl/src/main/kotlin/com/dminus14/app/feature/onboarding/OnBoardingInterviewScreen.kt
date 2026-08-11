@@ -115,21 +115,33 @@ private data class PickedPdf(
     val name: String,
 )
 
-/** SAF로 고른 PDF를 앱 캐시로 복사한다. 업로드 UseCase는 [File]을 요구하기 때문이다. */
+/**
+ * SAF로 고른 PDF를 앱 캐시로 복사한다. 업로드 UseCase는 [File]을 요구하기 때문이다.
+ *
+ * 캐시 파일 이름은 SAF display name(문서 공급자 통제, 신뢰 불가)이 아니라
+ * [File.createTempFile]이 만든 랜덤값을 사용한다. `../` 나 절대 경로가 섞인 display name으로
+ * 앱 전용 저장소의 다른 파일을 덮어쓰는 path traversal(CWE-22) 취약점을 원천 차단한다.
+ * 사용자·서버가 보는 원본 이름은 [PickedPdf.name] 문자열로만 별도 보관한다.
+ */
 private fun copyPdfToCache(
     context: Context,
     uri: Uri,
 ): PickedPdf? {
     val resolver = context.contentResolver
-    val name = resolver.queryDisplayName(uri) ?: "portfolio.pdf"
+    val displayName = resolver.queryDisplayName(uri) ?: "portfolio.pdf"
     return runCatching {
-        val target = File(context.cacheDir, name)
+        val target = File.createTempFile("portfolio-", ".pdf", context.cacheDir)
         val copied =
             resolver.openInputStream(uri)?.use { input ->
                 target.outputStream().use { output -> input.copyTo(output) }
                 true
             } ?: false
-        if (copied) PickedPdf(file = target, name = name) else null
+        if (copied) {
+            PickedPdf(file = target, name = displayName)
+        } else {
+            target.delete()
+            null
+        }
     }.getOrNull()
 }
 
