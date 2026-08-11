@@ -4,6 +4,7 @@ import androidx.navigation3.runtime.EntryProviderScope
 import com.dminus14.app.feature.interviewreport.InterviewReportScreen
 import com.dminus14.app.feature.interviewreport.api.InterviewReport
 import com.dminus14.app.feature.interviewreport.api.InterviewReportPlayer
+import com.dminus14.app.feature.interviewreport.player.InterviewReportPlayerScreen
 
 fun EntryProviderScope<Any>.interviewReportEntryBuilder(
     onNavigateBack: () -> Unit,
@@ -18,12 +19,11 @@ fun EntryProviderScope<Any>.interviewReportEntryBuilder(
         )
     }
 
-    entry<InterviewReportPlayer> { _ ->
-        // TODO(C3): InterviewReportPlayerScreen 배선.
-        InterviewReportScreen(
+    entry<InterviewReportPlayer> { key ->
+        InterviewReportPlayerScreen(
+            sessionId = key.sessionId,
+            startSec = key.startSec,
             onNavigateBack = onNavigateBack,
-            onWatchVideo = onWatchVideo,
-            onOpenGuestFeedback = onOpenGuestFeedback,
         )
     }
 }

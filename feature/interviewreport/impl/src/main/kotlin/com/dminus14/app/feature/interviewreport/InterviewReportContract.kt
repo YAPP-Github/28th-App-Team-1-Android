@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import com.dminus14.app.core.common.mvi.MviEffect
 import com.dminus14.app.core.common.mvi.MviIntent
 import com.dminus14.app.core.common.mvi.MviState
+import com.dminus14.app.feature.interviewreport.model.ReportUiModel
 
 sealed interface InterviewReportIntent : MviIntent {
     data object Load : InterviewReportIntent
@@ -41,9 +42,9 @@ data class InterviewReportState(
 
         data object InsufficientAnalysis : Phase
 
-        /** 리포트가 준비된 뒤 UI 렌더에 사용하는 최종 모델. C3에서 채워진다. */
+        /** 리포트가 준비된 뒤 UI 렌더에 사용하는 최종 모델. */
         data class Ready(
-            val placeholder: Unit = Unit,
+            val report: ReportUiModel,
         ) : Phase
     }
 
