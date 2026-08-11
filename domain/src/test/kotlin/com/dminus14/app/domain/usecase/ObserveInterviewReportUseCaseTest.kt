@@ -64,7 +64,8 @@ class ObserveInterviewReportUseCaseTest {
     @Test
     fun `최대 시도 횟수를 넘도록 GENERATING 이 이어지면 FAILED 로 강제 방출한다`() =
         runTest {
-            val responses = List(ObserveInterviewReportUseCase.MAX_ATTEMPTS + 1) { generatingReport() }
+            val responses =
+                List(ObserveInterviewReportUseCase.MAX_ATTEMPTS + 1) { generatingReport() }
             val repository = FakeReportRepository(responses = responses)
             val useCase = ObserveInterviewReportUseCase(repository)
 
@@ -125,8 +126,10 @@ class ObserveInterviewReportUseCaseTest {
             command: SubmitInterviewAnswerCommand,
         ): SubmitAnswerResult = error("사용하지 않음")
 
-        override fun getAudioStreamUrl(sessionId: Long, questionId: Long): String =
-            error("사용하지 않음")
+        override fun getAudioStreamUrl(
+            sessionId: Long,
+            questionId: Long,
+        ): String = error("사용하지 않음")
 
         override suspend fun getResume(sessionId: Long): InterviewResumeStatus = error("사용하지 않음")
 
