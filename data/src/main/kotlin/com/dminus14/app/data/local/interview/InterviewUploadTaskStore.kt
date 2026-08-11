@@ -34,13 +34,12 @@ class InterviewUploadTaskStore
             file.parentFile?.mkdirs()
             val temporary = file.resolveSibling("task.json.tmp")
             temporary.writeText(gson.toJson(task), Charsets.UTF_8)
-            if (file.exists()) check(file.delete())
-            check(temporary.renameTo(file))
+            check(temporary.renameTo(file)) { "Failed to write interview upload task" }
         }
 
         fun readAll(): List<InterviewUploadTask> =
             fileStore
-                .uploadDirectory("")
+                .uploadRootDirectory()
                 .listFiles()
                 .orEmpty()
                 .filter(File::isDirectory)

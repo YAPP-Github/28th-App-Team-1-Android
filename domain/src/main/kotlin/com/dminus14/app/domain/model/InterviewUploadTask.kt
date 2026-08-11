@@ -17,7 +17,6 @@ data class InterviewUploadTask(
     val uploadTaskId: String,
     val sessionId: Long,
     val retentionDeadlineEpochMillis: Long,
-    val manifestFileName: String = "manifest.json",
     val status: InterviewUploadTaskStatus = InterviewUploadTaskStatus.PENDING_MERGE,
     val retryCount: Int = 0,
     val networkPolicy: InterviewUploadNetworkPolicy = InterviewUploadNetworkPolicy.UNMETERED,

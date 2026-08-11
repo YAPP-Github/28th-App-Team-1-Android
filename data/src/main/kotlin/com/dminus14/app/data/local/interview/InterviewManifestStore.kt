@@ -27,8 +27,14 @@ class InterviewManifestStore
             if (!file.exists()) return null
             return runCatching {
                 gson.fromJson(file.readText(Charsets.UTF_8), InterviewMediaManifest::class.java)
-            }.getOrNull()?.takeIf { it.schemaVersion == InterviewMediaManifest.SCHEMA_VERSION }
+            }.getOrNull()?.takeIf(::isComplete)
         }
+
+        /** Gson은 기본 생성자를 우회하므로 필수 필드가 누락된 JSON에서 null이 들어올 수 있다. */
+        @Suppress("SENSELESS_COMPARISON")
+        private fun isComplete(manifest: InterviewMediaManifest): Boolean =
+            manifest.segments != null &&
+                manifest.schemaVersion == InterviewMediaManifest.SCHEMA_VERSION
 
         private fun write(
             file: File,
@@ -37,8 +43,7 @@ class InterviewManifestStore
             file.parentFile?.mkdirs()
             val temporary = file.resolveSibling("$FILE_NAME.tmp")
             temporary.writeText(gson.toJson(manifest), Charsets.UTF_8)
-            if (file.exists()) check(file.delete())
-            check(temporary.renameTo(file))
+            check(temporary.renameTo(file)) { "Failed to write interview media manifest" }
         }
 
         private companion object {
