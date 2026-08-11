@@ -735,7 +735,8 @@ class OnBoardingInterviewViewModel
                     }
 
                     OnBoardingInterviewStep.Preload -> {
-                        OnBoardingInterviewStep.MainProject
+                        // Preload 스텝에선 뒤로가기를 봉쇄한다.
+                        return
                     }
                 }
             reduce { copy(step = previous, errorMessage = null) }
