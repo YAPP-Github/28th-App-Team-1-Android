@@ -72,7 +72,9 @@ internal fun TranscriptWithHighlights(
     )
 }
 
-private fun HighlightUiTone.toSpanStyle(colors: com.dminus14.designsystem.theme.HilitColors): SpanStyle {
+private fun HighlightUiTone.toSpanStyle(
+    colors: com.dminus14.designsystem.theme.HilitColors,
+): SpanStyle {
     val (background, foreground) =
         when (this) {
             HighlightUiTone.POSITIVE -> colors.positive200 to colors.positive800
@@ -82,7 +84,14 @@ private fun HighlightUiTone.toSpanStyle(colors: com.dminus14.designsystem.theme.
     return SpanStyle(
         background = background,
         color = foreground,
-        fontWeight = if (this == HighlightUiTone.NEUTRAL) FontWeight.Normal else FontWeight.SemiBold,
+        fontWeight =
+            if (this ==
+                HighlightUiTone.NEUTRAL
+            ) {
+                FontWeight.Normal
+            } else {
+                FontWeight.SemiBold
+            },
     )
 }
 

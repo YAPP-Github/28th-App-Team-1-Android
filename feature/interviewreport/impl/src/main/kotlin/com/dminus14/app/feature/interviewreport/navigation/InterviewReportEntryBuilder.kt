@@ -11,8 +11,9 @@ fun EntryProviderScope<Any>.interviewReportEntryBuilder(
     onWatchVideo: (sessionId: Long, startSec: Float?) -> Unit,
     onOpenGuestFeedback: (sessionId: Long) -> Unit,
 ) {
-    entry<InterviewReport> {
+    entry<InterviewReport> { key ->
         InterviewReportScreen(
+            sessionId = key.sessionId,
             onNavigateBack = onNavigateBack,
             onWatchVideo = onWatchVideo,
             onOpenGuestFeedback = onOpenGuestFeedback,

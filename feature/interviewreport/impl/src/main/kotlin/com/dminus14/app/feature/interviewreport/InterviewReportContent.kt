@@ -39,10 +39,11 @@ internal fun InterviewReportContent(
         modifier = modifier.fillMaxSize().background(colors.gray50),
     ) {
         when (val phase = state.phase) {
-            InterviewReportState.Phase.Loading ->
+            InterviewReportState.Phase.Loading -> {
                 CenteredMessage(content = { HilitLoadingIndicator() })
+            }
 
-            InterviewReportState.Phase.Failed ->
+            InterviewReportState.Phase.Failed -> {
                 CenteredMessage(
                     content = {
                         Text(
@@ -52,8 +53,9 @@ internal fun InterviewReportContent(
                         )
                     },
                 )
+            }
 
-            InterviewReportState.Phase.InsufficientAnalysis ->
+            InterviewReportState.Phase.InsufficientAnalysis -> {
                 CenteredMessage(
                     content = {
                         Text(
@@ -63,12 +65,14 @@ internal fun InterviewReportContent(
                         )
                     },
                 )
+            }
 
-            is InterviewReportState.Phase.Ready ->
+            is InterviewReportState.Phase.Ready -> {
                 ReadyReport(
                     report = phase.report,
                     onIntent = onIntent,
                 )
+            }
         }
 
         val selected = state.selectedHighlight
@@ -83,7 +87,11 @@ internal fun InterviewReportContent(
                     showWatchSceneButton = true,
                     onDismiss = { onIntent(InterviewReportIntent.DismissHighlight) },
                     onWatchScene = {
-                        highlight.startSec?.let { onIntent(InterviewReportIntent.ClickWatchScene(it)) }
+                        highlight.startSec?.let {
+                            onIntent(
+                                InterviewReportIntent.ClickWatchScene(it),
+                            )
+                        }
                     },
                 )
             }

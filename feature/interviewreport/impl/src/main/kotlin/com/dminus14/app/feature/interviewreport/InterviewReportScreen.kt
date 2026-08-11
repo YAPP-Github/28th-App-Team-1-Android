@@ -18,6 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
  */
 @Composable
 fun InterviewReportScreen(
+    sessionId: Long,
     onNavigateBack: () -> Unit,
     onWatchVideo: (sessionId: Long, startSec: Float?) -> Unit,
     onOpenGuestFeedback: (sessionId: Long) -> Unit,
@@ -27,17 +28,28 @@ fun InterviewReportScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(sessionId) {
+        viewModel.bindSessionId(sessionId)
         viewModel.onIntent(InterviewReportIntent.Load)
+    }
+    LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                InterviewReportEffect.NavigateBack -> onNavigateBack()
-                is InterviewReportEffect.NavigateToPlayer ->
+                InterviewReportEffect.NavigateBack -> {
+                    onNavigateBack()
+                }
+
+                is InterviewReportEffect.NavigateToPlayer -> {
                     onWatchVideo(effect.sessionId, effect.startSec)
-                is InterviewReportEffect.NavigateToGuestFeedback ->
+                }
+
+                is InterviewReportEffect.NavigateToGuestFeedback -> {
                     onOpenGuestFeedback(effect.sessionId)
-                is InterviewReportEffect.ShowToast ->
+                }
+
+                is InterviewReportEffect.ShowToast -> {
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

@@ -34,7 +34,10 @@ object InterviewReportUiMapper {
                 .sortedWith(compareBy({ it.axisOrder }, { it.depthLevel }))
                 .map { it.toUi() }
         val hasSevereRedFlag = cards.any { it.cardRedFlagNotices.isNotEmpty() }
-        val redFlagNotices = cards.flatMap { it.cardRedFlagNotices }.distinct().take(MAX_RED_FLAG_LINES)
+        val redFlagNotices =
+            cards.flatMap { it.cardRedFlagNotices }.distinct().take(
+                MAX_RED_FLAG_LINES,
+            )
 
         return ReportUiModel(
             headline = report.toHeadline(hasSevereRedFlag = hasSevereRedFlag),
@@ -47,21 +50,26 @@ object InterviewReportUiMapper {
     private fun InterviewReport.toHeadline(hasSevereRedFlag: Boolean): HeadlineUiModel {
         val insufficient = status == InterviewReportStatus.INSUFFICIENT_ANALYSIS
         return when {
-            insufficient ->
+            insufficient -> {
                 HeadlineUiModel(
                     text = headline ?: DEFAULT_INSUFFICIENT_HEADLINE,
                     tone = HeadlineTone.INSUFFICIENT,
                 )
-            hasSevereRedFlag ->
+            }
+
+            hasSevereRedFlag -> {
                 HeadlineUiModel(
                     text = headline.orEmpty(),
                     tone = HeadlineTone.NEUTRAL,
                 )
-            else ->
+            }
+
+            else -> {
                 HeadlineUiModel(
                     text = headline.orEmpty(),
                     tone = HeadlineTone.POSITIVE,
                 )
+            }
         }
     }
 

@@ -29,7 +29,8 @@ class InterviewReportUiMapperTest {
 
     @Test
     fun `분석 부족 상태는 헤드라인 톤을 INSUFFICIENT 로 매핑하고 기본 문구를 채워준다`() {
-        val report = sampleReport(status = InterviewReportStatus.INSUFFICIENT_ANALYSIS, headline = null)
+        val report =
+            sampleReport(status = InterviewReportStatus.INSUFFICIENT_ANALYSIS, headline = null)
 
         val ui = InterviewReportUiMapper.map(report)
 
@@ -42,7 +43,8 @@ class InterviewReportUiMapperTest {
         val cardWithFlag =
             sampleCard(axisOrder = 1, depthLevel = 1)
                 .copy(cardRedFlagNotices = listOf("답변 사이에 사실관계가 엇갈린 지점이 있었어요."))
-        val report = sampleReport(status = InterviewReportStatus.READY, cards = listOf(cardWithFlag))
+        val report =
+            sampleReport(status = InterviewReportStatus.READY, cards = listOf(cardWithFlag))
 
         val ui = InterviewReportUiMapper.map(report)
 
@@ -122,7 +124,11 @@ class InterviewReportUiMapperTest {
 
         val ui = InterviewReportUiMapper.map(report)
 
-        val mappedHighlight = ui.cards.single().highlights.single()
+        val mappedHighlight =
+            ui.cards
+                .single()
+                .highlights
+                .single()
         assertEquals(3, mappedHighlight.startIndex)
         assertEquals(transcript.length, mappedHighlight.endIndex)
         assertEquals(HighlightUiTone.POSITIVE, mappedHighlight.tone)

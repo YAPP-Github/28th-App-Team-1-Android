@@ -46,7 +46,11 @@ internal fun HighlightDetailBottomSheet(
             ) {
                 DiagnosisBlock(
                     highlight = highlight,
-                    transcriptSlice = transcript.safeSlice(highlight.startIndex, highlight.endIndex),
+                    transcriptSlice =
+                        transcript.safeSlice(
+                            highlight.startIndex,
+                            highlight.endIndex,
+                        ),
                 )
                 if (showWatchSceneButton && highlight.startSec != null) {
                     WatchSceneButton(onClick = onWatchScene)
@@ -155,25 +159,32 @@ private fun NextPreparationBlock(highlight: HighlightUiModel) {
             }
         }
 
-        HighlightUiReason.SHALLOW ->
+        HighlightUiReason.SHALLOW -> {
             Text(
                 text = "다음엔 조금 더 자세히 답해보세요.",
                 style = HilitTheme.typography.body7,
                 color = colors.gray700,
             )
+        }
 
-        HighlightUiReason.SUFFICIENT ->
+        HighlightUiReason.SUFFICIENT -> {
             Text(
                 text = "여기는 면접관이 더 캐물 게 없을 만큼 충분히 답하셨어요.",
                 style = HilitTheme.typography.body7,
                 color = colors.gray700,
             )
+        }
 
-        HighlightUiReason.UNKNOWN -> Unit
+        HighlightUiReason.UNKNOWN -> {
+            Unit
+        }
     }
 }
 
-private fun String.safeSlice(start: Int, end: Int): String {
+private fun String.safeSlice(
+    start: Int,
+    end: Int,
+): String {
     if (isEmpty()) return ""
     val safeStart = start.coerceIn(0, length)
     val safeEnd = end.coerceIn(safeStart, length)

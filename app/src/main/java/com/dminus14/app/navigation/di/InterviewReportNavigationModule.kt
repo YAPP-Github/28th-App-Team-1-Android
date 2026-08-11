@@ -15,12 +15,16 @@ import dagger.multibindings.IntoSet
 object InterviewReportNavigationModule {
     @IntoSet
     @Provides
-    fun provideInterviewReportEntryInstaller(navigator: Navigator): EntryProviderScope<Any>.() -> Unit =
+    fun provideInterviewReportEntryInstaller(
+        navigator: Navigator,
+    ): EntryProviderScope<Any>.() -> Unit =
         {
             interviewReportEntryBuilder(
                 onNavigateBack = navigator::goBack,
                 onWatchVideo = { sessionId, startSec ->
-                    navigator.goTo(InterviewReportPlayer(sessionId = sessionId, startSec = startSec))
+                    navigator.goTo(
+                        InterviewReportPlayer(sessionId = sessionId, startSec = startSec),
+                    )
                 },
                 // TODO(#1111): feature:feedback:api 계약 확정 후 배선.
                 onOpenGuestFeedback = { _ -> },

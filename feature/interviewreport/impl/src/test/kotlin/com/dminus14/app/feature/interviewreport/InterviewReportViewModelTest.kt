@@ -1,0 +1,280 @@
+package com.dminus14.app.feature.interviewreport
+
+import com.dminus14.app.domain.model.InterviewAbandon
+import com.dminus14.app.domain.model.InterviewAbandonRequestCause
+import com.dminus14.app.domain.model.InterviewReport
+import com.dminus14.app.domain.model.InterviewReportList
+import com.dminus14.app.domain.model.InterviewReportStatus
+import com.dminus14.app.domain.model.InterviewReportVideo
+import com.dminus14.app.domain.model.InterviewResumeConfirm
+import com.dminus14.app.domain.model.InterviewResumeStatus
+import com.dminus14.app.domain.model.InterviewSessionRequest
+import com.dminus14.app.domain.model.InterviewSessionResult
+import com.dminus14.app.domain.model.InterviewSessionStatus
+import com.dminus14.app.domain.model.InterviewVideoExpiry
+import com.dminus14.app.domain.model.InterviewVideoUploadUrl
+import com.dminus14.app.domain.model.JdValidationResult
+import com.dminus14.app.domain.model.SubmitAnswerResult
+import com.dminus14.app.domain.model.SubmitInterviewAnswerCommand
+import com.dminus14.app.domain.model.UploadInterviewVideoCommand
+import com.dminus14.app.domain.repository.InterviewRepository
+import com.dminus14.app.domain.usecase.ObserveInterviewReportUseCase
+import com.dminus14.app.feature.interviewreport.InterviewReportState.Phase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class InterviewReportViewModelTest {
+    private val dispatcher = UnconfinedTestDispatcher()
+
+    @Before
+    fun setUp() {
+        Dispatchers.setMain(dispatcher)
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
+
+    @Test
+    fun `READY 응답을 받으면 Ready 로 전이한다`() =
+        runTest {
+            val viewModel = viewModel(FakeInterviewRepository(listOf(readyReport())))
+
+            viewModel.bindSessionId(1L)
+            viewModel.onIntent(InterviewReportIntent.Load)
+            advanceUntilIdle()
+
+            val phase = viewModel.state.value.phase
+            assertTrue("expected Ready but was $phase", phase is Phase.Ready)
+        }
+
+    @Test
+    fun `INSUFFICIENT_ANALYSIS 응답은 InsufficientAnalysis 로 전이한다`() =
+        runTest {
+            val insufficient =
+                readyReport().copy(
+                    status = InterviewReportStatus.INSUFFICIENT_ANALYSIS,
+                )
+            val viewModel = viewModel(FakeInterviewRepository(listOf(insufficient)))
+
+            viewModel.bindSessionId(1L)
+            viewModel.onIntent(InterviewReportIntent.Load)
+            advanceUntilIdle()
+
+            assertEquals(Phase.InsufficientAnalysis, viewModel.state.value.phase)
+        }
+
+    @Test
+    fun `getReport 가 예외로 종료되면 Failed 로 전이한다`() =
+        runTest {
+            val viewModel = viewModel(ThrowingInterviewRepository())
+
+            viewModel.bindSessionId(1L)
+            viewModel.onIntent(InterviewReportIntent.Load)
+            advanceUntilIdle()
+
+            assertEquals(Phase.Failed, viewModel.state.value.phase)
+        }
+
+    @Test
+    fun `하이라이트 선택 후 해제하면 selectedHighlight 가 초기화된다`() =
+        runTest {
+            val viewModel = viewModel(FakeInterviewRepository(listOf(readyReport())))
+            viewModel.bindSessionId(1L)
+            viewModel.onIntent(InterviewReportIntent.Load)
+            advanceUntilIdle()
+
+            viewModel.onIntent(InterviewReportIntent.ClickHighlight(0, 1))
+            assertEquals(
+                InterviewReportState.SelectedHighlight(0, 1),
+                viewModel.state.value.selectedHighlight,
+            )
+
+            viewModel.onIntent(InterviewReportIntent.DismissHighlight)
+            assertNull(viewModel.state.value.selectedHighlight)
+        }
+
+    @Test
+    fun `영상이 만료됐으면 ClickWatchVideo 는 Toast 를 발행하고 Player 로 이동하지 않는다`() =
+        runTest {
+            val expired =
+                readyReport().copy(
+                    video = InterviewReportVideo(url = null, expired = true, expiresAt = null),
+                )
+            val viewModel = viewModel(FakeInterviewRepository(listOf(expired)))
+            val effects = mutableListOf<InterviewReportEffect>()
+            val job = TestScope(dispatcher).launch { viewModel.effect.collect { effects += it } }
+
+            viewModel.bindSessionId(1L)
+            viewModel.onIntent(InterviewReportIntent.Load)
+            advanceUntilIdle()
+            viewModel.onIntent(InterviewReportIntent.ClickWatchVideo)
+            advanceUntilIdle()
+
+            assertTrue(effects.any { it is InterviewReportEffect.ShowToast })
+            assertTrue(effects.none { it is InterviewReportEffect.NavigateToPlayer })
+            job.cancel()
+        }
+
+    @Test
+    fun `영상이 유효하면 ClickWatchVideo 는 Player 로 이동한다`() =
+        runTest {
+            val available =
+                readyReport().copy(
+                    video =
+                        InterviewReportVideo(
+                            url = "https://cdn/x.mp4",
+                            expired = false,
+                            expiresAt = null,
+                        ),
+                )
+            val viewModel = viewModel(FakeInterviewRepository(listOf(available)))
+            val effects = mutableListOf<InterviewReportEffect>()
+            val job = TestScope(dispatcher).launch { viewModel.effect.collect { effects += it } }
+
+            viewModel.bindSessionId(5L)
+            viewModel.onIntent(InterviewReportIntent.Load)
+            advanceUntilIdle()
+            viewModel.onIntent(InterviewReportIntent.ClickWatchVideo)
+            advanceUntilIdle()
+
+            val navigate =
+                effects
+                    .filterIsInstance<InterviewReportEffect.NavigateToPlayer>()
+                    .single()
+            assertEquals(5L, navigate.sessionId)
+            assertNull(navigate.startSec)
+            job.cancel()
+        }
+
+    private fun readyReport(): InterviewReport =
+        InterviewReport(
+            status = InterviewReportStatus.READY,
+            headline = "요약",
+            video = null,
+            cards = emptyList(),
+            script = null,
+            guestFeedback = null,
+        )
+
+    private fun viewModel(repository: InterviewRepository): InterviewReportViewModel =
+        InterviewReportViewModel(ObserveInterviewReportUseCase(repository))
+}
+
+private class FakeInterviewRepository(
+    private val responses: List<InterviewReport>,
+) : InterviewRepository {
+    private var index: Int = 0
+
+    override suspend fun getReport(sessionId: Long): InterviewReport {
+        val current = index.coerceAtMost(responses.lastIndex)
+        index += 1
+        return responses[current]
+    }
+
+    override suspend fun validateJdUrl(jdUrl: String): JdValidationResult = error("사용하지 않음")
+
+    override suspend fun createInterviewSession(
+        request: InterviewSessionRequest,
+    ): InterviewSessionResult = error("사용하지 않음")
+
+    override suspend fun getInterviewSession(sessionId: Long): InterviewSessionStatus =
+        error("사용하지 않음")
+
+    override suspend fun getInterviewSessionStatus(sessionId: Long): InterviewSessionStatus =
+        error("사용하지 않음")
+
+    override suspend fun getReportList(): InterviewReportList = error("사용하지 않음")
+
+    override suspend fun submitAnswer(command: SubmitInterviewAnswerCommand): SubmitAnswerResult =
+        error("사용하지 않음")
+
+    override fun getAudioStreamUrl(
+        sessionId: Long,
+        questionId: Long,
+    ): String = error("사용하지 않음")
+
+    override suspend fun getResume(sessionId: Long): InterviewResumeStatus = error("사용하지 않음")
+
+    override suspend fun confirmResume(sessionId: Long): InterviewResumeConfirm = error("사용하지 않음")
+
+    override suspend fun abandon(
+        sessionId: Long,
+        cause: InterviewAbandonRequestCause,
+    ): InterviewAbandon = error("사용하지 않음")
+
+    override suspend fun issueUploadUrl(sessionId: Long): InterviewVideoUploadUrl = error("사용하지 않음")
+
+    override suspend fun uploadVideo(command: UploadInterviewVideoCommand) = error("사용하지 않음")
+
+    override suspend fun completeUpload(
+        sessionId: Long,
+        wrapUpStartSec: Float?,
+        wrapUpEndSec: Float?,
+    ) = error("사용하지 않음")
+
+    override suspend fun getExpiry(sessionId: Long): InterviewVideoExpiry = error("사용하지 않음")
+}
+
+private class ThrowingInterviewRepository : InterviewRepository {
+    override suspend fun getReport(sessionId: Long): InterviewReport =
+        throw IllegalStateException("네트워크 오류")
+
+    override suspend fun validateJdUrl(jdUrl: String): JdValidationResult = error("사용하지 않음")
+
+    override suspend fun createInterviewSession(
+        request: InterviewSessionRequest,
+    ): InterviewSessionResult = error("사용하지 않음")
+
+    override suspend fun getInterviewSession(sessionId: Long): InterviewSessionStatus =
+        error("사용하지 않음")
+
+    override suspend fun getInterviewSessionStatus(sessionId: Long): InterviewSessionStatus =
+        error("사용하지 않음")
+
+    override suspend fun getReportList(): InterviewReportList = error("사용하지 않음")
+
+    override suspend fun submitAnswer(command: SubmitInterviewAnswerCommand): SubmitAnswerResult =
+        error("사용하지 않음")
+
+    override fun getAudioStreamUrl(
+        sessionId: Long,
+        questionId: Long,
+    ): String = error("사용하지 않음")
+
+    override suspend fun getResume(sessionId: Long): InterviewResumeStatus = error("사용하지 않음")
+
+    override suspend fun confirmResume(sessionId: Long): InterviewResumeConfirm = error("사용하지 않음")
+
+    override suspend fun abandon(
+        sessionId: Long,
+        cause: InterviewAbandonRequestCause,
+    ): InterviewAbandon = error("사용하지 않음")
+
+    override suspend fun issueUploadUrl(sessionId: Long): InterviewVideoUploadUrl = error("사용하지 않음")
+
+    override suspend fun uploadVideo(command: UploadInterviewVideoCommand) = error("사용하지 않음")
+
+    override suspend fun completeUpload(
+        sessionId: Long,
+        wrapUpStartSec: Float?,
+        wrapUpEndSec: Float?,
+    ) = error("사용하지 않음")
+
+    override suspend fun getExpiry(sessionId: Long): InterviewVideoExpiry = error("사용하지 않음")
+}
