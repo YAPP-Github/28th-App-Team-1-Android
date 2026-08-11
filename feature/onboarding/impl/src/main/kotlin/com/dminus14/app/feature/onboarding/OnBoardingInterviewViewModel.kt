@@ -441,44 +441,50 @@ class OnBoardingInterviewViewModel
                 )
             }
             viewModelScope.launch {
-                val validation =
-                    withContext(Dispatchers.IO) {
-                        validatePdf(context.contentResolver, Uri.fromFile(intent.file))
-                    }
-                val validationMessage = validation.toErrorMessageOrNull()
-                if (validationMessage != null) {
-                    reduce {
-                        copy(
-                            isPortfolioProcessing = false,
-                            portfolioFileName = null,
-                            portfolioErrorMessage = validationMessage,
-                            portfolioUploadProgress = 0,
-                        )
-                    }
-                    return@launch
-                }
-
-                // 서버 스펙: pageCount 는 Positive int 필수. null 로 보내면 400.
-                // validatePdf 가 Valid 를 반환한 시점에 이미 pageCount 를 알고 있으므로 그대로 전달한다.
-                val pageCount = (validation as? PdfValidationResult.Valid)?.pageCount
-                uploadPortfolio(
-                    file = intent.file,
-                    fileName = intent.fileName,
-                    pageCount = pageCount,
-                ).onSuccess { result -> pollPortfolioStatus(result.portfolioId) }
-                    .onFailure { error ->
-                        // 서버 매핑된 예외 메시지(스펙 6장 문구)를 그대로 보여준다.
-                        // 매핑되지 않은 실패는 시스템 실패 안내로 폴백한다.
+                try {
+                    val validation =
+                        withContext(Dispatchers.IO) {
+                            validatePdf(context.contentResolver, Uri.fromFile(intent.file))
+                        }
+                    val validationMessage = validation.toErrorMessageOrNull()
+                    if (validationMessage != null) {
                         reduce {
                             copy(
                                 isPortfolioProcessing = false,
                                 portfolioFileName = null,
-                                portfolioErrorMessage =
-                                    error.message ?: MESSAGE_PORTFOLIO_SYSTEM_FAILED,
+                                portfolioErrorMessage = validationMessage,
                                 portfolioUploadProgress = 0,
                             )
                         }
+                        return@launch
                     }
+
+                    // 서버 스펙: pageCount 는 Positive int 필수. null 로 보내면 400.
+                    // validatePdf 가 Valid 를 반환한 시점에 이미 pageCount 를 알고 있으므로 그대로 전달한다.
+                    val pageCount = (validation as? PdfValidationResult.Valid)?.pageCount
+                    uploadPortfolio(
+                        file = intent.file,
+                        fileName = intent.fileName,
+                        pageCount = pageCount,
+                    ).onSuccess { result -> pollPortfolioStatus(result.portfolioId) }
+                        .onFailure { error ->
+                            // 서버 매핑된 예외 메시지(스펙 6장 문구)를 그대로 보여준다.
+                            // 매핑되지 않은 실패는 시스템 실패 안내로 폴백한다.
+                            reduce {
+                                copy(
+                                    isPortfolioProcessing = false,
+                                    portfolioFileName = null,
+                                    portfolioErrorMessage =
+                                        error.message ?: MESSAGE_PORTFOLIO_SYSTEM_FAILED,
+                                    portfolioUploadProgress = 0,
+                                )
+                            }
+                        }
+                } finally {
+                    // 검증 실패·업로드 성공·실패·폴링·취소 어떤 경로든 캐시 사본은 정리한다.
+                    // 폴링은 서버 sessionId만 사용하므로 이 시점 이후 로컬 file 참조는 없다.
+                    intent.file.delete()
+                }
             }
         }
 
