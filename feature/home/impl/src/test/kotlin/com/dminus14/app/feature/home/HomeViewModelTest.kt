@@ -7,6 +7,7 @@ import com.dminus14.app.domain.exception.ServerException
 import com.dminus14.app.domain.exception.UserNotFoundException
 import com.dminus14.app.domain.model.InterviewAbandon
 import com.dminus14.app.domain.model.InterviewAbandonRequestCause
+import com.dminus14.app.domain.model.InterviewProgress
 import com.dminus14.app.domain.model.InterviewReport
 import com.dminus14.app.domain.model.InterviewReportList
 import com.dminus14.app.domain.model.InterviewReportListItem
@@ -25,9 +26,11 @@ import com.dminus14.app.domain.model.SubmitInterviewAnswerCommand
 import com.dminus14.app.domain.model.UploadInterviewVideoCommand
 import com.dminus14.app.domain.model.UserProfile
 import com.dminus14.app.domain.model.UserProfileUpdate
+import com.dminus14.app.domain.repository.InterviewLocalRepository
 import com.dminus14.app.domain.repository.InterviewRepository
 import com.dminus14.app.domain.repository.UserRepository
 import com.dminus14.app.domain.usecase.CheckUserProfileUseCase
+import com.dminus14.app.domain.usecase.GetInterviewProgressUseCase
 import com.dminus14.app.domain.usecase.GetInterviewReportListUseCase
 import com.dminus14.app.domain.usecase.GetInterviewResumeUseCase
 import kotlinx.coroutines.CompletableDeferred
@@ -542,10 +545,150 @@ class HomeViewModelTest {
             )
         }
 
-    // ---- getInterviewState (활성 세션 ID 존재 경로 직접 호출) ----
-    // 현재 checkInterviewSession() 안의 활성 세션 ID가 하드코딩 null(투두)이라 인텐트로는
-    // 도달하지 못한다. sessionId 파라미터를 받는 getInterviewState()는 internal 로 열어
-    // 테스트에서 임의 ID로 직접 호출한다. 세션 조회 로직이 연동되면 인텐트 경유 케이스로 이관 예정.
+    // ---- ReportSheetCollapsed - 로컬 progress 있음 (checkInterviewSession) ----
+
+    @Test
+    fun `로컬 progress RESUMABLE이면 ReportSheetCollapsed는 InProgress 오버레이를 세팅한다`() =
+        runViewModelTest {
+            val interviewRepo =
+                FakeInterviewRepository(
+                    resumeResult =
+                        Result.success(resumeStatus(InterviewResumeState.Resumable)),
+                )
+            val viewModel =
+                createViewModel(
+                    interviewRepository = interviewRepo,
+                    progress = sampleProgress(sessionId = 777L),
+                )
+            viewModel.onIntent(HomeIntent.Load)
+            advanceUntilIdle()
+
+            viewModel.onIntent(HomeIntent.ReportSheetCollapsed)
+            advanceUntilIdle()
+
+            val overlay = viewModel.state.value.sessionStartOverlay
+            assertTrue(overlay is HomeSessionStartOverlayState.InProgress)
+            assertEquals("홍길동", (overlay as HomeSessionStartOverlayState.InProgress).userName)
+            assertEquals(2, overlay.remainingQuestionCount)
+            assertEquals(listOf(777L), interviewRepo.resumeSessionIds)
+        }
+
+    @Test
+    fun `로컬 progress ENDED·이용권 있으면 ReportSheetCollapsed는 Start 오버레이를 세팅한다`() =
+        runViewModelTest {
+            val interviewRepo =
+                FakeInterviewRepository(
+                    resumeResult =
+                        Result.success(resumeStatus(InterviewResumeState.Ended)),
+                )
+            val viewModel =
+                createViewModel(
+                    interviewRepository = interviewRepo,
+                    progress = sampleProgress(sessionId = 42L),
+                )
+            viewModel.onIntent(HomeIntent.Load)
+            advanceUntilIdle()
+
+            viewModel.onIntent(HomeIntent.ReportSheetCollapsed)
+            advanceUntilIdle()
+
+            val overlay = viewModel.state.value.sessionStartOverlay
+            assertTrue(overlay is HomeSessionStartOverlayState.Start)
+            assertEquals(
+                3,
+                (overlay as HomeSessionStartOverlayState.Start).remainingTicketCount,
+            )
+            assertEquals(listOf(42L), interviewRepo.resumeSessionIds)
+        }
+
+    @Test
+    fun `로컬 progress ENDED·이용권 0이면 ReportSheetCollapsed는 NoTickets 오버레이를 세팅한다`() =
+        runViewModelTest {
+            val interviewRepo =
+                FakeInterviewRepository(
+                    resumeResult =
+                        Result.success(resumeStatus(InterviewResumeState.Ended)),
+                )
+            val viewModel =
+                createViewModel(
+                    userRepository =
+                        FakeUserRepository(
+                            profileResult =
+                                Result.success(
+                                    sampleUserProfile.copy(remainingTicketCount = 0),
+                                ),
+                        ),
+                    interviewRepository = interviewRepo,
+                    progress = sampleProgress(sessionId = 42L),
+                )
+            viewModel.onIntent(HomeIntent.Load)
+            advanceUntilIdle()
+
+            viewModel.onIntent(HomeIntent.ReportSheetCollapsed)
+            advanceUntilIdle()
+
+            assertTrue(
+                viewModel.state.value.sessionStartOverlay is HomeSessionStartOverlayState.NoTickets,
+            )
+            assertEquals(listOf(42L), interviewRepo.resumeSessionIds)
+        }
+
+    @Test
+    fun `로컬 progress resumeState 미정의면 ReportSheetCollapsed는 오버레이를 띄우지 않는다`() =
+        runViewModelTest {
+            val interviewRepo =
+                FakeInterviewRepository(
+                    resumeResult =
+                        Result.success(
+                            resumeStatus(InterviewResumeState.Unknown("UNKNOWN_RAW")),
+                        ),
+                )
+            val viewModel =
+                createViewModel(
+                    interviewRepository = interviewRepo,
+                    progress = sampleProgress(sessionId = 42L),
+                )
+            viewModel.onIntent(HomeIntent.Load)
+            advanceUntilIdle()
+
+            viewModel.onIntent(HomeIntent.ReportSheetCollapsed)
+            advanceUntilIdle()
+
+            assertNull(viewModel.state.value.sessionStartOverlay)
+            assertEquals(listOf(42L), interviewRepo.resumeSessionIds)
+        }
+
+    @Test
+    fun `로컬 progress resume 조회 실패면 ReportSheetCollapsed는 네트워크 오류 이벤트를 발행한다`() =
+        runViewModelTest {
+            val interviewRepo =
+                FakeInterviewRepository(
+                    resumeResult =
+                        Result.failure(NetworkUnavailableException(errCode = "NETWORK")),
+                )
+            val viewModel =
+                createViewModel(
+                    interviewRepository = interviewRepo,
+                    progress = sampleProgress(sessionId = 99L),
+                )
+            val globalEvents = mutableListOf<GlobalAppEvent>()
+            val eventJob =
+                launch(start = CoroutineStart.UNDISPATCHED) {
+                    GlobalErrorHandler.events.collect { globalEvents.add(it.event) }
+                }
+            viewModel.onIntent(HomeIntent.Load)
+            advanceUntilIdle()
+
+            viewModel.onIntent(HomeIntent.ReportSheetCollapsed)
+            advanceUntilIdle()
+
+            assertEquals(GlobalAppEvent.ShowNetworkErrorAndExit, globalEvents.firstOrNull())
+            assertEquals(listOf(99L), interviewRepo.resumeSessionIds)
+            eventJob.cancel()
+        }
+
+    // ---- getInterviewState (internal 직접 호출) ----
+    // ReportSheetCollapsed 경유 케이스는 위 섹션에서 검증한다. 여기서는 internal API 단위 검증을 유지한다.
 
     @Test
     fun `getInterviewState 시 RESUMABLE이면 InProgress 오버레이가 세팅된다`() =
@@ -749,11 +892,16 @@ class HomeViewModelTest {
     private fun createViewModel(
         userRepository: UserRepository = FakeUserRepository(),
         interviewRepository: InterviewRepository = FakeInterviewRepository(),
+        progress: InterviewProgress? = null,
     ): HomeViewModel =
         HomeViewModel(
             checkUserProfileUseCase = CheckUserProfileUseCase(userRepository),
             getInterviewReportListUseCase = GetInterviewReportListUseCase(interviewRepository),
             getInterviewResumeUseCase = GetInterviewResumeUseCase(interviewRepository),
+            getInterviewProgressUseCase =
+                GetInterviewProgressUseCase(
+                    FakeInterviewLocalRepository(progress = progress),
+                ),
         )
 
     private fun reportItem(id: Long): InterviewReportListItem =
@@ -789,6 +937,18 @@ class HomeViewModelTest {
                 jobRoleLabel = "Android",
                 careerYears = 3,
                 remainingTicketCount = 3,
+            )
+
+        fun sampleProgress(sessionId: Long): InterviewProgress =
+            InterviewProgress(
+                sessionId = sessionId,
+                retentionDeadlineEpochMillis = 0L,
+                retentionRemainingAtCheckpointMillis = 0L,
+                retentionCheckpointElapsedRealtimeMillis = null,
+                timerStartedAtEpochMillis = null,
+                elapsedAtCheckpointMillis = null,
+                checkpointedAtEpochMillis = null,
+                elapsedCheckpointElapsedRealtimeMillis = null,
             )
     }
 
@@ -870,5 +1030,60 @@ class HomeViewModelTest {
         ) = error("사용하지 않음")
 
         override suspend fun getExpiry(sessionId: Long): InterviewVideoExpiry = error("사용하지 않음")
+    }
+
+    private class FakeInterviewLocalRepository(
+        private val progress: InterviewProgress? = null,
+    ) : InterviewLocalRepository {
+        override suspend fun getProgress(): InterviewProgress? = progress
+
+        override suspend fun saveProgress(progress: InterviewProgress) = Unit
+
+        override suspend fun updateProgress(
+            transform: (InterviewProgress) -> InterviewProgress,
+        ): InterviewProgress? = null
+
+        override suspend fun clearProgress() = Unit
+
+        override suspend fun getManifest(sessionId: Long) = error("사용하지 않음")
+
+        override suspend fun getUploadManifest(uploadTaskId: String) = error("사용하지 않음")
+
+        override suspend fun saveManifest(
+            manifest: com.dminus14.app.domain.model.InterviewMediaManifest,
+        ) = Unit
+
+        override suspend fun createMediaFile(
+            sessionId: Long,
+            type: com.dminus14.app.domain.model.InterviewMediaSegmentType,
+            extension: String,
+        ) = error("사용하지 않음")
+
+        override suspend fun createUploadMediaFile(
+            uploadTaskId: String,
+            extension: String,
+        ) = error("사용하지 않음")
+
+        override suspend fun handoffUploadTask(
+            task: com.dminus14.app.domain.model.InterviewUploadTask,
+        ) = Unit
+
+        override suspend fun getUploadTask(uploadTaskId: String) = error("사용하지 않음")
+
+        override suspend fun saveUploadTask(
+            task: com.dminus14.app.domain.model.InterviewUploadTask,
+        ) = Unit
+
+        override suspend fun getUploadTasks() = error("사용하지 않음")
+
+        override suspend fun deleteUploadTask(uploadTaskId: String) = Unit
+
+        override suspend fun deleteSession(sessionId: Long) = Unit
+
+        override suspend fun clearAll() = Unit
+
+        override suspend fun isCleanupPending() = false
+
+        override suspend fun setCleanupPending(isPending: Boolean) = Unit
     }
 }
