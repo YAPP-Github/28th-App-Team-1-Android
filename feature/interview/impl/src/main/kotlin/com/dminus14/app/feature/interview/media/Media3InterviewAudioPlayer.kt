@@ -1,9 +1,9 @@
 package com.dminus14.app.feature.interview.media
 
 import android.content.Context
-import android.net.Uri
 import android.util.Base64
 import androidx.annotation.OptIn
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -45,6 +45,12 @@ class Media3InterviewAudioPlayer
                                 listener.onCompleted()
                                 stop()
                             }
+
+                            Player.STATE_BUFFERING,
+                            Player.STATE_IDLE,
+                            -> {
+                                Unit
+                            }
                         }
                     }
 
@@ -67,7 +73,7 @@ class Media3InterviewAudioPlayer
                         memoryPayload = bytes
                         ProgressiveMediaSource
                             .Factory { ByteArrayDataSource(bytes) }
-                            .createMediaSource(MediaItem.fromUri(Uri.parse("memory://wrap-up.mp3")))
+                            .createMediaSource(MediaItem.fromUri("memory://wrap-up.mp3".toUri()))
                     }
                 }
             newPlayer.setMediaSource(mediaSource)
