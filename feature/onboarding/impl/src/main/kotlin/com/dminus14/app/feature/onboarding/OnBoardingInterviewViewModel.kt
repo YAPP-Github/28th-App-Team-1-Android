@@ -197,6 +197,7 @@ class OnBoardingInterviewViewModel
                         jobRole = profile.jobRole
                         careerYears = profile.careerYears
                     }.onFailure { error ->
+                        // 직무 연차 없을 경우 직무 연차 입력 온보딩으로 route할지 질문중
                         reduce { copy(errorMessage = error.message) }
                     }
 
