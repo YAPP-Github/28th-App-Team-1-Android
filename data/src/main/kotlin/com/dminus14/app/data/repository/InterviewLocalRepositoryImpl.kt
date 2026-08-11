@@ -33,6 +33,10 @@ class InterviewLocalRepositoryImpl
             progressStore.write(progress)
         }
 
+        override suspend fun updateProgress(
+            transform: (InterviewProgress) -> InterviewProgress,
+        ): InterviewProgress? = progressStore.update(transform)
+
         override suspend fun clearProgress() {
             progressStore.clear()
         }

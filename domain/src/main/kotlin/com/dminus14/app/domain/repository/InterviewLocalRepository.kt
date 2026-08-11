@@ -12,6 +12,11 @@ interface InterviewLocalRepository {
 
     suspend fun saveProgress(progress: InterviewProgress)
 
+    /** 저장된 진행 상태를 단일 쓰기 안에서 읽고 갱신한다. 진행 상태가 없으면 null을 반환한다. */
+    suspend fun updateProgress(
+        transform: (InterviewProgress) -> InterviewProgress,
+    ): InterviewProgress?
+
     suspend fun clearProgress()
 
     suspend fun getManifest(sessionId: Long): InterviewMediaManifest?

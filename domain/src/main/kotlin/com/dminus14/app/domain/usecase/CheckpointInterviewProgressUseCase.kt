@@ -13,17 +13,17 @@ class CheckpointInterviewProgressUseCase
         private val calculator: InterviewTimeCalculator,
     ) {
         suspend operator fun invoke() {
-            val progress = repository.getProgress() ?: return
             val epoch = clock.currentEpochMillis()
             val realtime = clock.elapsedRealtimeMillis()
-            repository.saveProgress(
+            repository.updateProgress { progress ->
                 progress.copy(
                     retentionRemainingAtCheckpointMillis =
                         calculator.retentionRemainingMillis(progress, epoch, realtime),
                     retentionCheckpointElapsedRealtimeMillis = realtime,
-                    elapsedAtCheckpointMillis = calculator.elapsedMillis(progress, epoch),
+                    elapsedAtCheckpointMillis = calculator.elapsedMillis(progress, epoch, realtime),
                     checkpointedAtEpochMillis = epoch,
-                ),
-            )
+                    elapsedCheckpointElapsedRealtimeMillis = realtime,
+                )
+            }
         }
     }
