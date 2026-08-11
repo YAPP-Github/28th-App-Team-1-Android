@@ -9,8 +9,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import com.dminus14.designsystem.theme.HilitTheme
+import com.dminus14.designsystem.theme.HilitTypography
 
 private const val DEFAULT_TEXT = "오랜만이에요\n재원님!"
 
@@ -19,6 +21,7 @@ private const val DEFAULT_TEXT = "오랜만이에요\n재원님!"
 fun GradientText(
     modifier: Modifier = Modifier,
     text: String = DEFAULT_TEXT,
+    typo: TextStyle = HilitTheme.typography.head1,
     startColor: Color = HilitTheme.colors.hilitGreen600,
     endColor: Color = HilitTheme.colors.hilitGreen800,
 ) {
@@ -26,7 +29,7 @@ fun GradientText(
         text = text,
         modifier = modifier.fillMaxWidth(),
         style =
-            HilitTheme.typography.sub1.copy(
+            typo.copy(
                 brush = Brush.horizontalGradient(colors = listOf(startColor, endColor)),
             ),
     )

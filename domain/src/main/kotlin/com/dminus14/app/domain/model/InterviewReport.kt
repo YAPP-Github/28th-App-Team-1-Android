@@ -30,6 +30,7 @@ data class InterviewReportListItem(
     val jdUrl: String?,
     val reportStatus: InterviewReportStatus,
     val feedbackAvailable: Boolean,
+    val title: String? = null,
 )
 
 data class InterviewReport(

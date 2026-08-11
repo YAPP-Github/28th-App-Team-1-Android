@@ -37,6 +37,8 @@ data class InterviewReportListItemDto(
     val reportStatus: String,
     @SerializedName("feedbackAvailable")
     val feedbackAvailable: Boolean,
+    @SerializedName("title")
+    val title: String?,
 ) {
     fun toDomain(): InterviewReportListItem =
         InterviewReportListItem(
@@ -50,5 +52,6 @@ data class InterviewReportListItemDto(
             jdUrl = jdUrl,
             reportStatus = InterviewReportStatus.fromRaw(reportStatus),
             feedbackAvailable = feedbackAvailable,
+            title = title,
         )
 }

@@ -4,6 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.dminus14.designsystem.theme.HilitTheme
 
+private val EmptyHomeContentCallbacks =
+    HomeContentCallbacks(
+        onReportExpandClick = {},
+        onReportActionClick = {},
+    )
+
 @Preview(
     name = "HomeDefault",
     showBackground = true,
@@ -19,8 +25,7 @@ private fun HomeDefaultPreview() {
                     userName = "재원",
                     reports = emptyList(),
                 ),
-            onReportExpandClick = {},
-            onReportActionClick = {},
+            callbacks = EmptyHomeContentCallbacks,
         )
     }
 }
@@ -41,8 +46,7 @@ private fun HomeReportPreview() {
                     reports = PreviewHomeReports,
                     expandedReportIds = setOf(PreviewHomeReports.first().id),
                 ),
-            onReportExpandClick = {},
-            onReportActionClick = {},
+            callbacks = EmptyHomeContentCallbacks,
         )
     }
 }
@@ -116,8 +120,7 @@ private fun HomeOverlayPreviewScaffold(overlay: HomeSessionStartOverlayState) {
                     reports = PreviewHomeReports,
                     sessionStartOverlay = overlay,
                 ),
-            onReportExpandClick = {},
-            onReportActionClick = {},
+            callbacks = EmptyHomeContentCallbacks,
         )
     }
 }
