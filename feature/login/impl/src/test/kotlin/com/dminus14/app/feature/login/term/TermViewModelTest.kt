@@ -814,7 +814,7 @@ class TermViewModelTest {
     private fun TestScope.collectGlobalEvents(): MutableList<GlobalAppEvent> {
         val receivedEvents = mutableListOf<GlobalAppEvent>()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
-            GlobalErrorHandler.events.collect(receivedEvents::add)
+            GlobalErrorHandler.events.collect { receivedEvents.add(it.event) }
         }
         return receivedEvents
     }

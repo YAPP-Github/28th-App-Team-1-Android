@@ -1,5 +1,6 @@
 package com.dminus14.app.data.remote.dto.interview
 
+import com.dminus14.app.domain.model.InterviewEndType
 import com.dminus14.app.domain.model.NextQuestion
 import com.dminus14.app.domain.model.QuestionTurn
 import com.dminus14.app.domain.model.SubmitAnswerResult
@@ -40,15 +41,28 @@ data class SubmitAnswerResponseDto(
     @SerializedName("endType")
     val endType: String? = null,
 ) {
-    fun toDomain(): SubmitAnswerResult =
-        SubmitAnswerResult(
+    fun toDomain(): SubmitAnswerResult {
+        val mappedEndType = endType?.toInterviewEndType()
+        return SubmitAnswerResult(
             answerId = answerId,
             nextQuestion = nextQuestion?.toDomain(),
             sessionEnded = sessionEnded,
             wrapUpMessage = wrapUpMessage?.toDomain(),
-            endType = endType,
+            endType = mappedEndType,
+            reportGenerating = sessionEnded && mappedEndType != InterviewEndType.SttReset,
         )
+    }
 }
+
+internal fun String.toInterviewEndType(): InterviewEndType =
+    when (this) {
+        "NORMAL_END" -> InterviewEndType.NormalEnd
+        "MANUAL_END" -> InterviewEndType.ManualEnd
+        "HARD_CAP" -> InterviewEndType.HardCap
+        "BACK_EXIT" -> InterviewEndType.BackExit
+        "STT_RESET" -> InterviewEndType.SttReset
+        else -> InterviewEndType.Unknown(this)
+    }
 
 data class NextQuestionDto(
     @SerializedName("questionId")

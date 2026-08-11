@@ -7,7 +7,7 @@ import com.dminus14.app.core.common.mvi.MviViewModel
 import com.dminus14.app.domain.exception.NetworkUnavailableException
 import com.dminus14.app.domain.exception.ServerException
 import com.dminus14.app.domain.exception.UserNotFoundException
-import com.dminus14.app.domain.model.InterviewSessionResumeState
+import com.dminus14.app.domain.model.InterviewResumeState
 import com.dminus14.app.domain.usecase.CheckUserProfileUseCase
 import com.dminus14.app.domain.usecase.GetInterviewReportListUseCase
 import com.dminus14.app.domain.usecase.GetInterviewResumeUseCase
@@ -194,18 +194,18 @@ class HomeViewModel
         /**
          * 존재하는 세션 아이디가 이어서 진행 가능한 상태인지 조회한다.
          *
-         * - [InterviewSessionResumeState.RESUMABLE]: 진행중(InProgress) 오버레이를 띄운다.
+         * - [InterviewResumeState.Resumable]: 진행중(InProgress) 오버레이를 띄운다.
          *   resume 응답에 남은 질문 수 필드가 없어 [TEMP_REMAINING_QUESTION_COUNT] 임시값을 사용한다.
-         * - [InterviewSessionResumeState.ENDED]: 잔여 이용권에 따라 시작(Start)/소진(NoTickets) 분기.
-         * - 그 외/미정의 값: 오버레이를 띄우지 않는다.
+         * - [InterviewResumeState.Ended]: 잔여 이용권에 따라 시작(Start)/소진(NoTickets) 분기.
+         * - [InterviewResumeState.Unknown]: 오버레이를 띄우지 않는다.
          */
         internal suspend fun getInterviewState(sessionId: Long) {
             getInterviewResumeUseCase(sessionId)
                 .onSuccess { resume ->
-                    when (InterviewSessionResumeState.fromRaw(resume.resumeState)) {
-                        InterviewSessionResumeState.RESUMABLE -> showResumableOverlay()
-                        InterviewSessionResumeState.ENDED -> showSessionStartOverlayByTicket()
-                        null -> Unit
+                    when (resume.resumeState) {
+                        is InterviewResumeState.Resumable -> showResumableOverlay()
+                        is InterviewResumeState.Ended -> showSessionStartOverlayByTicket()
+                        is InterviewResumeState.Unknown -> Unit
                     }
                 }.onFailure { error ->
                     handleBootstrapFailure(error)

@@ -254,7 +254,7 @@ class SplashViewModelTest {
 
                 viewModel.onIntent(SplashIntent.Load)
 
-                assertEquals(GlobalAppEvent.ShowNetworkErrorAndExit, globalEvent.await())
+                assertEquals(GlobalAppEvent.ShowNetworkErrorAndExit, globalEvent.await().event)
                 assertEquals(emptyList<SplashEffect>(), receivedEffects)
             } finally {
                 Dispatchers.resetMain()
@@ -280,7 +280,7 @@ class SplashViewModelTest {
 
                 viewModel.onIntent(SplashIntent.Load)
 
-                assertEquals(GlobalAppEvent.ShowServerErrorAndExit, globalEvent.await())
+                assertEquals(GlobalAppEvent.ShowServerErrorAndExit, globalEvent.await().event)
                 assertEquals(emptyList<SplashEffect>(), receivedEffects)
             } finally {
                 Dispatchers.resetMain()
@@ -306,7 +306,7 @@ class SplashViewModelTest {
 
                 viewModel.onIntent(SplashIntent.Load)
 
-                assertEquals(GlobalAppEvent.ShowUnknownError, globalEvent.await())
+                assertEquals(GlobalAppEvent.ShowUnknownError, globalEvent.await().event)
                 assertEquals(emptyList<SplashEffect>(), receivedEffects)
             } finally {
                 Dispatchers.resetMain()
@@ -528,7 +528,7 @@ class SplashViewModelTest {
 
                 viewModel.onIntent(SplashIntent.KakaoLoginSucceeded("credential"))
 
-                assertEquals(GlobalAppEvent.ShowNetworkErrorAndExit, globalEvent.await())
+                assertEquals(GlobalAppEvent.ShowNetworkErrorAndExit, globalEvent.await().event)
                 assertEquals(emptyList<SplashEffect>(), receivedEffects)
             } finally {
                 Dispatchers.resetMain()

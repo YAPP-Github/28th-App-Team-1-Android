@@ -11,10 +11,10 @@ import com.dminus14.app.domain.model.InterviewReportList
 import com.dminus14.app.domain.model.InterviewReportListItem
 import com.dminus14.app.domain.model.InterviewReportStatus
 import com.dminus14.app.domain.model.InterviewResumeConfirm
+import com.dminus14.app.domain.model.InterviewResumeState
 import com.dminus14.app.domain.model.InterviewResumeStatus
 import com.dminus14.app.domain.model.InterviewSessionRequest
 import com.dminus14.app.domain.model.InterviewSessionResult
-import com.dminus14.app.domain.model.InterviewSessionResumeState
 import com.dminus14.app.domain.model.InterviewSessionStatus
 import com.dminus14.app.domain.model.InterviewVideoExpiry
 import com.dminus14.app.domain.model.InterviewVideoUploadUrl
@@ -48,6 +48,7 @@ import org.junit.Test
 import java.io.File
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@Suppress("detekt:LargeClass") // MVI 케이스가 많아 임계를 살짝 넘는다.
 class HomeViewModelTest {
     // ---- Load 성공 경로 ----
 
@@ -549,7 +550,7 @@ class HomeViewModelTest {
             val interviewRepo =
                 FakeInterviewRepository(
                     resumeResult =
-                        Result.success(resumeStatus(InterviewSessionResumeState.RESUMABLE.name)),
+                        Result.success(resumeStatus(InterviewResumeState.Resumable)),
                 )
             val viewModel = createViewModel(interviewRepository = interviewRepo)
             viewModel.onIntent(HomeIntent.Load)
@@ -570,7 +571,7 @@ class HomeViewModelTest {
             val interviewRepo =
                 FakeInterviewRepository(
                     resumeResult =
-                        Result.success(resumeStatus(InterviewSessionResumeState.ENDED.name)),
+                        Result.success(resumeStatus(InterviewResumeState.Ended)),
                 )
             val viewModel = createViewModel(interviewRepository = interviewRepo)
             viewModel.onIntent(HomeIntent.Load)
@@ -593,7 +594,7 @@ class HomeViewModelTest {
             val interviewRepo =
                 FakeInterviewRepository(
                     resumeResult =
-                        Result.success(resumeStatus(InterviewSessionResumeState.ENDED.name)),
+                        Result.success(resumeStatus(InterviewResumeState.Ended)),
                 )
             val viewModel =
                 createViewModel(
@@ -622,7 +623,10 @@ class HomeViewModelTest {
         runViewModelTest {
             val interviewRepo =
                 FakeInterviewRepository(
-                    resumeResult = Result.success(resumeStatus("UNKNOWN_RAW")),
+                    resumeResult =
+                        Result.success(
+                            resumeStatus(InterviewResumeState.Unknown("UNKNOWN_RAW")),
+                        ),
                 )
             val viewModel = createViewModel(interviewRepository = interviewRepo)
             viewModel.onIntent(HomeIntent.Load)
@@ -764,9 +768,9 @@ class HomeViewModelTest {
             title = "샘플",
         )
 
-    private fun resumeStatus(rawState: String): InterviewResumeStatus =
+    private fun resumeStatus(resumeState: InterviewResumeState): InterviewResumeStatus =
         InterviewResumeStatus(
-            resumeState = rawState,
+            resumeState = resumeState,
             startedAt = null,
             elapsedSeconds = null,
             status = null,

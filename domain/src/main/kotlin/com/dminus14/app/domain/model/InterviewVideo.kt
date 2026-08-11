@@ -24,3 +24,10 @@ data class InterviewVideoExpiry(
     val expiresInSeconds: Long,
     val expired: Boolean,
 )
+
+/** presigned URL을 저장하지 않고 한 번의 직접 PUT 수명에만 사용하는 명령이다. */
+data class UploadInterviewVideoCommand(
+    val uploadUrl: String,
+    val contentType: String,
+    val mediaRef: InterviewMediaFileRef,
+)

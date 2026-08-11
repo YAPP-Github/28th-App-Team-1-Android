@@ -19,4 +19,5 @@ data class InterviewSessionStatus(
 data class SummaryQuestion(
     val questionId: Long,
     val ttsAudio: String?,
+    val turn: QuestionTurn,
 )
