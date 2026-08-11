@@ -1,5 +1,6 @@
 package com.dminus14.app.data.repository
 
+import com.dminus14.app.data.local.interview.InterviewFileStore
 import com.dminus14.app.data.remote.config.NetworkConfig
 import com.dminus14.app.data.remote.datasource.InterviewRemoteDataSource
 import com.dminus14.app.data.remote.dto.ApiErrorResponseDto
@@ -46,8 +47,9 @@ import com.dminus14.app.domain.model.JdValidationResult
 import com.dminus14.app.domain.model.SubmitAnswerResult
 import com.dminus14.app.domain.model.SubmitInterviewAnswerCommand
 import com.dminus14.app.domain.model.UploadInterviewVideoCommand
-import com.dminus14.app.domain.repository.InterviewLocalRepository
 import com.dminus14.app.domain.repository.InterviewRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -67,7 +69,7 @@ class InterviewRepositoryImpl
     @Inject
     constructor(
         private val interviewRemoteDataSource: InterviewRemoteDataSource,
-        private val interviewLocalRepository: InterviewLocalRepository? = null,
+        private val interviewFileStore: InterviewFileStore? = null,
         private val interviewVideoUploader: InterviewVideoUploader? = null,
     ) : InterviewRepository {
         override suspend fun validateJdUrl(jdUrl: String): JdValidationResult {
@@ -157,7 +159,10 @@ class InterviewRepositoryImpl
         ): SubmitAnswerResult {
             val audioPart =
                 command.audioFile?.let { mediaRef ->
-                    val file = requireNotNull(interviewLocalRepository).resolveMediaFile(mediaRef)
+                    val file =
+                        withContext(Dispatchers.IO) {
+                            requireNotNull(interviewFileStore).resolve(mediaRef)
+                        }
                     val requestBody = file.asRequestBody("audio/mp4".toMediaTypeOrNull())
                     MultipartBody.Part.createFormData(
                         "audio",
@@ -396,11 +401,13 @@ class InterviewRepositoryImpl
         }
 
         override suspend fun uploadVideo(command: UploadInterviewVideoCommand) {
-            requireNotNull(interviewVideoUploader).upload(
-                uploadUrl = command.uploadUrl,
-                contentType = command.contentType,
-                file = requireNotNull(interviewLocalRepository).resolveMediaFile(command.mediaRef),
-            )
+            withContext(Dispatchers.IO) {
+                requireNotNull(interviewVideoUploader).upload(
+                    uploadUrl = command.uploadUrl,
+                    contentType = command.contentType,
+                    file = requireNotNull(interviewFileStore).resolve(command.mediaRef),
+                )
+            }
         }
 
         private fun mapInterviewRecoveryError(

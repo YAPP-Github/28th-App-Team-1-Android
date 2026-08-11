@@ -11,7 +11,8 @@ import com.dminus14.app.domain.model.InterviewMediaSegmentType
 import com.dminus14.app.domain.model.InterviewProgress
 import com.dminus14.app.domain.model.InterviewUploadTask
 import com.dminus14.app.domain.repository.InterviewLocalRepository
-import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,56 +38,59 @@ class InterviewLocalRepositoryImpl
         }
 
         override suspend fun getManifest(sessionId: Long): InterviewMediaManifest? =
-            manifestStore.read(sessionId)
+            withContext(Dispatchers.IO) { manifestStore.read(sessionId) }
 
         override suspend fun getUploadManifest(uploadTaskId: String): InterviewMediaManifest? =
-            manifestStore.readUpload(uploadTaskId)
+            withContext(Dispatchers.IO) { manifestStore.readUpload(uploadTaskId) }
 
         override suspend fun saveManifest(manifest: InterviewMediaManifest) {
-            manifestStore.write(manifest)
+            withContext(Dispatchers.IO) { manifestStore.write(manifest) }
         }
 
         override suspend fun createMediaFile(
             sessionId: Long,
             type: InterviewMediaSegmentType,
             extension: String,
-        ): InterviewMediaFileRef = fileStore.create(sessionId, type, extension)
+        ): InterviewMediaFileRef =
+            withContext(Dispatchers.IO) { fileStore.create(sessionId, type, extension) }
 
         override suspend fun createUploadMediaFile(
             uploadTaskId: String,
             extension: String,
-        ): InterviewMediaFileRef = fileStore.createUploadMediaFile(uploadTaskId, extension)
-
-        override suspend fun resolveMediaFile(mediaRef: InterviewMediaFileRef): File =
-            fileStore.resolve(mediaRef)
+        ): InterviewMediaFileRef =
+            withContext(Dispatchers.IO) { fileStore.createUploadMediaFile(uploadTaskId, extension) }
 
         override suspend fun handoffUploadTask(task: InterviewUploadTask) {
-            fileStore.handoff(task.sessionId, task.uploadTaskId)
-            uploadTaskStore.write(task)
+            withContext(Dispatchers.IO) {
+                uploadTaskStore.write(task)
+                fileStore.handoff(task.sessionId, task.uploadTaskId)
+            }
             progressStore.clear()
         }
 
         override suspend fun getUploadTask(uploadTaskId: String): InterviewUploadTask? =
-            uploadTaskStore.read(uploadTaskId)
+            withContext(Dispatchers.IO) { uploadTaskStore.read(uploadTaskId) }
 
         override suspend fun saveUploadTask(task: InterviewUploadTask) {
-            uploadTaskStore.write(task)
+            withContext(Dispatchers.IO) { uploadTaskStore.write(task) }
         }
 
-        override suspend fun getUploadTasks(): List<InterviewUploadTask> = uploadTaskStore.readAll()
+        override suspend fun getUploadTasks(): List<InterviewUploadTask> =
+            withContext(Dispatchers.IO) { uploadTaskStore.readAll() }
 
         override suspend fun deleteUploadTask(uploadTaskId: String) {
-            fileStore.deleteUpload(uploadTaskId)
+            withContext(Dispatchers.IO) { fileStore.deleteUpload(uploadTaskId) }
         }
 
         override suspend fun deleteSession(sessionId: Long) {
-            fileStore.deleteSession(sessionId)
+            withContext(Dispatchers.IO) { fileStore.deleteSession(sessionId) }
             if (progressStore.read()?.sessionId == sessionId) progressStore.clear()
         }
 
         override suspend fun clearAll() {
-            fileStore.clearAll()
+            withContext(Dispatchers.IO) { fileStore.clearAll() }
             progressStore.clear()
+            cleanupPendingStore.setPending(false)
         }
 
         override suspend fun isCleanupPending(): Boolean = cleanupPendingStore.isPending()
