@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
+import com.dminus14.app.feature.onboarding.JOB_DESCRIPTION_TEXT_MIN_LENGTH
 import com.dminus14.app.feature.onboarding.JdLinkStatus
 import com.dminus14.app.feature.onboarding.JobDescriptionTab
 import com.dminus14.app.feature.onboarding.OnBoardingInterviewIntent
@@ -22,7 +23,6 @@ private val SubtitleToTabSpacing = 34.dp
 private val TabToFieldSpacing = 16.dp
 private val BubbleBottomPadding = 16.dp
 private const val JOB_DESCRIPTION_TEXT_MAX_LENGTH = 3000
-private const val JOB_DESCRIPTION_TEXT_MIN_LENGTH = 200
 private const val JOB_DESCRIPTION_TEXT_VALIDATION_ERROR = "공고 내용은 200자 이상으로 입력해 주세요"
 private const val JOB_DESCRIPTION_TEXT_VALIDATION_SUCCESS = "공고 내용을 확인했어요"
 
