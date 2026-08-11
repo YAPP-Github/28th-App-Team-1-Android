@@ -18,7 +18,6 @@ import com.dminus14.designsystem.theme.HilitTheme
 
 private val SubtitleToLabelSpacing = 30.dp
 private val LabelToFieldSpacing = 10.dp
-private val FieldToErrorSpacing = 8.dp
 private val BubbleBottomPadding = 16.dp
 private const val MAIN_PROJECT_MAX_LENGTH = 300
 private const val MAIN_PROJECT_PLACEHOLDER =
@@ -58,22 +57,11 @@ fun OnBoardingMainProjectStep(
                 onValueChange = { onIntent(OnBoardingInterviewIntent.MainProjectTextChange(it)) },
                 placeholder = MAIN_PROJECT_PLACEHOLDER,
                 maxLength = MAIN_PROJECT_MAX_LENGTH,
+                // 서버 연관성 판단(FREETEXT_NOT_RELEVANT) 등 필드 밖 오류를 subtext 슬롯에 노출.
+                // 로컬 최소 길이 위반은 계속하기 버튼 자체가 비활성이라 이 자리로 오지 않는다.
+                explicitErrorText = error,
                 modifier = Modifier.padding(top = LabelToFieldSpacing),
             )
-
-            // 서버 연관성 판단(FREETEXT_NOT_RELEVANT) 등 필드 밖 오류를 필드 아래에 노출한다.
-            // 로컬 최소 길이 위반은 계속하기 버튼 자체가 비활성이라 이 자리로 오지 않는다.
-            if (error != null) {
-                Text(
-                    text = error,
-                    style = HilitTheme.typography.body9,
-                    color = HilitTheme.colors.error500,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(top = FieldToErrorSpacing),
-                )
-            }
         }
 
         OnBoardingHintBubble(

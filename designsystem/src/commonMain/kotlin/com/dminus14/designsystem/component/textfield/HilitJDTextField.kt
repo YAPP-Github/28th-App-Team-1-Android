@@ -48,6 +48,8 @@ private const val DEFAULT_PLACEHOLDER = "텍스트를 입력해주세요"
  * @param minLength 최소 글자 수 조건. null이면 검증 서브텍스트를 숨긴다
  * @param validationErrorText [minLength] 미만일 때 노출할 Error 서브텍스트
  * @param validationSuccessText [minLength] 이상일 때 노출할 Success 서브텍스트
+ * @param explicitErrorText null이 아니면 length 조건과 무관하게 이 텍스트를 Error 서브텍스트로
+ *   강제 노출한다. 서버 검증 실패(예: 연관성 부족)처럼 글자 수와 무관한 오류에 사용.
  */
 @Composable
 fun HilitJDTextField(
@@ -59,6 +61,7 @@ fun HilitJDTextField(
     minLength: Int? = null,
     validationErrorText: String = "",
     validationSuccessText: String = "",
+    explicitErrorText: String? = null,
 ) {
     val safeMaxLength = maxLength.coerceAtLeast(0)
     val safeMinLength = minLength?.coerceAtLeast(0)
@@ -75,6 +78,7 @@ fun HilitJDTextField(
             minLength = safeMinLength,
             validationErrorText = validationErrorText,
             validationSuccessText = validationSuccessText,
+            explicitErrorText = explicitErrorText,
         )
 
     Column(modifier = modifier.fillMaxWidth()) {
@@ -156,7 +160,13 @@ private fun resolveValidationSubText(
     minLength: Int?,
     validationErrorText: String,
     validationSuccessText: String,
+    explicitErrorText: String?,
 ): Pair<String, HilitSubTextType>? {
+    // 명시적 error 가 있으면 length 조건과 무관하게 우선 노출한다.
+    if (!explicitErrorText.isNullOrEmpty()) {
+        return explicitErrorText to HilitSubTextType.Error
+    }
+
     if (minLength == null || value.isEmpty()) {
         return null
     }
