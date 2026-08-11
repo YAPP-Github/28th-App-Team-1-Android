@@ -1,6 +1,7 @@
 package com.dminus14.app.domain.repository
 
 import com.dminus14.app.domain.model.InterviewAbandon
+import com.dminus14.app.domain.model.InterviewAbandonRequestCause
 import com.dminus14.app.domain.model.InterviewReport
 import com.dminus14.app.domain.model.InterviewReportList
 import com.dminus14.app.domain.model.InterviewResumeConfirm
@@ -12,7 +13,8 @@ import com.dminus14.app.domain.model.InterviewVideoExpiry
 import com.dminus14.app.domain.model.InterviewVideoUploadUrl
 import com.dminus14.app.domain.model.JdValidationResult
 import com.dminus14.app.domain.model.SubmitAnswerResult
-import java.io.File
+import com.dminus14.app.domain.model.SubmitInterviewAnswerCommand
+import com.dminus14.app.domain.model.UploadInterviewVideoCommand
 
 @Suppress("TooManyFunctions")
 interface InterviewRepository {
@@ -53,19 +55,7 @@ interface InterviewRepository {
     /**
      * 면접 답변을 제출한다.
      */
-    @Suppress("LongParameterList")
-    suspend fun submitAnswer(
-        sessionId: Long,
-        questionId: Long,
-        isWrapUp: Boolean,
-        questionAudioStartAt: Float? = null,
-        questionAudioEndAt: Float? = null,
-        answerStartAt: Float? = null,
-        answerEndAt: Float? = null,
-        answerDuration: Float? = null,
-        endType: String? = null,
-        audioFile: File? = null,
-    ): SubmitAnswerResult
+    suspend fun submitAnswer(command: SubmitInterviewAnswerCommand): SubmitAnswerResult
 
     /**
      * 면접 질문 음성 스트리밍 URL을 반환한다.
@@ -90,7 +80,7 @@ interface InterviewRepository {
      */
     suspend fun abandon(
         sessionId: Long,
-        cause: String,
+        cause: InterviewAbandonRequestCause,
     ): InterviewAbandon
 
     /**
@@ -102,6 +92,9 @@ interface InterviewRepository {
      * 면접 영상 업로드 URL을 발급받는다.
      */
     suspend fun issueUploadUrl(sessionId: Long): InterviewVideoUploadUrl
+
+    /** 발급받은 URL로 최종 영상을 직접 전송한다. */
+    suspend fun uploadVideo(command: UploadInterviewVideoCommand)
 
     /**
      * 면접 영상 업로드 완료를 보고한다.
