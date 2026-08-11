@@ -9,4 +9,5 @@ data class InterviewProgress(
     val timerStartedAtEpochMillis: Long?,
     val elapsedAtCheckpointMillis: Long?,
     val checkpointedAtEpochMillis: Long?,
+    val elapsedCheckpointElapsedRealtimeMillis: Long?,
 )

@@ -14,6 +14,10 @@ class GetInterviewElapsedTimeUseCase
     ) {
         suspend operator fun invoke(): Long {
             val progress = repository.getProgress() ?: return 0L
-            return calculator.elapsedMillis(progress, clock.currentEpochMillis())
+            return calculator.elapsedMillis(
+                progress,
+                clock.currentEpochMillis(),
+                clock.elapsedRealtimeMillis(),
+            )
         }
     }

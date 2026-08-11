@@ -11,12 +11,25 @@ class InterviewTimeCalculator
         fun elapsedMillis(
             progress: InterviewProgress,
             currentEpochMillis: Long,
+            currentElapsedRealtimeMillis: Long,
         ): Long {
             val checkpointElapsed = progress.elapsedAtCheckpointMillis ?: 0L
-            val checkpointEpoch = progress.checkpointedAtEpochMillis
-            val wallDelta =
-                checkpointEpoch?.let { (currentEpochMillis - it).coerceAtLeast(0L) } ?: 0L
-            return (checkpointElapsed + wallDelta).coerceIn(0L, HARD_CAP_MILLIS)
+            val monotonicDelta =
+                progress.elapsedCheckpointElapsedRealtimeMillis?.let { checkpoint ->
+                    // 부팅이 바뀌면 단조 시계가 되감기므로 epoch 기반 복원으로 넘긴다.
+                    if (currentElapsedRealtimeMillis >= checkpoint) {
+                        currentElapsedRealtimeMillis - checkpoint
+                    } else {
+                        null
+                    }
+                }
+            val delta =
+                monotonicDelta
+                    ?: progress.checkpointedAtEpochMillis?.let {
+                        (currentEpochMillis - it).coerceAtLeast(0L)
+                    }
+                    ?: 0L
+            return (checkpointElapsed + delta).coerceIn(0L, HARD_CAP_MILLIS)
         }
 
         fun retentionRemainingMillis(
@@ -31,14 +44,18 @@ class InterviewTimeCalculator
                         progress.retentionRemainingAtCheckpointMillis -
                             (currentElapsedRealtimeMillis - checkpoint)
                     } else {
-                        null
+                        // 재부팅 후에는 체크포인트 잔여 시간을 상한으로 유지한다.
+                        progress.retentionRemainingAtCheckpointMillis
                     }
                 }
             return min(epochRemaining, monotonicRemaining ?: epochRemaining).coerceAtLeast(0L)
         }
 
         companion object {
+            /** 한 번의 면접에서 클라이언트 타이머가 누적할 수 있는 최대 진행 시간이다. */
             const val HARD_CAP_MILLIS = 12L * 60L * 1_000L
+
+            /** 최초 진행 상태 생성 시 보존 기한과 잔여 시간을 초기화하는 로컬 데이터 보존 기간이다. */
             const val RETENTION_MILLIS = 24L * 60L * 60L * 1_000L
         }
     }

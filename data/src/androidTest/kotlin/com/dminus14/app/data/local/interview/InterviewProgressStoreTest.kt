@@ -29,6 +29,7 @@ class InterviewProgressStoreTest {
                     timerStartedAtEpochMillis = 2_000L,
                     elapsedAtCheckpointMillis = 3_000L,
                     checkpointedAtEpochMillis = 4_000L,
+                    elapsedCheckpointElapsedRealtimeMillis = 5_000L,
                 )
 
             store.write(expected)
@@ -36,6 +37,38 @@ class InterviewProgressStoreTest {
 
             store.clear()
             assertNull(store.read())
+        }
+
+    @Test
+    fun `진행 상태가 없으면 갱신하지 않고 null을 반환한다`() =
+        runTest {
+            val store = InterviewProgressStore(isolatedContext())
+
+            assertNull(store.update { it.copy(elapsedAtCheckpointMillis = 1_000L) })
+            assertNull(store.read())
+        }
+
+    @Test
+    fun `저장된 진행 상태를 읽어 갱신한다`() =
+        runTest {
+            val store = InterviewProgressStore(isolatedContext())
+            store.write(
+                InterviewProgress(
+                    sessionId = 14L,
+                    retentionDeadlineEpochMillis = 86_400_000L,
+                    retentionRemainingAtCheckpointMillis = 43_200_000L,
+                    retentionCheckpointElapsedRealtimeMillis = null,
+                    timerStartedAtEpochMillis = null,
+                    elapsedAtCheckpointMillis = null,
+                    checkpointedAtEpochMillis = null,
+                    elapsedCheckpointElapsedRealtimeMillis = null,
+                ),
+            )
+
+            val updated = store.update { it.copy(elapsedAtCheckpointMillis = 3_000L) }
+
+            assertEquals(3_000L, updated?.elapsedAtCheckpointMillis)
+            assertEquals(updated, store.read())
         }
 
     private fun isolatedContext(): Context {
