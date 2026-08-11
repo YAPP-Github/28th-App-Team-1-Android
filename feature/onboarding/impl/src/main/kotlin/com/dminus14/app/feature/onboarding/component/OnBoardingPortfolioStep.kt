@@ -19,16 +19,11 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dminus14.app.feature.onboarding.OnBoardingInterviewIntent
-import com.dminus14.designsystem.component.button.HilitFixedBottomDualButton
-import com.dminus14.designsystem.component.button.HilitFixedBottomDualButtonType
 import com.dminus14.designsystem.component.fileupload.FileUploadGuide
 import com.dminus14.designsystem.component.fileupload.PdfUpload
 import com.dminus14.designsystem.component.fileupload.PdfUploadType
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
-import com.dminus14.designsystem.component.modal.HilitBookIllustration
-import com.dminus14.designsystem.component.modal.HilitModal
-import com.dminus14.designsystem.component.modal.HilitModalType
 import com.dminus14.designsystem.component.tag.TagColorType
 import com.dminus14.designsystem.component.text.withHilitTextHighlight
 import com.dminus14.designsystem.theme.HilitTheme
@@ -42,14 +37,24 @@ private val RequiredErrorVerticalPadding = 12.dp
 private val RequiredErrorIconSize = 16.dp
 private val RequiredErrorIconTextGap = 8.dp
 
+/** Portfolio 스텝 UI 입력 묶음. */
+data class OnBoardingPortfolioStepUiState(
+    val fileName: String? = null,
+    val isProcessing: Boolean = false,
+    val uploadProgress: Int = 0,
+    val errorMessage: String? = null,
+)
+
 @Composable
 fun OnBoardingPortfolioStep(
-    fileName: String?,
-    showExistingPortfolioModal: Boolean,
-    showRequiredError: Boolean,
+    uiState: OnBoardingPortfolioStepUiState,
     onIntent: (OnBoardingInterviewIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val fileName = uiState.fileName
+    val isProcessing = uiState.isProcessing
+    val uploadProgress = uiState.uploadProgress
+    val errorMessage = uiState.errorMessage
     Column(modifier = modifier.fillMaxSize()) {
         OnBoardingStepHeader(
             tagText = "필수",
@@ -70,23 +75,32 @@ fun OnBoardingPortfolioStep(
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            FileUploadGuide(
-                onClick = { onIntent(OnBoardingInterviewIntent.ClickPortfolioUpload) },
-                modifier = Modifier.padding(top = LabelToUploadSpacing),
-            )
+            // 업로드된(또는 처리 중) 포트폴리오가 있으면 업로드 가이드는 숨긴다.
+            if (fileName == null && !isProcessing) {
+                FileUploadGuide(
+                    onClick = { onIntent(OnBoardingInterviewIntent.ClickPortfolioUpload) },
+                    modifier = Modifier.padding(top = LabelToUploadSpacing),
+                )
+            }
 
-            if (showRequiredError) {
+            if (errorMessage != null) {
                 OnBoardingPortfolioRequiredError(
+                    message = errorMessage,
                     modifier = Modifier.padding(top = UploadToStatusSpacing),
                 )
             }
 
             PdfUpload(
-                type = if (fileName != null) PdfUploadType.Completed else PdfUploadType.Ready,
+                type =
+                    when {
+                        isProcessing -> PdfUploadType.Processing
+                        fileName != null -> PdfUploadType.Completed
+                        else -> PdfUploadType.Ready
+                    },
                 fileName = fileName.orEmpty(),
-                progress = if (fileName != null) 100f else 0f,
+                progress = uploadProgress.toFloat(),
                 onCloseClick =
-                    if (fileName != null) {
+                    if (fileName != null && !isProcessing) {
                         { onIntent(OnBoardingInterviewIntent.ClickPortfolioRemove) }
                     } else {
                         null
@@ -95,34 +109,14 @@ fun OnBoardingPortfolioStep(
             )
         }
     }
-
-    if (showExistingPortfolioModal) {
-        OnBoardingExistingPortfolioModal(onIntent = onIntent)
-    }
 }
 
+/** 포트폴리오 스텝의 인라인 에러(Figma `443:9641`, "info-field"). 필수 누락·PDF 검증 실패에 공용. */
 @Composable
-private fun OnBoardingExistingPortfolioModal(onIntent: (OnBoardingInterviewIntent) -> Unit) {
-    HilitModal(
-        type = HilitModalType.InvisibleInfo,
-        title = "기존에 있는 포트폴리오로\n진행할까요?",
-        dismissible = false,
-        graphic = { HilitBookIllustration() },
-        buttons = {
-            HilitFixedBottomDualButton(
-                leftText = "새로 업로드",
-                rightText = "기존 포트폴리오 사용",
-                type = HilitFixedBottomDualButtonType.Default,
-                onLeftClick = { onIntent(OnBoardingInterviewIntent.ClickPortfolioUploadNew) },
-                onRightClick = { onIntent(OnBoardingInterviewIntent.ClickPortfolioUseExisting) },
-            )
-        },
-    )
-}
-
-/** 필수 업로드 없이 계속하기를 눌렀을 때 뜨는 인라인 에러(Figma `443:9641`, "info-field"). */
-@Composable
-private fun OnBoardingPortfolioRequiredError(modifier: Modifier = Modifier) {
+private fun OnBoardingPortfolioRequiredError(
+    message: String,
+    modifier: Modifier = Modifier,
+) {
     Row(
         modifier =
             modifier
@@ -146,7 +140,7 @@ private fun OnBoardingPortfolioRequiredError(modifier: Modifier = Modifier) {
             modifier = Modifier.size(RequiredErrorIconSize),
         )
         Text(
-            text = "포트폴리오를 업로드해주세요",
+            text = message,
             style = HilitTheme.typography.body9,
             color = HilitTheme.colors.error500,
         )
@@ -158,9 +152,13 @@ private fun OnBoardingPortfolioRequiredError(modifier: Modifier = Modifier) {
 private fun OnBoardingPortfolioStepEmptyPreview() {
     HilitTheme {
         OnBoardingPortfolioStep(
-            fileName = null,
-            showExistingPortfolioModal = false,
-            showRequiredError = false,
+            uiState =
+                OnBoardingPortfolioStepUiState(
+                    fileName = null,
+                    isProcessing = false,
+                    uploadProgress = 0,
+                    errorMessage = null,
+                ),
             onIntent = {},
         )
     }
@@ -171,9 +169,13 @@ private fun OnBoardingPortfolioStepEmptyPreview() {
 private fun OnBoardingPortfolioStepUploadedPreview() {
     HilitTheme {
         OnBoardingPortfolioStep(
-            fileName = "포트폴리오.pdf",
-            showExistingPortfolioModal = false,
-            showRequiredError = false,
+            uiState =
+                OnBoardingPortfolioStepUiState(
+                    fileName = "포트폴리오.pdf",
+                    isProcessing = false,
+                    uploadProgress = 100,
+                    errorMessage = null,
+                ),
             onIntent = {},
         )
     }
@@ -184,22 +186,13 @@ private fun OnBoardingPortfolioStepUploadedPreview() {
 private fun OnBoardingPortfolioStepRequiredErrorPreview() {
     HilitTheme {
         OnBoardingPortfolioStep(
-            fileName = null,
-            showExistingPortfolioModal = false,
-            showRequiredError = true,
-            onIntent = {},
-        )
-    }
-}
-
-@Preview(name = "Existing portfolio modal", showBackground = true, widthDp = 375, heightDp = 812)
-@Composable
-private fun OnBoardingPortfolioStepModalPreview() {
-    HilitTheme {
-        OnBoardingPortfolioStep(
-            fileName = null,
-            showExistingPortfolioModal = true,
-            showRequiredError = false,
+            uiState =
+                OnBoardingPortfolioStepUiState(
+                    fileName = null,
+                    isProcessing = false,
+                    uploadProgress = 0,
+                    errorMessage = "포트폴리오를 업로드해주세요",
+                ),
             onIntent = {},
         )
     }
