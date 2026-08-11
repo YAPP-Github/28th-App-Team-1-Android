@@ -11,3 +11,9 @@ sealed interface GlobalAppEvent {
     /** 예외 원문을 노출하지 않는 고정 문구를 Toast로 표시한다. */
     data object ShowUnknownError : GlobalAppEvent
 }
+
+/** 전역 사건과 영속 작업의 표시 확인 식별자를 함께 전달한다. */
+data class GlobalAppEventEnvelope(
+    val event: GlobalAppEvent,
+    val deliveryId: String? = null,
+)

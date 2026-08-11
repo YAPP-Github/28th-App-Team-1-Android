@@ -139,7 +139,7 @@ class FeedbackOnboardingViewModelTest {
             viewModel.onIntent(FeedbackOnboardingIntent.Load("synthetic-token"))
             runCurrent()
 
-            assertEquals(GlobalAppEvent.ShowUnknownError, globalEvent.await())
+            assertEquals(GlobalAppEvent.ShowUnknownError, globalEvent.await().event)
             assertEquals(FeedbackOnboardingLoadState.Failed, viewModel.state.value.loadState)
             assertEquals(null, session.snapshot())
             viewModel.onIntent(FeedbackOnboardingIntent.StartClicked)

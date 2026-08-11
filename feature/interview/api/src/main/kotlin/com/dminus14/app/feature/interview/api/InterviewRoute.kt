@@ -9,8 +9,10 @@ data object InterviewRoute : NavKey
 
 /** 면접 오류 유형 */
 enum class InterviewErrorType {
-    MIC,
+    MIC_DEVICE,
     NETWORK,
+    STT,
+    SERVER_TEMPORARY,
 }
 
 /** 면접 오류 화면 route */

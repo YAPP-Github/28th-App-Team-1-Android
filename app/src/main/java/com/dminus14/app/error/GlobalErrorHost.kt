@@ -11,12 +11,15 @@ import com.dminus14.app.core.common.modal.GlobalModalResult
 import com.dminus14.app.core.common.modal.showGlobalModal
 
 @Composable
-fun GlobalErrorHost(onExit: () -> Unit) {
+fun GlobalErrorHost(
+    onExit: () -> Unit,
+    onGlobalEventRendered: (String) -> Unit = {},
+) {
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        GlobalErrorHandler.events.collect { event ->
-            when (event) {
+        GlobalErrorHandler.events.collect { envelope ->
+            when (envelope.event) {
                 GlobalAppEvent.ShowNetworkErrorAndExit,
                 GlobalAppEvent.ShowServerErrorAndExit,
                 -> {
@@ -29,11 +32,13 @@ fun GlobalErrorHost(onExit: () -> Unit) {
                                 dismissible = false,
                             ),
                         )
+                    envelope.deliveryId?.let(onGlobalEventRendered)
                     if (result == GlobalModalResult.Confirm) onExit()
                 }
 
                 GlobalAppEvent.ShowUnknownError -> {
                     Toast.makeText(context, "알 수 없는 오류가 발생했어요.", Toast.LENGTH_SHORT).show()
+                    envelope.deliveryId?.let(onGlobalEventRendered)
                 }
             }
         }

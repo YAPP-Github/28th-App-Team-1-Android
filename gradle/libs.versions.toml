@@ -8,16 +8,18 @@ junitVersion = "1.3.0"
 testRunner = "1.7.0"
 espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.11.0"
-coroutines = "1.9.0"
+coroutines = "1.11.0"
 activityCompose = "1.13.0"
 composeBom = "2026.06.01"
 mockk = "1.14.11"
 pdfBoxAndroid = "2.0.27.0"
-media3 = "1.10.1"
-camerax = "1.4.1"
+media3 = "1.11.0"
+camerax = "1.6.1"
+work = "2.11.2"
+androidxHilt = "1.3.0"
 
 # Navigation
-navigation3 = "1.1.4"
+navigation3 = "1.1.5"
 
 # Hilt
 ksp = "2.3.9"
@@ -27,30 +29,30 @@ hiltNavigationCompose = "1.4.0"
 
 # Network
 retrofit2 = "3.0.0"
-okhttp = "4.12.0"
+okhttp = "5.4.0"
 
 # Room
-room = "2.7.2"
+room = "2.8.4"
 
 # DataStore
 datastore = "1.2.1"
 
 # Kakao
-kakao = "2.23.4"
+kakao = "2.24.0"
 
 # DI
 javax-inject = "1"
 
 # Linting and Formatting
-spotless = "8.8.0"
+spotless = "8.9.0"
 detekt = "1.23.8"
-slack-compose-lint = "1.5.2"
+slack-compose-lint = "1.5.3"
 
 # Compose Multiplatform
 compose-multiplatform = "1.11.1"
 compose-material3 = "1.9.0"
 kotlinpoet = "2.3.0"
-kctfork = "0.12.1"
+kctfork = "0.13.0"
 
 [libraries]
 # Default
@@ -75,12 +77,17 @@ mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 mockk-android = { group = "io.mockk", name = "mockk-android", version.ref = "mockk" }
 pdfbox-android = { group = "com.tom-roush", name = "pdfbox-android", version.ref = "pdfBoxAndroid" }
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
+androidx-media3-transformer = { group = "androidx.media3", name = "media3-transformer", version.ref = "media3" }
+androidx-media3-datasource-okhttp = { group = "androidx.media3", name = "media3-datasource-okhttp", version.ref = "media3" }
 androidx-media3-effect = { group = "androidx.media3", name = "media3-effect", version.ref = "media3" }
 androidx-media3-ui-compose = { group = "androidx.media3", name = "media3-ui-compose", version.ref = "media3" }
 androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "camerax" }
 androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
 androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
 androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
+androidx-camera-video = { group = "androidx.camera", name = "camera-video", version.ref = "camerax" }
+androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
+androidx-work-testing = { group = "androidx.work", name = "work-testing", version.ref = "work" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 
@@ -93,11 +100,14 @@ androidx-lifecycle-viewmodel-navigation3 = { group = "androidx.lifecycle", name 
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 dagger-hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 dagger-hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
+androidx-hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "androidxHilt" }
+androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "androidxHilt" }
 
 # Network
 retrofit2 = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit2" }
 retrofit2-converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit2" }
 okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 okhttp-mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "okhttp" }
 
 # Room

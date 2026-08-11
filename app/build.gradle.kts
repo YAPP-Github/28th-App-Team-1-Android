@@ -43,6 +43,7 @@ android {
 dependencies {
     implementation(libs.kakao.v2.common)
     implementation(project(":data"))
+    implementation(project(":domain"))
     implementation(project(":feature:login:impl"))
     implementation(project(":feature:home:impl"))
     implementation(project(":feature:feedback:impl"))
@@ -55,6 +56,10 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work)
+    implementation(libs.okhttp)
 
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.androidx.work.testing)
 }
