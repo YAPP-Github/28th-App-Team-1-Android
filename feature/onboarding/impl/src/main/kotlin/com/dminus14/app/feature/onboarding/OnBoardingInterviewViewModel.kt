@@ -585,10 +585,12 @@ class OnBoardingInterviewViewModel
                     } else {
                         ExistingPortfolioModalPhase.AutoDismissNotice
                     }
+                val deleteAvailableSnapshot = existingDeleteAvailable
                 reduce {
                     copy(
                         existingPortfolioModalPhase = phase,
                         hasShownExistingPortfolioNotice = true,
+                        existingDeleteAvailable = deleteAvailableSnapshot,
                     )
                 }
             }

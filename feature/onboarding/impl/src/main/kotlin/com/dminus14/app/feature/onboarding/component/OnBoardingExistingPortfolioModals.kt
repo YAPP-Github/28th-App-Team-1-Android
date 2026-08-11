@@ -24,7 +24,10 @@ internal fun OnBoardingExistingPortfolioModals(
         }
 
         ExistingPortfolioModalPhase.AutoDismissNotice -> {
-            OnBoardingUseExistingPortfolioNotice(onIntent = onIntent)
+            OnBoardingUseExistingPortfolioNotice(
+                remainingDeleteCount = if (state.existingDeleteAvailable) 1 else 0,
+                onIntent = onIntent,
+            )
         }
 
         ExistingPortfolioModalPhase.None -> {
@@ -52,9 +55,16 @@ internal fun OnBoardingExistingPortfolioConfirmModal(
     )
 }
 
-/** Case2: 기존 포트폴리오 자동 사용 안내(3초 후 또는 배경 탭 시 dismiss). */
+/**
+ * Case2: 기존 포트폴리오 자동 사용 안내(3초 후 또는 배경 탭 시 dismiss).
+ *
+ * @param remainingDeleteCount 이번 달 남은 삭제 기회(0 또는 1). 안내 문구의 잔여 횟수를 결정한다.
+ */
 @Composable
-internal fun OnBoardingUseExistingPortfolioNotice(onIntent: (OnBoardingInterviewIntent) -> Unit) {
+internal fun OnBoardingUseExistingPortfolioNotice(
+    remainingDeleteCount: Int,
+    onIntent: (OnBoardingInterviewIntent) -> Unit,
+) {
     LaunchedEffect(Unit) {
         delay(AUTO_DISMISS_NOTICE_MS)
         onIntent(OnBoardingInterviewIntent.AutoDismissNoticeTimedOut)
@@ -63,7 +73,9 @@ internal fun OnBoardingUseExistingPortfolioNotice(onIntent: (OnBoardingInterview
     HilitModal(
         type = HilitModalType.InvisibleIcon,
         title = "가장 최근에 업로드한 포트폴리오를\n이번 면접에 그대로 사용합니다.",
-        infoText = "이번 달 남은 삭제 기회 0번이라\n새로운 포트폴리오 업로드가 불가능해요.",
+        infoText =
+            "이번 달 남은 삭제 기회 ${remainingDeleteCount}번이라\n" +
+                "새로운 포트폴리오 업로드가 불가능해요.",
         dismissible = true,
         onDismiss = { onIntent(OnBoardingInterviewIntent.ClickAutoDismissNotice) },
         buttons = {},

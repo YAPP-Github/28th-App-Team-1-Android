@@ -151,6 +151,6 @@ private fun OnBoardingExistingPortfolioConfirmModalPreview() {
 @Composable
 private fun OnBoardingUseExistingPortfolioNoticePreview() {
     HilitTheme {
-        OnBoardingUseExistingPortfolioNotice(onIntent = {})
+        OnBoardingUseExistingPortfolioNotice(remainingDeleteCount = 0, onIntent = {})
     }
 }

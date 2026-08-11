@@ -126,6 +126,8 @@ data class OnBoardingInterviewState(
     val existingPortfolioModalPhase: ExistingPortfolioModalPhase = ExistingPortfolioModalPhase.None,
     /** 기존 포폴 안내 모달/팝업을 이번 온보딩 세션에서 이미 노출했는지. */
     val hasShownExistingPortfolioNotice: Boolean = false,
+    /** 이번 달 삭제 기회 잔여 여부. AutoDismissNotice 안내 문구의 잔여 횟수 표기에 사용. */
+    val existingDeleteAvailable: Boolean = false,
     /** 포트폴리오 스텝 인라인 에러(필수 누락·PDF 검증 실패 등). null이면 숨긴다. */
     val portfolioErrorMessage: String? = null,
     val isPortfolioProcessing: Boolean = false,
