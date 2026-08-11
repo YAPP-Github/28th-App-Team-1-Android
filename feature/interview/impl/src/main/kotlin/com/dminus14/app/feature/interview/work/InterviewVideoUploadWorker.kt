@@ -17,9 +17,9 @@ import com.dminus14.app.domain.usecase.DeleteInterviewUploadTaskUseCase
 import com.dminus14.app.domain.usecase.GetInterviewUploadManifestUseCase
 import com.dminus14.app.domain.usecase.GetInterviewUploadTaskUseCase
 import com.dminus14.app.domain.usecase.IssueVideoUploadUrlUseCase
-import com.dminus14.app.domain.usecase.ResolveInterviewMediaFileUseCase
 import com.dminus14.app.domain.usecase.UpdateInterviewUploadTaskUseCase
 import com.dminus14.app.domain.usecase.UploadInterviewVideoUseCase
+import com.dminus14.app.feature.interview.media.InterviewMediaFileResolver
 import com.dminus14.app.feature.interview.media.InterviewMediaTransformer
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -35,7 +35,7 @@ class InterviewVideoUploadWorker
         private val updateTask: UpdateInterviewUploadTaskUseCase,
         private val getManifest: GetInterviewUploadManifestUseCase,
         private val createUploadFile: CreateInterviewUploadMediaFileUseCase,
-        private val resolveMediaFile: ResolveInterviewMediaFileUseCase,
+        private val mediaFileResolver: InterviewMediaFileResolver,
         private val transformer: InterviewMediaTransformer,
         private val issueUploadUrl: IssueVideoUploadUrlUseCase,
         private val uploadVideo: UploadInterviewVideoUseCase,
@@ -85,10 +85,10 @@ class InterviewVideoUploadWorker
                 manifest.segments
                     .filter { it.finalizeState == InterviewMediaFinalizeState.FINALIZED }
                     .sortedBy { it.sequence }
-                    .map { resolveMediaFile(it.mediaRef) }
+                    .map { mediaFileResolver.resolve(it.mediaRef) }
             require(inputs.isNotEmpty())
             val outputRef = createUploadFile(task.uploadTaskId, "mp4")
-            transformer.export(inputs, resolveMediaFile(outputRef), audioOnly = false)
+            transformer.export(inputs, mediaFileResolver.resolve(outputRef), audioOnly = false)
             return task
                 .copy(
                     status = InterviewUploadTaskStatus.PENDING_UPLOAD,
