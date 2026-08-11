@@ -1,6 +1,11 @@
 package com.dminus14.app.feature.onboarding
 
+import android.content.Context
+import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -15,14 +20,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dminus14.app.feature.interview.api.InterviewRoute
+import com.dminus14.app.feature.onboarding.component.OnBoardingExistingPortfolioModals
 import com.dminus14.app.feature.onboarding.component.OnBoardingJobDescriptionStep
 import com.dminus14.app.feature.onboarding.component.OnBoardingMainProjectStep
 import com.dminus14.app.feature.onboarding.component.OnBoardingPortfolioStep
+import com.dminus14.app.feature.onboarding.component.OnBoardingPortfolioStepUiState
 import com.dminus14.app.feature.onboarding.component.OnBoardingPreloadStep
 import com.dminus14.designsystem.component.button.HilitFixedBottomDualButton
 import com.dminus14.designsystem.component.progressbar.HilitProgressBar
@@ -30,13 +39,16 @@ import com.dminus14.designsystem.component.topbar.HilitIconTopBar
 import com.dminus14.designsystem.component.topbar.HilitTextTopBar
 import com.dminus14.designsystem.component.topbar.TopBarType
 import com.dminus14.designsystem.theme.HilitTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 
 private val ContentHorizontalPadding = 20.dp
 private val ProgressBarHorizontalPadding = 20.dp
 private val ProgressBarVerticalPadding = 4.dp
-private const val PROGRESS_MAX_STEP = 3
+private const val MIME_PDF = "application/pdf"
 
-@Suppress("UnusedParameter") // onNavigate: 인터뷰 완료 후 이동할 목적지가 정해지면 연결 예정
 @Composable
 fun OnBoardingInterviewScreen(
     onNavigate: (Any) -> Unit,
@@ -45,6 +57,24 @@ fun OnBoardingInterviewScreen(
     viewModel: OnBoardingInterviewViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val portfolioPickerLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            uri ?: return@rememberLauncherForActivityResult
+            scope.launch {
+                val picked = withContext(Dispatchers.IO) { copyPdfToCache(context, uri) }
+                if (picked != null) {
+                    viewModel.onIntent(
+                        OnBoardingInterviewIntent.PortfolioFileSelected(
+                            file = picked.file,
+                            fileName = picked.name,
+                        ),
+                    )
+                }
+            }
+        }
 
     LaunchedEffect(Unit) {
         viewModel.onIntent(OnBoardingInterviewIntent.Load)
@@ -53,8 +83,26 @@ fun OnBoardingInterviewScreen(
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                OnBoardingInterviewEffect.CloseRequested -> onClose()
+                OnBoardingInterviewEffect.CloseRequested -> {
+                    onClose()
+                }
+
+                OnBoardingInterviewEffect.LaunchPortfolioPicker -> {
+                    portfolioPickerLauncher.launch(arrayOf(MIME_PDF))
+                }
+
+                is OnBoardingInterviewEffect.NavigateToResult -> {
+                    // sessionId 는 Interview 화면이 로컬 InterviewProgress 에서 조회한다.
+                    // 여기서 raw Long 을 backStack 에 넘기면 Nav3 가 destination 매칭 실패로 크래시.
+                    onNavigate(InterviewRoute)
+                }
             }
+        }
+    }
+
+    LaunchedEffect(state.step) {
+        if (state.step == OnBoardingInterviewStep.Portfolio) {
+            viewModel.onIntent(OnBoardingInterviewIntent.PortfolioStepEntered)
         }
     }
 
@@ -65,20 +113,77 @@ fun OnBoardingInterviewScreen(
     )
 }
 
-@Suppress("UnusedParameter")
+private data class PickedPdf(
+    val file: File,
+    val name: String,
+)
+
+/**
+ * SAF로 고른 PDF를 앱 캐시로 복사한다. 업로드 UseCase는 [File]을 요구하기 때문이다.
+ *
+ * 캐시 파일 이름은 SAF display name(문서 공급자 통제, 신뢰 불가)이 아니라
+ * [File.createTempFile]이 만든 랜덤값을 사용한다. `../` 나 절대 경로가 섞인 display name으로
+ * 앱 전용 저장소의 다른 파일을 덮어쓰는 path traversal(CWE-22) 취약점을 원천 차단한다.
+ * 사용자·서버가 보는 원본 이름은 [PickedPdf.name] 문자열로만 별도 보관한다.
+ */
+private fun copyPdfToCache(
+    context: Context,
+    uri: Uri,
+): PickedPdf? {
+    val resolver = context.contentResolver
+    val displayName = resolver.queryDisplayName(uri) ?: "portfolio.pdf"
+    return runCatching {
+        val target = File.createTempFile("portfolio-", ".pdf", context.cacheDir)
+        val copied =
+            resolver.openInputStream(uri)?.use { input ->
+                target.outputStream().use { output -> input.copyTo(output) }
+                true
+            } ?: false
+        if (copied) {
+            PickedPdf(file = target, name = displayName)
+        } else {
+            target.delete()
+            null
+        }
+    }.getOrNull()
+}
+
+private fun android.content.ContentResolver.queryDisplayName(uri: Uri): String? =
+    query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+        val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+        if (index >= 0 && cursor.moveToFirst()) cursor.getString(index) else null
+    }
+
 @Composable
-private fun OnBoardingInterviewContent(
+internal fun OnBoardingInterviewContent(
     state: OnBoardingInterviewState,
     onIntent: (OnBoardingInterviewIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (state.step == OnBoardingInterviewStep.Preload) {
-        OnBoardingPreloadStep(onIntent = onIntent, modifier = modifier)
-        return
-    }
-
+    // 모든 스텝 공통으로 BackHandler를 등록해 시스템 back이 온보딩 전체를 이탈시키지 않게 한다.
+    // Preload 스텝에서는 VM의 onPreviousClick 이 no-op로 처리해(세션 이중 생성 방지),
+    // 화면은 그대로 유지된다.
     BackHandler {
         onIntent(OnBoardingInterviewIntent.ClickPrevious)
+    }
+
+    if (state.step == OnBoardingInterviewStep.Preload) {
+        OnBoardingPreloadStep(
+            basicInfoStatus = state.loadingBasicInfo,
+            jdStatus = state.loadingJd,
+            portfolioStatus = state.loadingPortfolio,
+            onIntent = onIntent,
+            modifier = modifier,
+        )
+        // Preload 중 세션 생성 실패는 화면에 노출되지 않던 버그를 다이얼로그로 안내한다.
+        // 확인 시 MainProject 스텝으로 되돌려 재시도 가능하게 만든다.
+        if (state.errorMessage != null) {
+            OnBoardingPreloadFailureDialog(
+                message = state.errorMessage,
+                onIntent = onIntent,
+            )
+        }
+        return
     }
 
     Column(
@@ -102,12 +207,21 @@ private fun OnBoardingInterviewContent(
         HilitFixedBottomDualButton(
             leftText = "이전으로",
             rightText = "계속하기",
-            leftEnabled = true,
-            rightEnabled = true,
+            leftEnabled = state.isBottomBarEnabled(),
+            rightEnabled = state.isBottomBarEnabled() && state.isContinueEnabled(),
             onLeftClick = { onIntent(OnBoardingInterviewIntent.ClickPrevious) },
             onRightClick = { onIntent(OnBoardingInterviewIntent.ClickContinue) },
         )
     }
+
+    if (state.showRelevanceFailDialog) {
+        OnBoardingRelevanceFailDialog(onIntent = onIntent)
+    }
+
+    OnBoardingExistingPortfolioModals(
+        state = state,
+        onIntent = onIntent,
+    )
 }
 
 @Composable
@@ -199,6 +313,8 @@ private fun OnBoardingInterviewStepContent(
             OnBoardingJobDescriptionStep(
                 tab = state.jobDescriptionTab,
                 link = state.jobDescriptionLink,
+                linkStatus = state.jdLinkStatus,
+                linkSubText = state.jdLinkSubText,
                 text = state.jobDescriptionText,
                 onIntent = onIntent,
                 modifier = modifier,
@@ -207,9 +323,13 @@ private fun OnBoardingInterviewStepContent(
 
         OnBoardingInterviewStep.Portfolio -> {
             OnBoardingPortfolioStep(
-                fileName = state.portfolioFileName,
-                showExistingPortfolioModal = state.showExistingPortfolioModal,
-                showRequiredError = state.showPortfolioRequiredError,
+                uiState =
+                    OnBoardingPortfolioStepUiState(
+                        fileName = state.portfolioFileName,
+                        isProcessing = state.isPortfolioProcessing,
+                        uploadProgress = state.portfolioUploadProgress,
+                        errorMessage = state.portfolioErrorMessage,
+                    ),
                 onIntent = onIntent,
                 modifier = modifier,
             )
@@ -218,6 +338,7 @@ private fun OnBoardingInterviewStepContent(
         OnBoardingInterviewStep.MainProject -> {
             OnBoardingMainProjectStep(
                 text = state.mainProjectText,
+                error = state.mainProjectError,
                 onIntent = onIntent,
                 modifier = modifier,
             )
@@ -226,64 +347,5 @@ private fun OnBoardingInterviewStepContent(
         OnBoardingInterviewStep.Preload -> {
             Unit
         }
-    }
-}
-
-private fun OnBoardingInterviewStep.toProgressStep(): Int =
-    when (this) {
-        OnBoardingInterviewStep.JobDescription -> 1
-
-        OnBoardingInterviewStep.Portfolio -> 2
-
-        OnBoardingInterviewStep.MainProject,
-        OnBoardingInterviewStep.Preload,
-        -> PROGRESS_MAX_STEP
-    }
-
-@Preview(name = "JobDescription", showBackground = true, widthDp = 375, heightDp = 812)
-@Composable
-private fun OnBoardingInterviewJobDescriptionPreview() {
-    HilitTheme {
-        OnBoardingInterviewContent(
-            state = OnBoardingInterviewState(step = OnBoardingInterviewStep.JobDescription),
-            onIntent = {},
-        )
-    }
-}
-
-@Preview(name = "Portfolio", showBackground = true, widthDp = 375, heightDp = 812)
-@Composable
-private fun OnBoardingInterviewPortfolioPreview() {
-    HilitTheme {
-        OnBoardingInterviewContent(
-            state =
-                OnBoardingInterviewState(
-                    step = OnBoardingInterviewStep.Portfolio,
-                    showExistingPortfolioModal = true,
-                ),
-            onIntent = {},
-        )
-    }
-}
-
-@Preview(name = "MainProject", showBackground = true, widthDp = 375, heightDp = 812)
-@Composable
-private fun OnBoardingInterviewMainProjectPreview() {
-    HilitTheme {
-        OnBoardingInterviewContent(
-            state = OnBoardingInterviewState(step = OnBoardingInterviewStep.MainProject),
-            onIntent = {},
-        )
-    }
-}
-
-@Preview(name = "Preload", showBackground = true, widthDp = 375, heightDp = 812)
-@Composable
-private fun OnBoardingInterviewPreloadPreview() {
-    HilitTheme {
-        OnBoardingInterviewContent(
-            state = OnBoardingInterviewState(step = OnBoardingInterviewStep.Preload),
-            onIntent = {},
-        )
     }
 }

@@ -26,7 +26,7 @@ internal fun GradientTextCatalogAdapter(
     HilitTheme {
         GradientText(
             text = text,
-            typo = typography.toTextStyle(),
+            textStyle = typography.toTextStyle(),
             startColor = parseHexColorOrDefault(startColorHex, HilitTheme.colors.hilitGreen600),
             endColor = parseHexColorOrDefault(endColorHex, HilitTheme.colors.hilitGreen800),
         )

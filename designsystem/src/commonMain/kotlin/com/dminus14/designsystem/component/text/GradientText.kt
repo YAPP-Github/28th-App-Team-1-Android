@@ -21,7 +21,7 @@ private const val DEFAULT_TEXT = "오랜만이에요\n재원님!"
 fun GradientText(
     modifier: Modifier = Modifier,
     text: String = DEFAULT_TEXT,
-    typo: TextStyle = HilitTheme.typography.head1,
+    textStyle: TextStyle = HilitTheme.typography.head1,
     startColor: Color = HilitTheme.colors.hilitGreen600,
     endColor: Color = HilitTheme.colors.hilitGreen800,
 ) {
@@ -29,7 +29,7 @@ fun GradientText(
         text = text,
         modifier = modifier.fillMaxWidth(),
         style =
-            typo.copy(
+            textStyle.copy(
                 brush = Brush.horizontalGradient(colors = listOf(startColor, endColor)),
             ),
     )
