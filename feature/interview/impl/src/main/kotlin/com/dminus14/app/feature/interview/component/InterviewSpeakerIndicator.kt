@@ -75,7 +75,7 @@ private fun InterviewSpeakerIndicatorAIPreview() {
 private fun InterviewSpeakerIndicatorUserPreview() {
     HilitTheme {
         InterviewSpeakerIndicator(
-            speaker = InterviewSpeaker.User,
+            speaker = InterviewSpeaker.USER,
         )
     }
 }
