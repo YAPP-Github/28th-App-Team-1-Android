@@ -1182,14 +1182,26 @@ class OnBoardingInterviewViewModelTest {
 
     /**
      * 업로드 흐름은 [kotlinx.coroutines.Dispatchers.IO]로 한 번 hop하므로, 가상 시간만으로는
-     * 결정적으로 대기할 수 없다. 상태가 안정될 때까지 스케줄러를 반복 진행시키며 기다린다.
+     * 결정적으로 대기할 수 없다. processing 종료와 함께 성공/실패 결과가 state에 반영될 때까지
+     * 실시간 스케줄러와 함께 폴링한다.
      */
     private fun TestScope.settleUpload(viewModel: OnBoardingInterviewViewModel) {
-        repeat(200) {
+        val deadlineMs = System.currentTimeMillis() + 5_000L
+        while (System.currentTimeMillis() < deadlineMs) {
             advanceUntilIdle()
-            if (!viewModel.state.value.isPortfolioProcessing) return
+            val state = viewModel.state.value
+            if (
+                !state.isPortfolioProcessing &&
+                (
+                    state.portfolioErrorMessage != null ||
+                        state.portfolioUploadProgress == PORTFOLIO_PROGRESS_COMPLETE
+                )
+            ) {
+                advanceUntilIdle()
+                return
+            }
             @Suppress("detekt:ForbiddenMethodCall")
-            Thread.sleep(1)
+            Thread.sleep(10)
         }
         advanceUntilIdle()
     }

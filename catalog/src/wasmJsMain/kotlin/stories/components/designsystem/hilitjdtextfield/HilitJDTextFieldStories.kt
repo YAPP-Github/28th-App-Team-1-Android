@@ -20,6 +20,9 @@ internal val HilitJDTextFieldStories =
                                 value = "",
                                 placeholder = "텍스트를 입력해주세요",
                                 maxLength = 300,
+                                minLength = 0,
+                                validationErrorText = "",
+                                validationSuccessText = "",
                             ),
                     )
                 },
@@ -34,6 +37,9 @@ internal val HilitJDTextFieldStories =
                                 value = "백엔드 개발자 JD를 입력하는 예시입니다.",
                                 placeholder = "텍스트를 입력해주세요",
                                 maxLength = 300,
+                                minLength = 0,
+                                validationErrorText = "",
+                                validationSuccessText = "",
                             ),
                     )
                 },

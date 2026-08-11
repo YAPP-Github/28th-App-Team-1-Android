@@ -14,7 +14,7 @@ internal fun HilitJDTextFieldCatalogAdapter(
     value: String,
     placeholder: String,
     maxLength: Int,
-    minLength: Int? = null,
+    minLength: Int = 0,
     validationErrorText: String = "",
     validationSuccessText: String = "",
 ) {
@@ -28,7 +28,7 @@ internal fun HilitJDTextFieldCatalogAdapter(
         onValueChange = { text = it },
         placeholder = placeholder,
         maxLength = safeMaxLength,
-        minLength = minLength,
+        minLength = minLength.takeIf { it > 0 },
         validationErrorText = validationErrorText,
         validationSuccessText = validationSuccessText,
     )
