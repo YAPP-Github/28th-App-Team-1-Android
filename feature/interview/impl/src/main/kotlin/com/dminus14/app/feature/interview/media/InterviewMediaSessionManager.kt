@@ -4,7 +4,6 @@ import com.dminus14.app.domain.model.InterviewMediaFileRef
 import com.dminus14.app.domain.model.InterviewMediaSegment
 import com.dminus14.app.domain.model.InterviewMediaSegmentType
 import com.dminus14.app.domain.usecase.CreateInterviewMediaSegmentUseCase
-import com.dminus14.app.domain.usecase.ResolveInterviewMediaFileUseCase
 import javax.inject.Inject
 
 class InterviewMediaSessionManager
@@ -14,7 +13,7 @@ class InterviewMediaSessionManager
         private val speechDetector: InterviewSpeechDetector,
         private val transformer: InterviewMediaTransformer,
         private val createSegment: CreateInterviewMediaSegmentUseCase,
-        private val resolveMediaFile: ResolveInterviewMediaFileUseCase,
+        private val mediaFileResolver: InterviewMediaFileResolver,
     ) {
         private var activeSegment: InterviewMediaSegment? = null
         private var listener: Listener? = null
@@ -42,7 +41,7 @@ class InterviewMediaSessionManager
                 )
             activeSegment = segment
             recorder.start(
-                resolveMediaFile(segment.mediaRef),
+                mediaFileResolver.resolve(segment.mediaRef),
             ) { event -> handleRecordingEvent(sessionId, event) }
         }
 
@@ -57,8 +56,8 @@ class InterviewMediaSessionManager
             outputRef: InterviewMediaFileRef,
         ) {
             transformer.export(
-                inputFiles = inputRefs.map { resolveMediaFile(it) },
-                outputFile = resolveMediaFile(outputRef),
+                inputFiles = inputRefs.map { mediaFileResolver.resolve(it) },
+                outputFile = mediaFileResolver.resolve(outputRef),
                 audioOnly = true,
             )
         }
@@ -68,8 +67,8 @@ class InterviewMediaSessionManager
             outputRef: InterviewMediaFileRef,
         ) {
             transformer.export(
-                inputFiles = inputRefs.map { resolveMediaFile(it) },
-                outputFile = resolveMediaFile(outputRef),
+                inputFiles = inputRefs.map { mediaFileResolver.resolve(it) },
+                outputFile = mediaFileResolver.resolve(outputRef),
                 audioOnly = false,
             )
         }
