@@ -78,6 +78,10 @@ class InterviewFileStore
             ) { "Media reference does not exist" }
         }
 
+        fun delete(ref: InterviewMediaFileRef) {
+            runCatching { resolve(ref) }.getOrNull()?.delete()
+        }
+
         /**
          * 세션 미디어를 업로드 작업 디렉터리로 옮긴다.
          *
