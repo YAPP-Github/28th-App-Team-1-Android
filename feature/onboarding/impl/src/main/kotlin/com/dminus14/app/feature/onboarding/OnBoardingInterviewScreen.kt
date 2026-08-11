@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dminus14.app.feature.interview.api.InterviewRoute
 import com.dminus14.app.feature.onboarding.component.OnBoardingExistingPortfolioModals
 import com.dminus14.app.feature.onboarding.component.OnBoardingJobDescriptionStep
 import com.dminus14.app.feature.onboarding.component.OnBoardingMainProjectStep
@@ -91,7 +92,9 @@ fun OnBoardingInterviewScreen(
                 }
 
                 is OnBoardingInterviewEffect.NavigateToResult -> {
-                    onNavigate(effect.sessionId)
+                    // sessionId 는 Interview 화면이 로컬 InterviewProgress 에서 조회한다.
+                    // 여기서 raw Long 을 backStack 에 넘기면 Nav3 가 destination 매칭 실패로 크래시.
+                    onNavigate(InterviewRoute)
                 }
             }
         }
