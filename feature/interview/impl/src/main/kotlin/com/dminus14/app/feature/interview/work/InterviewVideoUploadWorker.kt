@@ -7,6 +7,7 @@ import androidx.work.WorkerParameters
 import com.dminus14.app.domain.exception.NetworkUnavailableException
 import com.dminus14.app.domain.exception.ServerException
 import com.dminus14.app.domain.model.InterviewMediaFinalizeState
+import com.dminus14.app.domain.model.InterviewMediaSegmentType
 import com.dminus14.app.domain.model.InterviewPendingGlobalErrorType
 import com.dminus14.app.domain.model.InterviewUploadTask
 import com.dminus14.app.domain.model.InterviewUploadTaskStatus
@@ -83,8 +84,10 @@ class InterviewVideoUploadWorker
             val manifest = requireNotNull(getManifest(task.uploadTaskId))
             val inputs =
                 manifest.segments
-                    .filter { it.finalizeState == InterviewMediaFinalizeState.FINALIZED }
-                    .sortedBy { it.sequence }
+                    .filter {
+                        it.finalizeState == InterviewMediaFinalizeState.FINALIZED &&
+                            it.type != InterviewMediaSegmentType.ANSWER_AUDIO
+                    }.sortedBy { it.sequence }
                     .map { mediaFileResolver.resolve(it.mediaRef) }
             require(inputs.isNotEmpty())
             val outputRef = createUploadFile(task.uploadTaskId, "mp4")
