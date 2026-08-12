@@ -1,8 +1,9 @@
-@file:Suppress("ktlint:standard:filename")
+@file:Suppress("ktlint:standard:filename", "TooManyFunctions")
 
 package com.dminus14.app.feature.mypage
 
 import android.widget.Toast
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -20,14 +21,17 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dminus14.app.feature.mypage.component.MyPageModal
@@ -53,6 +57,10 @@ fun MyPageScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+    // 상단바(hilitWhite)·본문(gray50) 색이 상태바·내비게이션바까지 이어지게 시스템 바를 맞춘다.
+    // enableEdgeToEdge()가 시스템 테마 기준으로만 밝기를 정해서, 화면 자체 배색과 어긋나던 것을 고친다.
+    MatchSystemBarsToContent()
 
     val filePickerLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -105,6 +113,28 @@ fun MyPageScreen(
         onIntent = viewModel::onIntent,
         modifier = modifier,
     )
+}
+
+/**
+ * 상태바·내비게이션바를 이 화면의 배색(상단 hilitWhite·본문 gray50)에 맞춘다.
+ * `enableEdgeToEdge()`는 시스템 다크/라이트 모드 기준으로만 밝기를 정해 화면 배색과 어긋날 수 있다.
+ */
+@Composable
+private fun MatchSystemBarsToContent() {
+    val activity = LocalActivity.current
+    val statusBarColor = HilitTheme.colors.hilitWhite
+    val navigationBarColor = HilitTheme.colors.gray50
+    SideEffect {
+        activity?.window?.let { window ->
+            @Suppress("DEPRECATION")
+            window.statusBarColor = statusBarColor.toArgb()
+            @Suppress("DEPRECATION")
+            window.navigationBarColor = navigationBarColor.toArgb()
+            val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+            insetsController.isAppearanceLightStatusBars = true
+            insetsController.isAppearanceLightNavigationBars = true
+        }
+    }
 }
 
 @Composable
