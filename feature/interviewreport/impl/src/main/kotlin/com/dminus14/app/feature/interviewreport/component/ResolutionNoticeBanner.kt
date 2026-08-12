@@ -3,11 +3,9 @@ package com.dminus14.app.feature.interviewreport.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.dminus14.designsystem.theme.HilitTheme
 
@@ -29,7 +27,6 @@ internal fun ResolutionNoticeBanner(
         modifier =
             modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
                 .background(colors.gray900)
                 .padding(horizontal = 12.dp, vertical = 10.dp),
     )

@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.dminus14.app.feature.interviewreport.component.DetailReportSectionHeader
 import com.dminus14.app.feature.interviewreport.component.FeedbackRequestCard
 import com.dminus14.app.feature.interviewreport.component.HeadlineSection
 import com.dminus14.app.feature.interviewreport.component.HighlightDetailBottomSheet
@@ -136,11 +137,7 @@ private fun ReadyReport(
                 Spacer(Modifier.height(24.dp))
                 SectionDivider()
                 Spacer(Modifier.height(24.dp))
-                Text(
-                    text = "상세 리포트",
-                    style = HilitTheme.typography.sub7,
-                    color = colors.hilitWhite,
-                )
+                DetailReportSectionHeader(redFlagNotices = report.redFlagNotices)
                 Spacer(Modifier.height(10.dp))
                 val safeIndex = selectedCardIndex.coerceIn(0, report.cards.lastIndex)
                 QuestionTabRow(

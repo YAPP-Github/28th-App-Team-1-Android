@@ -64,6 +64,32 @@ private fun VideoCountdownCardExpiredPreview() {
     }
 }
 
+@Preview(name = "DetailReportSectionHeader - 레드플래그 없음")
+@Composable
+private fun DetailReportSectionHeaderPreview() {
+    DarkPreview {
+        DetailReportSectionHeader(redFlagNotices = emptyList())
+    }
+}
+
+@Preview(name = "DetailReportSectionHeader - 레드플래그 있음 (진입 시 말풍선 자동 노출)")
+@Composable
+private fun DetailReportSectionHeaderRedFlagPreview() {
+    DarkPreview {
+        DetailReportSectionHeader(redFlagNotices = PreviewInterviewReport.sampleRedFlagNotices)
+    }
+}
+
+@Preview(name = "DetailReportSectionHeader - 레드플래그 2건 (진입 시 자동 노출)")
+@Composable
+private fun DetailReportSectionHeaderMultipleRedFlagPreview() {
+    DarkPreview {
+        DetailReportSectionHeader(
+            redFlagNotices = PreviewInterviewReport.sampleRedFlagNoticesMultiple,
+        )
+    }
+}
+
 @Preview(name = "QuestionTabRow")
 @Composable
 private fun QuestionTabRowPreview() {

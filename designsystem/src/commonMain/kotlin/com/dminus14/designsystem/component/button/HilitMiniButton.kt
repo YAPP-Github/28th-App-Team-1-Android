@@ -30,12 +30,13 @@ enum class HilitMiniButtonColor {
     Light,
     Dark,
     Non,
+    Green,
 }
 
 /**
  * 미니 버튼.
  *
- * Figma 노드 번호: 439-10190, 439-10191, 439-10192, 439-10193, 439-10194, 439-10195, 439-10196, 439-10197.
+ * Figma 노드 번호: 439-10190, 439-10191, 439-10192, 439-10193, 439-10194, 439-10195, 439-10196, 439-10197, 443-6907.
  */
 @Composable
 fun HilitMiniButton(
@@ -110,6 +111,15 @@ internal fun hilitMiniButtonStyle(
             )
         }
 
+        HilitMiniButtonColor.Green if enabled -> {
+            HilitMiniButtonStyle(
+                backgroundColor = colors.hilitGreen500,
+                contentColor = colors.hilitGreen800,
+                contentPadding = 8.dp,
+                contentSpacing = 8.dp,
+            )
+        }
+
         else -> {
             HilitMiniButtonStyle(
                 backgroundColor = colors.hilitWhite,
@@ -151,6 +161,13 @@ private fun HilitMiniButtonPreview() {
 
             HilitMiniButton(
                 color = HilitMiniButtonColor.Non,
+                onClick = {},
+            ) {
+                Text(text = "텍스트만 사용")
+            }
+
+            HilitMiniButton(
+                color = HilitMiniButtonColor.Green,
                 onClick = {},
             ) {
                 Text(text = "텍스트만 사용")

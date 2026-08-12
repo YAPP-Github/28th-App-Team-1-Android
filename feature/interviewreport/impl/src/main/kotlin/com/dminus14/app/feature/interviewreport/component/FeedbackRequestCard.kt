@@ -11,12 +11,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.dminus14.app.feature.interviewreport.model.GuestFeedbackUiModel
 import com.dminus14.designsystem.component.icon.HilitIcon
@@ -40,7 +38,6 @@ internal fun FeedbackRequestCard(
         modifier =
             modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
                 .background(colors.gray900)
                 .clickable(onClick = onClick)
                 .padding(end = 16.dp),

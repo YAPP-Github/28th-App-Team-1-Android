@@ -54,6 +54,13 @@ internal object PreviewInterviewReport {
     /** 컴포넌트 Preview 재사용용 합성 샘플. */
     val sampleCard: CardUiModel get() = card("질문 1-1")
     val sampleRedFlagCard: CardUiModel get() = card("질문 1-2", redFlag = true)
+    val sampleRedFlagNotices: List<String> get() = listOf("영상 해상도가 낮아 분석율이 떨어질 수 있어요.")
+    val sampleRedFlagNoticesMultiple: List<String>
+        get() =
+            listOf(
+                "영상 해상도가 낮아 분석율이 떨어질 수 있어요.",
+                "답변 사이에 사실관계가 엇갈린 지점이 있었어요.",
+            )
     val sampleGoodHighlight: HighlightUiModel get() = goodHighlight
     val sampleOffIntentHighlight: HighlightUiModel get() = offIntentHighlight
     val sampleTranscript: String get() = ANSWER_TRANSCRIPT

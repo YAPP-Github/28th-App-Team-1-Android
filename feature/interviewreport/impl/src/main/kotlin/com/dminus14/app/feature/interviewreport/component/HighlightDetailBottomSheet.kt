@@ -11,14 +11,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.dminus14.app.feature.interviewreport.model.HighlightUiModel
@@ -118,7 +116,6 @@ private fun WatchSceneButton(onClick: () -> Unit) {
     Row(
         modifier =
             Modifier
-                .clip(RoundedCornerShape(8.dp))
                 .background(colors.gray900)
                 .clickable(onClick = onClick)
                 .padding(8.dp),
@@ -146,7 +143,6 @@ private fun AnalysisMessageCard(highlight: HighlightUiModel) {
         modifier =
             Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
                 .background(colors.hilitBlack800)
                 .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -279,7 +275,6 @@ private fun ReasonTag(
         color = if (green) colors.hilitGreen500 else colors.gray200,
         modifier =
             Modifier
-                .clip(RoundedCornerShape(6.dp))
                 .background(colors.gray900)
                 .padding(horizontal = 12.dp, vertical = 4.dp),
     )
@@ -292,7 +287,6 @@ private fun MiniHintCard(text: String) {
         modifier =
             Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
                 .background(colors.gray800)
                 .padding(12.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
