@@ -208,6 +208,19 @@ class InterviewReportViewModelTest {
         }
 
     @Test
+    fun `SelectGuestFeedback 인텐트는 selectedGuestFeedbackIndex 를 갱신한다`() =
+        runTest {
+            val viewModel = viewModel(FakeInterviewRepository(listOf(readyReport())))
+            viewModel.bindSessionId(1L)
+            viewModel.onIntent(InterviewReportIntent.Load)
+            advanceUntilIdle()
+
+            viewModel.onIntent(InterviewReportIntent.SelectGuestFeedback(1))
+
+            assertEquals(1, viewModel.state.value.selectedGuestFeedbackIndex)
+        }
+
+    @Test
     fun `만료 전이면 videoExpirySeconds 를 잔여 초로 세팅한다`() =
         runTest {
             val repository =

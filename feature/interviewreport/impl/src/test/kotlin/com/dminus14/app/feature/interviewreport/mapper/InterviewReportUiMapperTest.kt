@@ -1,5 +1,7 @@
 package com.dminus14.app.feature.interviewreport.mapper
 
+import com.dminus14.app.domain.model.AttitudeRating
+import com.dminus14.app.domain.model.GuestFeedbackItem
 import com.dminus14.app.domain.model.GuestFeedbackSummary
 import com.dminus14.app.domain.model.HighlightReason
 import com.dminus14.app.domain.model.HighlightSpan
@@ -8,6 +10,7 @@ import com.dminus14.app.domain.model.InterviewReport
 import com.dminus14.app.domain.model.InterviewReportCard
 import com.dminus14.app.domain.model.InterviewReportStatus
 import com.dminus14.app.domain.model.InterviewReportVideo
+import com.dminus14.app.feature.interviewreport.model.GuestFeedbackAxisUi
 import com.dminus14.app.feature.interviewreport.model.HeadlineTone
 import com.dminus14.app.feature.interviewreport.model.HighlightUiReason
 import com.dminus14.app.feature.interviewreport.model.HighlightUiTone
@@ -159,6 +162,64 @@ class InterviewReportUiMapperTest {
         val ui = InterviewReportUiMapper.map(report)
 
         assertNull(ui.guestFeedback)
+    }
+
+    @Test
+    fun `guestFeedback 의 지인별 평가는 alias 를 보존하고 시선-표정-자세-손동작-목소리 순으로 정렬한다`() {
+        val guest =
+            GuestFeedbackItem(
+                alias = "지인1",
+                attitudeRatings =
+                    listOf(
+                        AttitudeRating(axis = "VOICE", level = 3, comment = "목소리가 좋아요"),
+                        AttitudeRating(axis = "GAZE", level = 4, comment = null),
+                    ),
+            )
+        val report =
+            sampleReport(
+                status = InterviewReportStatus.READY,
+                guestFeedback = GuestFeedbackSummary(participantCount = 1, guests = listOf(guest)),
+            )
+
+        val ui = InterviewReportUiMapper.map(report)
+
+        val person = ui.guestFeedback?.guests?.single()
+        assertEquals("지인1", person?.alias)
+        assertEquals(
+            listOf(GuestFeedbackAxisUi.GAZE, GuestFeedbackAxisUi.VOICE),
+            person?.ratings?.map { it.axis },
+        )
+        assertEquals("잘 맞춤", person?.ratings?.get(0)?.levelLabel)
+        assertEquals("", person?.ratings?.get(0)?.comment)
+        assertEquals("꽤 들림", person?.ratings?.get(1)?.levelLabel)
+        assertEquals("목소리가 좋아요", person?.ratings?.get(1)?.comment)
+    }
+
+    @Test
+    fun `guestFeedback 의 axis 가 알 수 없는 값이면 해당 평가를 건너뛴다`() {
+        val guest =
+            GuestFeedbackItem(
+                alias = "지인1",
+                attitudeRatings =
+                    listOf(
+                        AttitudeRating(axis = "UNKNOWN_AXIS", level = 2, comment = null),
+                    ),
+            )
+        val report =
+            sampleReport(
+                status = InterviewReportStatus.READY,
+                guestFeedback = GuestFeedbackSummary(participantCount = 1, guests = listOf(guest)),
+            )
+
+        val ui = InterviewReportUiMapper.map(report)
+
+        assertTrue(
+            ui.guestFeedback
+                ?.guests
+                ?.single()
+                ?.ratings
+                ?.isEmpty() == true,
+        )
     }
 
     private fun sampleReport(

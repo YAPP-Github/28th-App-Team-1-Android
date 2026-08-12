@@ -17,8 +17,11 @@ data class ReportUiModel(
 )
 
 /**
- * 지인 피드백 요청 카드 (기획서 §지인피드백). 시안의 "참여수/정원" 은 [participantCount] 와
- * 고정 정원 [capacity] 로 구성한다.
+ * 지인 피드백 섹션 (기획서 §지인피드백, Figma Node: 443:7050). 시안의 "참여수/정원" 은
+ * [participantCount] 와 고정 정원 [capacity] 로 구성한다.
+ *
+ * [guests] 는 실제로 피드백을 제출한 지인별 태도 평가 목록이다. 비어 있으면 아직 아무도
+ * 제출하지 않은 상태로, 탭 · 평가 목록을 숨기고 초대 카드만 보여준다.
  */
 @Immutable
 data class GuestFeedbackUiModel(
@@ -26,7 +29,42 @@ data class GuestFeedbackUiModel(
     val capacity: Int,
     val title: String,
     val subtitle: String,
+    val guests: List<GuestFeedbackPersonUiModel> = emptyList(),
 )
+
+/** 지인 한 명이 제출한 피드백. 탭 라벨은 [alias]. */
+@Immutable
+data class GuestFeedbackPersonUiModel(
+    val alias: String,
+    val ratings: List<GuestFeedbackRatingUiModel>,
+)
+
+/** 지인 피드백 평가 항목 하나 (시선/표정/자세/손동작/목소리 중 하나). */
+@Immutable
+data class GuestFeedbackRatingUiModel(
+    val axis: GuestFeedbackAxisUi,
+    val axisLabel: String,
+    val levelLabel: String,
+    val comment: String,
+)
+
+/**
+ * UI 렌더용 지인 피드백 평가 항목 코드. 서버가 보내는 axis 원시 문자열을 안전하게 파싱하기
+ * 위해 두며, 알 수 없는 값은 [fromRaw] 가 null 을 반환해 해당 평가를 조용히 건너뛴다.
+ */
+enum class GuestFeedbackAxisUi {
+    GAZE,
+    EXPRESSION,
+    POSTURE,
+    GESTURE,
+    VOICE,
+    ;
+
+    companion object {
+        fun fromRaw(raw: String): GuestFeedbackAxisUi? =
+            entries.firstOrNull { axis -> axis.name.equals(raw, ignoreCase = true) }
+    }
+}
 
 /** 상단 한 줄 요약 3분기 (기획서 §2-2). */
 @Immutable

@@ -1,5 +1,7 @@
 package com.dminus14.app.feature.interviewreport.mapper
 
+import com.dminus14.app.domain.model.AttitudeRating
+import com.dminus14.app.domain.model.GuestFeedbackItem
 import com.dminus14.app.domain.model.GuestFeedbackSummary
 import com.dminus14.app.domain.model.HighlightReason
 import com.dminus14.app.domain.model.HighlightSpan
@@ -9,6 +11,9 @@ import com.dminus14.app.domain.model.InterviewReportCard
 import com.dminus14.app.domain.model.InterviewReportStatus
 import com.dminus14.app.domain.model.InterviewReportVideo
 import com.dminus14.app.feature.interviewreport.model.CardUiModel
+import com.dminus14.app.feature.interviewreport.model.GuestFeedbackAxisUi
+import com.dminus14.app.feature.interviewreport.model.GuestFeedbackPersonUiModel
+import com.dminus14.app.feature.interviewreport.model.GuestFeedbackRatingUiModel
 import com.dminus14.app.feature.interviewreport.model.GuestFeedbackUiModel
 import com.dminus14.app.feature.interviewreport.model.HeadlineTone
 import com.dminus14.app.feature.interviewreport.model.HeadlineUiModel
@@ -56,7 +61,53 @@ object InterviewReportUiMapper {
             capacity = GUEST_FEEDBACK_CAPACITY,
             title = "지인에게 면접 영상 보내기",
             subtitle = "${GUEST_FEEDBACK_CAPACITY}명에게 영상을 공유하고 태도 분석을 받아보세요!",
+            guests = guests.map { it.toUi() },
         )
+
+    private fun GuestFeedbackItem.toUi(): GuestFeedbackPersonUiModel =
+        GuestFeedbackPersonUiModel(
+            alias = alias,
+            ratings =
+                attitudeRatings
+                    .mapNotNull { rating ->
+                        GuestFeedbackAxisUi.fromRaw(rating.axis)?.let { axis -> rating.toUi(axis) }
+                    }.sortedBy { it.axis.ordinal },
+        )
+
+    private fun AttitudeRating.toUi(axis: GuestFeedbackAxisUi): GuestFeedbackRatingUiModel =
+        GuestFeedbackRatingUiModel(
+            axis = axis,
+            axisLabel = axis.displayName(),
+            levelLabel = axis.levelLabel(level),
+            comment = comment.orEmpty(),
+        )
+
+    private fun GuestFeedbackAxisUi.displayName(): String =
+        when (this) {
+            GuestFeedbackAxisUi.GAZE -> "시선"
+            GuestFeedbackAxisUi.EXPRESSION -> "표정"
+            GuestFeedbackAxisUi.POSTURE -> "자세"
+            GuestFeedbackAxisUi.GESTURE -> "손동작"
+            GuestFeedbackAxisUi.VOICE -> "목소리"
+        }
+
+    /**
+     * 레벨(1~4)별 표시 문구. 지인이 피드백을 남기는 입력 화면(feature/feedback 모듈의
+     * `GuestFeedbackAxisCode.ratingOptions()`)과 같은 문구를 써서, 같은 평가값에는 앱 전역에서
+     * 같은 표현이 나오도록 맞춘다. 범위를 벗어난 level 이 오더라도 clamp 해 안전하게 렌더한다.
+     */
+    private fun GuestFeedbackAxisUi.levelLabel(level: Int): String {
+        val labels =
+            when (this) {
+                GuestFeedbackAxisUi.GAZE -> GAZE_LEVEL_LABELS
+                GuestFeedbackAxisUi.EXPRESSION -> EXPRESSION_LEVEL_LABELS
+                GuestFeedbackAxisUi.POSTURE -> POSTURE_LEVEL_LABELS
+                GuestFeedbackAxisUi.GESTURE -> GESTURE_LEVEL_LABELS
+                GuestFeedbackAxisUi.VOICE -> VOICE_LEVEL_LABELS
+            }
+        val index = (MAX_RATING_LEVEL - level).coerceIn(0, labels.lastIndex)
+        return labels[index]
+    }
 
     private fun InterviewReport.toHeadline(hasSevereRedFlag: Boolean): HeadlineUiModel {
         val insufficient = status == InterviewReportStatus.INSUFFICIENT_ANALYSIS
@@ -146,4 +197,11 @@ object InterviewReportUiMapper {
 
     /** 지인 피드백 정원(면접당 최대 4명, feedback.md). */
     private const val GUEST_FEEDBACK_CAPACITY: Int = 4
+
+    private const val MAX_RATING_LEVEL: Int = 4
+    private val GAZE_LEVEL_LABELS = listOf("잘 맞춤", "꽤 맞춤", "가끔 피함", "자주 피함")
+    private val EXPRESSION_LEVEL_LABELS = listOf("안정됨", "꽤 안정됨", "가끔 굳음", "자주 굳음")
+    private val POSTURE_LEVEL_LABELS = listOf("반듯함", "꽤 반듯함", "가끔 산만", "매우 산만")
+    private val GESTURE_LEVEL_LABELS = listOf("잘 어울림", "꽤 어울림", "가끔 산만", "매우 산만")
+    private val VOICE_LEVEL_LABELS = listOf("잘 들림", "꽤 들림", "꽤 안 들림", "안 들림")
 }

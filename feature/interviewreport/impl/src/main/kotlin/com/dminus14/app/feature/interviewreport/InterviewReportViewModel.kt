@@ -80,6 +80,10 @@ class InterviewReportViewModel
                 is InterviewReportIntent.SelectCard -> {
                     reduce { copy(selectedCardIndex = intent.cardIndex) }
                 }
+
+                is InterviewReportIntent.SelectGuestFeedback -> {
+                    reduce { copy(selectedGuestFeedbackIndex = intent.guestIndex) }
+                }
             }
         }
 
@@ -91,6 +95,7 @@ class InterviewReportViewModel
                 copy(
                     phase = InterviewReportState.Phase.Loading,
                     selectedCardIndex = 0,
+                    selectedGuestFeedbackIndex = 0,
                     videoExpirySeconds = null,
                 )
             }

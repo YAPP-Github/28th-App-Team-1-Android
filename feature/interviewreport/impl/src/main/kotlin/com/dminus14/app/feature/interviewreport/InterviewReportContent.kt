@@ -21,7 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.dminus14.app.feature.interviewreport.component.DetailReportSectionHeader
-import com.dminus14.app.feature.interviewreport.component.FeedbackRequestCard
+import com.dminus14.app.feature.interviewreport.component.GuestFeedbackSection
 import com.dminus14.app.feature.interviewreport.component.HeadlineSection
 import com.dminus14.app.feature.interviewreport.component.HighlightDetailBottomSheet
 import com.dminus14.app.feature.interviewreport.component.QuestionTabRow
@@ -67,6 +67,7 @@ internal fun InterviewReportContent(
                 ReadyReport(
                     report = phase.report,
                     selectedCardIndex = state.selectedCardIndex,
+                    selectedGuestFeedbackIndex = state.selectedGuestFeedbackIndex,
                     videoExpirySeconds = state.videoExpirySeconds,
                     onIntent = onIntent,
                 )
@@ -76,6 +77,7 @@ internal fun InterviewReportContent(
                 ReadyReport(
                     report = phase.report,
                     selectedCardIndex = state.selectedCardIndex,
+                    selectedGuestFeedbackIndex = state.selectedGuestFeedbackIndex,
                     videoExpirySeconds = state.videoExpirySeconds,
                     onIntent = onIntent,
                 )
@@ -111,10 +113,10 @@ internal fun InterviewReportContent(
 private fun ReadyReport(
     report: ReportUiModel,
     selectedCardIndex: Int,
+    selectedGuestFeedbackIndex: Int,
     videoExpirySeconds: Long?,
     onIntent: (InterviewReportIntent) -> Unit,
 ) {
-    val colors = HilitTheme.colors
     val scrollState = rememberScrollState()
     Column(modifier = Modifier.fillMaxSize()) {
         ReportTopBar(onClose = { onIntent(InterviewReportIntent.ClickClose) })
@@ -159,15 +161,11 @@ private fun ReadyReport(
             }
             report.guestFeedback?.let { guestFeedback ->
                 Spacer(Modifier.height(36.dp))
-                Text(
-                    text = "지인피드백",
-                    style = HilitTheme.typography.sub7,
-                    color = colors.hilitWhite,
-                )
-                Spacer(Modifier.height(16.dp))
-                FeedbackRequestCard(
+                GuestFeedbackSection(
                     model = guestFeedback,
-                    onClick = { onIntent(InterviewReportIntent.ClickGuestFeedbackInvite) },
+                    selectedGuestIndex = selectedGuestFeedbackIndex,
+                    onSelectGuest = { onIntent(InterviewReportIntent.SelectGuestFeedback(it)) },
+                    onClickInvite = { onIntent(InterviewReportIntent.ClickGuestFeedbackInvite) },
                 )
             }
         }

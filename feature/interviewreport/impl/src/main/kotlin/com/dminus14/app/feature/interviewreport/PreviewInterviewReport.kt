@@ -3,6 +3,9 @@
 package com.dminus14.app.feature.interviewreport
 
 import com.dminus14.app.feature.interviewreport.model.CardUiModel
+import com.dminus14.app.feature.interviewreport.model.GuestFeedbackAxisUi
+import com.dminus14.app.feature.interviewreport.model.GuestFeedbackPersonUiModel
+import com.dminus14.app.feature.interviewreport.model.GuestFeedbackRatingUiModel
 import com.dminus14.app.feature.interviewreport.model.GuestFeedbackUiModel
 import com.dminus14.app.feature.interviewreport.model.HeadlineTone
 import com.dminus14.app.feature.interviewreport.model.HeadlineUiModel
@@ -68,6 +71,64 @@ internal object PreviewInterviewReport {
                 title = "지인에게 면접 영상 보내기",
                 subtitle = "4명에게 영상을 공유하고 태도 분석을 받아보세요!",
             )
+
+    private val sampleGuestRatings: List<GuestFeedbackRatingUiModel>
+        get() =
+            listOf(
+                GuestFeedbackRatingUiModel(
+                    axis = GuestFeedbackAxisUi.GAZE,
+                    axisLabel = "시선",
+                    levelLabel = "가끔 피함",
+                    comment = "꼬리질문에서 눈빛이 흔들려서 자신감이 없어 보였어요.",
+                ),
+                GuestFeedbackRatingUiModel(
+                    axis = GuestFeedbackAxisUi.EXPRESSION,
+                    axisLabel = "표정",
+                    levelLabel = "안정됨",
+                    comment = "",
+                ),
+                GuestFeedbackRatingUiModel(
+                    axis = GuestFeedbackAxisUi.POSTURE,
+                    axisLabel = "자세",
+                    levelLabel = "반듯함",
+                    comment = "",
+                ),
+                GuestFeedbackRatingUiModel(
+                    axis = GuestFeedbackAxisUi.GESTURE,
+                    axisLabel = "손동작",
+                    levelLabel = "잘 어울림",
+                    comment = "",
+                ),
+                GuestFeedbackRatingUiModel(
+                    axis = GuestFeedbackAxisUi.VOICE,
+                    axisLabel = "목소리",
+                    levelLabel = "잘 들림",
+                    comment = "꼬리질문에서 목소리가 살짝 떨렸지만 전반적으로 또렷하게 들렸어요.",
+                ),
+            )
+
+    /** 지인 한 명이 제출한 상태의 합성 샘플. */
+    val sampleGuestFeedbackWithOneGuest: GuestFeedbackUiModel
+        get() =
+            sampleGuestFeedback.copy(
+                participantCount = 1,
+                guests =
+                    listOf(
+                        GuestFeedbackPersonUiModel(alias = "친구A", ratings = sampleGuestRatings),
+                    ),
+            )
+
+    /** 정원(4명)이 모두 제출해 초대 카드가 숨겨진 상태의 합성 샘플. */
+    val sampleGuestFeedbackFull: GuestFeedbackUiModel
+        get() =
+            sampleGuestFeedback.copy(
+                participantCount = 4,
+                guests =
+                    listOf("친구A", "친구B", "친구C", "친구D").map { alias ->
+                        GuestFeedbackPersonUiModel(alias = alias, ratings = sampleGuestRatings)
+                    },
+            )
+
     val sampleVideo: VideoUiModel
         get() =
             VideoUiModel(
@@ -107,13 +168,7 @@ internal object PreviewInterviewReport {
                     expiredNotice = null,
                 ),
             cards = listOf(card("질문 1-1"), card("질문 1-2", redFlag = true), card("질문 2-1")),
-            guestFeedback =
-                GuestFeedbackUiModel(
-                    participantCount = 0,
-                    capacity = 4,
-                    title = "지인에게 면접 영상 보내기",
-                    subtitle = "4명에게 영상을 공유하고 태도 분석을 받아보세요!",
-                ),
+            guestFeedback = sampleGuestFeedbackWithOneGuest,
         )
 
     val expiredReport: ReportUiModel =

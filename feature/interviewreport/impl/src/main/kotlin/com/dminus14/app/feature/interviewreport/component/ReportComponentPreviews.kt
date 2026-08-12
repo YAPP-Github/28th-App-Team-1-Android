@@ -139,6 +139,32 @@ private fun FeedbackRequestCardPreview() {
     }
 }
 
+@Preview(name = "GuestFeedbackSection - 1명 참여 (초대 카드 노출)", heightDp = 520)
+@Composable
+private fun GuestFeedbackSectionOneGuestPreview() {
+    DarkPreview {
+        GuestFeedbackSection(
+            model = PreviewInterviewReport.sampleGuestFeedbackWithOneGuest,
+            selectedGuestIndex = 0,
+            onSelectGuest = {},
+            onClickInvite = {},
+        )
+    }
+}
+
+@Preview(name = "GuestFeedbackSection - 정원 4명 참여 (초대 카드 숨김)", heightDp = 520)
+@Composable
+private fun GuestFeedbackSectionFullPreview() {
+    DarkPreview {
+        GuestFeedbackSection(
+            model = PreviewInterviewReport.sampleGuestFeedbackFull,
+            selectedGuestIndex = 0,
+            onSelectGuest = {},
+            onClickInvite = {},
+        )
+    }
+}
+
 @Preview(name = "RedFlagNoticeStrip")
 @Composable
 private fun RedFlagNoticeStripPreview() {

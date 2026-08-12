@@ -32,6 +32,11 @@ sealed interface InterviewReportIntent : MviIntent {
     data class SelectCard(
         val cardIndex: Int,
     ) : InterviewReportIntent
+
+    /** 지인 피드백 섹션에서 지인 탭을 선택한다. */
+    data class SelectGuestFeedback(
+        val guestIndex: Int,
+    ) : InterviewReportIntent
 }
 
 @Immutable
@@ -41,6 +46,8 @@ data class InterviewReportState(
     val selectedHighlight: SelectedHighlight? = null,
     /** 상세 리포트에서 현재 선택된 질문 탭 index. */
     val selectedCardIndex: Int = 0,
+    /** 지인 피드백 섹션에서 현재 선택된 지인 탭 index. */
+    val selectedGuestFeedbackIndex: Int = 0,
     /**
      * 영상 만료까지 남은 초. 리포트 응답이 아니라 `/video/expiry`(GetVideoExpiryUseCase)에서 온다.
      * 카운트다운 UI 의 시드 값이며, 조회 실패·만료 시 null 이면 카운트다운 영역을 숨긴다.
