@@ -1064,6 +1064,10 @@ class HomeViewModelTest {
             extension: String,
         ) = error("사용하지 않음")
 
+        override suspend fun deleteMediaFile(
+            ref: com.dminus14.app.domain.model.InterviewMediaFileRef,
+        ) = Unit
+
         override suspend fun handoffUploadTask(
             task: com.dminus14.app.domain.model.InterviewUploadTask,
         ) = Unit

@@ -13,6 +13,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.dminus14.app.error.GlobalErrorHost
+import com.dminus14.app.interview.InterviewAppLifecycleCoordinator
 import com.dminus14.app.modal.GlobalModalHost
 import com.dminus14.app.modal.GlobalModalManager
 import com.dminus14.app.navigation.AppNavigationState
@@ -27,6 +28,14 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var globalModalManager: GlobalModalManager
+
+    @Inject
+    lateinit var interviewAppLifecycleCoordinator: InterviewAppLifecycleCoordinator
+
+    override fun onStart() {
+        super.onStart()
+        interviewAppLifecycleCoordinator.onForeground()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,7 +63,10 @@ class MainActivity : ComponentActivity() {
                 }
 
                 GlobalModalHost(manager = globalModalManager)
-                GlobalErrorHost(onExit = ::finishAffinity)
+                GlobalErrorHost(
+                    onExit = ::finishAffinity,
+                    onGlobalEventRendered = interviewAppLifecycleCoordinator::acknowledge,
+                )
             }
         }
     }

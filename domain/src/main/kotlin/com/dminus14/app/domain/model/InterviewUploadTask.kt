@@ -1,6 +1,8 @@
 package com.dminus14.app.domain.model
 
 enum class InterviewUploadTaskStatus {
+    /** 업로드하지 않고 공통 보존 기한까지만 미디어를 유지한다. */
+    RETAINED,
     PENDING_MERGE,
     PENDING_UPLOAD,
     PENDING_COMPLETE,

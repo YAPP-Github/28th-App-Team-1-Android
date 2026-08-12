@@ -9,26 +9,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dminus14.app.feature.interview.component.InterviewCameraFrame
-import com.dminus14.app.feature.interview.component.InterviewCameraPreview
 import com.dminus14.app.feature.interview.component.VideoOverlay
 import com.dminus14.app.feature.interview.component.VideoOverlayDirection
 import com.dminus14.designsystem.theme.HilitTheme
 
 @Composable
-fun InterviewScreenBaseLayer(
-    isCameraPermissionGranted: Boolean,
-    modifier: Modifier = Modifier,
-    onCameraBindingFailed: () -> Unit = {},
-) {
+fun InterviewScreenBaseLayer(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier,
     ) {
-        // Camera View
-        InterviewCameraPreview(
-            isCameraPermissionGranted = isCameraPermissionGranted,
-            onCameraBindingFailed = onCameraBindingFailed,
-        )
-
         // Video Overlays
         VideoOverlay(
             direction = VideoOverlayDirection.TOP,
@@ -56,6 +45,6 @@ fun InterviewScreenBaseLayer(
 @Composable
 private fun InterviewScreenBaseLayerPreview() {
     HilitTheme {
-        InterviewScreenBaseLayer(isCameraPermissionGranted = true)
+        InterviewScreenBaseLayer()
     }
 }

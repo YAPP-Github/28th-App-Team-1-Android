@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,14 +26,17 @@ import com.dminus14.designsystem.component.text.HilitText
 import com.dminus14.designsystem.component.text.withHilitTextHighlight
 import com.dminus14.designsystem.theme.HilitTheme
 
-@Suppress("LongParameterList")
+@Suppress("LongMethod", "LongParameterList")
 @Composable
 fun InterviewScreenPrepareLayer(
     isReady: Boolean,
     isPermissionGranted: Boolean,
     interviewScreenState: InterviewScreenState,
+    showOpenSettings: Boolean,
+    hasEnoughStorage: Boolean,
     onInterviewStart: () -> Unit,
     onPermissionDeniedBack: () -> Unit,
+    onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val preparingText = buildAnnotatedString { append("면접을 준비하고 있어요") }
@@ -51,7 +55,7 @@ fun InterviewScreenPrepareLayer(
         }
      */
     val titleText: AnnotatedString =
-        if (interviewScreenState == InterviewScreenState.PREPARED) {
+        if (interviewScreenState == InterviewScreenState.START_GUIDE) {
             soundGuideText
         } else {
             preparingText
@@ -71,8 +75,8 @@ fun InterviewScreenPrepareLayer(
         )
 
         // Loading Indicator
-        if (interviewScreenState == InterviewScreenState.PREPARING ||
-            interviewScreenState == InterviewScreenState.ALMOST_PREPARED
+        if (interviewScreenState == InterviewScreenState.DEVICE_CHECK ||
+            interviewScreenState == InterviewScreenState.QUESTION_PREPARING
         ) {
             InterviewReadinessIndicator(
                 isReady = isReady,
@@ -99,7 +103,27 @@ fun InterviewScreenPrepareLayer(
         }
 
         // Bottom Button
-        if (interviewScreenState == InterviewScreenState.PREPARED) {
+        if (showOpenSettings) {
+            Text(
+                text = "설정에서 권한 허용하기",
+                color = HilitTheme.colors.hilitWhite,
+                style = HilitTheme.typography.body4,
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 154.dp)
+                        .clickable(onClick = onOpenSettings),
+            )
+        } else if (!hasEnoughStorage && interviewScreenState != InterviewScreenState.START_GUIDE) {
+            Text(
+                text = "저장 공간이 부족해요",
+                color = HilitTheme.colors.hilitWhite,
+                style = HilitTheme.typography.body4,
+                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 154.dp),
+            )
+        }
+
+        if (interviewScreenState == InterviewScreenState.START_GUIDE) {
             InterviewStartButton(
                 isReady = isReady,
                 onClick = onInterviewStart,
@@ -130,9 +154,12 @@ private fun InterviewScreenPreparingLayerPreview() {
             InterviewScreenPrepareLayer(
                 isReady = false,
                 isPermissionGranted = true,
-                interviewScreenState = InterviewScreenState.PREPARING,
+                interviewScreenState = InterviewScreenState.DEVICE_CHECK,
+                showOpenSettings = false,
+                hasEnoughStorage = true,
                 onInterviewStart = {},
                 onPermissionDeniedBack = {},
+                onOpenSettings = {},
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -152,9 +179,12 @@ private fun InterviewScreenPrepareLayerAlmostPreparedPreview() {
             InterviewScreenPrepareLayer(
                 isReady = true,
                 isPermissionGranted = true,
-                interviewScreenState = InterviewScreenState.ALMOST_PREPARED,
+                interviewScreenState = InterviewScreenState.QUESTION_PREPARING,
+                showOpenSettings = false,
+                hasEnoughStorage = true,
                 onInterviewStart = {},
                 onPermissionDeniedBack = {},
+                onOpenSettings = {},
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -174,9 +204,12 @@ private fun InterviewScreenPrepareLayerPermissionNotGrantedPreview() {
             InterviewScreenPrepareLayer(
                 isReady = true,
                 isPermissionGranted = false,
-                interviewScreenState = InterviewScreenState.PREPARING,
+                interviewScreenState = InterviewScreenState.DEVICE_CHECK,
+                showOpenSettings = true,
+                hasEnoughStorage = true,
                 onInterviewStart = {},
                 onPermissionDeniedBack = {},
+                onOpenSettings = {},
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -196,9 +229,12 @@ private fun InterviewScreenPrepareLayerPreparedPreview() {
             InterviewScreenPrepareLayer(
                 isReady = true,
                 isPermissionGranted = true,
-                interviewScreenState = InterviewScreenState.PREPARED,
+                interviewScreenState = InterviewScreenState.START_GUIDE,
+                showOpenSettings = false,
+                hasEnoughStorage = true,
                 onInterviewStart = {},
                 onPermissionDeniedBack = {},
+                onOpenSettings = {},
                 modifier = Modifier.fillMaxSize(),
             )
         }

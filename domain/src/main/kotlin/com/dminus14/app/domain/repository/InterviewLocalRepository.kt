@@ -36,6 +36,8 @@ interface InterviewLocalRepository {
         extension: String,
     ): InterviewMediaFileRef
 
+    suspend fun deleteMediaFile(ref: InterviewMediaFileRef)
+
     suspend fun handoffUploadTask(task: InterviewUploadTask)
 
     suspend fun getUploadTask(uploadTaskId: String): InterviewUploadTask?

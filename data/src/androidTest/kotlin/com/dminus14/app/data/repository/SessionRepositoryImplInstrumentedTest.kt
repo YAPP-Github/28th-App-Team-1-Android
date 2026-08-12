@@ -135,6 +135,8 @@ class SessionRepositoryImplInstrumentedTest {
         override suspend fun refreshToken(refreshToken: String): TokenRefreshResponseDto =
             refreshResponse
                 ?: error("refreshResponse must be set before refreshToken()")
+
+        override suspend fun logout() = Unit
     }
 
     private companion object {

@@ -19,6 +19,7 @@ import com.dminus14.designsystem.theme.HilitTheme
 import java.util.Locale
 
 private const val MINUTE_SECONDS = 60
+private const val COUNTDOWN_SECONDS = 10
 
 /**
  * 면접 타이머.
@@ -29,19 +30,19 @@ private const val MINUTE_SECONDS = 60
  */
 @Composable
 fun InterviewTimer(
-    remainingSeconds: Int,
+    elapsedSeconds: Int,
     modifier: Modifier = Modifier,
+    countdownSeconds: Int? = null,
 ) {
-    val isWarning = (remainingSeconds <= MINUTE_SECONDS)
+    val isWarning = countdownSeconds != null
     val bgColor = if (isWarning) HilitTheme.colors.error200 else HilitTheme.colors.gray50
     val textColor = if (isWarning) HilitTheme.colors.error500 else HilitTheme.colors.gray500
 
-    // 60초 이상일 땐 MM:SS, 이하일 땐 SS초
-    val minutes = remainingSeconds / MINUTE_SECONDS
-    val seconds = remainingSeconds % MINUTE_SECONDS
+    val minutes = elapsedSeconds / MINUTE_SECONDS
+    val seconds = elapsedSeconds % MINUTE_SECONDS
     val timeText =
-        if (remainingSeconds < MINUTE_SECONDS) {
-            "${remainingSeconds.coerceIn(0, MINUTE_SECONDS)}초"
+        if (countdownSeconds != null) {
+            "${countdownSeconds.coerceIn(0, COUNTDOWN_SECONDS)}초"
         } else {
             String.format(Locale.US, "%d:%02d", minutes, seconds)
         }
@@ -79,8 +80,8 @@ private fun InterviewTimerPreview() {
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            InterviewTimer(remainingSeconds = 80) // 1:20
-            InterviewTimer(remainingSeconds = 10) // 0:10 (warning style)
+            InterviewTimer(elapsedSeconds = 80)
+            InterviewTimer(elapsedSeconds = 710, countdownSeconds = 10)
         }
     }
 }

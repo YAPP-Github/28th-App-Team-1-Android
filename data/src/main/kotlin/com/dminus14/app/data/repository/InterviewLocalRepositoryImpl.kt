@@ -64,6 +64,10 @@ class InterviewLocalRepositoryImpl
         ): InterviewMediaFileRef =
             withContext(Dispatchers.IO) { fileStore.createUploadMediaFile(uploadTaskId, extension) }
 
+        override suspend fun deleteMediaFile(ref: InterviewMediaFileRef) {
+            withContext(Dispatchers.IO) { fileStore.delete(ref) }
+        }
+
         override suspend fun handoffUploadTask(task: InterviewUploadTask) {
             withContext(Dispatchers.IO) {
                 uploadTaskStore.write(task)
