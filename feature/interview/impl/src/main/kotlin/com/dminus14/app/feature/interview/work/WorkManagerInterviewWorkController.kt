@@ -57,19 +57,34 @@ class WorkManagerInterviewWorkController
             )
         }
 
-        override suspend fun enqueueRetentionCleanup(deadlineEpochMillis: Long) {
-            val delay = (deadlineEpochMillis - System.currentTimeMillis()).coerceAtLeast(0L)
-            val request =
-                OneTimeWorkRequestBuilder<InterviewRetentionCleanupWorker>()
-                    .setInitialDelay(delay, TimeUnit.MILLISECONDS)
-                    .addTag(INTERVIEW_WORK_TAG)
-                    .build()
-            workManager.enqueueUniqueWork(
-                RETENTION_WORK_NAME,
-                ExistingWorkPolicy.REPLACE,
-                request,
-            )
-        }
+        override suspend fun enqueueRetentionCleanup(deadlineEpochMillis: Long) =
+            withContext(Dispatchers.IO) {
+                val scheduledDeadline =
+                    workManager
+                        .getWorkInfosForUniqueWork(RETENTION_WORK_NAME)
+                        .get()
+                        .filter { info -> !info.state.isFinished }
+                        .flatMap { info -> info.tags }
+                        .mapNotNull { tag -> tag.removePrefix(DEADLINE_TAG_PREFIX).toLongOrNull() }
+                        .minOrNull()
+                if (scheduledDeadline != null &&
+                    scheduledDeadline <= deadlineEpochMillis
+                ) {
+                    return@withContext
+                }
+                val delay = (deadlineEpochMillis - System.currentTimeMillis()).coerceAtLeast(0L)
+                val request =
+                    OneTimeWorkRequestBuilder<InterviewRetentionCleanupWorker>()
+                        .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+                        .addTag(INTERVIEW_WORK_TAG)
+                        .addTag("$DEADLINE_TAG_PREFIX$deadlineEpochMillis")
+                        .build()
+                workManager.enqueueUniqueWork(
+                    RETENTION_WORK_NAME,
+                    ExistingWorkPolicy.REPLACE,
+                    request,
+                )
+            }
 
         override suspend fun isUploadRunningOrPending(uploadTaskId: String): Boolean =
             withContext(Dispatchers.IO) {
@@ -97,5 +112,6 @@ class WorkManagerInterviewWorkController
             const val INTERVIEW_WORK_TAG = "interview-work"
             const val RETENTION_WORK_NAME = "interview-retention-cleanup"
             const val MIN_BACKOFF_SECONDS = 30L
+            const val DEADLINE_TAG_PREFIX = "deadline:"
         }
     }

@@ -353,6 +353,10 @@ class InterviewErrorViewModel
         }
 
         private fun emitGlobal(event: GlobalAppEvent) {
+            if (event == GlobalAppEvent.ShowUnknownError) {
+                reduce { copy(isLoading = false) }
+            }
+
             viewModelScope.launch { GlobalErrorHandler.emit(event) }
         }
 

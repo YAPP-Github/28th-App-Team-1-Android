@@ -252,6 +252,9 @@ class InterviewViewModel
                 }
 
                 is InterviewIntent.ReportUploadNotificationPermission -> {
+                    if (!intent.isGranted) {
+                        sendEffect(InterviewEffect.ShowUploadNotificationPermissionDenied)
+                    }
                     sendEffect(InterviewEffect.CheckUploadNetwork)
                 }
 
@@ -307,13 +310,18 @@ class InterviewViewModel
                 }
                 reduce { copy(sessionId = progress.sessionId) }
                 if (progress.timerStartedAtEpochMillis != null) {
-                    val elapsedMillis = getElapsedTime()
-                    timerCoordinator.restore(elapsedMillis)
+                    val elapsedMillis =
+                        getElapsedTime().coerceIn(
+                            0L,
+                            InterviewConstants.MAX_INTERVIEW_SECONDS * MILLIS_PER_SECOND,
+                        )
+                    val hardCapReached = timerCoordinator.restore(elapsedMillis)
                     reduce { copy(elapsedMillis = elapsedMillis) }
                     startTicker()
                     sendEffect(InterviewEffect.RequestCameraPermission)
                     sendEffect(InterviewEffect.CheckStorageAvailability)
                     sendEffect(InterviewEffect.NavigateToError(InterviewErrorType.NETWORK))
+                    if (hardCapReached) onIntent(InterviewIntent.ReportHardCapReached)
                     return@launch
                 }
                 sendEffect(InterviewEffect.RequestCameraPermission)
@@ -636,9 +644,13 @@ class InterviewViewModel
         }
 
         private fun submit(command: SubmitInterviewAnswerCommand) {
-            if (!turnStateMachine.isSubmitting && !turnStateMachine.beginSubmission()) return
+            if (!turnStateMachine.beginSubmission()) return
             viewModelScope.launch {
-                savePendingAnswer(command)
+                savePendingAnswer(command).onFailure {
+                    turnStateMachine.finishSubmission()
+                    emitGlobalError(GlobalAppEvent.ShowUnknownError)
+                    return@launch
+                }
                 submitAnswer(command)
                     .onSuccess { result ->
                         turnStateMachine.finishSubmission()
@@ -657,6 +669,7 @@ class InterviewViewModel
                 is AiTemporarilyUnavailableException -> {
                     when (turnStateMachine.recordTemporaryFailure()) {
                         InterviewTurnStateMachine.TemporaryFailureAction.RETRY_AUTOMATICALLY -> {
+                            turnStateMachine.prepareAutomaticRetry()
                             submit(command)
                         }
 

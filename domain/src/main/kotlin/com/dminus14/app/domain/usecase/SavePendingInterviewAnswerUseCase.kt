@@ -10,10 +10,21 @@ class SavePendingInterviewAnswerUseCase
     constructor(
         private val repository: InterviewLocalRepository,
     ) {
-        suspend operator fun invoke(command: SubmitInterviewAnswerCommand?) {
-            val manifest =
-                repository.getManifest(command?.sessionId ?: currentSessionId() ?: return) ?: return
-            repository.saveManifest(manifest.copy(pendingAnswer = command))
+        suspend operator fun invoke(command: SubmitInterviewAnswerCommand?): Result<Unit> {
+            if (command == null) {
+                return runCatching {
+                    val sessionId = currentSessionId() ?: return@runCatching
+                    val manifest = repository.getManifest(sessionId) ?: return@runCatching
+                    repository.saveManifest(manifest.copy(pendingAnswer = null))
+                }
+            }
+            return runCatching {
+                val manifest =
+                    checkNotNull(repository.getManifest(command.sessionId)) {
+                        "Interview manifest not found for session ${command.sessionId}"
+                    }
+                repository.saveManifest(manifest.copy(pendingAnswer = command))
+            }
         }
 
         private suspend fun currentSessionId(): Long? = repository.getProgress()?.sessionId

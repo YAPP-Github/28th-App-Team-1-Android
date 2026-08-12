@@ -19,6 +19,7 @@ import com.dminus14.app.feature.interview.media.InterviewRecordingEvent
 import com.dminus14.app.feature.interview.media.InterviewSpeechDetectionEvent
 import com.dminus14.app.feature.interview.media.InterviewVideoRecorder
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 
 /** Screen에서 Android 미디어·파일·Work 실행을 한 곳으로 모은다. */
@@ -74,7 +75,10 @@ class InterviewScreenEffectHandler
                             ?: 0L,
                     listener = listener(onIntent),
                 )
-            }.onFailure { onIntent(InterviewIntent.ReportMicrophoneFailure) }
+            }.onFailure { error ->
+                if (error is CancellationException) throw error
+                onIntent(InterviewIntent.ReportMicrophoneFailure)
+            }
         }
 
         fun stopRecording() = mediaSessionManager.stop()
@@ -122,7 +126,8 @@ class InterviewScreenEffectHandler
                 )
             }.onSuccess {
                 onIntent(InterviewIntent.ReportAnswerRecordingCompleted(effect.outputSegment))
-            }.onFailure {
+            }.onFailure { error ->
+                if (error is CancellationException) throw error
                 onIntent(InterviewIntent.ReportAnswerAudioMergeFailure)
             }
         }

@@ -240,6 +240,8 @@ sealed interface InterviewEffect : MviEffect {
 
     data object RequestUploadNotificationPermission : InterviewEffect
 
+    data object ShowUploadNotificationPermissionDenied : InterviewEffect
+
     data object CheckUploadNetwork : InterviewEffect
 
     data class EnqueueVideoUpload(

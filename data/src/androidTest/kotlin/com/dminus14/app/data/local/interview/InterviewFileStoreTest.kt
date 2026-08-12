@@ -25,10 +25,11 @@ class InterviewFileStoreTest {
             )
         assertTrue(store.resolve(mediaRef).exists())
 
-        store.handoff(sessionId = 14L, uploadTaskId = "synthetic-task")
+        val uploadTaskId = UUID.randomUUID().toString()
+        store.handoff(sessionId = 14L, uploadTaskId = uploadTaskId)
         assertTrue(store.resolve(mediaRef).exists())
 
-        store.deleteUpload("synthetic-task")
+        store.deleteUpload(uploadTaskId)
         assertFalse(runCatching { store.resolve(mediaRef) }.isSuccess)
     }
 

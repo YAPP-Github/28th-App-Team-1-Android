@@ -260,6 +260,15 @@ fun InterviewScreen(
                     }
                 }
 
+                InterviewEffect.ShowUploadNotificationPermissionDenied -> {
+                    Toast
+                        .makeText(
+                            context,
+                            "알림 권한이 꺼져 있어 업로드 진행 상태를 알려드릴 수 없어요",
+                            Toast.LENGTH_LONG,
+                        ).show()
+                }
+
                 InterviewEffect.CheckUploadNetwork -> {
                     viewModel.onIntent(
                         InterviewIntent.ReportUploadNetworkMetered(
@@ -305,7 +314,7 @@ fun InterviewScreen(
             state.screenState == InterviewScreenState.START_GUIDE
         ) {
             viewModel.onIntent(InterviewIntent.ClickPermissionDeniedBack)
-        } else {
+        } else if (state.screenState != InterviewScreenState.FINISHING) {
             viewModel.onIntent(InterviewIntent.ClickExitInterview)
         }
     }

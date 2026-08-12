@@ -10,11 +10,12 @@ class InterviewTimerCoordinator
         private var lastElapsedSeconds = 0
 
         /** 복구 시 이미 지난 경계를 다시 발행하지 않도록 저장된 경과 시간과 동기화한다. */
-        fun restore(elapsedMillis: Long) {
+        fun restore(elapsedMillis: Long): Boolean {
             lastElapsedSeconds =
                 (elapsedMillis / MILLIS_PER_SECOND)
                     .toInt()
                     .coerceIn(0, InterviewConstants.MAX_INTERVIEW_SECONDS)
+            return lastElapsedSeconds >= InterviewConstants.MAX_INTERVIEW_SECONDS
         }
 
         fun update(elapsedMillis: Long): List<Event> {

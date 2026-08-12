@@ -473,8 +473,6 @@ API 목록:
 - `A4`는 `m4a`만 허용하지만 현재 repository는 multipart media type을 `audio/*`로 만든다. 서버가 요구하는 정확한 media type과 파일 확장자를 맞춰야 한다.
 - `A9`는 presigned URL에 앱 API의 Bearer 인증을 붙이지 않는 전용 PUT client가 필요하다. `A8.contentType`을 그대로 보내야 한다.
 - 현재 질문 진행 정보, 영상 세그먼트, 미확정 답변, 업로드 작업을 복원하는 로컬 저장소가 없다.
-- 현재 `GlobalErrorHandler`는 `GlobalAppEvent`만 전달하므로 지연 오류의 표시 확인 ID를 전달할 수 없다. `core:common`의 `event/GlobalAppEvent.kt`에 기존 event와 nullable 불투명 `deliveryId`를 묶는 `GlobalAppEventEnvelope`를 추가하고, `event/GlobalErrorHandler.kt`의 Flow와 `emit` 계약을 Envelope 기준으로 바꾼다. 일반적인 일회성 오류는 `deliveryId=null`을 사용하고, 저장된 Worker 오류만 `pendingGlobalEventId`를 전달한다. `GlobalModalRequest`는 표시 정보만 계속 소유하며 Envelope나 전달 ID를 추가하지 않는다.
-- `app`의 `GlobalErrorHost`는 `envelope.event`를 기존 Modal/Toast로 표시하고, 표시 경로가 app-level UI State에 반영된 뒤에만 nullable `deliveryId`를 acknowledgment callback으로 전달한다. callback은 app에 주입된 `AcknowledgePendingInterviewUploadGlobalEventUseCase`를 호출하며 `core:common`과 Modal 요청 모델은 domain 또는 업로드 저장소에 의존하지 않는다. 구현 전에 권위 계약인 `docs/architecture/error-handling.md`의 Flow·수집 예시와 acknowledgment 책임도 같은 Envelope 방식으로 갱신한다. `docs/architecture/global-modal.md`와 `GlobalModalRequest.kt`는 변경하지 않는다.
 
 ## 6. 로컬 상태·미디어 저장 설계와 구현 소유권
 

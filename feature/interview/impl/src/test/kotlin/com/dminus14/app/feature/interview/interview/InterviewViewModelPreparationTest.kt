@@ -40,6 +40,7 @@ class InterviewViewModelPreparationTest {
             viewModel.onIntent(InterviewIntent.ReportCameraReady)
             viewModel.onIntent(InterviewIntent.ReportMicrophoneReady)
             viewModel.onIntent(InterviewIntent.ReportStorageAvailability(Long.MAX_VALUE))
+            runCurrent()
 
             assertEquals(InterviewScreenState.START_GUIDE, viewModel.state.value.screenState)
             assertEquals(1L, viewModel.state.value.questionId)

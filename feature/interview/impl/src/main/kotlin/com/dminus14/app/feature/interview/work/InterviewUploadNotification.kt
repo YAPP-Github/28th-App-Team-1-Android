@@ -3,6 +3,7 @@ package com.dminus14.app.feature.interview.work
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.ServiceInfo
 import androidx.core.app.NotificationCompat
 import androidx.work.ForegroundInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -13,6 +14,11 @@ class InterviewUploadNotification
     constructor(
         @ApplicationContext private val context: Context,
     ) {
+        /**
+         * 이 라이브러리 모듈에는 AndroidManifest가 없어 lint가 dataSync 타입 선언을 확인하지 못한다.
+         * `app/src/main/AndroidManifest.xml`의 SystemForegroundService가 이미 dataSync를 선언한다.
+         */
+        @Suppress("SpecifyForegroundServiceType")
         fun create(): ForegroundInfo {
             val manager = context.getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(
@@ -31,7 +37,11 @@ class InterviewUploadNotification
                     .setOngoing(true)
                     .setOnlyAlertOnce(true)
                     .build()
-            return ForegroundInfo(NOTIFICATION_ID, notification)
+            return ForegroundInfo(
+                NOTIFICATION_ID,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC,
+            )
         }
 
         private companion object {

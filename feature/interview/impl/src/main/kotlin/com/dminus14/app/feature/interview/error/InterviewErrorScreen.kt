@@ -266,12 +266,7 @@ fun InterviewErrorContent(
                         "이어서 진행하기"
                     },
                 leftEnabled = !state.isLoading,
-                rightEnabled =
-                    !state.isLoading &&
-                        (
-                            state.errorType != InterviewErrorType.SERVER_TEMPORARY ||
-                                state.canRetryAnswerSubmission
-                        ),
+                rightEnabled = !state.isLoading,
                 type = HilitFixedBottomDualButtonType.Default,
                 onLeftClick = { onIntent(InterviewErrorIntent.ClickAbort) },
                 onRightClick = { onIntent(InterviewErrorIntent.ClickResume) },

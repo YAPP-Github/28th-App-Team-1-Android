@@ -1,6 +1,8 @@
 package com.dminus14.app.feature.interview.media
 
 import android.content.Context
+import android.os.Handler
+import android.os.HandlerThread
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
@@ -40,32 +42,43 @@ class Media3InterviewMediaTransformer
                 }
             val sequence = EditedMediaItemSequence.Builder(items).build()
             val composition = Composition.Builder(listOf(sequence)).build()
-            suspendCancellableCoroutine { continuation ->
-                val transformer =
-                    Transformer
-                        .Builder(context)
-                        .addListener(
-                            object : Transformer.Listener {
-                                override fun onCompleted(
-                                    composition: Composition,
-                                    exportResult: ExportResult,
-                                ) {
-                                    if (continuation.isActive) continuation.resume(Unit)
-                                }
+            val handlerThread = HandlerThread("Media3InterviewMediaTransformer").apply { start() }
+            val handler = Handler(handlerThread.looper)
+            try {
+                suspendCancellableCoroutine { continuation ->
+                    handler.post {
+                        val transformer =
+                            Transformer
+                                .Builder(context)
+                                .setLooper(handlerThread.looper)
+                                .addListener(
+                                    object : Transformer.Listener {
+                                        override fun onCompleted(
+                                            composition: Composition,
+                                            exportResult: ExportResult,
+                                        ) {
+                                            if (continuation.isActive) continuation.resume(Unit)
+                                        }
 
-                                override fun onError(
-                                    composition: Composition,
-                                    exportResult: ExportResult,
-                                    exportException: ExportException,
-                                ) {
-                                    if (continuation.isActive) {
-                                        continuation.resumeWithException(exportException)
-                                    }
-                                }
-                            },
-                        ).build()
-                continuation.invokeOnCancellation { transformer.cancel() }
-                transformer.start(composition, outputFile.absolutePath)
+                                        override fun onError(
+                                            composition: Composition,
+                                            exportResult: ExportResult,
+                                            exportException: ExportException,
+                                        ) {
+                                            if (continuation.isActive) {
+                                                continuation.resumeWithException(exportException)
+                                            }
+                                        }
+                                    },
+                                ).build()
+                        continuation.invokeOnCancellation {
+                            handler.post { transformer.cancel() }
+                        }
+                        transformer.start(composition, outputFile.absolutePath)
+                    }
+                }
+            } finally {
+                handlerThread.quitSafely()
             }
         }
     }

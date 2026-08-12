@@ -2,8 +2,16 @@ package com.dminus14.app.domain.usecase
 
 import com.dminus14.app.domain.exception.ValidationException
 import com.dminus14.app.domain.model.AuthSession
+import com.dminus14.app.domain.model.InterviewMediaFileRef
+import com.dminus14.app.domain.model.InterviewMediaManifest
+import com.dminus14.app.domain.model.InterviewMediaSegmentType
+import com.dminus14.app.domain.model.InterviewProgress
+import com.dminus14.app.domain.model.InterviewUploadNetworkPolicy
+import com.dminus14.app.domain.model.InterviewUploadTask
 import com.dminus14.app.domain.model.UserProfile
 import com.dminus14.app.domain.model.UserProfileUpdate
+import com.dminus14.app.domain.repository.InterviewLocalRepository
+import com.dminus14.app.domain.repository.InterviewWorkController
 import com.dminus14.app.domain.repository.SessionRepository
 import com.dminus14.app.domain.repository.UserRepository
 import kotlinx.coroutines.CancellationException
@@ -14,6 +22,12 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class UserUseCaseTest {
+    private fun newClearInterviewLocalData() =
+        ClearInterviewLocalDataUseCase(
+            NoOpInterviewLocalRepository(),
+            NoOpInterviewWorkController(),
+        )
+
     @Test
     fun `프로필 조회는 저장소 결과를 그대로 반환한다`() =
         runTest {
@@ -75,7 +89,8 @@ class UserUseCaseTest {
             val calls = mutableListOf<String>()
             val userRepository = FakeUserRepository(calls = calls)
             val sessionRepository = FakeSessionRepository(calls = calls)
-            val useCase = WithdrawUserUseCase(userRepository, sessionRepository)
+            val useCase =
+                WithdrawUserUseCase(userRepository, sessionRepository, newClearInterviewLocalData())
 
             val result = useCase()
 
@@ -90,7 +105,8 @@ class UserUseCaseTest {
             val failure = IllegalStateException("synthetic withdrawal failure")
             val userRepository = FakeUserRepository(withdrawalFailure = failure, calls = calls)
             val sessionRepository = FakeSessionRepository(calls = calls)
-            val useCase = WithdrawUserUseCase(userRepository, sessionRepository)
+            val useCase =
+                WithdrawUserUseCase(userRepository, sessionRepository, newClearInterviewLocalData())
 
             val result = useCase()
 
@@ -105,7 +121,8 @@ class UserUseCaseTest {
             val failure = IllegalStateException("synthetic session failure")
             val userRepository = FakeUserRepository(calls = calls)
             val sessionRepository = FakeSessionRepository(clearFailure = failure, calls = calls)
-            val useCase = WithdrawUserUseCase(userRepository, sessionRepository)
+            val useCase =
+                WithdrawUserUseCase(userRepository, sessionRepository, newClearInterviewLocalData())
 
             val result = useCase()
 
@@ -121,6 +138,7 @@ class UserUseCaseTest {
                 WithdrawUserUseCase(
                     FakeUserRepository(withdrawalFailure = cancellation),
                     FakeSessionRepository(),
+                    newClearInterviewLocalData(),
                 )
 
             val actual = captureFailure { useCase() }
@@ -184,5 +202,69 @@ class UserUseCaseTest {
             calls += "clearSession"
             clearFailure?.let { throw it }
         }
+    }
+
+    private class NoOpInterviewLocalRepository : InterviewLocalRepository {
+        override suspend fun getProgress(): InterviewProgress? = null
+
+        override suspend fun saveProgress(progress: InterviewProgress) = Unit
+
+        override suspend fun updateProgress(
+            transform: (InterviewProgress) -> InterviewProgress,
+        ): InterviewProgress? = null
+
+        override suspend fun clearProgress() = Unit
+
+        override suspend fun getManifest(sessionId: Long): InterviewMediaManifest? = null
+
+        override suspend fun getUploadManifest(uploadTaskId: String): InterviewMediaManifest? = null
+
+        override suspend fun saveManifest(manifest: InterviewMediaManifest) = Unit
+
+        override suspend fun createMediaFile(
+            sessionId: Long,
+            type: InterviewMediaSegmentType,
+            extension: String,
+        ): InterviewMediaFileRef = error("사용하지 않음")
+
+        override suspend fun createUploadMediaFile(
+            uploadTaskId: String,
+            extension: String,
+        ): InterviewMediaFileRef = error("사용하지 않음")
+
+        override suspend fun deleteMediaFile(ref: InterviewMediaFileRef) = Unit
+
+        override suspend fun handoffUploadTask(task: InterviewUploadTask) = Unit
+
+        override suspend fun getUploadTask(uploadTaskId: String): InterviewUploadTask? = null
+
+        override suspend fun saveUploadTask(task: InterviewUploadTask) = Unit
+
+        override suspend fun getUploadTasks(): List<InterviewUploadTask> = emptyList()
+
+        override suspend fun deleteUploadTask(uploadTaskId: String) = Unit
+
+        override suspend fun deleteSession(sessionId: Long) = Unit
+
+        override suspend fun clearAll() = Unit
+
+        override suspend fun isCleanupPending(): Boolean = false
+
+        override suspend fun setCleanupPending(isPending: Boolean) = Unit
+    }
+
+    private class NoOpInterviewWorkController : InterviewWorkController {
+        override suspend fun enqueueUpload(
+            uploadTaskId: String,
+            networkPolicy: InterviewUploadNetworkPolicy,
+        ) = Unit
+
+        override suspend fun enqueueRetentionCleanup(deadlineEpochMillis: Long) = Unit
+
+        override suspend fun isUploadRunningOrPending(uploadTaskId: String): Boolean = false
+
+        override suspend fun cancelUpload(uploadTaskId: String) = Unit
+
+        override suspend fun cancelAll() = Unit
     }
 }

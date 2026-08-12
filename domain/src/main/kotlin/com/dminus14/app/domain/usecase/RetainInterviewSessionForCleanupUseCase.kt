@@ -14,19 +14,22 @@ class RetainInterviewSessionForCleanupUseCase
     ) {
         suspend operator fun invoke(sessionId: Long) {
             val progress = repository.getProgress()
-            if (progress?.sessionId == sessionId) {
-                if (repository.getManifest(sessionId) == null) {
-                    repository.clearProgress()
-                } else {
-                    repository.handoffUploadTask(
-                        InterviewUploadTask(
-                            uploadTaskId = UUID.randomUUID().toString(),
-                            sessionId = sessionId,
-                            retentionDeadlineEpochMillis = progress.retentionDeadlineEpochMillis,
-                            status = InterviewUploadTaskStatus.RETAINED,
-                        ),
-                    )
-                }
+            if (progress?.sessionId != sessionId) return
+            if (repository.getManifest(sessionId) == null) {
+                repository.clearProgress()
+                return
             }
+            val existingTask =
+                repository.getUploadTasks().firstOrNull { task ->
+                    task.sessionId == sessionId && task.status == InterviewUploadTaskStatus.RETAINED
+                }
+            val task =
+                existingTask ?: InterviewUploadTask(
+                    uploadTaskId = UUID.randomUUID().toString(),
+                    sessionId = sessionId,
+                    retentionDeadlineEpochMillis = progress.retentionDeadlineEpochMillis,
+                    status = InterviewUploadTaskStatus.RETAINED,
+                )
+            repository.handoffUploadTask(task)
         }
     }

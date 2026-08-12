@@ -12,9 +12,9 @@ import com.dminus14.app.domain.model.InterviewPendingGlobalErrorType
 import com.dminus14.app.domain.model.InterviewUploadTask
 import com.dminus14.app.domain.model.InterviewUploadTaskStatus
 import com.dminus14.app.domain.model.UploadInterviewVideoCommand
+import com.dminus14.app.domain.usecase.CompleteInterviewUploadTaskUseCase
 import com.dminus14.app.domain.usecase.CompleteVideoUploadUseCase
 import com.dminus14.app.domain.usecase.CreateInterviewUploadMediaFileUseCase
-import com.dminus14.app.domain.usecase.DeleteInterviewUploadTaskUseCase
 import com.dminus14.app.domain.usecase.GetInterviewUploadManifestUseCase
 import com.dminus14.app.domain.usecase.GetInterviewUploadTaskUseCase
 import com.dminus14.app.domain.usecase.IssueVideoUploadUrlUseCase
@@ -41,14 +41,14 @@ class InterviewVideoUploadWorker
         private val issueUploadUrl: IssueVideoUploadUrlUseCase,
         private val uploadVideo: UploadInterviewVideoUseCase,
         private val completeUpload: CompleteVideoUploadUseCase,
-        private val deleteUploadTask: DeleteInterviewUploadTaskUseCase,
+        private val completeUploadTask: CompleteInterviewUploadTaskUseCase,
         private val notification: InterviewUploadNotification,
     ) : CoroutineWorker(context, workerParameters) {
         @Suppress("ReturnCount")
         override suspend fun doWork(): Result {
             val uploadTaskId = inputData.getString(KEY_UPLOAD_TASK_ID) ?: return Result.failure()
             var task = getTask(uploadTaskId) ?: return Result.success()
-            setForeground(notification.create())
+            runCatching { setForeground(notification.create()) }
             return runCatching {
                 if (task.status == InterviewUploadTaskStatus.PENDING_MERGE) {
                     task = merge(task)
@@ -73,7 +73,7 @@ class InterviewVideoUploadWorker
                         wrapUpStartSec = manifest?.wrapUpRange?.startMillis?.div(MILLIS_PER_SECOND),
                         wrapUpEndSec = manifest?.wrapUpRange?.endMillis?.div(MILLIS_PER_SECOND),
                     ).getOrThrow()
-                    deleteUploadTask(task.uploadTaskId)
+                    completeUploadTask(task.uploadTaskId)
                     return Result.success()
                 }
                 Result.success()

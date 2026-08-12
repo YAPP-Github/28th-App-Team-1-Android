@@ -95,6 +95,7 @@ class InterviewFileStore
         ): File {
             val source = sessionDirectory(sessionId)
             val target = uploadDirectory(uploadTaskId)
+            if (!source.exists() && target.isDirectory) return target
             check(source.isDirectory) { "Interview session directory does not exist" }
             check(target.isDirectory || target.mkdirs()) { "Failed to create upload directory" }
             val entries = source.listFiles().orEmpty()

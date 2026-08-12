@@ -28,7 +28,7 @@ object InterviewNavigationModule {
                         navigator.replaceAll(Home)
                     }
                 },
-                onSttAcknowledged = {},
+                onSttAcknowledged = { navigator.replaceAll(Home) },
             )
         }
 }

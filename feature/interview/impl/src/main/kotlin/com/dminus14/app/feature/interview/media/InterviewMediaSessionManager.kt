@@ -40,9 +40,14 @@ class InterviewMediaSessionManager
                     extension = "mp4",
                 )
             activeSegment = segment
-            recorder.start(
-                mediaFileResolver.resolve(segment.mediaRef),
-            ) { event -> handleRecordingEvent(sessionId, event) }
+            runCatching {
+                recorder.start(
+                    mediaFileResolver.resolve(segment.mediaRef),
+                ) { event -> handleRecordingEvent(sessionId, event) }
+            }.onFailure { error ->
+                activeSegment = null
+                throw error
+            }
         }
 
         fun pause() = recorder.pause()
@@ -94,6 +99,7 @@ class InterviewMediaSessionManager
                 }
 
                 is InterviewRecordingEvent.Failed -> {
+                    activeSegment = null
                     listener?.onFailure(event.cause)
                 }
             }

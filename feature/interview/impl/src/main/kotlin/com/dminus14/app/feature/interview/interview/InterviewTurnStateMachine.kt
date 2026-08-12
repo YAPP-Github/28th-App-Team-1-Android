@@ -37,6 +37,11 @@ class InterviewTurnStateMachine
             }
         }
 
+        /** RETRY_AUTOMATICALLY 직후 같은 요청을 재제출할 수 있도록 제출 상태만 초기화한다. */
+        fun prepareAutomaticRetry() {
+            isSubmitting = false
+        }
+
         fun queueEnd(request: InterviewAnswerEndRequest) {
             if (pendingEndRequest == null) pendingEndRequest = request
         }

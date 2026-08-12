@@ -103,7 +103,7 @@ fun InterviewScreenOngoingLayer(
 
         if (screenState == InterviewScreenState.FINISHING) {
             Text(
-                text = "영상은 Wi-Fi에서 업로드되며 24시간 안에 업로드되지 않으면 삭제돼요.",
+                text = "영상은 기본적으로 Wi-Fi 연결 시 업로드되며, 면접 세션 생성 후 24시간 안에 업로드되지 않으면 자동으로 삭제돼요.",
                 color = HilitTheme.colors.hilitWhite,
                 style = HilitTheme.typography.body9,
                 modifier =

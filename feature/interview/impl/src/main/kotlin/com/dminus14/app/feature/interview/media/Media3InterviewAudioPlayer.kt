@@ -69,7 +69,14 @@ class Media3InterviewAudioPlayer
                     }
 
                     is InterviewAudioPlaybackRequest.Base64WrapUpMp3 -> {
-                        val bytes = Base64.decode(request.payload, Base64.DEFAULT)
+                        val bytes =
+                            try {
+                                Base64.decode(request.payload, Base64.DEFAULT)
+                            } catch (cause: IllegalArgumentException) {
+                                listener.onFailure(cause)
+                                stop()
+                                return
+                            }
                         memoryPayload = bytes
                         ProgressiveMediaSource
                             .Factory { ByteArrayDataSource(bytes) }

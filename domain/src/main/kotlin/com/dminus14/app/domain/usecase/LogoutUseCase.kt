@@ -17,12 +17,12 @@ class LogoutUseCase
     constructor(
         private val authRepository: AuthRepository,
         private val sessionRepository: SessionRepository,
-        private val clearInterviewLocalData: ClearInterviewLocalDataUseCase? = null,
+        private val clearInterviewLocalData: ClearInterviewLocalDataUseCase,
     ) {
         suspend operator fun invoke(): Result<Unit> =
             runCatchingCancellable {
                 runCatchingCancellable { authRepository.logout() }
-                runCatchingCancellable { clearInterviewLocalData?.invoke() }
+                runCatchingCancellable { clearInterviewLocalData() }
                 sessionRepository.clearAuthSession()
             }
     }
