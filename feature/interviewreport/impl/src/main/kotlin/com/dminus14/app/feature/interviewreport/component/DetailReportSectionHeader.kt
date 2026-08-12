@@ -1,40 +1,58 @@
 package com.dminus14.app.feature.interviewreport.component
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.dminus14.designsystem.component.bubblefield.BubbleField
+import com.dminus14.designsystem.component.bubblefield.BubbleFieldTailAlign
+import com.dminus14.designsystem.component.bubblefield.BubbleFieldTailEdge
+import com.dminus14.designsystem.component.bubblefield.BubbleFieldTailShape
+import com.dminus14.designsystem.component.bubblefield.BubbleFieldType
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
 import com.dminus14.designsystem.theme.HilitTheme
 import kotlinx.coroutines.delay
+import kotlin.math.roundToInt
 
 private const val RED_FLAG_BUBBLE_VISIBLE_MS = 3_000L
 
 /**
+ * [BubbleField] 내부에서 꼬리가 본문 왼쪽 변으로부터 떨어진 고정 거리
+ * (`BubbleField.kt` 의 private `BubbleTailEdgePadding` 과 같은 값이어야 꼬리 끝이 정확히
+ * 아이콘 위에 온다).
+ */
+private val BubbleTailEdgePadding = 40.dp
+
+/** 말풍선 꼬리 끝과 아이콘 사이 세로 여백. */
+private val BubbleIconGap = 6.dp
+
+/**
  * "상세 리포트" 섹션 타이틀 (Figma Node: 443:7204).
  *
- * [redFlagNotices] 가 있으면 타이틀 옆에 경고 아이콘을 노출한다. 화면 진입 시 안내 말풍선이 한 번
- * 자동으로 뜨고, 이후에도 아이콘을 탭하면 다시 뜬다. 말풍선은 뜬 지 3초 뒤 자동으로 사라진다
- * (재탭하면 3초 타이머가 리셋된다). 레드플래그 정보는 더 이상 질문 탭(QuestionTabRow)의 점으로
- * 표시하지 않는다.
+ * [redFlagNotices] 가 있으면 타이틀 옆에 경고 아이콘을 노출한다. 화면 진입 시 안내 말풍선
+ * ([BubbleField])이 한 번 자동으로 뜨고, 이후에도 아이콘을 탭하면 다시 뜬다. 말풍선은 뜬 지
+ * 3초 뒤 자동으로 사라진다(재탭하면 3초 타이머가 리셋된다). 말풍선은 레이아웃 공간을 차지하지
+ * 않는 오버레이로 그려지며, 꼬리 끝이 항상 아이콘 위치에 오도록 아이콘 좌표를 실측해서 배치한다.
+ * 레드플래그 정보는 더 이상 질문 탭(QuestionTabRow)의 점으로 표시하지 않는다.
  */
 @Composable
 internal fun DetailReportSectionHeader(
@@ -48,6 +66,10 @@ internal fun DetailReportSectionHeader(
     var bubbleRequestCount by remember {
         mutableIntStateOf(if (redFlagNotices.isNotEmpty()) 1 else 0)
     }
+    var boxCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
+    var iconCenterXPx by remember { mutableFloatStateOf(0f) }
+    var iconTopYPx by remember { mutableFloatStateOf(0f) }
+
     LaunchedEffect(bubbleRequestCount) {
         if (bubbleRequestCount > 0) {
             showBubble = true
@@ -55,7 +77,8 @@ internal fun DetailReportSectionHeader(
             showBubble = false
         }
     }
-    Box(modifier = modifier) {
+
+    Box(modifier = modifier.onGloballyPositioned { boxCoordinates = it }) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "상세 리포트",
@@ -70,46 +93,50 @@ internal fun DetailReportSectionHeader(
                         Modifier
                             .padding(start = 8.dp)
                             .size(16.dp)
-                            .clickable { bubbleRequestCount += 1 },
+                            .onGloballyPositioned { iconCoordinates ->
+                                val box = boxCoordinates ?: return@onGloballyPositioned
+                                val origin = box.localPositionOf(iconCoordinates, Offset.Zero)
+                                iconCenterXPx = origin.x + iconCoordinates.size.width / 2f
+                                iconTopYPx = origin.y
+                            }.clickable { bubbleRequestCount += 1 },
                 )
             }
         }
         if (showBubble && redFlagNotices.isNotEmpty()) {
-            RedFlagBubble(
+            BubbleField(
                 text = redFlagNotices.joinToString(separator = "\n"),
+                type = BubbleFieldType.Small,
+                tailEdge = BubbleFieldTailEdge.Bottom,
+                tailAlign = BubbleFieldTailAlign.Left,
+                tailShape = BubbleFieldTailShape.Left,
                 modifier =
-                    Modifier
-                        .align(Alignment.TopStart)
-                        .offset(y = (-44).dp),
+                    Modifier.overlayAboveIcon(
+                        iconCenterXPx = iconCenterXPx,
+                        iconTopYPx = iconTopYPx,
+                        tailEdgePadding = BubbleTailEdgePadding,
+                        gap = BubbleIconGap,
+                    ),
             )
         }
     }
 }
 
-@Composable
-private fun RedFlagBubble(
-    text: String,
-    modifier: Modifier = Modifier,
-) {
-    val colors = HilitTheme.colors
-    Column(modifier = modifier) {
-        Text(
-            text = text,
-            style = HilitTheme.typography.body5,
-            color = colors.hilitWhite,
-            modifier =
-                Modifier
-                    .background(colors.gray900)
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
-        )
-        Box(
-            modifier =
-                Modifier
-                    .padding(start = 12.dp)
-                    .offset(y = (-4).dp)
-                    .size(8.dp)
-                    .rotate(45f)
-                    .background(colors.gray900),
-        )
+/**
+ * 부모(Box)의 레이아웃 크기에 영향을 주지 않는 오버레이로 그리되([layout]에 크기 0을 보고),
+ * [BubbleField]의 꼬리 끝이 (iconCenterXPx, iconTopYPx) 로 표시된 아이콘 바로 위 [gap] 만큼
+ * 띄운 지점에 오도록 실제 배치 좌표를 계산한다.
+ */
+private fun Modifier.overlayAboveIcon(
+    iconCenterXPx: Float,
+    iconTopYPx: Float,
+    tailEdgePadding: Dp,
+    gap: Dp,
+): Modifier =
+    layout { measurable, constraints ->
+        val placeable = measurable.measure(constraints.copy(minWidth = 0, minHeight = 0))
+        val x = (iconCenterXPx - tailEdgePadding.toPx()).roundToInt()
+        val y = (iconTopYPx - placeable.height - gap.toPx()).roundToInt()
+        layout(0, 0) {
+            placeable.placeRelative(x, y)
+        }
     }
-}
