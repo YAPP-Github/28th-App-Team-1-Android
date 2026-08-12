@@ -5,6 +5,7 @@ import android.net.Uri
 import com.dminus14.app.core.common.pdf.PdfInvalidReason
 import com.dminus14.app.core.common.pdf.PdfValidationResult
 import com.dminus14.app.core.common.pdf.validatePdf
+import com.dminus14.app.domain.exception.AccountSuspendedException
 import com.dminus14.app.domain.exception.FreeTextNotRelevantException
 import com.dminus14.app.domain.exception.JdValidationLimitExceededException
 import com.dminus14.app.domain.model.InterviewAbandon
@@ -760,6 +761,36 @@ class OnBoardingInterviewViewModelTest {
             val state = viewModel.state.value
             assertEquals("세션 생성 실패", state.errorMessage)
             assertEquals(OnBoardingLoadingStepStatus.Waiting, state.loadingBasicInfo)
+        }
+
+    @Test
+    fun `계정 정지(ACCOUNT_SUSPENDED)면 인라인 에러 대신 이용 제한 안내로 이동한다`() =
+        runViewModelTest {
+            val interviewRepo =
+                FakeInterviewRepository(
+                    createResult =
+                        Result.failure(
+                            AccountSuspendedException(
+                                errCode = "ACCOUNT_SUSPENDED",
+                                message = "비정상적인 이용 패턴이 반복 확인되어 면접 시작이 제한되었어요.",
+                            ),
+                        ),
+                )
+            val viewModel = loadedForPreload(interviewRepo)
+            val effects = mutableListOf<OnBoardingInterviewEffect>()
+            val job = launch { viewModel.effect.collect(effects::add) }
+
+            repeat(3) { viewModel.onIntent(OnBoardingInterviewIntent.ClickSkip) }
+            advanceUntilIdle()
+
+            val state = viewModel.state.value
+            assertNull(state.errorMessage)
+            assertEquals(OnBoardingLoadingStepStatus.Waiting, state.loadingBasicInfo)
+            assertEquals(
+                listOf(OnBoardingInterviewEffect.NavigateToSuspensionNotice),
+                effects,
+            )
+            job.cancel()
         }
 
     @Test

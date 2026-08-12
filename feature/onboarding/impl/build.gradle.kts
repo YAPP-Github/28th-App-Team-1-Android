@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":designsystem"))
     implementation(project(":domain"))
     implementation(project(":feature:interview:api"))
+    implementation(project(":feature:login:api"))
 
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)

@@ -164,4 +164,7 @@ sealed interface OnBoardingInterviewEffect : MviEffect {
     data class NavigateToResult(
         val sessionId: Long,
     ) : OnBoardingInterviewEffect
+
+    /** 어뷰징 탐지로 면접 시작이 제한되어(`ACCOUNT_SUSPENDED`) 이용 제한 안내 화면으로 이동한다. */
+    data object NavigateToSuspensionNotice : OnBoardingInterviewEffect
 }
