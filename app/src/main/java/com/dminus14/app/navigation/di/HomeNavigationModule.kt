@@ -16,6 +16,9 @@ object HomeNavigationModule {
     @Provides
     fun provideHomeEntryInstaller(navigator: Navigator): EntryProviderScope<Any>.() -> Unit =
         {
-            homeEntryBuilder(onNavigate = navigator::goTo)
+            homeEntryBuilder(
+                onNavigate = navigator::goTo,
+                onReplaceAll = navigator::replaceAll,
+            )
         }
 }

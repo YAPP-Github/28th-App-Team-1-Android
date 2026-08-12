@@ -34,7 +34,7 @@ class PortfolioRemoteDataSourceImpl
             pageCount: Int?,
             contentType: String,
         ): PortfolioUploadResponseDto {
-            val part = portfolioPartFactory.createPdfPart(file = file)
+            val part = portfolioPartFactory.createPdfPart(file = file, fileName = fileName)
             val response =
                 portfolioApi.uploadPortfolio(
                     fileName = fileName,

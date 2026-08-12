@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,28 +22,34 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.dminus14.designsystem.component.subtext.HilitSubText
+import com.dminus14.designsystem.component.subtext.HilitSubTextType
 import com.dminus14.designsystem.theme.HilitTheme
 
-/** figma spec확인에 이편이 편해보여서 이렇게 했는데, 보다가 어떤지 코멘트 주세용 */
 private val HilitJDTextFieldShape = RectangleShape
 private val HilitJDTextFieldBorderWidth = 1.dp
 private val HilitJDTextFieldHorizontalPadding = 16.dp
 private val HilitJDTextFieldVerticalPadding = 14.dp
 private val HilitJDTextFieldHeight = 158.dp
-private val HilitJDTextFieldCounterSpacing = 8.dp
+private val HilitJDTextFieldFooterSpacing = 8.dp
 private const val DEFAULT_MAX_LENGTH = 300
 private const val DEFAULT_PLACEHOLDER = "텍스트를 입력해주세요"
 
 /**
- * JD 입력용 멀티라인 텍스트 필드. 하단에 글자 수 카운터를 표시한다.
+ * JD 입력용 멀티라인 텍스트 필드. 하단에 조건 검증 서브텍스트·글자 수 카운터를 표시한다.
  *
- * Figma: text-field status=large (`2091:806`)
+ * Figma: text-field status=large (`2091:806`, `1320:6624`)
  *
  * @param value 현재 입력 값
  * @param onValueChange 입력이 바뀔 때 호출된다. [maxLength]를 넘는 값은 초과분이 잘려 반영된다
  * @param modifier 외부 레이아웃 Modifier
  * @param placeholder 값이 비어 있을 때 표시할 placeholder
  * @param maxLength 최대 입력 글자 수. 카운터에도 사용된다. 음수는 0으로 보정한다
+ * @param minLength 최소 글자 수 조건. null이면 검증 서브텍스트를 숨긴다
+ * @param validationErrorText [minLength] 미만일 때 노출할 Error 서브텍스트
+ * @param validationSuccessText [minLength] 이상일 때 노출할 Success 서브텍스트
+ * @param explicitErrorText null이 아니면 length 조건과 무관하게 이 텍스트를 Error 서브텍스트로
+ *   강제 노출한다. 서버 검증 실패(예: 연관성 부족)처럼 글자 수와 무관한 오류에 사용.
  */
 @Composable
 fun HilitJDTextField(
@@ -50,8 +58,13 @@ fun HilitJDTextField(
     modifier: Modifier = Modifier,
     placeholder: String = DEFAULT_PLACEHOLDER,
     maxLength: Int = DEFAULT_MAX_LENGTH,
+    minLength: Int? = null,
+    validationErrorText: String = "",
+    validationSuccessText: String = "",
+    explicitErrorText: String? = null,
 ) {
     val safeMaxLength = maxLength.coerceAtLeast(0)
+    val safeMinLength = minLength?.coerceAtLeast(0)
     val scrollState = rememberScrollState()
     val textStyle = HilitTheme.typography.body4
     val counterStyle = HilitTheme.typography.body9
@@ -59,6 +72,14 @@ fun HilitJDTextField(
     val placeholderColor = HilitTheme.colors.gray500
     val borderColor = HilitTheme.colors.gray100
     val surfaceColor = HilitTheme.colors.hilitWhite
+    val validationSubText =
+        resolveValidationSubText(
+            value = value,
+            minLength = safeMinLength,
+            validationErrorText = validationErrorText,
+            validationSuccessText = validationSuccessText,
+            explicitErrorText = explicitErrorText,
+        )
 
     Column(modifier = modifier.fillMaxWidth()) {
         Box(
@@ -108,30 +129,115 @@ fun HilitJDTextField(
             )
         }
 
-        Text(
-            text = "${value.length}/$safeMaxLength",
-            style = counterStyle,
-            color = placeholderColor,
+        Row(
             modifier =
                 Modifier
-                    .align(Alignment.End)
-                    .padding(top = HilitJDTextFieldCounterSpacing),
-        )
+                    .fillMaxWidth()
+                    .padding(top = HilitJDTextFieldFooterSpacing),
+            verticalAlignment = Alignment.Top,
+        ) {
+            if (validationSubText != null) {
+                HilitSubText(
+                    text = validationSubText.first,
+                    type = validationSubText.second,
+                    // 서버 오류 등 길이가 가변인 문구가 잘리지 않게 wrap 을 허용한다.
+                    maxLines = Int.MAX_VALUE,
+                    modifier = Modifier.weight(1f),
+                )
+            } else {
+                Spacer(modifier = Modifier.weight(1f))
+            }
+
+            Text(
+                text = "${value.length}/$safeMaxLength",
+                style = counterStyle,
+                color = placeholderColor,
+            )
+        }
+    }
+}
+
+private fun resolveValidationSubText(
+    value: String,
+    minLength: Int?,
+    validationErrorText: String,
+    validationSuccessText: String,
+    explicitErrorText: String?,
+): Pair<String, HilitSubTextType>? {
+    // 명시적 error 가 있으면 length 조건과 무관하게 우선 노출한다.
+    if (!explicitErrorText.isNullOrEmpty()) {
+        return explicitErrorText to HilitSubTextType.Error
+    }
+
+    if (minLength == null || value.isEmpty()) {
+        return null
+    }
+
+    return if (value.length >= minLength) {
+        validationSuccessText.takeIf { it.isNotEmpty() }?.let { it to HilitSubTextType.Success }
+    } else {
+        validationErrorText.takeIf { it.isNotEmpty() }?.let { it to HilitSubTextType.Error }
     }
 }
 
 @Preview(
-    name = "HilitJDTextField",
+    name = "HilitJDTextField - Empty",
     showBackground = true,
     widthDp = 360,
 )
 @Composable
-private fun HilitJDTextFieldPreview() {
+private fun HilitJDTextFieldEmptyPreview() {
     HilitTheme {
         HilitJDTextField(
             value = "",
             onValueChange = {},
             modifier = Modifier.padding(16.dp),
+            minLength = 200,
+            validationErrorText = "공고 내용은 200자 이상으로 입력해 주세요",
+            validationSuccessText = "공고 내용을 확인했어요",
+        )
+    }
+}
+
+@Preview(
+    name = "HilitJDTextField - Validation Error",
+    showBackground = true,
+    widthDp = 360,
+)
+@Composable
+private fun HilitJDTextFieldValidationErrorPreview() {
+    HilitTheme {
+        HilitJDTextField(
+            value = "당사는 백엔드 개발자를 모집합니다.",
+            onValueChange = {},
+            modifier = Modifier.padding(16.dp),
+            minLength = 200,
+            validationErrorText = "공고 내용은 200자 이상으로 입력해 주세요",
+            validationSuccessText = "공고 내용을 확인했어요",
+        )
+    }
+}
+
+@Preview(
+    name = "HilitJDTextField - Validation Success",
+    showBackground = true,
+    widthDp = 360,
+)
+@Composable
+private fun HilitJDTextFieldValidationSuccessPreview() {
+    HilitTheme {
+        HilitJDTextField(
+            value =
+                "당사 서비스의 백엔드 API를 설계하고 운영하실 시니어 개발자를 찾고 있습니다. " +
+                    "Kotlin, Spring Boot 기반 마이크로서비스 경험이 필요하며, " +
+                    "대용량 트래픽 처리와 데이터 파이프라인 구축 경험을 우대합니다. " +
+                    "협업과 코드 리뷰 문화를 중시하는 팀에서 함께 성장할 분을 기다립니다.",
+            onValueChange = {},
+            modifier = Modifier.padding(16.dp),
+            maxLength = 3000,
+            minLength = 200,
+            validationErrorText = "공고 내용은 200자 이상으로 입력해 주세요",
+            validationSuccessText = "공고 내용을 확인했어요",
         )
     }
 }
