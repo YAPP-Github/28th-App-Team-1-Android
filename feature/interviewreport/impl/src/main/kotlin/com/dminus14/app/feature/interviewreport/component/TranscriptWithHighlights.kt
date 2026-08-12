@@ -15,6 +15,7 @@ import com.dminus14.app.feature.interviewreport.model.HighlightUiTone
 import com.dminus14.designsystem.theme.HilitTheme
 
 private const val HIGHLIGHT_ANNOTATION_TAG = "highlight"
+private const val HIGHLIGHT_BACKGROUND_ALPHA = 0.6f
 
 /**
  * 답변 대본 위에 하이라이트 span 을 강조 렌더한다.
@@ -73,10 +74,11 @@ internal fun TranscriptWithHighlights(
 }
 
 /**
- * 다크 리포트 대본 하이라이트 색. 시안은 배경 없이 글자색만 강조한다.
+ * 다크 리포트 대본 하이라이트 색.
  * - GOOD(잘함) → positive500 (cyan #00CFEF)
  * - IMPROVE(개선) → error400 (red #FF8383)
- * - 그 외(UNKNOWN 등) → 기본 대본색 유지
+ * - 그 외(UNKNOWN 등) → 기본 대본색 유지, 배경 없음
+ * - 배경은 gray800(#31333B) 60% 알파.
  */
 private fun HighlightUiTone.toSpanStyle(
     colors: com.dminus14.designsystem.theme.HilitColors,
@@ -87,8 +89,14 @@ private fun HighlightUiTone.toSpanStyle(
             HighlightUiTone.NEGATIVE -> colors.error400
             HighlightUiTone.NEUTRAL -> colors.gray50
         }
+    val background =
+        if (this == HighlightUiTone.NEUTRAL) {
+            Color.Transparent
+        } else {
+            colors.gray800.copy(alpha = HIGHLIGHT_BACKGROUND_ALPHA)
+        }
     return SpanStyle(
-        background = Color.Transparent,
+        background = background,
         color = foreground,
         fontWeight =
             if (this == HighlightUiTone.NEUTRAL) FontWeight.Normal else FontWeight.SemiBold,
