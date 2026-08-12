@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -198,11 +199,16 @@ private fun PlayerReady(
         onDispose { lifecycleOwner.lifecycle.removeObserver(lifecycleObserver) }
     }
 
-    var positionMs by remember { mutableLongStateOf(0L) }
+    // positionMs 는 State 객체(positionMsState) 그대로 하위 컴포저블에 넘기고, 실제 .value 읽기는
+    // 그 컴포저블 안에서 by 로 한다. 여기 PlayerReady 본문에서 직접 읽으면(구 코드처럼 매개변수로
+    // 값 자체를 넘기면) 읽는 시점이 이 함수 스코프가 되어, 250ms 마다 SurfaceView 를 포함한
+    // PlayerReady 전체가 리컴포즈된다. 리컴포즈 스코프를 실제 소비처(대본 오버레이·진행바)로
+    // 좁혀 영상 표면·컨트롤 등 나머지 트리는 갱신되지 않게 한다.
+    val positionMsState = remember { mutableLongStateOf(0L) }
     var isPlaying by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) {
         while (true) {
-            positionMs = player.currentPosition
+            positionMsState.longValue = player.currentPosition
             isPlaying = player.isPlaying
             delay(POSITION_POLL_INTERVAL_MS)
         }
@@ -273,13 +279,13 @@ private fun PlayerReady(
                     if (player.isPlaying) player.pause() else player.play()
                 },
                 onSkipPrevious = {
-                    val index = currentSegmentIndex(content.segments, positionMs)
+                    val index = currentSegmentIndex(content.segments, positionMsState.longValue)
                     val target =
                         content.segments.getOrNull(index - 1) ?: content.segments.getOrNull(index)
                     target?.let { player.seekTo(it.startMs) }
                 },
                 onSkipNext = {
-                    val index = currentSegmentIndex(content.segments, positionMs)
+                    val index = currentSegmentIndex(content.segments, positionMsState.longValue)
                     content.segments.getOrNull(index + 1)?.let { player.seekTo(it.startMs) }
                 },
                 modifier = Modifier.align(Alignment.Center),
@@ -294,7 +300,7 @@ private fun PlayerReady(
             if (transcriptOverlayVisible) {
                 TranscriptOverlay(
                     scriptLines = content.scriptLines,
-                    positionMs = positionMs,
+                    positionMsState = positionMsState,
                     onHighlightClick = { ref ->
                         selectedHighlightRef = ref
                         player.pause()
@@ -316,7 +322,7 @@ private fun PlayerReady(
                 if (content.segments.isNotEmpty()) {
                     SegmentedProgressBar(
                         segments = content.segments,
-                        positionMs = positionMs,
+                        positionMsState = positionMsState,
                         onSeek = { player.seekTo(it) },
                     )
                 }
@@ -408,10 +414,11 @@ private fun PlayerControls(
 @Composable
 private fun SegmentedProgressBar(
     segments: List<PlayerSegmentUiModel>,
-    positionMs: Long,
+    positionMsState: State<Long>,
     onSeek: (Long) -> Unit,
 ) {
     val colors = HilitTheme.colors
+    val positionMs by positionMsState
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -466,11 +473,12 @@ private fun TranscriptToggleButton(
 @Composable
 private fun TranscriptOverlay(
     scriptLines: List<PlayerScriptLineUiModel>,
-    positionMs: Long,
+    positionMsState: State<Long>,
     onHighlightClick: (PlayerHighlightRefUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = HilitTheme.colors
+    val positionMs by positionMsState
     val transparent = colors.hilitBlack900.copy(alpha = 0f)
     val midFade = colors.hilitBlack900.copy(alpha = TRANSCRIPT_OVERLAY_GRADIENT_MID_ALPHA)
     Box(
