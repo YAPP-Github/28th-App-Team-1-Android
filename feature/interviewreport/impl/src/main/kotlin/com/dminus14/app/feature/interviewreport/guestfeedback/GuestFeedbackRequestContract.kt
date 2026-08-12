@@ -7,12 +7,16 @@ import com.dminus14.app.core.common.mvi.MviState
 import com.dminus14.app.domain.model.GuestFeedbackAxisCode
 
 sealed interface GuestFeedbackRequestIntent : MviIntent {
+    /** 화면 진입 시 sessionId 에 저장된 공유 링크 token 이 있는지 확인한다. */
+    data object Load : GuestFeedbackRequestIntent
+
     data class ToggleAxis(
         val axis: GuestFeedbackAxisCode,
     ) : GuestFeedbackRequestIntent
 
     data object ClickClose : GuestFeedbackRequestIntent
 
+    /** 하단 버튼 클릭. [GuestFeedbackRequestState.hasActiveShare] 에 따라 생성/종료로 분기한다. */
     data object ClickSubmit : GuestFeedbackRequestIntent
 
     data object ClickCopyLink : GuestFeedbackRequestIntent
@@ -26,6 +30,11 @@ data class GuestFeedbackRequestState(
     val shareLink: String? = null,
     /** 링크 복사 완료 후의 2초 안내 모달 노출 여부. */
     val linkCopied: Boolean = false,
+    /**
+     * sessionId 에 저장된 공유 링크 token 이 있으면 true.
+     * true 면 하단 버튼이 "피드백 링크 생성" 대신 "피드백 종료하기"로 바뀐다.
+     */
+    val hasActiveShare: Boolean = false,
 ) : MviState
 
 sealed interface GuestFeedbackRequestEffect : MviEffect {

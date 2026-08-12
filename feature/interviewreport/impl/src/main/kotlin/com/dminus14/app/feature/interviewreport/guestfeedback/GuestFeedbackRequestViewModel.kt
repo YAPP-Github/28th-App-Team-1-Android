@@ -1,9 +1,20 @@
 package com.dminus14.app.feature.interviewreport.guestfeedback
 
 import androidx.lifecycle.viewModelScope
+import com.dminus14.app.core.common.event.GlobalAppEvent
+import com.dminus14.app.core.common.event.GlobalErrorHandler
 import com.dminus14.app.core.common.mvi.MviViewModel
+import com.dminus14.app.domain.exception.EmptyAttitudeAxesException
+import com.dminus14.app.domain.exception.FeedbackShareAlreadyExistsException
+import com.dminus14.app.domain.exception.InterviewSessionNotFoundException
+import com.dminus14.app.domain.exception.InvalidAttitudeAxisException
+import com.dminus14.app.domain.exception.NetworkUnavailableException
+import com.dminus14.app.domain.exception.ServerException
+import com.dminus14.app.domain.exception.TooManyAttitudeAxesException
 import com.dminus14.app.domain.model.GuestFeedbackAxisCode
 import com.dminus14.app.domain.usecase.CreateFeedbackShareUseCase
+import com.dminus14.app.domain.usecase.EndFeedbackShareUseCase
+import com.dminus14.app.domain.usecase.GetSavedFeedbackShareTokenUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -19,6 +30,8 @@ class GuestFeedbackRequestViewModel
     @Inject
     constructor(
         private val createFeedbackShare: CreateFeedbackShareUseCase,
+        private val endFeedbackShare: EndFeedbackShareUseCase,
+        private val getSavedFeedbackShareToken: GetSavedFeedbackShareTokenUseCase,
     ) : MviViewModel<
             GuestFeedbackRequestIntent,
             GuestFeedbackRequestState,
@@ -34,6 +47,10 @@ class GuestFeedbackRequestViewModel
 
         override fun onIntent(intent: GuestFeedbackRequestIntent) {
             when (intent) {
+                GuestFeedbackRequestIntent.Load -> {
+                    load()
+                }
+
                 is GuestFeedbackRequestIntent.ToggleAxis -> {
                     toggleAxis(intent.axis)
                 }
@@ -43,12 +60,21 @@ class GuestFeedbackRequestViewModel
                 }
 
                 GuestFeedbackRequestIntent.ClickSubmit -> {
-                    submit()
+                    onClickSubmit()
                 }
 
                 GuestFeedbackRequestIntent.ClickCopyLink -> {
                     copyLink()
                 }
+            }
+        }
+
+        /** sessionId 에 저장된 공유 링크 token 이 있으면 하단 버튼을 "피드백 종료하기"로 바꾼다. */
+        private fun load() {
+            if (sessionId <= 0L) return
+            viewModelScope.launch {
+                val savedToken = getSavedFeedbackShareToken(sessionId)
+                reduce { copy(hasActiveShare = savedToken != null) }
             }
         }
 
@@ -65,7 +91,15 @@ class GuestFeedbackRequestViewModel
             }
         }
 
-        private fun submit() {
+        private fun onClickSubmit() {
+            if (state.value.hasActiveShare) {
+                endShare()
+            } else {
+                createShare()
+            }
+        }
+
+        private fun createShare() {
             val current = state.value
             if (current.submitting || current.selectedAxes.isEmpty()) return
             reduce { copy(submitting = true) }
@@ -73,14 +107,80 @@ class GuestFeedbackRequestViewModel
                 createFeedbackShare(sessionId, current.selectedAxes.toList())
                     .onSuccess { token ->
                         reduce {
-                            copy(submitting = false, shareLink = FEEDBACK_SHARE_LINK_BASE + token)
+                            copy(
+                                submitting = false,
+                                shareLink = FEEDBACK_SHARE_LINK_BASE + token,
+                                hasActiveShare = true,
+                            )
                         }
-                    }.onFailure {
-                        reduce { copy(submitting = false) }
-                        sendEffect(
-                            GuestFeedbackRequestEffect.ShowToast("링크 생성에 실패했어요. 다시 시도해 주세요."),
-                        )
+                    }.onFailure { error ->
+                        handleCreateShareFailure(error)
                     }
+            }
+        }
+
+        /**
+         * `POST .../share`(create_1) 전용 비즈니스 예외는 인라인으로 안내하고, 나머지
+         * network/server/unknown 은 공통 처리로 위임한다.
+         */
+        private suspend fun handleCreateShareFailure(error: Throwable) {
+            when (error) {
+                is EmptyAttitudeAxesException,
+                is TooManyAttitudeAxesException,
+                is InvalidAttitudeAxisException,
+                -> {
+                    reduce { copy(submitting = false) }
+                    sendEffect(GuestFeedbackRequestEffect.ShowToast(error.message))
+                }
+
+                is FeedbackShareAlreadyExistsException -> {
+                    // 서버에는 이미 활성 링크가 있는 상태. 종료 가능 상태로 맞춰 다시 시도를 막는다.
+                    reduce { copy(submitting = false, hasActiveShare = true) }
+                    sendEffect(GuestFeedbackRequestEffect.ShowToast(error.message))
+                }
+
+                is InterviewSessionNotFoundException -> {
+                    reduce { copy(submitting = false) }
+                    sendEffect(GuestFeedbackRequestEffect.ShowToast(error.message))
+                    sendEffect(GuestFeedbackRequestEffect.NavigateBack)
+                }
+
+                else -> {
+                    handleCommonError(error)
+                }
+            }
+        }
+
+        private fun endShare() {
+            if (state.value.submitting) return
+            reduce { copy(submitting = true) }
+            viewModelScope.launch {
+                endFeedbackShare(sessionId)
+                    .onSuccess {
+                        reduce { copy(submitting = false, hasActiveShare = false) }
+                        sendEffect(GuestFeedbackRequestEffect.ShowToast("피드백 요청을 종료했어요."))
+                        sendEffect(GuestFeedbackRequestEffect.NavigateBack)
+                    }.onFailure { error ->
+                        handleCommonError(error)
+                    }
+            }
+        }
+
+        // 아래 에러 처리 사항은 임시입니다. 공통 처리 기획자 문의 모든 ViewModel 일괄 수정 예정
+        private suspend fun handleCommonError(error: Throwable) {
+            reduce { copy(submitting = false) }
+            when {
+                error is NetworkUnavailableException -> {
+                    GlobalErrorHandler.emit(GlobalAppEvent.ShowNetworkErrorAndExit)
+                }
+
+                error is ServerException -> {
+                    GlobalErrorHandler.emit(GlobalAppEvent.ShowServerErrorAndExit)
+                }
+
+                else -> {
+                    GlobalErrorHandler.emit(GlobalAppEvent.ShowUnknownError)
+                }
             }
         }
 

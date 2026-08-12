@@ -2,6 +2,7 @@ package com.dminus14.app.data.remote.datasource
 
 import com.dminus14.app.data.remote.api.InterviewApi
 import com.dminus14.app.data.remote.dto.interview.CreateInterviewSessionRequestDto
+import com.dminus14.app.data.remote.dto.interview.FeedbackShareCloseRequestDto
 import com.dminus14.app.data.remote.dto.interview.FeedbackShareCreateRequestDto
 import com.dminus14.app.data.remote.dto.interview.FeedbackShareCreateResponseDto
 import com.dminus14.app.data.remote.dto.interview.InterviewAbandonRequestDto
@@ -188,5 +189,9 @@ class InterviewRemoteDataSourceImpl
                     errCode = ApiErrorCode.SERVER_ERROR,
                     message = "피드백 공유 링크 응답이 비어 있습니다.",
                 )
+        }
+
+        override suspend fun closeFeedbackShare(sessionId: Long) {
+            interviewApi.closeFeedbackShare(sessionId, FeedbackShareCloseRequestDto())
         }
     }

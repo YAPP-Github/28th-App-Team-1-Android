@@ -73,4 +73,6 @@ interface InterviewRemoteDataSource {
         sessionId: Long,
         axes: List<String>,
     ): FeedbackShareCreateResponseDto
+
+    suspend fun closeFeedbackShare(sessionId: Long)
 }

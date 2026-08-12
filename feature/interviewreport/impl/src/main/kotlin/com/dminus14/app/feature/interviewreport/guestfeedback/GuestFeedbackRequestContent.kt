@@ -112,9 +112,14 @@ internal fun GuestFeedbackRequestContent(
                 Spacer(Modifier.height(24.dp))
             }
             HilitFixedBottomButton(
-                text = "피드백 종료하기",
-                type = HilitButtonType.Dark,
-                enabled = state.selectedAxes.isNotEmpty() && !state.submitting,
+                text = if (state.hasActiveShare) "피드백 종료하기" else "피드백 링크 생성",
+                // Figma 443:8044 실제 버튼은 짙은 회색(gray900) 배경 + 흰 글자로, Dark 타입(흰 배경)이
+                // 아니라 Light 타입(활성 시 hilitBlack800 배경, 누를 때 gray900)과 일치한다. 이 앱의
+                // 다른 화면 CTA 버튼도 전부 Light 를 쓴다 — Dark 타입은 이 파일에서만 잘못 쓰이고 있었음.
+                type = HilitButtonType.Light,
+                enabled =
+                    !state.submitting &&
+                        (state.hasActiveShare || state.selectedAxes.isNotEmpty()),
                 onClick = { onIntent(GuestFeedbackRequestIntent.ClickSubmit) },
             )
         }

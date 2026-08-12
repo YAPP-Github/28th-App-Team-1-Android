@@ -1,10 +1,18 @@
 package com.dminus14.app.feature.interviewreport.guestfeedback
 
+import com.dminus14.app.domain.exception.EmptyAttitudeAxesException
+import com.dminus14.app.domain.exception.FeedbackShareAlreadyExistsException
+import com.dminus14.app.domain.exception.InterviewSessionNotFoundException
 import com.dminus14.app.domain.model.GuestFeedbackAxisCode
+import com.dminus14.app.domain.repository.FeedbackShareLocalRepository
 import com.dminus14.app.domain.repository.FeedbackShareRepository
 import com.dminus14.app.domain.usecase.CreateFeedbackShareUseCase
+import com.dminus14.app.domain.usecase.EndFeedbackShareUseCase
+import com.dminus14.app.domain.usecase.GetSavedFeedbackShareTokenUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -12,6 +20,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -52,9 +62,36 @@ class GuestFeedbackRequestViewModelTest {
     }
 
     @Test
-    fun `종료하기 성공 시 공유 링크가 채워진다`() =
+    fun `저장된 token 이 없으면 Load 후에도 종료 가능 상태가 아니다`() =
         runTest {
-            val viewModel = viewModel(FakeFeedbackShareRepository(token = "abc123"))
+            val viewModel = viewModel(FakeFeedbackShareRepository())
+            viewModel.bindSessionId(7L)
+
+            viewModel.onIntent(GuestFeedbackRequestIntent.Load)
+            advanceUntilIdle()
+
+            assertFalse(viewModel.state.value.hasActiveShare)
+        }
+
+    @Test
+    fun `Load 시 저장된 token 이 있으면 하단 버튼이 종료 상태로 바뀐다`() =
+        runTest {
+            val localRepository = FakeFeedbackShareLocalRepository(mapOf(7L to "saved-token"))
+            val viewModel = viewModel(FakeFeedbackShareRepository(), localRepository)
+            viewModel.bindSessionId(7L)
+
+            viewModel.onIntent(GuestFeedbackRequestIntent.Load)
+            advanceUntilIdle()
+
+            assertTrue(viewModel.state.value.hasActiveShare)
+        }
+
+    @Test
+    fun `피드백 링크 생성 성공 시 공유 링크가 채워지고 token 을 저장한다`() =
+        runTest {
+            val localRepository = FakeFeedbackShareLocalRepository()
+            val viewModel =
+                viewModel(FakeFeedbackShareRepository(token = "abc123"), localRepository)
             viewModel.bindSessionId(7L)
 
             viewModel.onIntent(GuestFeedbackRequestIntent.ClickSubmit)
@@ -62,17 +99,156 @@ class GuestFeedbackRequestViewModelTest {
 
             val link = viewModel.state.value.shareLink
             assertTrue("링크가 토큰을 포함해야 한다: $link", link?.endsWith("abc123") == true)
+            assertTrue(viewModel.state.value.hasActiveShare)
+            assertEquals("abc123", localRepository.getToken(7L))
         }
 
-    private fun viewModel(repository: FeedbackShareRepository): GuestFeedbackRequestViewModel =
-        GuestFeedbackRequestViewModel(CreateFeedbackShareUseCase(repository))
+    @Test
+    fun `종료 가능 상태에서 제출하면 공유를 종료하고 저장된 token 을 지운 뒤 리포트로 돌아간다`() =
+        runTest {
+            val localRepository = FakeFeedbackShareLocalRepository(mapOf(7L to "saved-token"))
+            val repository = FakeFeedbackShareRepository()
+            val viewModel = viewModel(repository, localRepository)
+            viewModel.bindSessionId(7L)
+            viewModel.onIntent(GuestFeedbackRequestIntent.Load)
+            advanceUntilIdle()
+
+            val effects = mutableListOf<GuestFeedbackRequestEffect>()
+            val job = TestScope(dispatcher).launch { viewModel.effect.collect { effects += it } }
+
+            viewModel.onIntent(GuestFeedbackRequestIntent.ClickSubmit)
+            advanceUntilIdle()
+
+            assertTrue(repository.closeCalled)
+            assertNull(localRepository.getToken(7L))
+            assertFalse(viewModel.state.value.hasActiveShare)
+            assertTrue(effects.any { it is GuestFeedbackRequestEffect.NavigateBack })
+            job.cancel()
+        }
+
+    @Test
+    fun `평가 항목 오류는 토스트로 안내하고 화면에 남는다`() =
+        runTest {
+            val repository =
+                FakeFeedbackShareRepository(
+                    createFailure =
+                        EmptyAttitudeAxesException(
+                            errCode = "EMPTY_ATTITUDE_AXES",
+                            message = "평가 항목을 최소 1개 선택해 주세요.",
+                        ),
+                )
+            val viewModel = viewModel(repository)
+            viewModel.bindSessionId(7L)
+
+            val effects = mutableListOf<GuestFeedbackRequestEffect>()
+            val job = TestScope(dispatcher).launch { viewModel.effect.collect { effects += it } }
+
+            viewModel.onIntent(GuestFeedbackRequestIntent.ClickSubmit)
+            advanceUntilIdle()
+
+            assertFalse(viewModel.state.value.submitting)
+            assertFalse(viewModel.state.value.hasActiveShare)
+            assertTrue(
+                effects.any {
+                    it is GuestFeedbackRequestEffect.ShowToast &&
+                        it.message == "평가 항목을 최소 1개 선택해 주세요."
+                },
+            )
+            assertFalse(effects.any { it is GuestFeedbackRequestEffect.NavigateBack })
+            job.cancel()
+        }
+
+    @Test
+    fun `서버에 이미 활성 링크가 있으면 종료 가능 상태로 바뀐다`() =
+        runTest {
+            val repository =
+                FakeFeedbackShareRepository(
+                    createFailure =
+                        FeedbackShareAlreadyExistsException(
+                            errCode = "FEEDBACK_SHARE_ALREADY_EXISTS",
+                            message = "이미 피드백 요청 링크가 있어요.",
+                        ),
+                )
+            val viewModel = viewModel(repository)
+            viewModel.bindSessionId(7L)
+
+            viewModel.onIntent(GuestFeedbackRequestIntent.ClickSubmit)
+            advanceUntilIdle()
+
+            assertFalse(viewModel.state.value.submitting)
+            assertTrue(viewModel.state.value.hasActiveShare)
+        }
+
+    @Test
+    fun `면접 세션을 찾을 수 없으면 안내 후 리포트로 돌아간다`() =
+        runTest {
+            val repository =
+                FakeFeedbackShareRepository(
+                    createFailure =
+                        InterviewSessionNotFoundException(
+                            errCode = "INTERVIEW_SESSION_NOT_FOUND",
+                            message = "면접 세션을 찾을 수 없어요.",
+                        ),
+                )
+            val viewModel = viewModel(repository)
+            viewModel.bindSessionId(7L)
+
+            val effects = mutableListOf<GuestFeedbackRequestEffect>()
+            val job = TestScope(dispatcher).launch { viewModel.effect.collect { effects += it } }
+
+            viewModel.onIntent(GuestFeedbackRequestIntent.ClickSubmit)
+            advanceUntilIdle()
+
+            assertTrue(effects.any { it is GuestFeedbackRequestEffect.NavigateBack })
+            job.cancel()
+        }
+
+    private fun viewModel(
+        repository: FeedbackShareRepository,
+        localRepository: FeedbackShareLocalRepository = FakeFeedbackShareLocalRepository(),
+    ): GuestFeedbackRequestViewModel =
+        GuestFeedbackRequestViewModel(
+            CreateFeedbackShareUseCase(repository, localRepository),
+            EndFeedbackShareUseCase(repository, localRepository),
+            GetSavedFeedbackShareTokenUseCase(localRepository),
+        )
 }
 
 private class FakeFeedbackShareRepository(
     private val token: String = "token",
+    private val createFailure: Throwable? = null,
 ) : FeedbackShareRepository {
+    var closeCalled: Boolean = false
+        private set
+
     override suspend fun createShare(
         sessionId: Long,
         axes: List<GuestFeedbackAxisCode>,
-    ): String = token
+    ): String {
+        createFailure?.let { throw it }
+        return token
+    }
+
+    override suspend fun closeShare(sessionId: Long) {
+        closeCalled = true
+    }
+}
+
+private class FakeFeedbackShareLocalRepository(
+    initialTokens: Map<Long, String> = emptyMap(),
+) : FeedbackShareLocalRepository {
+    private val tokens = initialTokens.toMutableMap()
+
+    override suspend fun getToken(sessionId: Long): String? = tokens[sessionId]
+
+    override suspend fun saveToken(
+        sessionId: Long,
+        token: String,
+    ) {
+        tokens[sessionId] = token
+    }
+
+    override suspend fun clearToken(sessionId: Long) {
+        tokens.remove(sessionId)
+    }
 }

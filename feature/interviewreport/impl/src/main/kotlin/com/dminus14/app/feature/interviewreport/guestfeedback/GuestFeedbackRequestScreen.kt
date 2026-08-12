@@ -30,6 +30,7 @@ fun GuestFeedbackRequestScreen(
 
     LaunchedEffect(sessionId) {
         viewModel.bindSessionId(sessionId)
+        viewModel.onIntent(GuestFeedbackRequestIntent.Load)
     }
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->

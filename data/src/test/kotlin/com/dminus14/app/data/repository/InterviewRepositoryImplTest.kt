@@ -511,6 +511,10 @@ class InterviewRepositoryImplTest {
             failure?.let { throw it }
             return FeedbackShareCreateResponseDto(token = "fake-token")
         }
+
+        override suspend fun closeFeedbackShare(sessionId: Long) {
+            failure?.let { throw it }
+        }
     }
 
     private companion object {

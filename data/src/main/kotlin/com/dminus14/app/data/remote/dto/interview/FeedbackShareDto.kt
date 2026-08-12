@@ -13,3 +13,9 @@ data class FeedbackShareCreateResponseDto(
     @SerializedName("token")
     val token: String?,
 )
+
+/** 지인 피드백 공유 링크 종료(비공개 전환) 요청. 현재 서버는 PRIVATE 만 지원하며 되돌릴 수 없다. */
+data class FeedbackShareCloseRequestDto(
+    @SerializedName("status")
+    val status: String = "PRIVATE",
+)
