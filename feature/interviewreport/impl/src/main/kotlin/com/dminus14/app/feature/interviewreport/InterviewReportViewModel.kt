@@ -3,6 +3,7 @@ package com.dminus14.app.feature.interviewreport
 import androidx.lifecycle.viewModelScope
 import com.dminus14.app.core.common.mvi.MviViewModel
 import com.dminus14.app.domain.model.InterviewReportStatus
+import com.dminus14.app.domain.usecase.GetVideoExpiryUseCase
 import com.dminus14.app.domain.usecase.ObserveInterviewReportUseCase
 import com.dminus14.app.feature.interviewreport.mapper.InterviewReportUiMapper
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -10,6 +11,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -17,6 +19,7 @@ class InterviewReportViewModel
     @Inject
     constructor(
         private val observeInterviewReport: ObserveInterviewReportUseCase,
+        private val getVideoExpiry: GetVideoExpiryUseCase,
     ) : MviViewModel<InterviewReportIntent, InterviewReportState, InterviewReportEffect>(
             InterviewReportState(),
         ) {
@@ -72,6 +75,10 @@ class InterviewReportViewModel
                         sendEffect(InterviewReportEffect.NavigateToGuestFeedback(sessionId))
                     }
                 }
+
+                is InterviewReportIntent.SelectCard -> {
+                    reduce { copy(selectedCardIndex = intent.cardIndex) }
+                }
             }
         }
 
@@ -79,7 +86,14 @@ class InterviewReportViewModel
             val sessionId = state.value.sessionId
             if (sessionId <= 0L) return
             pollingJob?.cancel()
-            reduce { copy(phase = InterviewReportState.Phase.Loading) }
+            reduce {
+                copy(
+                    phase = InterviewReportState.Phase.Loading,
+                    selectedCardIndex = 0,
+                    videoExpirySeconds = null,
+                )
+            }
+            fetchVideoExpiry(sessionId)
             pollingJob =
                 observeInterviewReport(sessionId)
                     .onEach { report ->
@@ -109,6 +123,20 @@ class InterviewReportViewModel
                     }.catch {
                         reduce { copy(phase = InterviewReportState.Phase.Failed) }
                     }.launchIn(viewModelScope)
+        }
+
+        /**
+         * 카운트다운 시드용 잔여시간을 별도 조회한다. 리포트 폴링과 독립적이며, 실패하거나 이미
+         * 만료됐으면 [InterviewReportState.videoExpirySeconds] 를 null 로 두어 카운트다운을 숨긴다.
+         */
+        private fun fetchVideoExpiry(sessionId: Long) {
+            viewModelScope.launch {
+                getVideoExpiry(sessionId)
+                    .onSuccess { expiry ->
+                        val seconds = expiry.expiresInSeconds.takeIf { !expiry.expired && it > 0L }
+                        reduce { copy(videoExpirySeconds = seconds) }
+                    }
+            }
         }
 
         private fun handleWatchVideo(startSec: Float?) {

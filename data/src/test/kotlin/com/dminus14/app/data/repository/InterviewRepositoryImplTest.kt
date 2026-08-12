@@ -3,6 +3,7 @@ package com.dminus14.app.data.repository
 import com.dminus14.app.data.remote.config.NetworkConfig
 import com.dminus14.app.data.remote.datasource.InterviewRemoteDataSource
 import com.dminus14.app.data.remote.dto.interview.CreateInterviewSessionRequestDto
+import com.dminus14.app.data.remote.dto.interview.FeedbackShareCreateResponseDto
 import com.dminus14.app.data.remote.dto.interview.InterviewAbandonRequestDto
 import com.dminus14.app.data.remote.dto.interview.InterviewAbandonResponseDto
 import com.dminus14.app.data.remote.dto.interview.InterviewReportListResponseDto
@@ -501,6 +502,14 @@ class InterviewRepositoryImplTest {
                 expiresInSeconds = 1800,
                 expired = false,
             )
+        }
+
+        override suspend fun createFeedbackShare(
+            sessionId: Long,
+            axes: List<String>,
+        ): FeedbackShareCreateResponseDto {
+            failure?.let { throw it }
+            return FeedbackShareCreateResponseDto(token = "fake-token")
         }
     }
 

@@ -2,6 +2,8 @@ package com.dminus14.app.data.remote.api
 
 import com.dminus14.app.data.remote.dto.ApiResponseDto
 import com.dminus14.app.data.remote.dto.interview.CreateInterviewSessionRequestDto
+import com.dminus14.app.data.remote.dto.interview.FeedbackShareCreateRequestDto
+import com.dminus14.app.data.remote.dto.interview.FeedbackShareCreateResponseDto
 import com.dminus14.app.data.remote.dto.interview.InterviewAbandonRequestDto
 import com.dminus14.app.data.remote.dto.interview.InterviewAbandonResponseDto
 import com.dminus14.app.data.remote.dto.interview.InterviewReportListResponseDto
@@ -116,4 +118,10 @@ interface InterviewApi {
     suspend fun getExpiry(
         @Path("sessionId") sessionId: Long,
     ): ApiResponseDto<InterviewVideoExpiryResponseDto>
+
+    @POST("api/v1/feedback/sessions/{sessionId}/share")
+    suspend fun createFeedbackShare(
+        @Path("sessionId") sessionId: Long,
+        @Body request: FeedbackShareCreateRequestDto,
+    ): ApiResponseDto<FeedbackShareCreateResponseDto>
 }

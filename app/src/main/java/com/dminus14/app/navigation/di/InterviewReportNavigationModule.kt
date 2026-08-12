@@ -1,6 +1,7 @@
 package com.dminus14.app.navigation.di
 
 import androidx.navigation3.runtime.EntryProviderScope
+import com.dminus14.app.feature.interviewreport.api.GuestFeedbackRequest
 import com.dminus14.app.feature.interviewreport.api.InterviewReportPlayer
 import com.dminus14.app.feature.interviewreport.navigation.interviewReportEntryBuilder
 import com.dminus14.app.navigation.Navigator
@@ -26,8 +27,9 @@ object InterviewReportNavigationModule {
                         InterviewReportPlayer(sessionId = sessionId, startSec = startSec),
                     )
                 },
-                // TODO(#1111): feature:feedback:api 계약 확정 후 배선.
-                onOpenGuestFeedback = { _ -> },
+                onOpenGuestFeedback = { sessionId ->
+                    navigator.goTo(GuestFeedbackRequest(sessionId = sessionId))
+                },
             )
         }
 }

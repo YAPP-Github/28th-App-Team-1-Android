@@ -1,5 +1,6 @@
 package com.dminus14.app.feature.interviewreport.mapper
 
+import com.dminus14.app.domain.model.GuestFeedbackSummary
 import com.dminus14.app.domain.model.HighlightReason
 import com.dminus14.app.domain.model.HighlightSpan
 import com.dminus14.app.domain.model.HighlightTone
@@ -135,11 +136,37 @@ class InterviewReportUiMapperTest {
         assertEquals(HighlightUiReason.SUFFICIENT, mappedHighlight.reason)
     }
 
+    @Test
+    fun `guestFeedback 가 있으면 참여수와 정원 4 로 UI 모델을 채운다`() {
+        val report =
+            sampleReport(
+                status = InterviewReportStatus.READY,
+                guestFeedback = GuestFeedbackSummary(participantCount = 2, guests = emptyList()),
+            )
+
+        val ui = InterviewReportUiMapper.map(report)
+
+        assertEquals(2, ui.guestFeedback?.participantCount)
+        assertEquals(4, ui.guestFeedback?.capacity)
+        assertTrue(ui.guestFeedback?.title?.isNotBlank() == true)
+        assertTrue(ui.guestFeedback?.subtitle?.isNotBlank() == true)
+    }
+
+    @Test
+    fun `guestFeedback 가 없으면 UI 모델도 null 이다`() {
+        val report = sampleReport(status = InterviewReportStatus.READY, guestFeedback = null)
+
+        val ui = InterviewReportUiMapper.map(report)
+
+        assertNull(ui.guestFeedback)
+    }
+
     private fun sampleReport(
         status: InterviewReportStatus,
         headline: String? = null,
         video: InterviewReportVideo? = null,
         cards: List<InterviewReportCard> = emptyList(),
+        guestFeedback: GuestFeedbackSummary? = null,
     ): InterviewReport =
         InterviewReport(
             status = status,
@@ -147,7 +174,7 @@ class InterviewReportUiMapperTest {
             video = video,
             cards = cards,
             script = null,
-            guestFeedback = null,
+            guestFeedback = guestFeedback,
         )
 
     private fun sampleCard(

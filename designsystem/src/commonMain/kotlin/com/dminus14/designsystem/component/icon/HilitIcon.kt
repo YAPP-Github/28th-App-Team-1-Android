@@ -11,6 +11,7 @@ import com.dminus14.app.core.resources.Res
 import com.dminus14.app.core.resources.ai_sparkle
 import com.dminus14.app.core.resources.alert_red
 import com.dminus14.app.core.resources.apple_logo
+import com.dminus14.app.core.resources.body
 import com.dminus14.app.core.resources.book
 import com.dminus14.app.core.resources.cancel
 import com.dminus14.app.core.resources.checkbox_check
@@ -20,13 +21,17 @@ import com.dminus14.app.core.resources.delete
 import com.dminus14.app.core.resources.down
 import com.dminus14.app.core.resources.edit
 import com.dminus14.app.core.resources.expand
+import com.dminus14.app.core.resources.eyes
+import com.dminus14.app.core.resources.face
 import com.dminus14.app.core.resources.file
 import com.dminus14.app.core.resources.fill_warning
 import com.dminus14.app.core.resources.finish
+import com.dminus14.app.core.resources.hand
 import com.dminus14.app.core.resources.hiiii_logo
 import com.dminus14.app.core.resources.info
 import com.dminus14.app.core.resources.kakao_logo
 import com.dminus14.app.core.resources.left
+import com.dminus14.app.core.resources.link
 import com.dminus14.app.core.resources.mic
 import com.dminus14.app.core.resources.network
 import com.dminus14.app.core.resources.opp
@@ -104,6 +109,11 @@ enum class HilitIconAsset(
     Finish("finish", 74.dp, Res.drawable.finish, preservesOriginalColors = true),
     Opp("opp", 74.dp, Res.drawable.opp, preservesOriginalColors = true),
     OppX("opp_x", 74.dp, Res.drawable.opp_x, preservesOriginalColors = true),
+    Eyes("eyes", 28.dp, Res.drawable.eyes),
+    Face("face", 28.dp, Res.drawable.face),
+    Body("body", 28.dp, Res.drawable.body),
+    Hand("hand", 28.dp, Res.drawable.hand),
+    Link("link", 74.dp, Res.drawable.link, preservesOriginalColors = true),
 }
 
 /**

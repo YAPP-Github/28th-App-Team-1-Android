@@ -3,11 +3,15 @@
 package com.dminus14.app.feature.interviewreport
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -16,17 +20,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.dminus14.app.feature.interviewreport.component.FeedbackRequestCard
 import com.dminus14.app.feature.interviewreport.component.HeadlineSection
 import com.dminus14.app.feature.interviewreport.component.HighlightDetailBottomSheet
-import com.dminus14.app.feature.interviewreport.component.RedFlagNoticeStrip
+import com.dminus14.app.feature.interviewreport.component.QuestionTabRow
 import com.dminus14.app.feature.interviewreport.component.ReportCard
-import com.dminus14.app.feature.interviewreport.component.VideoRewatchButton
+import com.dminus14.app.feature.interviewreport.component.VideoCountdownCard
 import com.dminus14.app.feature.interviewreport.model.ReportUiModel
+import com.dminus14.designsystem.component.icon.HilitIcon
+import com.dminus14.designsystem.component.icon.HilitIconAsset
 import com.dminus14.designsystem.component.loading.HilitLoadingIndicator
 import com.dminus14.designsystem.theme.HilitTheme
 
 /**
- * 리포트 화면 순수 UI. State 만 받아 렌더하고 콜백으로 이벤트를 전달한다.
+ * 리포트 화면 순수 UI. State 만 받아 렌더하고 콜백으로 이벤트를 전달한다. (Figma Node: 443:6889)
  */
 @Composable
 internal fun InterviewReportContent(
@@ -36,7 +43,7 @@ internal fun InterviewReportContent(
 ) {
     val colors = HilitTheme.colors
     Box(
-        modifier = modifier.fillMaxSize().background(colors.gray50),
+        modifier = modifier.fillMaxSize().background(colors.hilitBlack900),
     ) {
         when (val phase = state.phase) {
             InterviewReportState.Phase.Loading -> {
@@ -49,7 +56,7 @@ internal fun InterviewReportContent(
                         Text(
                             text = "리포트를 불러오지 못했어요. 다시 시도해 주세요.",
                             style = HilitTheme.typography.sub7,
-                            color = colors.gray900,
+                            color = colors.gray200,
                         )
                     },
                 )
@@ -61,7 +68,7 @@ internal fun InterviewReportContent(
                         Text(
                             text = "이번 면접 답변이 분석하기에 부족했어요. 다음 연습에서 조금 더 자세히 답해보세요.",
                             style = HilitTheme.typography.sub7,
-                            color = colors.gray900,
+                            color = colors.gray200,
                         )
                     },
                 )
@@ -70,6 +77,8 @@ internal fun InterviewReportContent(
             is InterviewReportState.Phase.Ready -> {
                 ReadyReport(
                     report = phase.report,
+                    selectedCardIndex = state.selectedCardIndex,
+                    videoExpirySeconds = state.videoExpirySeconds,
                     onIntent = onIntent,
                 )
             }
@@ -102,33 +111,95 @@ internal fun InterviewReportContent(
 @Composable
 private fun ReadyReport(
     report: ReportUiModel,
+    selectedCardIndex: Int,
+    videoExpirySeconds: Long?,
     onIntent: (InterviewReportIntent) -> Unit,
 ) {
+    val colors = HilitTheme.colors
     val scrollState = rememberScrollState()
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        HeadlineSection(headline = report.headline)
-        RedFlagNoticeStrip(notices = report.redFlagNotices)
-        VideoRewatchButton(
-            video = report.video,
-            onClick = { onIntent(InterviewReportIntent.ClickWatchVideo) },
-        )
-        report.cards.forEachIndexed { index, card ->
-            ReportCard(
-                card = card,
-                cardIndex = index,
-                onHighlightClick = { cardIndex, spanIndex ->
-                    onIntent(InterviewReportIntent.ClickHighlight(cardIndex, spanIndex))
-                },
+    Column(modifier = Modifier.fillMaxSize()) {
+        ReportTopBar(onClose = { onIntent(InterviewReportIntent.ClickClose) })
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 40.dp),
+        ) {
+            Spacer(Modifier.height(10.dp))
+            HeadlineSection(headline = report.headline)
+            Spacer(Modifier.height(24.dp))
+            VideoCountdownCard(
+                video = report.video,
+                expirySeconds = videoExpirySeconds,
+                onClick = { onIntent(InterviewReportIntent.ClickWatchVideo) },
             )
+            if (report.cards.isNotEmpty()) {
+                Spacer(Modifier.height(24.dp))
+                SectionDivider()
+                Spacer(Modifier.height(24.dp))
+                Text(
+                    text = "상세 리포트",
+                    style = HilitTheme.typography.sub7,
+                    color = colors.hilitWhite,
+                )
+                Spacer(Modifier.height(10.dp))
+                val safeIndex = selectedCardIndex.coerceIn(0, report.cards.lastIndex)
+                QuestionTabRow(
+                    cards = report.cards,
+                    selectedIndex = safeIndex,
+                    onSelect = { onIntent(InterviewReportIntent.SelectCard(it)) },
+                )
+                Spacer(Modifier.height(24.dp))
+                ReportCard(
+                    card = report.cards[safeIndex],
+                    cardIndex = safeIndex,
+                    onHighlightClick = { cardIndex, spanIndex ->
+                        onIntent(InterviewReportIntent.ClickHighlight(cardIndex, spanIndex))
+                    },
+                )
+            }
+            report.guestFeedback?.let { guestFeedback ->
+                Spacer(Modifier.height(36.dp))
+                Text(
+                    text = "지인피드백",
+                    style = HilitTheme.typography.sub7,
+                    color = colors.hilitWhite,
+                )
+                Spacer(Modifier.height(16.dp))
+                FeedbackRequestCard(
+                    model = guestFeedback,
+                    onClick = { onIntent(InterviewReportIntent.ClickGuestFeedbackInvite) },
+                )
+            }
         }
     }
+}
+
+@Composable
+private fun ReportTopBar(onClose: () -> Unit) {
+    val colors = HilitTheme.colors
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 9.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        HilitIcon(
+            asset = HilitIconAsset.Cancel,
+            contentDescription = "닫기",
+            tint = colors.hilitWhite,
+            modifier = Modifier.clickable(onClick = onClose),
+        )
+    }
+}
+
+@Composable
+private fun SectionDivider() {
+    val colors = HilitTheme.colors
+    Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(colors.gray800))
 }
 
 @Composable

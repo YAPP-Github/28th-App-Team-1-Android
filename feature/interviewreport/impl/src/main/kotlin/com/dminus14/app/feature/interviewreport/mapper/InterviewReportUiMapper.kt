@@ -1,5 +1,6 @@
 package com.dminus14.app.feature.interviewreport.mapper
 
+import com.dminus14.app.domain.model.GuestFeedbackSummary
 import com.dminus14.app.domain.model.HighlightReason
 import com.dminus14.app.domain.model.HighlightSpan
 import com.dminus14.app.domain.model.HighlightTone
@@ -8,6 +9,7 @@ import com.dminus14.app.domain.model.InterviewReportCard
 import com.dminus14.app.domain.model.InterviewReportStatus
 import com.dminus14.app.domain.model.InterviewReportVideo
 import com.dminus14.app.feature.interviewreport.model.CardUiModel
+import com.dminus14.app.feature.interviewreport.model.GuestFeedbackUiModel
 import com.dminus14.app.feature.interviewreport.model.HeadlineTone
 import com.dminus14.app.feature.interviewreport.model.HeadlineUiModel
 import com.dminus14.app.feature.interviewreport.model.HighlightUiModel
@@ -44,8 +46,17 @@ object InterviewReportUiMapper {
             redFlagNotices = redFlagNotices,
             video = report.video?.toUi(),
             cards = cards,
+            guestFeedback = report.guestFeedback?.toUi(),
         )
     }
+
+    private fun GuestFeedbackSummary.toUi(): GuestFeedbackUiModel =
+        GuestFeedbackUiModel(
+            participantCount = participantCount,
+            capacity = GUEST_FEEDBACK_CAPACITY,
+            title = "지인에게 면접 영상 보내기",
+            subtitle = "${GUEST_FEEDBACK_CAPACITY}명에게 영상을 공유하고 태도 분석을 받아보세요!",
+        )
 
     private fun InterviewReport.toHeadline(hasSevereRedFlag: Boolean): HeadlineUiModel {
         val insufficient = status == InterviewReportStatus.INSUFFICIENT_ANALYSIS
@@ -132,4 +143,7 @@ object InterviewReportUiMapper {
         }
 
     private const val MAX_RED_FLAG_LINES: Int = 2
+
+    /** 지인 피드백 정원(면접당 최대 4명, feedback.md). */
+    private const val GUEST_FEEDBACK_CAPACITY: Int = 4
 }

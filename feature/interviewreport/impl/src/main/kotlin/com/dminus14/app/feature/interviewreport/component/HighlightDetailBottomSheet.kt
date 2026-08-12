@@ -3,30 +3,45 @@ package com.dminus14.app.feature.interviewreport.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.dminus14.app.feature.interviewreport.model.HighlightUiModel
 import com.dminus14.app.feature.interviewreport.model.HighlightUiReason
+import com.dminus14.app.feature.interviewreport.model.HighlightUiTone
 import com.dminus14.designsystem.component.bottomsheet.HilitBottomSheet
+import com.dminus14.designsystem.component.icon.HilitIcon
+import com.dminus14.designsystem.component.icon.HilitIconAsset
+import com.dminus14.designsystem.theme.HilitColors
 import com.dminus14.designsystem.theme.HilitTheme
 
 /**
- * 하이라이트 상세 시트. 진입 depth 는 두 개다 (기획서 §2-5).
+ * 하이라이트 상세 시트 (Figma Node: 443:7392). 다크 시트로 렌더한다.
  *
- * - Depth 1 : 하이라이트 문장 · 행동형 키워드 태그 · 분석
- * - Depth 2 : reason 별 "다음 대비" 콘텐츠. 유의미한 콘텐츠가 없으면 depth 2 자체를 생략한다
+ * - 분석 내용 헤더 + "영상 보러가기" 버튼(영상 위에서 열렸으면 숨김)
+ * - 하이라이트 발췌 (톤 색)
+ * - "Hilit의 답변 분석" 카드 (제목 · 분석)
+ * - reason 별 "다음 대비". OFF_INTENT 는 질문 의도 ↔ 내 답변 대비 블록,
+ *   그 외 reason 은 코칭 한 줄 미니 카드. 유의미한 콘텐츠가 없으면 생략한다.
  *
  * @param highlight 노출할 하이라이트
- * @param transcript 원본 대본. 하이라이트 구간을 다시 발췌해서 상단에 보여준다
- * @param showWatchSceneButton 영상 위에서 열린 경우엔 false 로 넣어 [이 장면 영상으로 보기] 를 숨긴다
+ * @param transcript 원본 대본. 하이라이트 구간을 발췌해서 상단에 보여준다
+ * @param showWatchSceneButton 영상 위에서 열린 경우엔 false 로 넣어 [영상 보러가기] 를 숨긴다
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,24 +52,26 @@ internal fun HighlightDetailBottomSheet(
     onDismiss: () -> Unit,
     onWatchScene: () -> Unit,
 ) {
+    val colors = HilitTheme.colors
     HilitBottomSheet(
         onDismissRequest = onDismiss,
+        containerColor = colors.hilitBlack900,
         content = {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp),
             ) {
                 DiagnosisBlock(
                     highlight = highlight,
                     transcriptSlice =
-                        transcript.safeSlice(
-                            highlight.startIndex,
-                            highlight.endIndex,
-                        ),
+                        transcript.safeSlice(highlight.startIndex, highlight.endIndex),
+                    showWatchSceneButton = showWatchSceneButton && highlight.startSec != null,
+                    onWatchScene = onWatchScene,
                 )
-                if (showWatchSceneButton && highlight.startSec != null) {
-                    WatchSceneButton(onClick = onWatchScene)
-                }
                 NextPreparationBlock(highlight = highlight)
             }
         },
@@ -65,114 +82,183 @@ internal fun HighlightDetailBottomSheet(
 private fun DiagnosisBlock(
     highlight: HighlightUiModel,
     transcriptSlice: String,
+    showWatchSceneButton: Boolean,
+    onWatchScene: () -> Unit,
 ) {
     val colors = HilitTheme.colors
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text = "\"$transcriptSlice\"",
-            style = HilitTheme.typography.body3,
-            color = colors.gray800,
-        )
-        Text(
-            text = "[${highlight.title}]",
-            style = HilitTheme.typography.body5,
-            color = colors.hilitGreen800,
-        )
-        if (highlight.analysis.isNotBlank()) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
-                text = highlight.analysis,
-                style = HilitTheme.typography.body4,
-                color = colors.gray700,
+                text = "분석 내용",
+                style = HilitTheme.typography.sub7,
+                color = colors.hilitWhite,
+            )
+            if (showWatchSceneButton) {
+                WatchSceneButton(onClick = onWatchScene)
+            }
+        }
+        if (transcriptSlice.isNotBlank()) {
+            Text(
+                text = transcriptSlice,
+                style = HilitTheme.typography.body3,
+                color = highlight.tone.toColor(colors),
             )
         }
+        AnalysisMessageCard(highlight = highlight)
     }
 }
 
 @Composable
 private fun WatchSceneButton(onClick: () -> Unit) {
     val colors = HilitTheme.colors
-    Text(
-        text = "이 장면 영상으로 보기",
-        style = HilitTheme.typography.sub7,
-        color = colors.hilitGreen800,
+    Row(
+        modifier =
+            Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .background(colors.gray900)
+                .clickable(onClick = onClick)
+                .padding(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        HilitIcon(
+            asset = HilitIconAsset.Video,
+            contentDescription = null,
+            tint = colors.hilitWhite,
+            modifier = Modifier.size(16.dp),
+        )
+        Text(
+            text = "영상 보러가기",
+            style = HilitTheme.typography.body5,
+            color = colors.hilitWhite,
+        )
+    }
+}
+
+@Composable
+private fun AnalysisMessageCard(highlight: HighlightUiModel) {
+    val colors = HilitTheme.colors
+    Column(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
-                .background(colors.hilitGreen200)
-                .clickable(onClick = onClick)
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-    )
+                .background(colors.hilitBlack800)
+                .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            HilitIcon(
+                asset = HilitIconAsset.AiSparkle,
+                contentDescription = null,
+                tint = highlight.tone.toColor(colors),
+                modifier = Modifier.size(36.dp),
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = "Hilit의 답변 분석",
+                    style = HilitTheme.typography.body9,
+                    color = colors.gray400,
+                )
+                Text(
+                    text = highlight.title,
+                    style = HilitTheme.typography.body1,
+                    color = colors.hilitWhite,
+                )
+            }
+        }
+        if (highlight.analysis.isNotBlank()) {
+            Text(
+                text = highlight.analysis,
+                style = HilitTheme.typography.body7,
+                color = colors.gray200,
+            )
+        }
+    }
 }
 
 @Composable
 private fun NextPreparationBlock(highlight: HighlightUiModel) {
     val colors = HilitTheme.colors
     when (highlight.reason) {
-        HighlightUiReason.PROBE_WORTHY -> {
-            if (highlight.followUpQuestions.isEmpty()) return
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        HighlightUiReason.OFF_INTENT -> {
+            val intent = highlight.questionIntent
+            val intentTitle = highlight.questionIntentTitle
+            val topic = highlight.answerTopicTitle
+            if (intent.isNullOrBlank() && intentTitle.isNullOrBlank() &&
+                topic.isNullOrBlank()
+            ) {
+                return
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text(
-                    text = "다음 대비",
+                    text = "질문의 의도를 다시 확인해 보세요",
                     style = HilitTheme.typography.sub7,
-                    color = colors.gray900,
+                    color = colors.hilitWhite,
                 )
-                highlight.followUpQuestions.forEach { question ->
-                    Text(
-                        text = "• $question",
-                        style = HilitTheme.typography.body4,
-                        color = colors.gray800,
-                    )
+                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        ReasonTag(text = "질문 의도", green = false)
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            intentTitle?.takeIf { it.isNotBlank() }?.let {
+                                Text(
+                                    text = it,
+                                    style = HilitTheme.typography.body3,
+                                    color = colors.gray50,
+                                )
+                            }
+                            intent?.takeIf { it.isNotBlank() }?.let {
+                                Text(
+                                    text = it,
+                                    style = HilitTheme.typography.body7,
+                                    color = colors.gray200,
+                                )
+                            }
+                        }
+                    }
+                    Box(Modifier.fillMaxWidth().height(1.dp).background(colors.gray800))
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        ReasonTag(text = "내 답변", green = true)
+                        Text(
+                            text = topic.orEmpty(),
+                            style = HilitTheme.typography.body3,
+                            color = colors.gray50,
+                        )
+                    }
                 }
+                MiniHintCard(text = "다음에는 질문에서 무엇을 묻고 있는지 짚어보세요!")
             }
         }
 
-        HighlightUiReason.OFF_INTENT -> {
-            val intent = highlight.questionIntent
-            val topic = highlight.answerTopicTitle
-            if (intent.isNullOrBlank() && topic.isNullOrBlank()) return
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        HighlightUiReason.PROBE_WORTHY -> {
+            if (highlight.followUpQuestions.isEmpty()) return
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text(
-                    text = "다음 대비",
+                    text = "이런 꼬리질문이 이어질 수 있어요",
                     style = HilitTheme.typography.sub7,
-                    color = colors.gray900,
+                    color = colors.hilitWhite,
                 )
-                intent?.let {
-                    Text(
-                        text = "질문이 물은 것: $it",
-                        style = HilitTheme.typography.body4,
-                        color = colors.gray800,
-                    )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    highlight.followUpQuestions.forEach { question ->
+                        MiniHintCard(text = question)
+                    }
                 }
-                topic?.let {
-                    Text(
-                        text = "내 답변이 닿은 곳: $it",
-                        style = HilitTheme.typography.body4,
-                        color = colors.gray800,
-                    )
-                }
-                Text(
-                    text = "다음엔 질문이 묻는 것부터 짚고 시작해보세요.",
-                    style = HilitTheme.typography.body7,
-                    color = colors.gray600,
-                )
             }
         }
 
         HighlightUiReason.SHALLOW -> {
-            Text(
-                text = "다음엔 조금 더 자세히 답해보세요.",
-                style = HilitTheme.typography.body7,
-                color = colors.gray700,
-            )
+            MiniHintCard(text = "다음엔 조금 더 자세히 답해보세요.")
         }
 
         HighlightUiReason.SUFFICIENT -> {
-            Text(
-                text = "여기는 면접관이 더 캐물 게 없을 만큼 충분히 답하셨어요.",
-                style = HilitTheme.typography.body7,
-                color = colors.gray700,
-            )
+            MiniHintCard(text = "여기는 면접관이 더 캐물 게 없을 만큼 충분히 답하셨어요.")
         }
 
         HighlightUiReason.UNKNOWN -> {
@@ -180,6 +266,59 @@ private fun NextPreparationBlock(highlight: HighlightUiModel) {
         }
     }
 }
+
+@Composable
+private fun ReasonTag(
+    text: String,
+    green: Boolean,
+) {
+    val colors = HilitTheme.colors
+    Text(
+        text = text,
+        style = HilitTheme.typography.body5,
+        color = if (green) colors.hilitGreen500 else colors.gray200,
+        modifier =
+            Modifier
+                .clip(RoundedCornerShape(6.dp))
+                .background(colors.gray900)
+                .padding(horizontal = 12.dp, vertical = 4.dp),
+    )
+}
+
+@Composable
+private fun MiniHintCard(text: String) {
+    val colors = HilitTheme.colors
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(colors.gray800)
+                .padding(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        HilitIcon(
+            asset = HilitIconAsset.AiSparkle,
+            contentDescription = null,
+            tint = colors.hilitGreen500,
+            modifier = Modifier.size(16.dp),
+        )
+        Text(
+            text = text,
+            style = HilitTheme.typography.body7,
+            color = colors.hilitWhite,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+private fun HighlightUiTone.toColor(colors: HilitColors): Color =
+    when (this) {
+        HighlightUiTone.POSITIVE -> colors.positive500
+        HighlightUiTone.NEGATIVE -> colors.error400
+        HighlightUiTone.NEUTRAL -> colors.gray50
+    }
 
 private fun String.safeSlice(
     start: Int,

@@ -25,12 +25,12 @@ internal fun ResolutionNoticeBanner(
     Text(
         text = text,
         style = HilitTheme.typography.body7,
-        color = colors.gray700,
+        color = colors.gray300,
         modifier =
             modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(8.dp))
-                .background(colors.gray100)
+                .background(colors.gray900)
                 .padding(horizontal = 12.dp, vertical = 10.dp),
     )
 }

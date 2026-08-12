@@ -2,6 +2,8 @@ package com.dminus14.app.data.remote.datasource
 
 import com.dminus14.app.data.remote.api.InterviewApi
 import com.dminus14.app.data.remote.dto.interview.CreateInterviewSessionRequestDto
+import com.dminus14.app.data.remote.dto.interview.FeedbackShareCreateRequestDto
+import com.dminus14.app.data.remote.dto.interview.FeedbackShareCreateResponseDto
 import com.dminus14.app.data.remote.dto.interview.InterviewAbandonRequestDto
 import com.dminus14.app.data.remote.dto.interview.InterviewAbandonResponseDto
 import com.dminus14.app.data.remote.dto.interview.InterviewReportListResponseDto
@@ -169,6 +171,22 @@ class InterviewRemoteDataSourceImpl
                 ?: throw ServerException(
                     errCode = ApiErrorCode.SERVER_ERROR,
                     message = "비디오 만료 시간 응답이 비어 있습니다.",
+                )
+        }
+
+        override suspend fun createFeedbackShare(
+            sessionId: Long,
+            axes: List<String>,
+        ): FeedbackShareCreateResponseDto {
+            val response =
+                interviewApi.createFeedbackShare(
+                    sessionId = sessionId,
+                    request = FeedbackShareCreateRequestDto(axes = axes),
+                )
+            return response.data
+                ?: throw ServerException(
+                    errCode = ApiErrorCode.SERVER_ERROR,
+                    message = "피드백 공유 링크 응답이 비어 있습니다.",
                 )
         }
     }

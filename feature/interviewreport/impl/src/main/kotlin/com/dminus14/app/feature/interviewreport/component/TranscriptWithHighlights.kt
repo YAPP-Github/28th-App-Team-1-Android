@@ -59,7 +59,7 @@ internal fun TranscriptWithHighlights(
 
     ClickableText(
         text = annotated,
-        style = HilitTheme.typography.body4.copy(color = colors.gray900),
+        style = HilitTheme.typography.body3.copy(color = colors.gray50),
         modifier = modifier,
         onClick = { offset ->
             annotated
@@ -72,26 +72,26 @@ internal fun TranscriptWithHighlights(
     )
 }
 
+/**
+ * 다크 리포트 대본 하이라이트 색. 시안은 배경 없이 글자색만 강조한다.
+ * - GOOD(잘함) → positive500 (cyan #00CFEF)
+ * - IMPROVE(개선) → error400 (red #FF8383)
+ * - 그 외(UNKNOWN 등) → 기본 대본색 유지
+ */
 private fun HighlightUiTone.toSpanStyle(
     colors: com.dminus14.designsystem.theme.HilitColors,
 ): SpanStyle {
-    val (background, foreground) =
+    val foreground =
         when (this) {
-            HighlightUiTone.POSITIVE -> colors.positive200 to colors.positive800
-            HighlightUiTone.NEGATIVE -> colors.error200 to colors.error500
-            HighlightUiTone.NEUTRAL -> Color.Transparent to colors.gray900
+            HighlightUiTone.POSITIVE -> colors.positive500
+            HighlightUiTone.NEGATIVE -> colors.error400
+            HighlightUiTone.NEUTRAL -> colors.gray50
         }
     return SpanStyle(
-        background = background,
+        background = Color.Transparent,
         color = foreground,
         fontWeight =
-            if (this ==
-                HighlightUiTone.NEUTRAL
-            ) {
-                FontWeight.Normal
-            } else {
-                FontWeight.SemiBold
-            },
+            if (this == HighlightUiTone.NEUTRAL) FontWeight.Normal else FontWeight.SemiBold,
     )
 }
 
@@ -104,7 +104,7 @@ internal fun PlainTranscript(
     val colors = HilitTheme.colors
     ClickableText(
         text = AnnotatedString(text),
-        style = HilitTheme.typography.body4.copy(color = colors.gray900),
+        style = HilitTheme.typography.body3.copy(color = colors.gray50),
         modifier = modifier,
         onClick = {},
     )

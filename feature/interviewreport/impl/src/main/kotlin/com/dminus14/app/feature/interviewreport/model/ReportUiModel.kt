@@ -12,6 +12,20 @@ data class ReportUiModel(
     val redFlagNotices: List<String>,
     val video: VideoUiModel?,
     val cards: List<CardUiModel>,
+    /** 지인 피드백 섹션. 리포트 응답에 guestFeedback 이 있을 때만 채워지며 null 이면 섹션을 숨긴다. */
+    val guestFeedback: GuestFeedbackUiModel?,
+)
+
+/**
+ * 지인 피드백 요청 카드 (기획서 §지인피드백). 시안의 "참여수/정원" 은 [participantCount] 와
+ * 고정 정원 [capacity] 로 구성한다.
+ */
+@Immutable
+data class GuestFeedbackUiModel(
+    val participantCount: Int,
+    val capacity: Int,
+    val title: String,
+    val subtitle: String,
 )
 
 /** 상단 한 줄 요약 3분기 (기획서 §2-2). */

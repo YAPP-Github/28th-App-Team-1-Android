@@ -18,6 +18,7 @@ import com.dminus14.app.domain.model.SubmitAnswerResult
 import com.dminus14.app.domain.model.SubmitInterviewAnswerCommand
 import com.dminus14.app.domain.model.UploadInterviewVideoCommand
 import com.dminus14.app.domain.repository.InterviewRepository
+import com.dminus14.app.domain.usecase.GetVideoExpiryUseCase
 import com.dminus14.app.domain.usecase.ObserveInterviewReportUseCase
 import com.dminus14.app.feature.interviewreport.InterviewReportState.Phase
 import kotlinx.coroutines.Dispatchers
@@ -162,6 +163,51 @@ class InterviewReportViewModelTest {
             job.cancel()
         }
 
+    @Test
+    fun `SelectCard 인텐트는 selectedCardIndex 를 갱신한다`() =
+        runTest {
+            val viewModel = viewModel(FakeInterviewRepository(listOf(readyReport())))
+            viewModel.bindSessionId(1L)
+            viewModel.onIntent(InterviewReportIntent.Load)
+            advanceUntilIdle()
+
+            viewModel.onIntent(InterviewReportIntent.SelectCard(2))
+
+            assertEquals(2, viewModel.state.value.selectedCardIndex)
+        }
+
+    @Test
+    fun `만료 전이면 videoExpirySeconds 를 잔여 초로 세팅한다`() =
+        runTest {
+            val repository =
+                FakeInterviewRepository(
+                    responses = listOf(readyReport()),
+                    expiry = InterviewVideoExpiry(expiresInSeconds = 3600L, expired = false),
+                )
+            val viewModel = viewModel(repository)
+            viewModel.bindSessionId(1L)
+            viewModel.onIntent(InterviewReportIntent.Load)
+            advanceUntilIdle()
+
+            assertEquals(3600L, viewModel.state.value.videoExpirySeconds)
+        }
+
+    @Test
+    fun `이미 만료면 videoExpirySeconds 는 null 로 둔다`() =
+        runTest {
+            val repository =
+                FakeInterviewRepository(
+                    responses = listOf(readyReport()),
+                    expiry = InterviewVideoExpiry(expiresInSeconds = 0L, expired = true),
+                )
+            val viewModel = viewModel(repository)
+            viewModel.bindSessionId(1L)
+            viewModel.onIntent(InterviewReportIntent.Load)
+            advanceUntilIdle()
+
+            assertNull(viewModel.state.value.videoExpirySeconds)
+        }
+
     private fun readyReport(): InterviewReport =
         InterviewReport(
             status = InterviewReportStatus.READY,
@@ -173,11 +219,15 @@ class InterviewReportViewModelTest {
         )
 
     private fun viewModel(repository: InterviewRepository): InterviewReportViewModel =
-        InterviewReportViewModel(ObserveInterviewReportUseCase(repository))
+        InterviewReportViewModel(
+            ObserveInterviewReportUseCase(repository),
+            GetVideoExpiryUseCase(repository),
+        )
 }
 
 private class FakeInterviewRepository(
     private val responses: List<InterviewReport>,
+    private val expiry: InterviewVideoExpiry? = null,
 ) : InterviewRepository {
     private var index: Int = 0
 
@@ -228,7 +278,8 @@ private class FakeInterviewRepository(
         wrapUpEndSec: Float?,
     ) = error("사용하지 않음")
 
-    override suspend fun getExpiry(sessionId: Long): InterviewVideoExpiry = error("사용하지 않음")
+    override suspend fun getExpiry(sessionId: Long): InterviewVideoExpiry =
+        expiry ?: error("사용하지 않음")
 }
 
 private class ThrowingInterviewRepository : InterviewRepository {

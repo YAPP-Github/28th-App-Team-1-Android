@@ -2,12 +2,15 @@ package com.dminus14.app.feature.interviewreport.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
@@ -15,13 +18,15 @@ import com.dminus14.app.feature.interviewreport.model.CardUiModel
 import com.dminus14.designsystem.theme.HilitTheme
 
 /**
- * 리포트 카드 하나. 상단부터
- * - 카드 라벨 (질문 1-1)
- * - 질문 텍스트 + 질문 분석
+ * 상세 리포트에서 선택된 질문 카드 하나 (Figma Node: 443:6917).
+ *
+ * 다크 시안 기준으로 상단부터
+ * - Q 배지 + 질문 텍스트
+ * - Hilit 질문 분석 카드 ([QuestionAnalysisCard])
  * - 해상도 낮음 안내 (있을 때)
  * - 답변 대본 (하이라이트 강조)
- * - 카드 레벨 레드플래그 안내 (있을 때)
- * 순으로 렌더한다.
+ * - 카드 레드플래그 안내 (있을 때)
+ * 순으로 렌더한다. 별도 카드 배경 없이 화면 다크 배경 위에 그린다.
  */
 @Composable
 internal fun ReportCard(
@@ -30,31 +35,15 @@ internal fun ReportCard(
     onHighlightClick: (cardIndex: Int, spanIndex: Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = HilitTheme.colors
     Column(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(colors.hilitWhite)
-                .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
-        Text(
-            text = card.label,
-            style = HilitTheme.typography.body8,
-            color = colors.hilitGreen800,
-        )
-        Text(
-            text = card.questionText,
-            style = HilitTheme.typography.sub7,
-            color = colors.gray900,
-        )
-        card.questionIntent?.takeIf { it.isNotBlank() }?.let { intent ->
-            Text(
-                text = intent,
-                style = HilitTheme.typography.body7,
-                color = colors.gray700,
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            QuestionRow(questionText = card.questionText)
+            QuestionAnalysisCard(
+                title = card.questionIntentTitle,
+                intent = card.questionIntent,
             )
         }
         card.resolutionNotice?.let { notice ->
@@ -71,5 +60,36 @@ internal fun ReportCard(
         if (card.cardRedFlagNotices.isNotEmpty()) {
             RedFlagNoticeStrip(notices = card.cardRedFlagNotices)
         }
+    }
+}
+
+@Composable
+private fun QuestionRow(questionText: String) {
+    val colors = HilitTheme.colors
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Box(
+            modifier =
+                Modifier
+                    .size(20.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(colors.gray900),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = "Q",
+                style = HilitTheme.typography.body5,
+                color = colors.gray200,
+            )
+        }
+        Text(
+            text = questionText,
+            style = HilitTheme.typography.body3,
+            color = colors.hilitWhite,
+            modifier = Modifier.weight(1f),
+        )
     }
 }

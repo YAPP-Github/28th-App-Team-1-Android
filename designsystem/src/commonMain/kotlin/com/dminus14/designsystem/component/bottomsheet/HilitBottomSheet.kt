@@ -40,6 +40,7 @@ import com.dminus14.designsystem.theme.HilitTheme
  * @param content 핸들 아래 콘텐츠 슬롯
  * @param modifier 시트 컨테이너 Modifier
  * @param sheetState Bottom Sheet 상태
+ * @param containerColor 시트 배경색. 기본은 밝은 시트(hilitWhite)이며 다크 시트가 필요하면 지정한다
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,13 +49,14 @@ fun HilitBottomSheet(
     content: @Composable ColumnScope.() -> Unit,
     modifier: Modifier = Modifier,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    containerColor: Color = HilitTheme.colors.hilitWhite,
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         modifier = modifier,
         sheetState = sheetState,
         shape = RectangleShape,
-        containerColor = HilitTheme.colors.hilitWhite,
+        containerColor = containerColor,
         contentColor = HilitTheme.colors.hilitWhite,
         scrimColor = HilitBottomSheetScrimColor,
         dragHandle = { HilitBottomSheetDragHandle() },

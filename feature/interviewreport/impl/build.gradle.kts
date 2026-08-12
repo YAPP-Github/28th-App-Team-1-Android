@@ -13,5 +13,7 @@ dependencies {
     implementation(project(":designsystem"))
     implementation(project(":domain"))
 
+    implementation(libs.androidx.media3.exoplayer)
+
     testImplementation(libs.kotlinx.coroutines.test)
 }

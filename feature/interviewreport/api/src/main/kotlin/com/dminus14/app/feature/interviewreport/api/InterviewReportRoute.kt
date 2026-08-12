@@ -17,3 +17,9 @@ data class InterviewReportPlayer(
     val sessionId: Long,
     val startSec: Float? = null,
 ) : NavKey
+
+/** Navigation 3 지인 피드백 항목선택(공유 링크 생성) 목적지 key. */
+@Serializable
+data class GuestFeedbackRequest(
+    val sessionId: Long,
+) : NavKey

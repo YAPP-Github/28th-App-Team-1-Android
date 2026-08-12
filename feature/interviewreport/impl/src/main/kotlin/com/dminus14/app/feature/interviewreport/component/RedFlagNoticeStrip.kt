@@ -30,7 +30,7 @@ internal fun RedFlagNoticeStrip(
             modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
-                .background(colors.error200)
+                .background(colors.gray900)
                 .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
@@ -38,7 +38,7 @@ internal fun RedFlagNoticeStrip(
             Text(
                 text = line,
                 style = HilitTheme.typography.body7,
-                color = colors.error500,
+                color = colors.error400,
             )
         }
     }
