@@ -1,7 +1,11 @@
 package com.dminus14.app.feature.interviewreport.player
 
 import androidx.lifecycle.viewModelScope
+import com.dminus14.app.core.common.event.GlobalAppEvent
+import com.dminus14.app.core.common.event.GlobalErrorHandler
 import com.dminus14.app.core.common.mvi.MviViewModel
+import com.dminus14.app.domain.exception.NetworkUnavailableException
+import com.dminus14.app.domain.exception.ServerException
 import com.dminus14.app.domain.model.InterviewReport
 import com.dminus14.app.domain.model.ScriptRole
 import com.dminus14.app.domain.usecase.GetInterviewReportUseCase
@@ -66,9 +70,27 @@ class InterviewReportPlayerViewModel
                                     ),
                             )
                         }
-                    }.onFailure {
-                        reduce { copy(phase = InterviewReportPlayerState.Phase.Failed) }
+                    }.onFailure { error ->
+                        handleCommonError(error)
                     }
+            }
+        }
+
+        // 아래 에러 처리 사항은 임시입니다. 공통 처리 기획자 문의 모든 ViewModel 일괄 수정 예정
+        private suspend fun handleCommonError(error: Throwable) {
+            reduce { copy(phase = InterviewReportPlayerState.Phase.Failed) }
+            when {
+                error is NetworkUnavailableException -> {
+                    GlobalErrorHandler.emit(GlobalAppEvent.ShowNetworkErrorAndExit)
+                }
+
+                error is ServerException -> {
+                    GlobalErrorHandler.emit(GlobalAppEvent.ShowServerErrorAndExit)
+                }
+
+                else -> {
+                    GlobalErrorHandler.emit(GlobalAppEvent.ShowUnknownError)
+                }
             }
         }
 

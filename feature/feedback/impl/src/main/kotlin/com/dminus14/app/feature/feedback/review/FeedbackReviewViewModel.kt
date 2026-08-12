@@ -244,19 +244,29 @@ class FeedbackReviewViewModel
                         )
                     }
 
-                    is NetworkUnavailableException -> {
-                        session.clear()
-                        GlobalErrorHandler.emit(GlobalAppEvent.ShowNetworkErrorAndExit)
-                    }
-
-                    is ServerException -> {
-                        session.clear()
-                        GlobalErrorHandler.emit(GlobalAppEvent.ShowServerErrorAndExit)
-                    }
-
                     else -> {
-                        GlobalErrorHandler.emit(GlobalAppEvent.ShowUnknownError)
+                        if (error is NetworkUnavailableException || error is ServerException) {
+                            session.clear()
+                        }
+                        handleCommonError(error)
                     }
+                }
+            }
+        }
+
+        // 아래 에러 처리 사항은 임시입니다. 공통 처리 기획자 문의 모든 ViewModel 일괄 수정 예정
+        private suspend fun handleCommonError(error: Throwable) {
+            when {
+                error is NetworkUnavailableException -> {
+                    GlobalErrorHandler.emit(GlobalAppEvent.ShowNetworkErrorAndExit)
+                }
+
+                error is ServerException -> {
+                    GlobalErrorHandler.emit(GlobalAppEvent.ShowServerErrorAndExit)
+                }
+
+                else -> {
+                    GlobalErrorHandler.emit(GlobalAppEvent.ShowUnknownError)
                 }
             }
         }
