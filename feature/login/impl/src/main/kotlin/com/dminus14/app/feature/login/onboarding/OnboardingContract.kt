@@ -55,9 +55,12 @@ sealed interface OnboardingEffect : MviEffect {
     data object Completed : OnboardingEffect
 }
 
+/**
+ * 인덱스를 그대로 서버 `careerYears`(정수 0~10)로 전송하므로 11개(0~10년)여야 한다.
+ * 항목을 더하거나 빼면 인덱스-연차 매핑이 함께 밀린다.
+ */
 internal val DefaultExperienceOptions =
     listOf(
-        "경력 없음",
         "신입",
         "1년 이상",
         "2년 이상",
