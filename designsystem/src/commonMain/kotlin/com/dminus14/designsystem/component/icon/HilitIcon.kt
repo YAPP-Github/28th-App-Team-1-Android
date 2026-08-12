@@ -10,6 +10,8 @@ import androidx.compose.ui.unit.dp
 import com.dminus14.app.core.resources.Res
 import com.dminus14.app.core.resources.ai_sparkle
 import com.dminus14.app.core.resources.alert_red
+import com.dminus14.app.core.resources.analyze_problem
+import com.dminus14.app.core.resources.analyze_success
 import com.dminus14.app.core.resources.apple_logo
 import com.dminus14.app.core.resources.body
 import com.dminus14.app.core.resources.book
@@ -79,6 +81,18 @@ enum class HilitIconAsset(
     Expand("expand", 24.dp, Res.drawable.expand),
     File("file", 24.dp, Res.drawable.file),
     AiSparkle("ai_sparkle", 24.dp, Res.drawable.ai_sparkle),
+    AnalyzeProblem(
+        "analyze_problem",
+        36.dp,
+        Res.drawable.analyze_problem,
+        preservesOriginalColors = true,
+    ),
+    AnalyzeSuccess(
+        "analyze_success",
+        36.dp,
+        Res.drawable.analyze_success,
+        preservesOriginalColors = true,
+    ),
     Script("script", 24.dp, Res.drawable.script),
     AppleLogo("apple_logo", 24.dp, Res.drawable.apple_logo, preservesOriginalColors = true),
     KakaoLogo("kakao_logo", 24.dp, Res.drawable.kakao_logo, preservesOriginalColors = true),

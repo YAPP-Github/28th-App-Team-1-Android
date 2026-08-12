@@ -152,7 +152,7 @@ private fun AnalysisMessageCard(highlight: HighlightUiModel) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             HilitIcon(
-                asset = HilitIconAsset.AiSparkle,
+                asset = highlight.tone.toAnalyzeIconAsset(),
                 contentDescription = null,
                 tint = highlight.tone.toColor(colors),
                 modifier = Modifier.size(36.dp),
@@ -312,6 +312,17 @@ private fun HighlightUiTone.toColor(colors: HilitColors): Color =
         HighlightUiTone.POSITIVE -> colors.positive500
         HighlightUiTone.NEGATIVE -> colors.error400
         HighlightUiTone.NEUTRAL -> colors.gray50
+    }
+
+/**
+ * "Hilit의 답변 분석" 카드 아이콘 (Figma: hilit analyze/36px/success, hilit analyze/36px/problem).
+ * 톤이 없는 NEUTRAL(서버 UNKNOWN fallback)은 시안에 정의된 배지가 없어 기존 AiSparkle로 대체한다.
+ */
+private fun HighlightUiTone.toAnalyzeIconAsset(): HilitIconAsset =
+    when (this) {
+        HighlightUiTone.POSITIVE -> HilitIconAsset.AnalyzeSuccess
+        HighlightUiTone.NEGATIVE -> HilitIconAsset.AnalyzeProblem
+        HighlightUiTone.NEUTRAL -> HilitIconAsset.AiSparkle
     }
 
 private fun String.safeSlice(
