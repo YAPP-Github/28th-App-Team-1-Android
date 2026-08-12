@@ -15,7 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -85,7 +85,7 @@ internal fun VideoCountdownCard(
                     note = video.expiredNotice ?: "영상이 만료되어 다시 볼 수 없어요.",
                 )
             } else if (expirySeconds != null) {
-                var remaining by remember(expirySeconds) { mutableStateOf(expirySeconds) }
+                var remaining by remember(expirySeconds) { mutableLongStateOf(expirySeconds) }
                 LaunchedEffect(expirySeconds) {
                     remaining = expirySeconds
                     while (remaining > 0L) {

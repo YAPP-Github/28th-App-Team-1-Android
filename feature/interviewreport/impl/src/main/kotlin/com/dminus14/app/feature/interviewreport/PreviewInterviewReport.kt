@@ -51,6 +51,28 @@ internal object PreviewInterviewReport {
             questionIntent = "트래픽이 증가했을 때 병목 지점과 한계를 어떻게 판단할지 묻는 질문입니다.",
         )
 
+    /** 컴포넌트 Preview 재사용용 합성 샘플. */
+    val sampleCard: CardUiModel get() = card("질문 1-1")
+    val sampleRedFlagCard: CardUiModel get() = card("질문 1-2", redFlag = true)
+    val sampleGoodHighlight: HighlightUiModel get() = goodHighlight
+    val sampleOffIntentHighlight: HighlightUiModel get() = offIntentHighlight
+    val sampleTranscript: String get() = ANSWER_TRANSCRIPT
+    val sampleGuestFeedback: GuestFeedbackUiModel
+        get() =
+            GuestFeedbackUiModel(
+                participantCount = 0,
+                capacity = 4,
+                title = "지인에게 면접 영상 보내기",
+                subtitle = "4명에게 영상을 공유하고 태도 분석을 받아보세요!",
+            )
+    val sampleVideo: VideoUiModel
+        get() =
+            VideoUiModel(
+                url = "https://example.com/v.mp4",
+                expired = false,
+                expiredNotice = null,
+            )
+
     private fun card(
         label: String,
         redFlag: Boolean = false,

@@ -78,7 +78,10 @@ class InterviewReportViewModelTest {
             advanceUntilIdle()
 
             val phase = viewModel.state.value.phase
-            assertTrue("expected InsufficientAnalysis but was $phase", phase is Phase.InsufficientAnalysis)
+            assertTrue(
+                "expected InsufficientAnalysis but was $phase",
+                phase is Phase.InsufficientAnalysis,
+            )
         }
 
     @Test

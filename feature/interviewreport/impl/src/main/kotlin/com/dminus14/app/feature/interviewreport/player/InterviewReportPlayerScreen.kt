@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -307,6 +308,31 @@ private fun TranscriptOverlay(
                     .align(Alignment.BottomEnd)
                     .padding(20.dp)
                     .clickable(onClick = onClose),
+        )
+    }
+}
+
+// Ready 프레임은 ExoPlayer 를 생성하므로 Preview 불가 → 로딩/실패 상태만 미리본다.
+@Preview(name = "플레이어 - 로딩")
+@Composable
+private fun InterviewReportPlayerLoadingPreview() {
+    HilitTheme {
+        InterviewReportPlayerContent(
+            state = InterviewReportPlayerState(phase = InterviewReportPlayerState.Phase.Loading),
+            startSec = null,
+            onIntent = {},
+        )
+    }
+}
+
+@Preview(name = "플레이어 - 실패")
+@Composable
+private fun InterviewReportPlayerFailedPreview() {
+    HilitTheme {
+        InterviewReportPlayerContent(
+            state = InterviewReportPlayerState(phase = InterviewReportPlayerState.Phase.Failed),
+            startSec = null,
+            onIntent = {},
         )
     }
 }
