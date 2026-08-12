@@ -28,4 +28,17 @@ data class PlayerScriptLineUiModel(
     val text: String,
     val startMs: Long,
     val endMs: Long,
+    /** 이 라인이 하이라이트 구간과 겹치면 채워진다. 탭하면 상세 시트를 띄운다. */
+    val highlightRef: PlayerHighlightRefUiModel? = null,
+)
+
+/**
+ * 대본 오버레이에서 하이라이트 라인을 탭했을 때 [HighlightDetailBottomSheet] 를 그대로
+ * 재사용하기 위해 필요한 최소 정보를 묶는다.
+ */
+@Immutable
+data class PlayerHighlightRefUiModel(
+    val highlight: HighlightUiModel,
+    val cardTranscript: String,
+    val cardRedFlagNotices: List<String>,
 )

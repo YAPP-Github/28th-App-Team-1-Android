@@ -5,7 +5,10 @@ import com.dminus14.app.core.common.mvi.MviViewModel
 import com.dminus14.app.domain.model.InterviewReport
 import com.dminus14.app.domain.model.ScriptRole
 import com.dminus14.app.domain.usecase.GetInterviewReportUseCase
+import com.dminus14.app.feature.interviewreport.mapper.InterviewReportUiMapper
+import com.dminus14.app.feature.interviewreport.model.CardUiModel
 import com.dminus14.app.feature.interviewreport.model.PlayerContentUiModel
+import com.dminus14.app.feature.interviewreport.model.PlayerHighlightRefUiModel
 import com.dminus14.app.feature.interviewreport.model.PlayerScriptLineUiModel
 import com.dminus14.app.feature.interviewreport.model.PlayerSegmentUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -70,27 +73,51 @@ class InterviewReportPlayerViewModel
         }
 
         private fun InterviewReport.toPlayerContent(): PlayerContentUiModel {
+            val sortedCards =
+                cards.orEmpty().sortedWith(compareBy({ it.axisOrder }, { it.depthLevel }))
             val segments =
-                cards
-                    .orEmpty()
-                    .sortedWith(compareBy({ it.axisOrder }, { it.depthLevel }))
-                    .mapNotNull { card ->
-                        val starts = card.scriptSegments.orEmpty().mapNotNull { it.startSec }
-                        val ends = card.scriptSegments.orEmpty().mapNotNull { it.endSec }
-                        if (starts.isEmpty() || ends.isEmpty()) return@mapNotNull null
-                        PlayerSegmentUiModel(
-                            label = "질문 ${card.axisOrder}-${card.depthLevel}",
-                            startMs = starts.min().toMillis(),
-                            endMs = ends.max().toMillis(),
-                        )
+                sortedCards.mapNotNull { card ->
+                    val starts = card.scriptSegments.orEmpty().mapNotNull { it.startSec }
+                    val ends = card.scriptSegments.orEmpty().mapNotNull { it.endSec }
+                    if (starts.isEmpty() || ends.isEmpty()) return@mapNotNull null
+                    PlayerSegmentUiModel(
+                        label = "질문 ${card.axisOrder}-${card.depthLevel}",
+                        startMs = starts.min().toMillis(),
+                        endMs = ends.max().toMillis(),
+                    )
+                }
+
+            // 카드별 하이라이트를 시작 시각(ms) 기준으로 펼쳐서, 그 시각을 포함하는 script 라인에
+            // 매칭한다. InterviewReportUiMapper 를 재사용해 톤·분석 등 UI 표시용 값을 그대로 쓴다
+            // (카드 정렬 기준이 같아 sortedCards 와 인덱스가 대응된다).
+            val uiCards: List<CardUiModel> = InterviewReportUiMapper.map(this).cards
+            val highlightMarkers: List<Pair<Long, PlayerHighlightRefUiModel>> =
+                uiCards.flatMap { card ->
+                    card.highlights.mapNotNull { highlight ->
+                        highlight.startSec?.let { startSec ->
+                            startSec.toMillis() to
+                                PlayerHighlightRefUiModel(
+                                    highlight = highlight,
+                                    cardTranscript = card.transcript,
+                                    cardRedFlagNotices = card.cardRedFlagNotices,
+                                )
+                        }
                     }
+                }
+
             val scriptLines =
                 script.orEmpty().map { line ->
+                    val startMs = line.startSec.toMillis()
+                    val endMs = line.endSec.toMillis()
                     PlayerScriptLineUiModel(
                         isInterviewer = line.role == ScriptRole.INTERVIEWER,
                         text = line.text,
-                        startMs = line.startSec.toMillis(),
-                        endMs = line.endSec.toMillis(),
+                        startMs = startMs,
+                        endMs = endMs,
+                        highlightRef =
+                            highlightMarkers
+                                .firstOrNull { (markerMs, _) -> markerMs in startMs until endMs }
+                                ?.second,
                     )
                 }
             return PlayerContentUiModel(

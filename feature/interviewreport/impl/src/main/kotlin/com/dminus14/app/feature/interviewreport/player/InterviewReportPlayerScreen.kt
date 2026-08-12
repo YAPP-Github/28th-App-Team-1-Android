@@ -7,10 +7,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -21,10 +23,12 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,22 +38,38 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
+import com.dminus14.app.feature.interviewreport.component.HighlightDetailBottomSheet
+import com.dminus14.app.feature.interviewreport.model.HighlightUiTone
 import com.dminus14.app.feature.interviewreport.model.PlayerContentUiModel
+import com.dminus14.app.feature.interviewreport.model.PlayerHighlightRefUiModel
 import com.dminus14.app.feature.interviewreport.model.PlayerScriptLineUiModel
 import com.dminus14.app.feature.interviewreport.model.PlayerSegmentUiModel
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
 import com.dminus14.designsystem.component.loading.HilitLoadingIndicator
+import com.dminus14.designsystem.theme.HilitColors
 import com.dminus14.designsystem.theme.HilitTheme
 import kotlinx.coroutines.delay
 
 private const val POSITION_POLL_INTERVAL_MS = 250L
 
+/** 대본 오버레이의 최대 높이 (Figma 443:7941 기준, 화면을 다 덮지 않도록 상한을 둔다). */
+private val TRANSCRIPT_OVERLAY_MAX_HEIGHT = 420.dp
+
+/** 대본 오버레이 하단과 SegmentedProgressBar 사이 간격 (Figma 443:7941). */
+private val TRANSCRIPT_OVERLAY_PROGRESS_BAR_GAP = 44.dp
+
 /**
- * 영상 플레이어 화면 (Figma Node: 443:7804 / 443:7902).
+ * 영상 플레이어 화면 (Figma Node: 443:7804 / 443:7877 / 443:7902 / 443:7972).
  *
  * ExoPlayer 로 합성 영상을 재생하고, 카드(질문)별 구간으로 나눈 세그먼트 진행바와 대본 오버레이를
  * 제공한다. 대본 오버레이는 최상위 script 타임라인으로 현재 발화 라인을 강조한다.
+ *
+ * - 중앙 재생/일시정지 + 이전/다음 섹션(세그먼트) 이동 컨트롤 (443:7877).
+ * - 대본 오버레이는 화면 전체가 아니라 하단 일부만 덮고, 진행바/토글 버튼은 오버레이 위에 그려져
+ *   계속 탭할 수 있다 (443:7902).
+ * - 대본에서 하이라이트(관련 답변) 구간을 탭하면 [HighlightDetailBottomSheet] 를 그대로 재사용해
+ *   띄우고 영상은 정지한다. 시트를 닫으면 다시 재생한다 (443:7972).
  */
 @Composable
 fun InterviewReportPlayerScreen(
@@ -147,11 +167,17 @@ private fun PlayerReady(
         player.playWhenReady = true
     }
     var positionMs by remember { mutableLongStateOf(0L) }
+    var isPlaying by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) {
         while (true) {
             positionMs = player.currentPosition
+            isPlaying = player.isPlaying
             delay(POSITION_POLL_INTERVAL_MS)
         }
+    }
+
+    var selectedHighlightRef by remember {
+        mutableStateOf<PlayerHighlightRefUiModel?>(null)
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -181,33 +207,140 @@ private fun PlayerReady(
                     .clickable { onIntent(InterviewReportPlayerIntent.ClickClose) },
         )
 
-        Column(
-            modifier =
-                Modifier
-                    .align(Alignment.BottomStart)
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            if (content.segments.isNotEmpty()) {
-                SegmentedProgressBar(
-                    segments = content.segments,
-                    positionMs = positionMs,
-                    onSeek = { player.seekTo(it) },
-                )
-            }
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TranscriptToggleButton(
-                    onClick = { onIntent(InterviewReportPlayerIntent.ToggleTranscript) },
-                )
-            }
+        if (!transcriptVisible) {
+            PlayerControls(
+                isPlaying = isPlaying,
+                onTogglePlay = {
+                    if (player.isPlaying) player.pause() else player.play()
+                },
+                onSkipPrevious = {
+                    val index = currentSegmentIndex(content.segments, positionMs)
+                    val target =
+                        content.segments.getOrNull(index - 1) ?: content.segments.getOrNull(index)
+                    target?.let { player.seekTo(it.startMs) }
+                },
+                onSkipNext = {
+                    val index = currentSegmentIndex(content.segments, positionMs)
+                    content.segments.getOrNull(index + 1)?.let { player.seekTo(it.startMs) }
+                },
+                modifier = Modifier.align(Alignment.Center),
+            )
         }
 
-        if (transcriptVisible) {
-            TranscriptOverlay(
-                scriptLines = content.scriptLines,
-                positionMs = positionMs,
-                onClose = { onIntent(InterviewReportPlayerIntent.ToggleTranscript) },
+        // 대본 오버레이는 SegmentedProgressBar 를 덮지 않도록, 두 영역을 겹치지 않는 하나의
+        // 세로 스택으로 배치한다(둘 다 Alignment.BottomStart 로 서로 겹쳐 그리던 방식 대신).
+        // 위쪽 Spacer(weight=1f) 가 남는 공간을 전부 먹어서 이 Column 자체는 화면 아래에 붙는다.
+        Column(modifier = Modifier.fillMaxSize()) {
+            Spacer(modifier = Modifier.weight(1f))
+            if (transcriptVisible) {
+                TranscriptOverlay(
+                    scriptLines = content.scriptLines,
+                    positionMs = positionMs,
+                    onHighlightClick = { ref ->
+                        selectedHighlightRef = ref
+                        player.pause()
+                    },
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = TRANSCRIPT_OVERLAY_MAX_HEIGHT),
+                )
+                Spacer(modifier = Modifier.height(TRANSCRIPT_OVERLAY_PROGRESS_BAR_GAP))
+            }
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                if (content.segments.isNotEmpty()) {
+                    SegmentedProgressBar(
+                        segments = content.segments,
+                        positionMs = positionMs,
+                        onSeek = { player.seekTo(it) },
+                    )
+                }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TranscriptToggleButton(
+                        visible = transcriptVisible,
+                        onClick = { onIntent(InterviewReportPlayerIntent.ToggleTranscript) },
+                    )
+                }
+            }
+        }
+    }
+
+    selectedHighlightRef?.let { ref ->
+        HighlightDetailBottomSheet(
+            highlight = ref.highlight,
+            transcript = ref.cardTranscript,
+            cardRedFlagNotices = ref.cardRedFlagNotices,
+            showWatchSceneButton = false,
+            onDismiss = {
+                selectedHighlightRef = null
+                player.play()
+            },
+            onWatchScene = {},
+        )
+    }
+}
+
+/** [positionMs] 가 속한 세그먼트 index. 아직 첫 세그먼트 이전이면 0. */
+private fun currentSegmentIndex(
+    segments: List<PlayerSegmentUiModel>,
+    positionMs: Long,
+): Int = segments.indexOfLast { positionMs >= it.startMs }.coerceAtLeast(0)
+
+@Composable
+private fun PlayerControls(
+    isPlaying: Boolean,
+    onTogglePlay: () -> Unit,
+    onSkipPrevious: () -> Unit,
+    onSkipNext: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = HilitTheme.colors
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(46.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier.size(44.dp).clickable(onClick = onSkipPrevious),
+            contentAlignment = Alignment.Center,
+        ) {
+            HilitIcon(
+                asset = HilitIconAsset.SkipLeft,
+                contentDescription = "이전 섹션",
+                tint = colors.hilitWhite,
+                modifier = Modifier.size(34.dp),
+            )
+        }
+        Box(
+            modifier =
+                Modifier
+                    .background(colors.hilitGreen500)
+                    .clickable(onClick = onTogglePlay)
+                    .padding(20.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            HilitIcon(
+                asset = if (isPlaying) HilitIconAsset.Pause else HilitIconAsset.Play,
+                contentDescription = if (isPlaying) "일시정지" else "재생",
+                tint = colors.hilitGreen800,
+                modifier = Modifier.size(34.dp),
+            )
+        }
+        Box(
+            modifier = Modifier.size(44.dp).clickable(onClick = onSkipNext),
+            contentAlignment = Alignment.Center,
+        ) {
+            HilitIcon(
+                asset = HilitIconAsset.SkipRight,
+                contentDescription = "다음 섹션",
+                tint = colors.hilitWhite,
+                modifier = Modifier.size(34.dp),
             )
         }
     }
@@ -249,19 +382,22 @@ private fun SegmentedProgressBar(
 }
 
 @Composable
-private fun TranscriptToggleButton(onClick: () -> Unit) {
+private fun TranscriptToggleButton(
+    visible: Boolean,
+    onClick: () -> Unit,
+) {
     val colors = HilitTheme.colors
     Box(
         modifier =
             Modifier
                 .size(44.dp)
-                .background(colors.hilitBlack800)
+                .background(colors.gray800)
                 .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         HilitIcon(
-            asset = HilitIconAsset.Script,
-            contentDescription = "대본 보기",
+            asset = if (visible) HilitIconAsset.Cancel else HilitIconAsset.Script,
+            contentDescription = if (visible) "대본 닫기" else "대본 보기",
             tint = colors.hilitWhite,
             modifier = Modifier.size(20.dp),
         )
@@ -272,40 +408,63 @@ private fun TranscriptToggleButton(onClick: () -> Unit) {
 private fun TranscriptOverlay(
     scriptLines: List<PlayerScriptLineUiModel>,
     positionMs: Long,
-    onClose: () -> Unit,
+    onHighlightClick: (PlayerHighlightRefUiModel) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val colors = HilitTheme.colors
     Box(
-        modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.65f)),
+        modifier =
+            modifier.background(
+                Brush.verticalGradient(
+                    colors = listOf(Color.Transparent, colors.hilitBlack900),
+                ),
+            ),
     ) {
         Column(
             modifier =
                 Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp, vertical = 80.dp),
+                    .padding(horizontal = 20.dp)
+                    .padding(top = 40.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             scriptLines.forEach { line ->
                 val current = positionMs in line.startMs until line.endMs
+                val highlightRef = line.highlightRef
                 Text(
                     text = line.text,
                     style = HilitTheme.typography.body3,
-                    color = if (current) colors.hilitWhite else colors.gray500,
+                    color = line.toColor(colors, current),
+                    modifier =
+                        if (highlightRef != null) {
+                            Modifier.clickable { onHighlightClick(highlightRef) }
+                        } else {
+                            Modifier
+                        },
                 )
             }
         }
-        HilitIcon(
-            asset = HilitIconAsset.Cancel,
-            contentDescription = "대본 닫기",
-            tint = colors.hilitWhite,
-            modifier =
-                Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(20.dp)
-                    .clickable(onClick = onClose),
-        )
     }
+}
+
+/**
+ * 하이라이트 구간이면 톤 색(잘함=positive500, 개선=error400)을 항상 유지해 눈에 띄게 하고,
+ * 그 외에는 기존처럼 현재 발화 중인 라인만 흰색, 나머지는 회색으로 낮춘다.
+ */
+private fun PlayerScriptLineUiModel.toColor(
+    colors: HilitColors,
+    current: Boolean,
+): Color {
+    val ref = highlightRef
+    if (ref != null) {
+        return when (ref.highlight.tone) {
+            HighlightUiTone.POSITIVE -> colors.positive500
+            HighlightUiTone.NEGATIVE -> colors.error400
+            HighlightUiTone.NEUTRAL -> if (current) colors.hilitWhite else colors.gray500
+        }
+    }
+    return if (current) colors.hilitWhite else colors.gray500
 }
 
 // Ready 프레임은 ExoPlayer 를 생성하므로 Preview 불가 → 로딩/실패 상태만 미리본다.
