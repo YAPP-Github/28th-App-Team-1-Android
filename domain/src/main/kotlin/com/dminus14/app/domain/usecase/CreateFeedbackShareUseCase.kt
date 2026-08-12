@@ -1,5 +1,6 @@
 package com.dminus14.app.domain.usecase
 
+import com.dminus14.app.domain.exception.FeedbackShareAlreadyExistsException
 import com.dminus14.app.domain.model.GuestFeedbackAxisCode
 import com.dminus14.app.domain.repository.FeedbackShareLocalRepository
 import com.dminus14.app.domain.repository.FeedbackShareRepository
@@ -23,8 +24,26 @@ class CreateFeedbackShareUseCase
             axes: List<GuestFeedbackAxisCode>,
         ): Result<String> =
             runCatchingCancellable {
-                val token = feedbackShareRepository.createShare(sessionId, axes)
-                feedbackShareLocalRepository.saveToken(sessionId, token)
-                token
+                try {
+                    val token = feedbackShareRepository.createShare(sessionId, axes)
+                    feedbackShareLocalRepository.saveToken(sessionId, token)
+                    token
+                } catch (e: FeedbackShareAlreadyExistsException) {
+                    // 서버에는 이미 활성 공유가 있지만, 생성 API 는 충돌 시 기존 token 을 돌려주지
+                    // 않는다(create_1 요청/응답 계약에 없음). 실제 token 을 모르는 채로 그냥 실패만
+                    // 반환하면, 화면을 나갔다 재진입할 때 로컬에 저장된 token 이 없어 다시 "링크
+                    // 생성"을 시도하고 또 같은 충돌을 반복하는 무한 루프가 된다. token 값 자체는
+                    // 재진입 시 존재 여부([FeedbackShareLocalRepository.getToken] != null) 판단에만
+                    // 쓰이고 딥링크 재구성에는 쓰이지 않으므로, sentinel 을 저장해 서버 상태와 로컬
+                    // hasActiveShare 판단을 맞춘다. 종료(closeShare)는 sessionId 만으로 동작해 이
+                    // sentinel 로도 정상적으로 공유를 끝낼 수 있다.
+                    feedbackShareLocalRepository.saveToken(sessionId, UNKNOWN_ACTIVE_TOKEN)
+                    throw e
+                }
             }
+
+        private companion object {
+            /** 활성 공유는 확인됐지만 실제 token 을 모를 때 저장하는 placeholder. */
+            const val UNKNOWN_ACTIVE_TOKEN = "unknown-active-share"
+        }
     }
