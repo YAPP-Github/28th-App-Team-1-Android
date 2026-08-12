@@ -31,6 +31,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -476,8 +480,22 @@ private fun TranscriptOverlay(
             scriptLines.forEach { line ->
                 val current = positionMs in line.startMs until line.endMs
                 val highlightRef = line.highlightRef
+                // 하이라이트 구간은 Figma 443:7907처럼 줄바꿈된 실제 라인 폭에 딱 맞는 gray900
+                // 배경 박스가 깔린다. Modifier.background 는 텍스트 블록 전체를 감싼 사각형 하나만
+                // 그리므로, AnnotatedString + SpanStyle(background=...) 로 텍스트에 직접 입혀서
+                // 줄바꿈 라인마다 자동으로 박스가 붙도록 한다.
+                val text =
+                    if (highlightRef != null) {
+                        buildAnnotatedString {
+                            withStyle(SpanStyle(background = colors.gray900)) {
+                                append(line.text)
+                            }
+                        }
+                    } else {
+                        AnnotatedString(line.text)
+                    }
                 Text(
-                    text = line.text,
+                    text = text,
                     style = HilitTheme.typography.body3,
                     color = line.toColor(colors, current),
                     modifier =
