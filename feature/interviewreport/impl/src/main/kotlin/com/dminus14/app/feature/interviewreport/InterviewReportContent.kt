@@ -37,6 +37,7 @@ import com.dminus14.designsystem.theme.HilitTheme
  * 리포트 화면 순수 UI. State 만 받아 렌더하고 콜백으로 이벤트를 전달한다. (Figma Node: 443:6889)
  */
 @Composable
+@Suppress("LongMethod")
 internal fun InterviewReportContent(
     state: InterviewReportState,
     onIntent: (InterviewReportIntent) -> Unit,

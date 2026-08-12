@@ -327,8 +327,7 @@ private class FakeInterviewRepository(
 }
 
 private class ThrowingInterviewRepository : InterviewRepository {
-    override suspend fun getReport(sessionId: Long): InterviewReport =
-        throw IllegalStateException("네트워크 오류")
+    override suspend fun getReport(sessionId: Long): InterviewReport = error("네트워크 오류")
 
     override suspend fun validateJdUrl(jdUrl: String): JdValidationResult = error("사용하지 않음")
 

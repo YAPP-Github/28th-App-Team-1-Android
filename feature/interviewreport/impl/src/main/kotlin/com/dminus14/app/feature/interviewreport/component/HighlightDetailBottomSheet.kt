@@ -45,6 +45,7 @@ import com.dminus14.designsystem.theme.HilitTheme
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@Suppress("LongParameterList")
 internal fun HighlightDetailBottomSheet(
     highlight: HighlightUiModel,
     transcript: String,
@@ -187,6 +188,7 @@ private fun AnalysisMessageCard(highlight: HighlightUiModel) {
 }
 
 @Composable
+@Suppress("LongMethod")
 private fun NextPreparationBlock(highlight: HighlightUiModel) {
     val colors = HilitTheme.colors
     when (highlight.reason) {

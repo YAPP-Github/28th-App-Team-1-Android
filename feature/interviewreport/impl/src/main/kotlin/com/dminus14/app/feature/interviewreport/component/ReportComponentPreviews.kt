@@ -1,4 +1,4 @@
-@file:Suppress("ktlint:standard:filename")
+@file:Suppress("ktlint:standard:filename", "TooManyFunctions")
 
 package com.dminus14.app.feature.interviewreport.component
 

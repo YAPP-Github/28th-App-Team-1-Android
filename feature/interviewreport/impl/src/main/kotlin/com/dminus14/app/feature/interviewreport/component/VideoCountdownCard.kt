@@ -29,6 +29,7 @@ import kotlinx.coroutines.delay
 
 private const val SECONDS_PER_HOUR = 3600L
 private const val SECONDS_PER_MINUTE = 60L
+private const val COUNTDOWN_TICK_MS = 1000L
 
 /**
  * 면접 영상 다시보기 진입 카드 + 남은시간 카운트다운 (Figma Node: 443:6897).
@@ -38,6 +39,7 @@ private const val SECONDS_PER_MINUTE = 60L
  *   조회 실패로 [expirySeconds] 가 null 이면(그러나 만료는 아님) 카운트다운 행을 숨긴다.
  */
 @Composable
+@Suppress("LongMethod")
 internal fun VideoCountdownCard(
     video: VideoUiModel?,
     expirySeconds: Long?,
@@ -86,7 +88,7 @@ internal fun VideoCountdownCard(
                 LaunchedEffect(expirySeconds) {
                     remaining = expirySeconds
                     while (remaining > 0L) {
-                        delay(1000L)
+                        delay(COUNTDOWN_TICK_MS)
                         remaining -= 1L
                     }
                 }

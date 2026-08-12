@@ -49,6 +49,7 @@ private val AXIS_ROWS =
  * 지인 피드백 항목선택 화면 순수 UI (Figma Node: 443:8006). State 만 받아 렌더한다.
  */
 @Composable
+@Suppress("LongMethod")
 internal fun GuestFeedbackRequestContent(
     state: GuestFeedbackRequestState,
     onIntent: (GuestFeedbackRequestIntent) -> Unit,

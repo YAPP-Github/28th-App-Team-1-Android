@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions", "LongMethod", "CyclomaticComplexMethod")
+
 package com.dminus14.app.feature.interviewreport.player
 
 import android.view.SurfaceView
@@ -56,6 +58,7 @@ import com.dminus14.designsystem.theme.HilitTheme
 import kotlinx.coroutines.delay
 
 private const val POSITION_POLL_INTERVAL_MS = 250L
+private const val MS_PER_SECOND = 1000f
 
 /** 대본 오버레이의 최대 높이 (Figma 443:7941 기준, 화면을 다 덮지 않도록 상한을 둔다). */
 private val TRANSCRIPT_OVERLAY_MAX_HEIGHT = 420.dp
@@ -177,7 +180,7 @@ private fun PlayerReady(
         if (url.isNullOrBlank()) return@LaunchedEffect
         player.setMediaItem(MediaItem.fromUri(url))
         player.prepare()
-        startSec?.let { player.seekTo((it * 1000f).toLong()) }
+        startSec?.let { player.seekTo((it * MS_PER_SECOND).toLong()) }
         player.playWhenReady = true
     }
     var positionMs by remember { mutableLongStateOf(0L) }

@@ -30,6 +30,7 @@ import com.dminus14.app.feature.interviewreport.model.VideoUiModel
  * - 하이라이트 span 은 대본 길이를 넘어서지 않도록 clamp 하여 UI 크래시를 예방한다.
  * - 카드는 axisOrder → depthLevel 오름차순 으로 정렬한다.
  */
+@Suppress("TooManyFunctions")
 object InterviewReportUiMapper {
     private const val DEFAULT_INSUFFICIENT_HEADLINE =
         "이번 면접의 답변이 충분하지 않아요. 다음 면접 연습 때는 조금 더 충분한 답변을 말씀해주세요."

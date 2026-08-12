@@ -28,6 +28,7 @@ import com.dminus14.designsystem.theme.HilitTheme
  * 탭하면 지인 피드백 항목선택 플로우로 진입한다.
  */
 @Composable
+@Suppress("LongMethod")
 internal fun FeedbackRequestCard(
     model: GuestFeedbackUiModel,
     onClick: () -> Unit,

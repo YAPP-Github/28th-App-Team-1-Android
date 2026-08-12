@@ -22,7 +22,7 @@ import com.dminus14.app.feature.interviewreport.model.VideoUiModel
 internal object PreviewInterviewReport {
     private const val ANSWER_PREFIX = "저는 결제 시스템의 응답 지연 문제를 맡아 개선했어요. "
     private const val ANSWER_GOOD = "캐시를 도입해 평균 응답 시간을 절반으로 줄였습니다."
-    private val ANSWER_TRANSCRIPT = ANSWER_PREFIX + ANSWER_GOOD
+    private const val ANSWER_TRANSCRIPT = ANSWER_PREFIX + ANSWER_GOOD
 
     private val goodHighlight =
         HighlightUiModel(

@@ -272,7 +272,7 @@ private class FakeDynamicLinkRepository(
 
     override suspend fun createLink(deepLink: String): String {
         requestedDeepLink = deepLink
-        if (shouldFail) throw IllegalStateException("동적 링크 생성 실패")
+        if (shouldFail) error("동적 링크 생성 실패")
         return "https://short.link/$deepLink"
     }
 }

@@ -17,6 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
  * ViewModel Effect 를 상위 Navigation 콜백으로 승격한다 (navigation.md §2 계약).
  */
 @Composable
+@Suppress("LongParameterList")
 fun InterviewReportScreen(
     sessionId: Long,
     onNavigateBack: () -> Unit,
