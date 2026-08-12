@@ -78,6 +78,10 @@ class InterviewFileStore
             ) { "Media reference does not exist" }
         }
 
+        fun delete(ref: InterviewMediaFileRef) {
+            runCatching { resolve(ref) }.getOrNull()?.delete()
+        }
+
         /**
          * 세션 미디어를 업로드 작업 디렉터리로 옮긴다.
          *
@@ -91,6 +95,7 @@ class InterviewFileStore
         ): File {
             val source = sessionDirectory(sessionId)
             val target = uploadDirectory(uploadTaskId)
+            if (!source.exists() && target.isDirectory) return target
             check(source.isDirectory) { "Interview session directory does not exist" }
             check(target.isDirectory || target.mkdirs()) { "Failed to create upload directory" }
             val entries = source.listFiles().orEmpty()

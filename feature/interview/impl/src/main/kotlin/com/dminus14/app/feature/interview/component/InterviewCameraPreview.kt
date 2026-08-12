@@ -3,6 +3,8 @@ package com.dminus14.app.feature.interview.component
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.Recorder
+import androidx.camera.video.VideoCapture
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -36,7 +38,9 @@ private const val MOCK_TEXT_REPEAT_COUNT = 4
 @Composable
 fun InterviewCameraPreview(
     isCameraPermissionGranted: Boolean,
+    videoCapture: VideoCapture<Recorder>,
     modifier: Modifier = Modifier,
+    onCameraReady: () -> Unit = {},
     onCameraBindingFailed: () -> Unit = {},
 ) {
     val isPreview = LocalInspectionMode.current
@@ -45,7 +49,9 @@ fun InterviewCameraPreview(
         CameraPreviewMock(modifier = modifier)
     } else {
         CameraPreviewReal(
+            videoCapture = videoCapture,
             modifier = modifier,
+            onCameraReady = onCameraReady,
             onCameraBindingFailed = onCameraBindingFailed,
         )
     }
@@ -53,12 +59,15 @@ fun InterviewCameraPreview(
 
 @Composable
 private fun CameraPreviewReal(
+    videoCapture: VideoCapture<Recorder>,
+    onCameraReady: () -> Unit,
     modifier: Modifier = Modifier,
     onCameraBindingFailed: () -> Unit,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val currentOnCameraBindingFailed by rememberUpdatedState(onCameraBindingFailed)
+    val currentOnCameraReady by rememberUpdatedState(onCameraReady)
     val previewView =
         remember {
             PreviewView(context).apply {
@@ -88,12 +97,14 @@ private fun CameraPreviewReal(
                     cameraProvider = cameraProviderFuture.get()
                     val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
 
-                    cameraProvider?.unbind(preview)
+                    cameraProvider?.unbind(preview, videoCapture)
                     cameraProvider?.bindToLifecycle(
                         lifecycleOwner,
                         cameraSelector,
                         preview,
+                        videoCapture,
                     )
+                    currentOnCameraReady()
                 } catch (_: Exception) {
                     currentOnCameraBindingFailed()
                 }
@@ -104,7 +115,7 @@ private fun CameraPreviewReal(
         onDispose {
             isDisposed = true
             try {
-                cameraProvider?.unbind(preview)
+                cameraProvider?.unbind(preview, videoCapture)
             } catch (_: Exception) {
                 // Ignore cleanup error
             }

@@ -16,10 +16,12 @@ class WithdrawUserUseCase
     constructor(
         private val userRepository: UserRepository,
         private val sessionRepository: SessionRepository,
+        private val clearInterviewLocalData: ClearInterviewLocalDataUseCase,
     ) {
         suspend operator fun invoke(): Result<Unit> =
             runCatchingCancellable {
                 userRepository.withdraw()
+                runCatchingCancellable { clearInterviewLocalData() }
                 sessionRepository.clearAuthSession()
             }
     }

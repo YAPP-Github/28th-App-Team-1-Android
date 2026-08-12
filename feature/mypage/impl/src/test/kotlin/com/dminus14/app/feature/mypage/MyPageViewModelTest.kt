@@ -8,6 +8,10 @@ import com.dminus14.app.domain.exception.PortfolioNotFoundException
 import com.dminus14.app.domain.model.AuthSession
 import com.dminus14.app.domain.model.InterviewAbandon
 import com.dminus14.app.domain.model.InterviewAbandonRequestCause
+import com.dminus14.app.domain.model.InterviewMediaFileRef
+import com.dminus14.app.domain.model.InterviewMediaManifest
+import com.dminus14.app.domain.model.InterviewMediaSegmentType
+import com.dminus14.app.domain.model.InterviewProgress
 import com.dminus14.app.domain.model.InterviewReport
 import com.dminus14.app.domain.model.InterviewReportList
 import com.dminus14.app.domain.model.InterviewReportListItem
@@ -17,6 +21,8 @@ import com.dminus14.app.domain.model.InterviewResumeStatus
 import com.dminus14.app.domain.model.InterviewSessionRequest
 import com.dminus14.app.domain.model.InterviewSessionResult
 import com.dminus14.app.domain.model.InterviewSessionStatus
+import com.dminus14.app.domain.model.InterviewUploadNetworkPolicy
+import com.dminus14.app.domain.model.InterviewUploadTask
 import com.dminus14.app.domain.model.InterviewVideoExpiry
 import com.dminus14.app.domain.model.InterviewVideoUploadUrl
 import com.dminus14.app.domain.model.JdValidationResult
@@ -31,11 +37,14 @@ import com.dminus14.app.domain.model.UploadInterviewVideoCommand
 import com.dminus14.app.domain.model.UserProfile
 import com.dminus14.app.domain.model.UserProfileUpdate
 import com.dminus14.app.domain.repository.AuthRepository
+import com.dminus14.app.domain.repository.InterviewLocalRepository
 import com.dminus14.app.domain.repository.InterviewRepository
+import com.dminus14.app.domain.repository.InterviewWorkController
 import com.dminus14.app.domain.repository.PortfolioRepository
 import com.dminus14.app.domain.repository.SessionRepository
 import com.dminus14.app.domain.repository.UserRepository
 import com.dminus14.app.domain.usecase.CheckUserProfileUseCase
+import com.dminus14.app.domain.usecase.ClearInterviewLocalDataUseCase
 import com.dminus14.app.domain.usecase.DeletePortfolioUseCase
 import com.dminus14.app.domain.usecase.GetInterviewReportListUseCase
 import com.dminus14.app.domain.usecase.GetPortfolioOverviewUseCase
@@ -622,18 +631,94 @@ class MyPageViewModelTest {
         authRepository: AuthRepository = FakeAuthRepository(),
         sessionRepository: SessionRepository = FakeSessionRepository(),
         portfolioFileReader: PortfolioFileReader = FakePortfolioFileReader(),
-    ): MyPageViewModel =
-        MyPageViewModel(
+    ): MyPageViewModel {
+        val clearInterviewLocalData =
+            ClearInterviewLocalDataUseCase(
+                NoOpInterviewLocalRepository(),
+                NoOpInterviewWorkController(),
+            )
+        return MyPageViewModel(
             checkUserProfileUseCase = CheckUserProfileUseCase(userRepository),
             getPortfolioOverviewUseCase = GetPortfolioOverviewUseCase(portfolioRepository),
             uploadPortfolioUseCase = UploadPortfolioUseCase(portfolioRepository),
             getPortfolioStatusUseCase = GetPortfolioStatusUseCase(portfolioRepository),
             deletePortfolioUseCase = DeletePortfolioUseCase(portfolioRepository),
             getInterviewReportListUseCase = GetInterviewReportListUseCase(interviewRepository),
-            logoutUseCase = LogoutUseCase(authRepository, sessionRepository),
-            withdrawUserUseCase = WithdrawUserUseCase(userRepository, sessionRepository),
+            logoutUseCase =
+                LogoutUseCase(
+                    authRepository,
+                    sessionRepository,
+                    clearInterviewLocalData,
+                ),
+            withdrawUserUseCase =
+                WithdrawUserUseCase(userRepository, sessionRepository, clearInterviewLocalData),
             portfolioFileReader = portfolioFileReader,
         )
+    }
+
+    private class NoOpInterviewLocalRepository : InterviewLocalRepository {
+        override suspend fun getProgress(): InterviewProgress? = null
+
+        override suspend fun saveProgress(progress: InterviewProgress) = Unit
+
+        override suspend fun updateProgress(
+            transform: (InterviewProgress) -> InterviewProgress,
+        ): InterviewProgress? = null
+
+        override suspend fun clearProgress() = Unit
+
+        override suspend fun getManifest(sessionId: Long): InterviewMediaManifest? = null
+
+        override suspend fun getUploadManifest(uploadTaskId: String): InterviewMediaManifest? = null
+
+        override suspend fun saveManifest(manifest: InterviewMediaManifest) = Unit
+
+        override suspend fun createMediaFile(
+            sessionId: Long,
+            type: InterviewMediaSegmentType,
+            extension: String,
+        ): InterviewMediaFileRef = error("사용하지 않음")
+
+        override suspend fun createUploadMediaFile(
+            uploadTaskId: String,
+            extension: String,
+        ): InterviewMediaFileRef = error("사용하지 않음")
+
+        override suspend fun deleteMediaFile(ref: InterviewMediaFileRef) = Unit
+
+        override suspend fun handoffUploadTask(task: InterviewUploadTask) = Unit
+
+        override suspend fun getUploadTask(uploadTaskId: String): InterviewUploadTask? = null
+
+        override suspend fun saveUploadTask(task: InterviewUploadTask) = Unit
+
+        override suspend fun getUploadTasks(): List<InterviewUploadTask> = emptyList()
+
+        override suspend fun deleteUploadTask(uploadTaskId: String) = Unit
+
+        override suspend fun deleteSession(sessionId: Long) = Unit
+
+        override suspend fun clearAll() = Unit
+
+        override suspend fun isCleanupPending(): Boolean = false
+
+        override suspend fun setCleanupPending(isPending: Boolean) = Unit
+    }
+
+    private class NoOpInterviewWorkController : InterviewWorkController {
+        override suspend fun enqueueUpload(
+            uploadTaskId: String,
+            networkPolicy: InterviewUploadNetworkPolicy,
+        ) = Unit
+
+        override suspend fun enqueueRetentionCleanup(deadlineEpochMillis: Long) = Unit
+
+        override suspend fun isUploadRunningOrPending(uploadTaskId: String): Boolean = false
+
+        override suspend fun cancelUpload(uploadTaskId: String) = Unit
+
+        override suspend fun cancelAll() = Unit
+    }
 
     private fun uploadAccepted(portfolioId: String = "new-id"): Result<PortfolioUploadResult> =
         Result.success(PortfolioUploadResult(portfolioId, PortfolioStatus.PROCESSING, null))

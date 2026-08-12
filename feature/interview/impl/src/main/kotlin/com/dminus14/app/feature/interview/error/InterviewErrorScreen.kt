@@ -1,4 +1,4 @@
-@file:Suppress("LongMethod")
+@file:Suppress("LongMethod", "LongParameterList")
 
 package com.dminus14.app.feature.interview.error
 
@@ -33,6 +33,7 @@ import com.dminus14.designsystem.component.button.HilitFixedBottomDualButton
 import com.dminus14.designsystem.component.button.HilitFixedBottomDualButtonType
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
+import com.dminus14.designsystem.component.loading.HilitLoadingIndicator
 import com.dminus14.designsystem.component.text.HilitText
 import com.dminus14.designsystem.component.text.HilitTextHighlightColor
 import com.dminus14.designsystem.component.text.withHilitTextHighlight
@@ -48,7 +49,8 @@ import com.dminus14.designsystem.theme.HilitTheme
 @Composable
 fun InterviewErrorScreen(
     errorType: InterviewErrorType,
-    onNavigateHome: () -> Unit,
+    onInterviewAbandoned: () -> Unit,
+    onSttAcknowledged: () -> Unit,
     onResumeInterview: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: InterviewErrorViewModel = hiltViewModel(),
@@ -56,14 +58,19 @@ fun InterviewErrorScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(errorType) {
-        viewModel.initErrorType(errorType)
+        viewModel.onIntent(InterviewErrorIntent.Load(errorType))
     }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                InterviewErrorEffect.NavigateToHome -> onNavigateHome()
-                InterviewErrorEffect.ResumeInterview -> onResumeInterview()
+                InterviewErrorEffect.InterviewAbandonCompleted -> onInterviewAbandoned()
+
+                InterviewErrorEffect.SttFailureAcknowledged -> onSttAcknowledged()
+
+                InterviewErrorEffect.InterviewResumeConfirmed,
+                InterviewErrorEffect.AnswerSubmissionRecovered,
+                -> onResumeInterview()
             }
         }
     }
@@ -139,22 +146,29 @@ fun InterviewErrorContent(
                         .size(54.dp)
                         .background(color = HilitTheme.colors.hilitBlack800),
             ) {
-                HilitIcon(
-                    asset =
-                        if (isMicError || isSttError) {
-                            HilitIconAsset.Mic
-                        } else {
-                            HilitIconAsset.Network
-                        },
-                    contentDescription = null,
-                    tint = HilitTheme.colors.hilitGreen500,
-                    modifier = Modifier.size(24.dp),
-                )
-                HilitIcon(
-                    asset = HilitIconAsset.AlertRed,
-                    contentDescription = null,
-                    modifier = Modifier.align(Alignment.TopEnd),
-                )
+                if (state.isLoading) {
+                    HilitLoadingIndicator(
+                        size = 32.dp,
+                        contentDescription = "면접 상태 확인 중",
+                    )
+                } else {
+                    HilitIcon(
+                        asset =
+                            if (isMicError || isSttError) {
+                                HilitIconAsset.Mic
+                            } else {
+                                HilitIconAsset.Network
+                            },
+                        contentDescription = null,
+                        tint = HilitTheme.colors.hilitGreen500,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    HilitIcon(
+                        asset = HilitIconAsset.AlertRed,
+                        contentDescription = null,
+                        modifier = Modifier.align(Alignment.TopEnd),
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -198,6 +212,16 @@ fun InterviewErrorContent(
                 textAlign = TextAlign.Center,
             )
 
+            state.failureMessage?.let { message ->
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = message,
+                    style = HilitTheme.typography.body9,
+                    color = HilitTheme.colors.error500,
+                    textAlign = TextAlign.Center,
+                )
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(
@@ -226,13 +250,23 @@ fun InterviewErrorContent(
         if (isSingleButton) {
             HilitFixedBottomButton(
                 text = "중단하기",
+                enabled = !state.isLoading,
                 type = HilitButtonType.Light,
                 onClick = { onIntent(InterviewErrorIntent.ClickAbort) },
             )
         } else {
             HilitFixedBottomDualButton(
                 leftText = "중단하기",
-                rightText = "이어서 진행하기",
+                rightText =
+                    if (state.errorType == InterviewErrorType.SERVER_TEMPORARY) {
+                        "다시 시도"
+                    } else if (!state.canResume) {
+                        "연결 다시 확인"
+                    } else {
+                        "이어서 진행하기"
+                    },
+                leftEnabled = !state.isLoading,
+                rightEnabled = !state.isLoading,
                 type = HilitFixedBottomDualButtonType.Default,
                 onLeftClick = { onIntent(InterviewErrorIntent.ClickAbort) },
                 onRightClick = { onIntent(InterviewErrorIntent.ClickResume) },
