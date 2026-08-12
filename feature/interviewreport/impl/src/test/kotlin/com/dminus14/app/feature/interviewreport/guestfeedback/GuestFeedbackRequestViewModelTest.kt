@@ -4,8 +4,10 @@ import com.dminus14.app.domain.exception.EmptyAttitudeAxesException
 import com.dminus14.app.domain.exception.FeedbackShareAlreadyExistsException
 import com.dminus14.app.domain.exception.InterviewSessionNotFoundException
 import com.dminus14.app.domain.model.GuestFeedbackAxisCode
+import com.dminus14.app.domain.repository.DynamicLinkRepository
 import com.dminus14.app.domain.repository.FeedbackShareLocalRepository
 import com.dminus14.app.domain.repository.FeedbackShareRepository
+import com.dminus14.app.domain.usecase.CreateFeedbackShareDynamicLinkUseCase
 import com.dminus14.app.domain.usecase.CreateFeedbackShareUseCase
 import com.dminus14.app.domain.usecase.EndFeedbackShareUseCase
 import com.dminus14.app.domain.usecase.GetSavedFeedbackShareTokenUseCase
@@ -87,20 +89,46 @@ class GuestFeedbackRequestViewModelTest {
         }
 
     @Test
-    fun `피드백 링크 생성 성공 시 공유 링크가 채워지고 token 을 저장한다`() =
+    fun `피드백 링크 생성 성공 시 동적 링크가 채워지고 token 을 저장한다`() =
         runTest {
             val localRepository = FakeFeedbackShareLocalRepository()
+            val dynamicLinkRepository = FakeDynamicLinkRepository()
             val viewModel =
-                viewModel(FakeFeedbackShareRepository(token = "abc123"), localRepository)
+                viewModel(
+                    repository = FakeFeedbackShareRepository(token = "abc123"),
+                    localRepository = localRepository,
+                    dynamicLinkRepository = dynamicLinkRepository,
+                )
             viewModel.bindSessionId(7L)
 
             viewModel.onIntent(GuestFeedbackRequestIntent.ClickSubmit)
             advanceUntilIdle()
 
-            val link = viewModel.state.value.shareLink
-            assertTrue("링크가 토큰을 포함해야 한다: $link", link?.endsWith("abc123") == true)
+            assertEquals("hilit://feedback/abc123", dynamicLinkRepository.requestedDeepLink)
+            assertEquals(
+                "https://short.link/hilit://feedback/abc123",
+                viewModel.state.value.shareLink,
+            )
             assertTrue(viewModel.state.value.hasActiveShare)
             assertEquals("abc123", localRepository.getToken(7L))
+        }
+
+    @Test
+    fun `동적 링크 생성이 실패해도 원시 딥링크로 공유 링크가 채워진다`() =
+        runTest {
+            val dynamicLinkRepository = FakeDynamicLinkRepository(shouldFail = true)
+            val viewModel =
+                viewModel(
+                    repository = FakeFeedbackShareRepository(token = "abc123"),
+                    dynamicLinkRepository = dynamicLinkRepository,
+                )
+            viewModel.bindSessionId(7L)
+
+            viewModel.onIntent(GuestFeedbackRequestIntent.ClickSubmit)
+            advanceUntilIdle()
+
+            assertEquals("hilit://feedback/abc123", viewModel.state.value.shareLink)
+            assertTrue(viewModel.state.value.hasActiveShare)
         }
 
     @Test
@@ -206,11 +234,13 @@ class GuestFeedbackRequestViewModelTest {
     private fun viewModel(
         repository: FeedbackShareRepository,
         localRepository: FeedbackShareLocalRepository = FakeFeedbackShareLocalRepository(),
+        dynamicLinkRepository: DynamicLinkRepository = FakeDynamicLinkRepository(),
     ): GuestFeedbackRequestViewModel =
         GuestFeedbackRequestViewModel(
             CreateFeedbackShareUseCase(repository, localRepository),
             EndFeedbackShareUseCase(repository, localRepository),
             GetSavedFeedbackShareTokenUseCase(localRepository),
+            CreateFeedbackShareDynamicLinkUseCase(dynamicLinkRepository),
         )
 }
 
@@ -231,6 +261,19 @@ private class FakeFeedbackShareRepository(
 
     override suspend fun closeShare(sessionId: Long) {
         closeCalled = true
+    }
+}
+
+private class FakeDynamicLinkRepository(
+    private val shouldFail: Boolean = false,
+) : DynamicLinkRepository {
+    var requestedDeepLink: String? = null
+        private set
+
+    override suspend fun createLink(deepLink: String): String {
+        requestedDeepLink = deepLink
+        if (shouldFail) throw IllegalStateException("동적 링크 생성 실패")
+        return "https://short.link/$deepLink"
     }
 }
 

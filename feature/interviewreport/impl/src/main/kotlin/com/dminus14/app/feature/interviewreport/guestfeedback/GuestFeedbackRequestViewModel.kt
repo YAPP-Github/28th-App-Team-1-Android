@@ -12,6 +12,7 @@ import com.dminus14.app.domain.exception.NetworkUnavailableException
 import com.dminus14.app.domain.exception.ServerException
 import com.dminus14.app.domain.exception.TooManyAttitudeAxesException
 import com.dminus14.app.domain.model.GuestFeedbackAxisCode
+import com.dminus14.app.domain.usecase.CreateFeedbackShareDynamicLinkUseCase
 import com.dminus14.app.domain.usecase.CreateFeedbackShareUseCase
 import com.dminus14.app.domain.usecase.EndFeedbackShareUseCase
 import com.dminus14.app.domain.usecase.GetSavedFeedbackShareTokenUseCase
@@ -22,9 +23,6 @@ import javax.inject.Inject
 
 private const val COPIED_NOTICE_DURATION_MS = 2000L
 
-/** 지인 피드백 딥링크 조립 베이스. 실제 스킴/호스트는 앱 딥링크 규칙 확정 시 교체한다. */
-private const val FEEDBACK_SHARE_LINK_BASE = "https://hilit.app/f/"
-
 @HiltViewModel
 class GuestFeedbackRequestViewModel
     @Inject
@@ -32,6 +30,7 @@ class GuestFeedbackRequestViewModel
         private val createFeedbackShare: CreateFeedbackShareUseCase,
         private val endFeedbackShare: EndFeedbackShareUseCase,
         private val getSavedFeedbackShareToken: GetSavedFeedbackShareTokenUseCase,
+        private val createFeedbackShareDynamicLink: CreateFeedbackShareDynamicLinkUseCase,
     ) : MviViewModel<
             GuestFeedbackRequestIntent,
             GuestFeedbackRequestState,
@@ -106,10 +105,12 @@ class GuestFeedbackRequestViewModel
             viewModelScope.launch {
                 createFeedbackShare(sessionId, current.selectedAxes.toList())
                     .onSuccess { token ->
+                        // 아래는 항상 성공한다(동적 링크 생성 실패 시 원시 딥링크로 self-heal).
+                        val shareLink = createFeedbackShareDynamicLink(token).getOrThrow()
                         reduce {
                             copy(
                                 submitting = false,
-                                shareLink = FEEDBACK_SHARE_LINK_BASE + token,
+                                shareLink = shareLink,
                                 hasActiveShare = true,
                             )
                         }

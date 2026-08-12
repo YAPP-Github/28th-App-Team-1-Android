@@ -100,7 +100,9 @@ class FeedbackShareRepositoryImpl
                     )
                 }
 
-                else -> null
+                else -> {
+                    null
+                }
             }
         }
 
@@ -127,7 +129,9 @@ class FeedbackShareRepositoryImpl
                     )
                 }
 
-                else -> null
+                else -> {
+                    null
+                }
             }
         }
     }
