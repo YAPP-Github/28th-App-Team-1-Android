@@ -23,11 +23,8 @@ import com.dminus14.designsystem.theme.HilitTheme
  * - Hilit 질문 분석 카드 ([QuestionAnalysisCard])
  * - 해상도 낮음 안내 (있을 때)
  * - 답변 대본 (하이라이트 강조)
+ * - 카드 레드플래그 안내 (있을 때)
  * 순으로 렌더한다. 별도 카드 배경 없이 화면 다크 배경 위에 그린다.
- *
- * 카드 레드플래그(`cardRedFlagNotices`)는 카드 안에 별도 텍스트 줄로 노출하지 않는다.
- * Figma 원본(443:6917)에도 해당 UI가 없고, 레드플래그 안내는 "상세 리포트" 타이틀 옆
- * [DetailReportSectionHeader] 아이콘/말풍선으로만 노출한다.
  */
 @Composable
 internal fun ReportCard(
@@ -57,6 +54,9 @@ internal fun ReportCard(
                 card = card,
                 onHighlightClick = { spanIndex -> onHighlightClick(cardIndex, spanIndex) },
             )
+        }
+        if (card.cardRedFlagNotices.isNotEmpty()) {
+            RedFlagNoticeStrip(notices = card.cardRedFlagNotices)
         }
     }
 }

@@ -34,11 +34,13 @@ import com.dminus14.designsystem.theme.HilitTheme
  * - 분석 내용 헤더 + "영상 보러가기" 버튼(영상 위에서 열렸으면 숨김)
  * - 하이라이트 발췌 (톤 색)
  * - "Hilit의 답변 분석" 카드 (제목 · 분석)
+ * - 카드 레드플래그 안내 (있을 때)
  * - reason 별 "다음 대비". OFF_INTENT 는 질문 의도 ↔ 내 답변 대비 블록,
  *   그 외 reason 은 코칭 한 줄 미니 카드. 유의미한 콘텐츠가 없으면 생략한다.
  *
  * @param highlight 노출할 하이라이트
  * @param transcript 원본 대본. 하이라이트 구간을 발췌해서 상단에 보여준다
+ * @param cardRedFlagNotices 하이라이트가 속한 카드의 레드플래그 안내
  * @param showWatchSceneButton 영상 위에서 열린 경우엔 false 로 넣어 [영상 보러가기] 를 숨긴다
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,6 +48,7 @@ import com.dminus14.designsystem.theme.HilitTheme
 internal fun HighlightDetailBottomSheet(
     highlight: HighlightUiModel,
     transcript: String,
+    cardRedFlagNotices: List<String>,
     showWatchSceneButton: Boolean,
     onDismiss: () -> Unit,
     onWatchScene: () -> Unit,
@@ -70,6 +73,9 @@ internal fun HighlightDetailBottomSheet(
                     showWatchSceneButton = showWatchSceneButton && highlight.startSec != null,
                     onWatchScene = onWatchScene,
                 )
+                if (cardRedFlagNotices.isNotEmpty()) {
+                    RedFlagNoticeStrip(notices = cardRedFlagNotices)
+                }
                 NextPreparationBlock(highlight = highlight)
             }
         },

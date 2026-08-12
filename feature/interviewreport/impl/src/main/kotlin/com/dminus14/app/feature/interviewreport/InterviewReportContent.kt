@@ -91,6 +91,7 @@ internal fun InterviewReportContent(
                 HighlightDetailBottomSheet(
                     highlight = highlight,
                     transcript = card.transcript,
+                    cardRedFlagNotices = card.cardRedFlagNotices,
                     showWatchSceneButton = true,
                     onDismiss = { onIntent(InterviewReportIntent.DismissHighlight) },
                     onWatchScene = {
@@ -137,9 +138,11 @@ private fun ReadyReport(
                 Spacer(Modifier.height(24.dp))
                 SectionDivider()
                 Spacer(Modifier.height(24.dp))
-                DetailReportSectionHeader(redFlagNotices = report.redFlagNotices)
-                Spacer(Modifier.height(10.dp))
                 val safeIndex = selectedCardIndex.coerceIn(0, report.cards.lastIndex)
+                DetailReportSectionHeader(
+                    resolutionNotice = report.cards[safeIndex].resolutionNotice,
+                )
+                Spacer(Modifier.height(10.dp))
                 QuestionTabRow(
                     cards = report.cards,
                     selectedIndex = safeIndex,

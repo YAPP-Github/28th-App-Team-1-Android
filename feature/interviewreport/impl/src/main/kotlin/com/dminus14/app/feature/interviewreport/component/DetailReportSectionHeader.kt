@@ -48,23 +48,26 @@ private val BubbleIconGap = 6.dp
 /**
  * "상세 리포트" 섹션 타이틀 (Figma Node: 443:7204).
  *
- * [redFlagNotices] 가 있으면 타이틀 옆에 경고 아이콘을 노출한다. 화면 진입 시 안내 말풍선
- * ([BubbleField])이 한 번 자동으로 뜨고, 이후에도 아이콘을 탭하면 다시 뜬다. 말풍선은 뜬 지
- * 3초 뒤 자동으로 사라진다(재탭하면 3초 타이머가 리셋된다). 말풍선은 레이아웃 공간을 차지하지
- * 않는 오버레이로 그려지며, 꼬리 끝이 항상 아이콘 위치에 오도록 아이콘 좌표를 실측해서 배치한다.
- * 레드플래그 정보는 더 이상 질문 탭(QuestionTabRow)의 점으로 표시하지 않는다.
+ * [resolutionNotice](해상도 낮음 안내, 현재 선택된 카드 기준)가 있으면 타이틀 옆에 경고 아이콘을
+ * 노출한다. 화면 진입 시 안내 말풍선([BubbleField])이 한 번 자동으로 뜨고, 이후에도 아이콘을
+ * 탭하면 다시 뜬다. 말풍선은 뜬 지 3초 뒤 자동으로 사라진다(재탭하면 3초 타이머가 리셋된다).
+ * 말풍선은 레이아웃 공간을 차지하지 않는 오버레이로 그려지며, 꼬리 끝이 항상 아이콘 위치에
+ * 오도록 아이콘 좌표를 실측해서 배치한다.
+ *
+ * 카드 레드플래그(`cardRedFlagNotices`)는 이 헤더가 아니라 [ReportCard]의
+ * [RedFlagNoticeStrip]과 [HighlightDetailBottomSheet]에서 노출한다.
  */
 @Composable
 internal fun DetailReportSectionHeader(
-    redFlagNotices: List<String>,
+    resolutionNotice: String?,
     modifier: Modifier = Modifier,
 ) {
     val colors = HilitTheme.colors
     var showBubble by remember { mutableStateOf(false) }
-    // 0보다 크면 노출을 "요청"한 것으로 본다. 레드플래그가 있으면 진입 즉시 1회 자동 요청되고,
-    // 이후 아이콘 탭마다 값을 증가시켜 같은 이펙트를 다시 트리거(=3초 타이머 리셋)한다.
+    // 0보다 크면 노출을 "요청"한 것으로 본다. 해상도 낮음 안내가 있으면 진입 즉시 1회 자동
+    // 요청되고, 이후 아이콘 탭마다 값을 증가시켜 같은 이펙트를 다시 트리거(=3초 타이머 리셋)한다.
     var bubbleRequestCount by remember {
-        mutableIntStateOf(if (redFlagNotices.isNotEmpty()) 1 else 0)
+        mutableIntStateOf(if (resolutionNotice != null) 1 else 0)
     }
     var boxCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
     var iconCenterXPx by remember { mutableFloatStateOf(0f) }
@@ -85,7 +88,7 @@ internal fun DetailReportSectionHeader(
                 style = HilitTheme.typography.sub7,
                 color = colors.hilitWhite,
             )
-            if (redFlagNotices.isNotEmpty()) {
+            if (resolutionNotice != null) {
                 HilitIcon(
                     asset = HilitIconAsset.FillWarning,
                     contentDescription = "리포트 안내",
@@ -102,9 +105,9 @@ internal fun DetailReportSectionHeader(
                 )
             }
         }
-        if (showBubble && redFlagNotices.isNotEmpty()) {
+        if (showBubble && resolutionNotice != null) {
             BubbleField(
-                text = redFlagNotices.joinToString(separator = "\n"),
+                text = resolutionNotice,
                 type = BubbleFieldType.Small,
                 tailEdge = BubbleFieldTailEdge.Bottom,
                 tailAlign = BubbleFieldTailAlign.Left,

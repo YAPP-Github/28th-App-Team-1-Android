@@ -64,28 +64,20 @@ private fun VideoCountdownCardExpiredPreview() {
     }
 }
 
-@Preview(name = "DetailReportSectionHeader - 레드플래그 없음")
+@Preview(name = "DetailReportSectionHeader - 해상도 낮음 안내 없음")
 @Composable
 private fun DetailReportSectionHeaderPreview() {
     DarkPreview {
-        DetailReportSectionHeader(redFlagNotices = emptyList())
+        DetailReportSectionHeader(resolutionNotice = null)
     }
 }
 
-@Preview(name = "DetailReportSectionHeader - 레드플래그 있음 (진입 시 말풍선 자동 노출)")
+@Preview(name = "DetailReportSectionHeader - 해상도 낮음 안내 (진입 시 말풍선 자동 노출)")
 @Composable
-private fun DetailReportSectionHeaderRedFlagPreview() {
-    DarkPreview {
-        DetailReportSectionHeader(redFlagNotices = PreviewInterviewReport.sampleRedFlagNotices)
-    }
-}
-
-@Preview(name = "DetailReportSectionHeader - 레드플래그 2건 (진입 시 자동 노출)")
-@Composable
-private fun DetailReportSectionHeaderMultipleRedFlagPreview() {
+private fun DetailReportSectionHeaderResolutionNoticePreview() {
     DarkPreview {
         DetailReportSectionHeader(
-            redFlagNotices = PreviewInterviewReport.sampleRedFlagNoticesMultiple,
+            resolutionNotice = PreviewInterviewReport.sampleResolutionNotice,
         )
     }
 }
@@ -127,10 +119,30 @@ private fun ReportCardPreview() {
     }
 }
 
+@Preview(name = "ReportCard - 해상도 낮음 안내", heightDp = 560)
+@Composable
+private fun ReportCardResolutionNoticePreview() {
+    DarkPreview {
+        ReportCard(
+            card = PreviewInterviewReport.sampleResolutionNoticeCard,
+            cardIndex = 0,
+            onHighlightClick = { _, _ -> },
+        )
+    }
+}
+
 @Preview(name = "FeedbackRequestCard")
 @Composable
 private fun FeedbackRequestCardPreview() {
     DarkPreview {
         FeedbackRequestCard(model = PreviewInterviewReport.sampleGuestFeedback, onClick = {})
+    }
+}
+
+@Preview(name = "RedFlagNoticeStrip")
+@Composable
+private fun RedFlagNoticeStripPreview() {
+    DarkPreview {
+        RedFlagNoticeStrip(notices = listOf("답변 사이에 사실관계가 엇갈린 지점이 있었어요."))
     }
 }

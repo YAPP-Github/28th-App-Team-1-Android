@@ -54,13 +54,9 @@ internal object PreviewInterviewReport {
     /** 컴포넌트 Preview 재사용용 합성 샘플. */
     val sampleCard: CardUiModel get() = card("질문 1-1")
     val sampleRedFlagCard: CardUiModel get() = card("질문 1-2", redFlag = true)
-    val sampleRedFlagNotices: List<String> get() = listOf("영상 해상도가 낮아 분석율이 떨어질 수 있어요.")
-    val sampleRedFlagNoticesMultiple: List<String>
-        get() =
-            listOf(
-                "영상 해상도가 낮아 분석율이 떨어질 수 있어요.",
-                "답변 사이에 사실관계가 엇갈린 지점이 있었어요.",
-            )
+    val sampleResolutionNotice: String get() = "영상 해상도가 낮아 분석율이 떨어질 수 있어요."
+    val sampleResolutionNoticeCard: CardUiModel
+        get() = card("질문 1-3", resolutionNotice = sampleResolutionNotice)
     val sampleGoodHighlight: HighlightUiModel get() = goodHighlight
     val sampleOffIntentHighlight: HighlightUiModel get() = offIntentHighlight
     val sampleTranscript: String get() = ANSWER_TRANSCRIPT
@@ -83,6 +79,7 @@ internal object PreviewInterviewReport {
     private fun card(
         label: String,
         redFlag: Boolean = false,
+        resolutionNotice: String? = null,
     ): CardUiModel =
         CardUiModel(
             label = label,
@@ -91,7 +88,7 @@ internal object PreviewInterviewReport {
             questionIntent = "트래픽이 증가했을 때 발생할 병목 지점과 시스템의 한계를 설명하는 질문입니다.",
             transcript = ANSWER_TRANSCRIPT,
             highlights = listOf(goodHighlight, offIntentHighlight),
-            resolutionNotice = null,
+            resolutionNotice = resolutionNotice,
             cardRedFlagNotices = if (redFlag) listOf("답변 사이에 사실관계가 엇갈린 지점이 있었어요.") else emptyList(),
         )
 
