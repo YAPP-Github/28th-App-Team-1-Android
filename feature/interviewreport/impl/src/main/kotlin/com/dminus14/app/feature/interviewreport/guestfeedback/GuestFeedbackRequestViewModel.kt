@@ -139,9 +139,7 @@ class GuestFeedbackRequestViewModel
                 }
 
                 is FeedbackShareAlreadyExistsException -> {
-                    // 서버에는 이미 활성 링크가 있는 상태. 종료 가능 상태로 맞춰 다시 시도를 막는다.
-                    reduce { copy(submitting = false, hasActiveShare = true) }
-                    sendEffect(GuestFeedbackRequestEffect.ShowToast(error.message))
+                    handleAlreadyExistsFailure(error)
                 }
 
                 is InterviewSessionNotFoundException -> {
@@ -153,6 +151,31 @@ class GuestFeedbackRequestViewModel
                 else -> {
                     handleCommonError(error)
                 }
+            }
+        }
+
+        /**
+         * 서버에는 이미 활성 공유 링크가 있는 상태(생성 API 는 충돌 시 기존 token 을 돌려주지
+         * 않음). 이 기기에 그 링크를 만들 때 저장해둔 실제 token 이 남아있다면 그걸로 딥링크를
+         * 다시 만들어 방금 생성에 성공한 것과 똑같이 보여준다. 로컬에 token 이 전혀 없으면(다른
+         * 기기에서 만들었거나 앱 데이터가 지워진 경우) 재구성할 수 없으므로 기존처럼 종료 가능
+         * 상태로만 맞추고 안내한다.
+         */
+        private suspend fun handleAlreadyExistsFailure(error: FeedbackShareAlreadyExistsException) {
+            val savedToken = getSavedFeedbackShareToken(sessionId)
+            if (savedToken != null) {
+                // 아래는 항상 성공한다(동적 링크 생성 실패 시 원시 딥링크로 self-heal).
+                val shareLink = createFeedbackShareDynamicLink(savedToken).getOrThrow()
+                reduce {
+                    copy(
+                        submitting = false,
+                        shareLink = shareLink,
+                        hasActiveShare = true,
+                    )
+                }
+            } else {
+                reduce { copy(submitting = false, hasActiveShare = true) }
+                sendEffect(GuestFeedbackRequestEffect.ShowToast(error.message))
             }
         }
 
