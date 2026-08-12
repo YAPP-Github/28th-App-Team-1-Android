@@ -20,6 +20,9 @@ sealed interface GuestFeedbackRequestIntent : MviIntent {
     data object ClickSubmit : GuestFeedbackRequestIntent
 
     data object ClickCopyLink : GuestFeedbackRequestIntent
+
+    /** "링크 생성 완료" 모달의 닫기 버튼/배경 탭. 항목선택 화면으로 돌아간다(생성은 이미 끝난 상태). */
+    data object DismissShareLinkModal : GuestFeedbackRequestIntent
 }
 
 @Immutable

@@ -2,6 +2,7 @@ package com.dminus14.app.feature.interviewreport.guestfeedback
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -128,7 +130,10 @@ internal fun GuestFeedbackRequestContent(
         if (state.linkCopied) {
             LinkCopiedModal()
         } else if (state.shareLink != null) {
-            LinkCreatedModal(onCopy = { onIntent(GuestFeedbackRequestIntent.ClickCopyLink) })
+            LinkCreatedModal(
+                onCopy = { onIntent(GuestFeedbackRequestIntent.ClickCopyLink) },
+                onDismiss = { onIntent(GuestFeedbackRequestIntent.DismissShareLinkModal) },
+            )
         }
     }
 }
@@ -162,8 +167,11 @@ private fun AxisToggleRow(
 }
 
 @Composable
-private fun LinkCreatedModal(onCopy: () -> Unit) {
-    ModalScrim {
+private fun LinkCreatedModal(
+    onCopy: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ModalScrim(onDismiss = onDismiss) {
         Column(
             modifier =
                 Modifier
@@ -172,8 +180,24 @@ private fun LinkCreatedModal(onCopy: () -> Unit) {
                     .background(HilitTheme.colors.hilitWhite),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                HilitIcon(
+                    asset = HilitIconAsset.Cancel,
+                    contentDescription = "닫기",
+                    tint = HilitTheme.colors.gray500,
+                    modifier =
+                        Modifier
+                            .padding(16.dp)
+                            .size(20.dp)
+                            .clickable(onClick = onDismiss),
+                )
+            }
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 40.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                        .padding(bottom = 40.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(20.dp),
             ) {
@@ -208,7 +232,7 @@ private fun LinkCreatedModal(onCopy: () -> Unit) {
 
 @Composable
 private fun LinkCopiedModal() {
-    ModalScrim {
+    ModalScrim(onDismiss = {}) {
         Column(
             modifier =
                 Modifier
@@ -241,11 +265,34 @@ private fun LinkCopiedModal() {
 }
 
 @Composable
-private fun ModalScrim(content: @Composable () -> Unit) {
+private fun ModalScrim(
+    onDismiss: () -> Unit,
+    content: @Composable () -> Unit,
+) {
     Box(
-        modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.65f)),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.65f))
+                // 배경(스크림)을 탭하면 닫는다. 클릭을 여기서 소비해 뒤에 깔린 화면(항목선택
+                // 리스트 등)의 클릭 요소로 뚫고 들어가지 않게 막는다.
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onDismiss,
+                ),
         contentAlignment = Alignment.Center,
     ) {
-        content()
+        Box(
+            // 카드 자체를 탭했을 때는 스크림의 dismiss 클릭으로 전파되지 않도록 별도로 소비한다.
+            modifier =
+                Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = {},
+                ),
+        ) {
+            content()
+        }
     }
 }

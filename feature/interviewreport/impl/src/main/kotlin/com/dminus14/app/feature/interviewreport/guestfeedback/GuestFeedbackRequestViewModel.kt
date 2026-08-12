@@ -65,6 +65,10 @@ class GuestFeedbackRequestViewModel
                 GuestFeedbackRequestIntent.ClickCopyLink -> {
                     copyLink()
                 }
+
+                GuestFeedbackRequestIntent.DismissShareLinkModal -> {
+                    reduce { copy(shareLink = null) }
+                }
             }
         }
 
