@@ -52,7 +52,12 @@ data class InterviewReportState(
 
         data object Failed : Phase
 
-        data object InsufficientAnalysis : Phase
+        /**
+         * 분석 부족 상태. 채점된 범위의 부분 리포트를 그대로 렌더한다(헤드라인이 분석 부족 톤).
+         */
+        data class InsufficientAnalysis(
+            val report: ReportUiModel,
+        ) : Phase
 
         /** 리포트가 준비된 뒤 UI 렌더에 사용하는 최종 모델. */
         data class Ready(

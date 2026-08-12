@@ -77,7 +77,8 @@ class InterviewReportViewModelTest {
             viewModel.onIntent(InterviewReportIntent.Load)
             advanceUntilIdle()
 
-            assertEquals(Phase.InsufficientAnalysis, viewModel.state.value.phase)
+            val phase = viewModel.state.value.phase
+            assertTrue("expected InsufficientAnalysis but was $phase", phase is Phase.InsufficientAnalysis)
         }
 
     @Test

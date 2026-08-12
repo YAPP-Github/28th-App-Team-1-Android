@@ -106,7 +106,9 @@ class InterviewReportViewModel
                                 }
 
                                 InterviewReportStatus.INSUFFICIENT_ANALYSIS -> {
-                                    InterviewReportState.Phase.InsufficientAnalysis
+                                    InterviewReportState.Phase.InsufficientAnalysis(
+                                        report = InterviewReportUiMapper.map(report),
+                                    )
                                 }
 
                                 InterviewReportStatus.FAILED -> {

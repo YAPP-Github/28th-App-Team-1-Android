@@ -62,15 +62,12 @@ internal fun InterviewReportContent(
                 )
             }
 
-            InterviewReportState.Phase.InsufficientAnalysis -> {
-                CenteredMessage(
-                    content = {
-                        Text(
-                            text = "이번 면접 답변이 분석하기에 부족했어요. 다음 연습에서 조금 더 자세히 답해보세요.",
-                            style = HilitTheme.typography.sub7,
-                            color = colors.gray200,
-                        )
-                    },
+            is InterviewReportState.Phase.InsufficientAnalysis -> {
+                ReadyReport(
+                    report = phase.report,
+                    selectedCardIndex = state.selectedCardIndex,
+                    videoExpirySeconds = state.videoExpirySeconds,
+                    onIntent = onIntent,
                 )
             }
 
@@ -85,9 +82,9 @@ internal fun InterviewReportContent(
         }
 
         val selected = state.selectedHighlight
-        val phase = state.phase
-        if (selected != null && phase is InterviewReportState.Phase.Ready) {
-            val card = phase.report.cards.getOrNull(selected.cardIndex)
+        val report = state.phase.reportOrNull()
+        if (selected != null && report != null) {
+            val card = report.cards.getOrNull(selected.cardIndex)
             val highlight = card?.highlights?.getOrNull(selected.spanIndex)
             if (card != null && highlight != null) {
                 HighlightDetailBottomSheet(
@@ -201,6 +198,14 @@ private fun SectionDivider() {
     val colors = HilitTheme.colors
     Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(colors.gray800))
 }
+
+/** Ready / InsufficientAnalysis 두 Phase 가 담은 리포트를 꺼낸다. 그 외에는 null. */
+private fun InterviewReportState.Phase.reportOrNull(): ReportUiModel? =
+    when (this) {
+        is InterviewReportState.Phase.Ready -> report
+        is InterviewReportState.Phase.InsufficientAnalysis -> report
+        else -> null
+    }
 
 @Composable
 private fun CenteredMessage(content: @Composable () -> Unit) {
