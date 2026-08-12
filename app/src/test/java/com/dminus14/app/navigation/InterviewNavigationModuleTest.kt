@@ -29,12 +29,12 @@ class InterviewNavigationModuleTest {
     }
 
     @Test
-    fun `면접 종료 결과 수신만으로는 route를 변경하지 않는다`() {
+    fun `면접 종료 결과를 받으면 전체 스택을 홈으로 교체한다`() {
         val navigator = Navigator(InterviewRoute)
-        val onInterviewEnded = {}
+        val onInterviewEnded = { navigator.replaceAll(Home) }
 
         onInterviewEnded()
 
-        assertEquals(listOf(InterviewRoute), navigator.backStack)
+        assertEquals(listOf(Home), navigator.backStack)
     }
 }
