@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.dminus14.app.feature.interviewreport.component.DetailReportSectionHeader
 import com.dminus14.app.feature.interviewreport.component.GuestFeedbackSection
@@ -28,6 +29,8 @@ import com.dminus14.app.feature.interviewreport.component.QuestionTabRow
 import com.dminus14.app.feature.interviewreport.component.ReportCard
 import com.dminus14.app.feature.interviewreport.component.VideoCountdownCard
 import com.dminus14.app.feature.interviewreport.model.ReportUiModel
+import com.dminus14.designsystem.component.button.HilitButtonType
+import com.dminus14.designsystem.component.button.HilitFixedBottomButton
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
 import com.dminus14.designsystem.component.loading.HilitLoadingIndicator
@@ -49,19 +52,38 @@ internal fun InterviewReportContent(
     ) {
         when (val phase = state.phase) {
             InterviewReportState.Phase.Loading -> {
-                CenteredMessage(content = { HilitLoadingIndicator() })
+                // 폴링 중 화면을 벗어날 수 있도록 닫기 버튼은 계속 노출한다.
+                Column(modifier = Modifier.fillMaxSize()) {
+                    ReportTopBar(onClose = { onIntent(InterviewReportIntent.ClickClose) })
+                    CenteredMessage(
+                        modifier = Modifier.weight(1f),
+                        content = { HilitLoadingIndicator() },
+                    )
+                }
             }
 
             InterviewReportState.Phase.Failed -> {
-                CenteredMessage(
-                    content = {
-                        Text(
-                            text = "리포트를 불러오지 못했어요. 다시 시도해 주세요.",
-                            style = HilitTheme.typography.sub7,
-                            color = colors.gray200,
-                        )
-                    },
-                )
+                // 닫기(ReportTopBar)와 다시 시도(ClickRetry) 둘 다 실제로 탭할 수 있게 연결한다.
+                // 이전에는 안내 문구만 있고 액션이 없어 막다른 화면이었다.
+                Column(modifier = Modifier.fillMaxSize()) {
+                    ReportTopBar(onClose = { onIntent(InterviewReportIntent.ClickClose) })
+                    CenteredMessage(
+                        modifier = Modifier.weight(1f),
+                        content = {
+                            Text(
+                                text = "리포트를 불러오지 못했어요. 다시 시도해 주세요.",
+                                style = HilitTheme.typography.sub7,
+                                color = colors.gray200,
+                                textAlign = TextAlign.Center,
+                            )
+                        },
+                    )
+                    HilitFixedBottomButton(
+                        text = "다시 시도",
+                        type = HilitButtonType.Light,
+                        onClick = { onIntent(InterviewReportIntent.ClickRetry) },
+                    )
+                }
             }
 
             is InterviewReportState.Phase.InsufficientAnalysis -> {
@@ -207,9 +229,12 @@ private fun InterviewReportState.Phase.reportOrNull(): ReportUiModel? =
     }
 
 @Composable
-private fun CenteredMessage(content: @Composable () -> Unit) {
+private fun CenteredMessage(
+    modifier: Modifier = Modifier.fillMaxSize(),
+    content: @Composable () -> Unit,
+) {
     Box(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
+        modifier = modifier.padding(24.dp),
         contentAlignment = Alignment.Center,
     ) {
         content()
