@@ -125,9 +125,15 @@ class InterviewReportViewModel
                                     InterviewReportState.Phase.Failed
                                 }
 
-                                InterviewReportStatus.GENERATING,
-                                InterviewReportStatus.UNKNOWN,
-                                -> {
+                                // UNKNOWN 은 ObserveInterviewReportUseCase 가 GENERATING 이 아니라고
+                                // 보고 즉시 flow 를 종료한다(더 이상 폴링하지 않음). GENERATING 과
+                                // 묶어서 Loading 으로 매핑하면 다음 emit 이 영영 오지 않아 스피너에
+                                // 영구 고착되므로, Failed 로 보내 재시도 UI 를 노출한다.
+                                InterviewReportStatus.UNKNOWN -> {
+                                    InterviewReportState.Phase.Failed
+                                }
+
+                                InterviewReportStatus.GENERATING -> {
                                     InterviewReportState.Phase.Loading
                                 }
                             }
