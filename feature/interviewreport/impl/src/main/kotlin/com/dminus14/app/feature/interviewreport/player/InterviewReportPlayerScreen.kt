@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -62,6 +61,13 @@ private val TRANSCRIPT_OVERLAY_PROGRESS_BAR_GAP = 44.dp
 
 /** 재생 컨트롤이 떠 있을 때 영상 위에 깔리는 dim 알파 (Figma 443:7852: hilit opacity/dark/65%). */
 private const val VIDEO_CONTROL_DIM_ALPHA = 0.65f
+
+// 대본 오버레이 배경 그라디언트 정지점 (Figma VideoOverlay status=open, 3단 그라디언트).
+// 2색 선형 그라디언트는 실제 대본 길이에 따라 박스 높이가 짧아지면 경계가 딱딱해 보여서,
+// 항상 같은 고정 높이(TRANSCRIPT_OVERLAY_MAX_HEIGHT) 위에서 완만하게 퍼지도록 3단으로 뺀다.
+private const val TRANSCRIPT_OVERLAY_GRADIENT_MID_STOP = 0.33f
+private const val TRANSCRIPT_OVERLAY_GRADIENT_MID_ALPHA = 0.56f
+private const val TRANSCRIPT_OVERLAY_GRADIENT_SOLID_STOP = 0.91f
 
 /**
  * 영상 플레이어 화면 (Figma Node: 443:7804 / 443:7877 / 443:7902 / 443:7972).
@@ -274,7 +280,7 @@ private fun PlayerReady(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .heightIn(max = TRANSCRIPT_OVERLAY_MAX_HEIGHT),
+                            .height(TRANSCRIPT_OVERLAY_MAX_HEIGHT),
                 )
                 Spacer(modifier = Modifier.height(TRANSCRIPT_OVERLAY_PROGRESS_BAR_GAP))
             }
@@ -443,11 +449,18 @@ private fun TranscriptOverlay(
     modifier: Modifier = Modifier,
 ) {
     val colors = HilitTheme.colors
+    val transparent = colors.hilitBlack900.copy(alpha = 0f)
+    val midFade = colors.hilitBlack900.copy(alpha = TRANSCRIPT_OVERLAY_GRADIENT_MID_ALPHA)
     Box(
         modifier =
             modifier.background(
                 Brush.verticalGradient(
-                    colors = listOf(Color.Transparent, colors.hilitBlack900),
+                    colorStops =
+                        arrayOf(
+                            0f to transparent,
+                            TRANSCRIPT_OVERLAY_GRADIENT_MID_STOP to midFade,
+                            TRANSCRIPT_OVERLAY_GRADIENT_SOLID_STOP to colors.hilitBlack900,
+                        ),
                 ),
             ),
     ) {
