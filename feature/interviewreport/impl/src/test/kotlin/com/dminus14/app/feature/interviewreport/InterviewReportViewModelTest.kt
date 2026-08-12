@@ -168,6 +168,33 @@ class InterviewReportViewModelTest {
         }
 
     @Test
+    fun `InsufficientAnalysis 상태에서도 영상이 유효하면 ClickWatchVideo 는 Player 로 이동한다`() =
+        runTest {
+            val insufficientWithVideo =
+                readyReport().copy(
+                    status = InterviewReportStatus.INSUFFICIENT_ANALYSIS,
+                    video =
+                        InterviewReportVideo(
+                            url = "https://cdn/x.mp4",
+                            expired = false,
+                            expiresAt = null,
+                        ),
+                )
+            val viewModel = viewModel(FakeInterviewRepository(listOf(insufficientWithVideo)))
+            val effects = mutableListOf<InterviewReportEffect>()
+            val job = TestScope(dispatcher).launch { viewModel.effect.collect { effects += it } }
+
+            viewModel.bindSessionId(1L)
+            viewModel.onIntent(InterviewReportIntent.Load)
+            advanceUntilIdle()
+            viewModel.onIntent(InterviewReportIntent.ClickWatchVideo)
+            advanceUntilIdle()
+
+            assertTrue(effects.any { it is InterviewReportEffect.NavigateToPlayer })
+            job.cancel()
+        }
+
+    @Test
     fun `SelectCard 인텐트는 selectedCardIndex 를 갱신한다`() =
         runTest {
             val viewModel = viewModel(FakeInterviewRepository(listOf(readyReport())))
