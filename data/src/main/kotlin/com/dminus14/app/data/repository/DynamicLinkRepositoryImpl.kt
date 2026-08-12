@@ -26,6 +26,7 @@ class DynamicLinkRepositoryImpl
                     .createDynamicLink()
                     .setLink(Uri.parse(deepLink))
                     .setDomain(CHOTTULINK_DOMAIN)
+                    .setSelectedPath(CHOTTULINK_PATH)
                     .androidBehavior(DynamicLink.BEHAVIOR_APP)
                     .iosBehavior(DynamicLink.BEHAVIOR_APP)
                     .build()
@@ -37,9 +38,9 @@ class DynamicLinkRepositoryImpl
             }
 
         private companion object {
-            // TODO(#162): ChottuLink 대시보드에 등록된 실제 도메인 문자열로 교체해야 한다.
-            // 이 저장소·문서 어디에도 확정값이 없어 임시값을 둔다. 값이 확정되면 이 상수 한 줄만
-            // 바꾸면 된다.
-            const val CHOTTULINK_DOMAIN = "REPLACE_WITH_REGISTERED_CHOTTULINK_DOMAIN"
+            // 대시보드에 등록된 ChottuLink 도메인: https://hilit.chottu.link/report
+            // setDomain()은 호스트만, 경로(report)는 setSelectedPath()로 분리해서 넘긴다.
+            const val CHOTTULINK_DOMAIN = "hilit.chottu.link"
+            const val CHOTTULINK_PATH = "report"
         }
     }
