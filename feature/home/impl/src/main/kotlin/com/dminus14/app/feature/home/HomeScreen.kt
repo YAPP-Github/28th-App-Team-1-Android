@@ -1,5 +1,8 @@
 package com.dminus14.app.feature.home
 
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -38,6 +42,7 @@ import com.dminus14.app.feature.home.component.HomeReportSheet
 import com.dminus14.app.feature.home.component.HomeReportSheetCallbacks
 import com.dminus14.app.feature.home.component.HomeReportSheetContent
 import com.dminus14.app.feature.home.component.HomeSheetAnchor
+import com.dminus14.app.feature.interview.api.InterviewRoute
 import com.dminus14.app.feature.login.api.Onboarding
 import com.dminus14.app.feature.login.api.Splash
 import com.dminus14.app.feature.mypage.MyPage
@@ -55,6 +60,7 @@ private val TopBarShadowHeight = 16.dp
 private val TopBarExpandedShadowColor = Color(0x99DDDFE5)
 private val HomeTopBarHeight = 52.dp
 private val FallbackExpandedTop = HomeTopBarHeight
+private const val EXIT_CONFIRM_WINDOW_MILLIS = 3_000L
 
 @Composable
 fun HomeScreen(
@@ -67,6 +73,9 @@ fun HomeScreen(
 
     // 세션 오버레이 닫을 때 리포트 시트를 중간(Peek)으로 되돌리라는 신호. 값이 바뀌면 시트가 리셋된다.
     var peekResetSignal by remember { mutableIntStateOf(0) }
+
+    // 홈은 백스택 최하단이라 뒤로가기 한 번에 바로 종료된다. 두 번째 탭까지 유예를 둔다.
+    DoubleBackToExitHandler()
 
     LaunchedEffect(Unit) {
         viewModel.onIntent(HomeIntent.Load)
@@ -90,6 +99,10 @@ fun HomeScreen(
 
                 HomeEffect.GoToOnboardingInterviewRequested -> {
                     onNavigate(OnBoardingInterview)
+                }
+
+                HomeEffect.GoToInterviewRequested -> {
+                    onNavigate(InterviewRoute)
                 }
 
                 HomeEffect.ReportSheetResetRequested -> {
@@ -117,10 +130,29 @@ fun HomeScreen(
                     )
                 },
                 onSessionResumeClick = { viewModel.onIntent(HomeIntent.ClickSessionResume) },
+                onMyPageClick = { viewModel.onIntent(HomeIntent.ClickMyPage) },
                 peekResetSignal = peekResetSignal,
             ),
         modifier = modifier,
     )
+}
+
+/** 뒤로가기 한 번은 안내 Toast만 띄우고, [EXIT_CONFIRM_WINDOW_MILLIS] 안에 한 번 더 누르면 앱을 종료한다. */
+@Composable
+private fun DoubleBackToExitHandler() {
+    val activity = LocalActivity.current
+    var lastBackPressedAtMillis by remember { mutableLongStateOf(0L) }
+    BackHandler {
+        val now = System.currentTimeMillis()
+        if (now - lastBackPressedAtMillis <= EXIT_CONFIRM_WINDOW_MILLIS) {
+            activity?.finishAffinity()
+        } else {
+            lastBackPressedAtMillis = now
+            Toast
+                .makeText(activity, "뒤로가기를 한 번 더 누르시면 종료됩니다.", Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
 }
 
 @Composable
@@ -165,6 +197,7 @@ internal fun HomeContent(
         HomeTopBar(
             showExpandedShadow = sheetAnchor == HomeSheetAnchor.Expanded,
             onBottomPositioned = { topBarBottomPx = it },
+            onMyPageClick = callbacks.onMyPageClick,
             modifier =
                 Modifier
                     .zIndex(1f)
@@ -238,10 +271,12 @@ private fun HomeLoadingOverlay() {
 private fun HomeTopBar(
     showExpandedShadow: Boolean,
     onBottomPositioned: (Float) -> Unit,
+    onMyPageClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
         HilitLogoTopBar(
+            onRightClick = onMyPageClick,
             modifier =
                 Modifier.onGloballyPositioned { coordinates ->
                     onBottomPositioned(coordinates.positionInRoot().y + coordinates.size.height)
