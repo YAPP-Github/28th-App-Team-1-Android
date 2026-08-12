@@ -134,11 +134,3 @@ private fun FeedbackRequestCardPreview() {
         FeedbackRequestCard(model = PreviewInterviewReport.sampleGuestFeedback, onClick = {})
     }
 }
-
-@Preview(name = "RedFlagNoticeStrip")
-@Composable
-private fun RedFlagNoticeStripPreview() {
-    DarkPreview {
-        RedFlagNoticeStrip(notices = listOf("답변 사이에 사실관계가 엇갈린 지점이 있었어요."))
-    }
-}
