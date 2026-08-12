@@ -41,6 +41,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
@@ -183,6 +186,18 @@ private fun PlayerReady(
         startSec?.let { player.seekTo((it * MS_PER_SECOND).toLong()) }
         player.playWhenReady = true
     }
+    // 화면/앱이 백그라운드로 가도(GuestFeedbackVideoPlayer 와 같은 패턴) 영상이 계속 재생되지
+    // 않도록 멈춘다. 다시 돌아왔을 때 자동 재생하지 않고 사용자가 직접 재생을 누르게 둔다.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, player) {
+        val lifecycleObserver =
+            LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_STOP) player.pause()
+            }
+        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(lifecycleObserver) }
+    }
+
     var positionMs by remember { mutableLongStateOf(0L) }
     var isPlaying by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) {
