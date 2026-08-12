@@ -128,8 +128,8 @@ object InterviewReportUiMapper {
 
     private fun HighlightTone.toUi(): HighlightUiTone =
         when (this) {
-            HighlightTone.POSITIVE -> HighlightUiTone.POSITIVE
-            HighlightTone.NEGATIVE -> HighlightUiTone.NEGATIVE
+            HighlightTone.GOOD -> HighlightUiTone.POSITIVE
+            HighlightTone.IMPROVE -> HighlightUiTone.NEGATIVE
             HighlightTone.UNKNOWN -> HighlightUiTone.NEUTRAL
         }
 

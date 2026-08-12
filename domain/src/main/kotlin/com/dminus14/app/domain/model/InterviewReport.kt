@@ -75,10 +75,10 @@ data class HighlightSpan(
     val questionIntent: String?,
 )
 
-/** 하이라이트 색 톤. 서버 값과 매핑되며 알 수 없는 값은 [UNKNOWN]. */
+/** 하이라이트 색 톤. 서버 값(`GOOD`/`IMPROVE`)과 매핑되며 알 수 없는 값은 [UNKNOWN]. */
 enum class HighlightTone {
-    POSITIVE,
-    NEGATIVE,
+    GOOD,
+    IMPROVE,
     UNKNOWN,
     ;
 

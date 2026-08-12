@@ -12,9 +12,9 @@ import org.junit.Test
 class InterviewReportDtoTest {
     @Test
     fun `HighlightSpanDto 는 tone 과 reason 을 enum 으로 변환한다`() {
-        val actual = sampleHighlightDto(tone = "POSITIVE", reason = "PROBE_WORTHY").toDomain()
+        val actual = sampleHighlightDto(tone = "GOOD", reason = "PROBE_WORTHY").toDomain()
 
-        assertEquals(HighlightTone.POSITIVE, actual.tone)
+        assertEquals(HighlightTone.GOOD, actual.tone)
         assertEquals(HighlightReason.PROBE_WORTHY, actual.reason)
     }
 

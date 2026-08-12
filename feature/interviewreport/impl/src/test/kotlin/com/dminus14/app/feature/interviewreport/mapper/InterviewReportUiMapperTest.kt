@@ -106,7 +106,7 @@ class InterviewReportUiMapperTest {
             HighlightSpan(
                 startIndex = 3,
                 endIndex = 500,
-                tone = HighlightTone.POSITIVE,
+                tone = HighlightTone.GOOD,
                 reason = HighlightReason.SUFFICIENT,
                 title = "충분함",
                 analysis = "잘 답하셨어요.",
