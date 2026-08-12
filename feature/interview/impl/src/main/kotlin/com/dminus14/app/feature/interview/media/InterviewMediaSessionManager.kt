@@ -4,6 +4,11 @@ import com.dminus14.app.domain.model.InterviewMediaFileRef
 import com.dminus14.app.domain.model.InterviewMediaSegment
 import com.dminus14.app.domain.model.InterviewMediaSegmentType
 import com.dminus14.app.domain.usecase.CreateInterviewMediaSegmentUseCase
+import com.dminus14.app.domain.usecase.DeleteInterviewMediaFileUseCase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class InterviewMediaSessionManager
@@ -13,10 +18,12 @@ class InterviewMediaSessionManager
         private val speechDetector: InterviewSpeechDetector,
         private val transformer: InterviewMediaTransformer,
         private val createSegment: CreateInterviewMediaSegmentUseCase,
+        private val deleteMediaFile: DeleteInterviewMediaFileUseCase,
         private val mediaFileResolver: InterviewMediaFileResolver,
     ) {
         private var activeSegment: InterviewMediaSegment? = null
         private var listener: Listener? = null
+        private val cleanupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
         @Suppress("LongParameterList")
         suspend fun startSegment(
@@ -46,6 +53,7 @@ class InterviewMediaSessionManager
                 ) { event -> handleRecordingEvent(sessionId, event) }
             }.onFailure { error ->
                 activeSegment = null
+                deleteMediaFile(segment.mediaRef)
                 throw error
             }
         }
@@ -99,7 +107,11 @@ class InterviewMediaSessionManager
                 }
 
                 is InterviewRecordingEvent.Failed -> {
+                    val segment = activeSegment
                     activeSegment = null
+                    if (segment != null) {
+                        cleanupScope.launch { deleteMediaFile(segment.mediaRef) }
+                    }
                     listener?.onFailure(event.cause)
                 }
             }

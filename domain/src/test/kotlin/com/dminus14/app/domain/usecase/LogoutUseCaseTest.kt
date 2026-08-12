@@ -76,6 +76,23 @@ class LogoutUseCaseTest {
         assertEquals(1, interviewRepository.clearAllCallCount)
     }
 
+    @Test
+    fun `면접 로컬 정리가 실패해도 인증 세션은 삭제되고 로그아웃은 성공한다`() {
+        val authRepository = FakeAuthRepository(logoutResult = Result.success(Unit))
+        val sessionRepository = FakeSessionRepository()
+        val workController =
+            NoOpInterviewWorkController(cancelAllFailure = IllegalStateException("정리 실패"))
+        val clearInterviewLocalData =
+            ClearInterviewLocalDataUseCase(NoOpInterviewLocalRepository(), workController)
+        val useCase = LogoutUseCase(authRepository, sessionRepository, clearInterviewLocalData)
+
+        val actual = runBlocking { useCase() }
+
+        assertTrue(actual.isSuccess)
+        assertEquals(1, workController.cancelAllCallCount)
+        assertEquals(1, sessionRepository.clearCallCount)
+    }
+
     private class NoOpInterviewLocalRepository : InterviewLocalRepository {
         var clearAllCallCount = 0
             private set
@@ -130,7 +147,9 @@ class LogoutUseCaseTest {
         override suspend fun setCleanupPending(isPending: Boolean) = Unit
     }
 
-    private class NoOpInterviewWorkController : InterviewWorkController {
+    private class NoOpInterviewWorkController(
+        private val cancelAllFailure: Throwable? = null,
+    ) : InterviewWorkController {
         var cancelAllCallCount = 0
             private set
 
@@ -147,6 +166,7 @@ class LogoutUseCaseTest {
 
         override suspend fun cancelAll() {
             cancelAllCallCount += 1
+            cancelAllFailure?.let { throw it }
         }
     }
 

@@ -48,8 +48,8 @@ class InterviewVideoUploadWorker
         override suspend fun doWork(): Result {
             val uploadTaskId = inputData.getString(KEY_UPLOAD_TASK_ID) ?: return Result.failure()
             var task = getTask(uploadTaskId) ?: return Result.success()
-            runCatching { setForeground(notification.create()) }
             return runCatching {
+                setForeground(notification.create())
                 if (task.status == InterviewUploadTaskStatus.PENDING_MERGE) {
                     task = merge(task)
                 }

@@ -22,11 +22,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class UserUseCaseTest {
-    private fun newClearInterviewLocalData() =
-        ClearInterviewLocalDataUseCase(
-            NoOpInterviewLocalRepository(),
-            NoOpInterviewWorkController(),
-        )
+    private fun newClearInterviewLocalData(
+        workController: NoOpInterviewWorkController = NoOpInterviewWorkController(),
+    ) = ClearInterviewLocalDataUseCase(NoOpInterviewLocalRepository(), workController)
 
     @Test
     fun `프로필 조회는 저장소 결과를 그대로 반환한다`() =
@@ -127,6 +125,28 @@ class UserUseCaseTest {
             val result = useCase()
 
             assertSame(failure, result.exceptionOrNull())
+            assertEquals(listOf("withdraw", "clearSession"), calls)
+        }
+
+    @Test
+    fun `면접 로컬 정리가 실패해도 인증 세션은 삭제되고 탈퇴는 성공한다`() =
+        runTest {
+            val calls = mutableListOf<String>()
+            val userRepository = FakeUserRepository(calls = calls)
+            val sessionRepository = FakeSessionRepository(calls = calls)
+            val workController =
+                NoOpInterviewWorkController(cancelAllFailure = IllegalStateException("정리 실패"))
+            val useCase =
+                WithdrawUserUseCase(
+                    userRepository,
+                    sessionRepository,
+                    newClearInterviewLocalData(workController),
+                )
+
+            val result = useCase()
+
+            assertTrue(result.isSuccess)
+            assertEquals(1, workController.cancelAllCallCount)
             assertEquals(listOf("withdraw", "clearSession"), calls)
         }
 
@@ -253,7 +273,12 @@ class UserUseCaseTest {
         override suspend fun setCleanupPending(isPending: Boolean) = Unit
     }
 
-    private class NoOpInterviewWorkController : InterviewWorkController {
+    private class NoOpInterviewWorkController(
+        private val cancelAllFailure: Throwable? = null,
+    ) : InterviewWorkController {
+        var cancelAllCallCount = 0
+            private set
+
         override suspend fun enqueueUpload(
             uploadTaskId: String,
             networkPolicy: InterviewUploadNetworkPolicy,
@@ -265,6 +290,9 @@ class UserUseCaseTest {
 
         override suspend fun cancelUpload(uploadTaskId: String) = Unit
 
-        override suspend fun cancelAll() = Unit
+        override suspend fun cancelAll() {
+            cancelAllCallCount += 1
+            cancelAllFailure?.let { throw it }
+        }
     }
 }

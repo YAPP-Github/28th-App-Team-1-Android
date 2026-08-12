@@ -39,6 +39,7 @@ import com.dminus14.app.feature.interview.interview.layer.InterviewScreenOngoing
 import com.dminus14.app.feature.interview.interview.layer.InterviewScreenPrepareLayer
 import com.dminus14.designsystem.theme.HilitTheme
 import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.CancellationException
 
 @Composable
 fun InterviewScreen(
@@ -284,7 +285,8 @@ fun InterviewScreen(
                             effect.networkPolicy,
                         )
                     }.onSuccess { viewModel.onIntent(InterviewIntent.ReportVideoUploadEnqueued) }
-                        .onFailure {
+                        .onFailure { error ->
+                            if (error is CancellationException) throw error
                             viewModel.onIntent(
                                 InterviewIntent.ReportVideoUploadEnqueueFailure,
                             )

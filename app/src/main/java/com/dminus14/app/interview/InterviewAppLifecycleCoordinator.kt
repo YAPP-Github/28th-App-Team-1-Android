@@ -9,6 +9,7 @@ import com.dminus14.app.domain.usecase.GetPendingInterviewUploadGlobalEventUseCa
 import com.dminus14.app.domain.usecase.RecoverRetryableInterviewUploadsUseCase
 import com.dminus14.app.domain.usecase.RetryPendingInterviewCleanupUseCase
 import com.dminus14.app.domain.usecase.ScheduleInterviewRetentionCleanupUseCase
+import com.dminus14.app.domain.util.runCatchingCancellable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -35,11 +36,11 @@ class InterviewAppLifecycleCoordinator
         fun onForeground() {
             scope.launch {
                 foregroundMutex.withLock {
-                    runCatching { retryPendingCleanup() }
-                    runCatching { cleanupExpiredData() }
-                    runCatching { recoverRetryableUploads() }
-                    runCatching { scheduleRetentionCleanup() }
-                    runCatching {
+                    runCatchingCancellable { retryPendingCleanup() }
+                    runCatchingCancellable { cleanupExpiredData() }
+                    runCatchingCancellable { recoverRetryableUploads() }
+                    runCatchingCancellable { scheduleRetentionCleanup() }
+                    runCatchingCancellable {
                         getPendingGlobalEvent()?.let { pending ->
                             val event =
                                 when (pending.errorType) {
@@ -59,6 +60,6 @@ class InterviewAppLifecycleCoordinator
         }
 
         fun acknowledge(deliveryId: String) {
-            scope.launch { runCatching { acknowledgeGlobalEvent(deliveryId) } }
+            scope.launch { runCatchingCancellable { acknowledgeGlobalEvent(deliveryId) } }
         }
     }
