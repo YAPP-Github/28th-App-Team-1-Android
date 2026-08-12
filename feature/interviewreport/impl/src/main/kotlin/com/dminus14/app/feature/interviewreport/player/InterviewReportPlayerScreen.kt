@@ -3,6 +3,7 @@ package com.dminus14.app.feature.interviewreport.player
 import android.view.SurfaceView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,6 +59,9 @@ private val TRANSCRIPT_OVERLAY_MAX_HEIGHT = 420.dp
 
 /** 대본 오버레이 하단과 SegmentedProgressBar 사이 간격 (Figma 443:7941). */
 private val TRANSCRIPT_OVERLAY_PROGRESS_BAR_GAP = 44.dp
+
+/** 재생 컨트롤이 떠 있을 때 영상 위에 깔리는 dim 알파 (Figma 443:7852: hilit opacity/dark/65%). */
+private const val VIDEO_CONTROL_DIM_ALPHA = 0.65f
 
 /**
  * 영상 플레이어 화면 (Figma Node: 443:7804 / 443:7877 / 443:7902 / 443:7972).
@@ -180,6 +184,12 @@ private fun PlayerReady(
         mutableStateOf<PlayerHighlightRefUiModel?>(null)
     }
 
+    // 재생/일시정지·스킵 컨트롤은 기본적으로 숨겨져 있다가 영상을 탭하면 나오고, 다시 탭하면
+    // 사라진다(기획: 항상 노출 아님). 컨트롤이 떠 있는 동안은 대본 오버레이를 자동으로 숨기고,
+    // 컨트롤이 사라지면 transcriptVisible 값 자체는 건드리지 않았으므로 그대로 복원된다.
+    var controlsVisible by remember { mutableStateOf(false) }
+    val transcriptOverlayVisible = transcriptVisible && !controlsVisible
+
     Box(Modifier.fillMaxSize()) {
         if (!url.isNullOrBlank()) {
             AndroidView(
@@ -196,6 +206,27 @@ private fun PlayerReady(
             }
         }
 
+        // 영상 탭 감지 전용 레이어. 상단바·컨트롤·하단바처럼 자기 clickable 을 가진 요소가
+        // 위에 그려지므로, 그 요소들과 겹치지 않는 자리를 탭했을 때만 이 레이어가 반응한다.
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                    ) { controlsVisible = !controlsVisible },
+        )
+
+        if (controlsVisible) {
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = VIDEO_CONTROL_DIM_ALPHA)),
+            )
+        }
+
         HilitIcon(
             asset = HilitIconAsset.Cancel,
             contentDescription = "닫기",
@@ -207,7 +238,7 @@ private fun PlayerReady(
                     .clickable { onIntent(InterviewReportPlayerIntent.ClickClose) },
         )
 
-        if (!transcriptVisible) {
+        if (controlsVisible) {
             PlayerControls(
                 isPlaying = isPlaying,
                 onTogglePlay = {
@@ -232,7 +263,7 @@ private fun PlayerReady(
         // 위쪽 Spacer(weight=1f) 가 남는 공간을 전부 먹어서 이 Column 자체는 화면 아래에 붙는다.
         Column(modifier = Modifier.fillMaxSize()) {
             Spacer(modifier = Modifier.weight(1f))
-            if (transcriptVisible) {
+            if (transcriptOverlayVisible) {
                 TranscriptOverlay(
                     scriptLines = content.scriptLines,
                     positionMs = positionMs,
