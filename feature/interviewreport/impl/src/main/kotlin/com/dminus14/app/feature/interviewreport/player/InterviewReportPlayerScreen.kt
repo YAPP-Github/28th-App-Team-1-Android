@@ -233,6 +233,10 @@ private fun PlayerReady(
     var selectedHighlightRef by remember {
         mutableStateOf<PlayerHighlightRefUiModel?>(null)
     }
+    // 하이라이트 시트를 열기 전 재생 중이었는지 기억해뒀다가, 닫을 때 그때만 다시 재생한다.
+    // 무조건 player.play() 하면 사용자가 직접 일시정지해둔 뒤 하이라이트를 탭한 경우에도
+    // 영상이 제멋대로 다시 재생된다.
+    var resumePlaybackOnHighlightDismiss by remember { mutableStateOf(false) }
 
     // 재생/일시정지·스킵 컨트롤은 기본적으로 숨겨져 있다가 영상을 탭하면 나오고, 다시 탭하면
     // 사라진다(기획: 항상 노출 아님). 컨트롤이 떠 있는 동안은 대본 오버레이를 자동으로 숨기고,
@@ -331,6 +335,7 @@ private fun PlayerReady(
                     scriptLines = content.scriptLines,
                     positionMsState = positionMsState,
                     onHighlightClick = { ref ->
+                        resumePlaybackOnHighlightDismiss = player.isPlaying
                         selectedHighlightRef = ref
                         player.pause()
                     },
@@ -373,7 +378,7 @@ private fun PlayerReady(
             showWatchSceneButton = false,
             onDismiss = {
                 selectedHighlightRef = null
-                player.play()
+                if (resumePlaybackOnHighlightDismiss) player.play()
             },
             onWatchScene = {},
         )
