@@ -24,6 +24,7 @@ import javax.inject.Inject
 private const val COPIED_NOTICE_DURATION_MS = 2000L
 
 @HiltViewModel
+@Suppress("TooManyFunctions")
 class GuestFeedbackRequestViewModel
     @Inject
     constructor(
