@@ -208,6 +208,41 @@ class GuestFeedbackRequestViewModelTest {
         }
 
     @Test
+    fun `서버에 이미 활성 링크가 있고 로컬에 실제 token 이 남아있으면 그 token 으로 링크를 복구한다`() =
+        runTest {
+            // 생성 API 는 충돌 시 기존 token 을 돌려주지 않는다. 이 기기에 이전에 저장해둔 실제
+            // token 이 남아있으면, 방금 생성에 성공한 것과 동일하게 링크를 다시 만들어 보여준다.
+            val localRepository = FakeFeedbackShareLocalRepository(mapOf(7L to "already-saved"))
+            val dynamicLinkRepository = FakeDynamicLinkRepository()
+            val repository =
+                FakeFeedbackShareRepository(
+                    createFailure =
+                        FeedbackShareAlreadyExistsException(
+                            errCode = "FEEDBACK_SHARE_ALREADY_EXISTS",
+                            message = "이미 피드백 요청 링크가 있어요.",
+                        ),
+                )
+            val viewModel =
+                viewModel(
+                    repository = repository,
+                    localRepository = localRepository,
+                    dynamicLinkRepository = dynamicLinkRepository,
+                )
+            viewModel.bindSessionId(7L)
+
+            viewModel.onIntent(GuestFeedbackRequestIntent.ClickSubmit)
+            advanceUntilIdle()
+
+            assertEquals("hilit://feedback/already-saved", dynamicLinkRepository.requestedDeepLink)
+            assertEquals(
+                "https://short.link/hilit://feedback/already-saved",
+                viewModel.state.value.shareLink,
+            )
+            assertFalse(viewModel.state.value.submitting)
+            assertTrue(viewModel.state.value.hasActiveShare)
+        }
+
+    @Test
     fun `면접 세션을 찾을 수 없으면 안내 후 리포트로 돌아간다`() =
         runTest {
             val repository =
