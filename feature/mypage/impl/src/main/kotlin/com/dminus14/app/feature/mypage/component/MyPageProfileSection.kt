@@ -36,7 +36,7 @@ import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-@Suppress("LongMethod", "LongParameterList")
+@Suppress("LongMethod", "LongParameterList", "UnusedParameter")
 internal fun MyPageProfileSection(
     profile: MyPageProfileUiModel?,
     remainingTicketCount: Int?,
