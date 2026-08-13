@@ -46,7 +46,7 @@ fun InterviewScreen(
     modifier: Modifier = Modifier,
     onNavigateHome: () -> Unit = {},
     onNavigateError: (InterviewErrorType) -> Unit = {},
-    onInterviewEnded: (InterviewCompletionReason) -> Unit = {},
+    onInterviewEnded: (InterviewCompletionReason, Long) -> Unit = { _, _ -> },
     viewModel: InterviewViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -304,7 +304,7 @@ fun InterviewScreen(
                 }
 
                 is InterviewEffect.InterviewEnded -> {
-                    onInterviewEnded(effect.reason)
+                    onInterviewEnded(effect.reason, effect.sessionId)
                 }
             }
         }
