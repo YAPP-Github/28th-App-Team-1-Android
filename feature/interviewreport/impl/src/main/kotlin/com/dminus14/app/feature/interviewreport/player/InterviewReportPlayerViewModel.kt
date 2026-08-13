@@ -57,7 +57,13 @@ class InterviewReportPlayerViewModel
         }
 
         private fun load() {
-            if (sessionId <= 0L) return
+            if (sessionId <= 0L) {
+                // 초기 phase 가 Loading 이라, 여기서 조용히 빠져나가면 잘못된 route 인자로 진입한
+                // 사용자가 인디케이터만 보는 화면에 갇힌다(닫기 아이콘은 PlayerReady 안에만 있어
+                // 시스템 백 외에는 나갈 수단이 없음). Failed 로 보내 탭으로 닫을 수 있게 한다.
+                reduce { copy(phase = InterviewReportPlayerState.Phase.Failed) }
+                return
+            }
             reduce { copy(phase = InterviewReportPlayerState.Phase.Loading) }
             viewModelScope.launch {
                 getInterviewReport(sessionId)
