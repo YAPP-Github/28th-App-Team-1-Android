@@ -40,6 +40,7 @@ import com.dminus14.app.domain.usecase.GetInterviewSessionUseCase
 import com.dminus14.app.domain.usecase.GetPortfolioOverviewUseCase
 import com.dminus14.app.domain.usecase.GetPortfolioStatusUseCase
 import com.dminus14.app.domain.usecase.MakeInterviewSessionUseCase
+import com.dminus14.app.domain.usecase.SaveInterviewSessionProgressUseCase
 import com.dminus14.app.domain.usecase.UploadPortfolioUseCase
 import com.dminus14.app.domain.usecase.ValidateJdUrlUseCase
 import io.mockk.every
@@ -1201,6 +1202,11 @@ class OnBoardingInterviewViewModelTest {
             validateJdUrl = ValidateJdUrlUseCase(interviewRepository),
             makeInterviewSession = MakeInterviewSessionUseCase(interviewRepository),
             getInterviewSession = GetInterviewSessionUseCase(interviewRepository),
+            saveInterviewSessionProgress =
+                SaveInterviewSessionProgressUseCase(
+                    repository = mockk(relaxed = true),
+                    clock = mockk(relaxed = true),
+                ),
         )
 
     /** validatePdf(Android 프레임워크 의존)와 Uri.fromFile을 가짜 값으로 대체한다. */

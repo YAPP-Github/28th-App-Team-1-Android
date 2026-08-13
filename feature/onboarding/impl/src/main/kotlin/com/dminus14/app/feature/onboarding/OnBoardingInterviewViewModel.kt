@@ -19,6 +19,7 @@ import com.dminus14.app.domain.usecase.GetInterviewSessionUseCase
 import com.dminus14.app.domain.usecase.GetPortfolioOverviewUseCase
 import com.dminus14.app.domain.usecase.GetPortfolioStatusUseCase
 import com.dminus14.app.domain.usecase.MakeInterviewSessionUseCase
+import com.dminus14.app.domain.usecase.SaveInterviewSessionProgressUseCase
 import com.dminus14.app.domain.usecase.UploadPortfolioUseCase
 import com.dminus14.app.domain.usecase.ValidateJdUrlUseCase
 import com.dminus14.app.feature.onboarding.OnBoardingInterviewViewModel.Companion.JD_DEBOUNCE_MS
@@ -46,6 +47,7 @@ class OnBoardingInterviewViewModel
         private val validateJdUrl: ValidateJdUrlUseCase,
         private val makeInterviewSession: MakeInterviewSessionUseCase,
         private val getInterviewSession: GetInterviewSessionUseCase,
+        private val saveInterviewSessionProgress: SaveInterviewSessionProgressUseCase,
     ) : MviViewModel<
             OnBoardingInterviewIntent,
             OnBoardingInterviewState,
@@ -636,6 +638,9 @@ class OnBoardingInterviewViewModel
                     )
                 makeInterviewSession(request)
                     .onSuccess { result ->
+                        // Interview 화면은 sessionId를 nav 인자가 아니라 로컬 InterviewProgress에서
+                        // 조회하므로, 폴링을 시작하기 전에 먼저 저장해 두어야 한다.
+                        saveInterviewSessionProgress(result.sessionId)
                         reduce {
                             copy(
                                 loadingBasicInfo = OnBoardingLoadingStepStatus.Completed,
