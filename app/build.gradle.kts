@@ -28,6 +28,7 @@ val localProperties =
     }
 
 val kakaoNativeAppKey = localProperties.getProperty("KAKAO_NATIVE_APP_KEY").orEmpty()
+val chottuLinkApiKey = localProperties.getProperty("CHOTTULINK_API_KEY").orEmpty()
 
 android {
     buildFeatures {
@@ -37,11 +38,13 @@ android {
     defaultConfig {
         buildConfigField("String", "KAKAO_NATIVE_APP_KEY", "\"$kakaoNativeAppKey\"")
         manifestPlaceholders["KAKAO_NATIVE_APP_KEY"] = kakaoNativeAppKey
+        buildConfigField("String", "CHOTTULINK_API_KEY", "\"$chottuLinkApiKey\"")
     }
 }
 
 dependencies {
     implementation(libs.kakao.v2.common)
+    implementation(libs.chottulink.android.sdk)
     implementation(project(":data"))
     implementation(project(":domain"))
     implementation(project(":feature:login:impl"))
@@ -53,6 +56,7 @@ dependencies {
     implementation(project(":feature:mypage:impl"))
     implementation(project(":feature:onboarding:impl"))
     implementation(project(":feature:interview:impl"))
+    implementation(project(":feature:interviewreport:impl"))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

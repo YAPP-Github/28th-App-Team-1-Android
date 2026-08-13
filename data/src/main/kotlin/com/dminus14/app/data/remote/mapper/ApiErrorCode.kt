@@ -4,9 +4,13 @@ import com.dminus14.app.data.remote.mapper.ApiErrorCode.APP_VERSION_POLICY_NOT_F
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.CONSENT_VERSION_MISMATCH
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.DELETE_LIMIT_EXCEEDED
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.DOCUMENT_NOT_FOUND
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.EMPTY_ATTITUDE_AXES
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.FEEDBACK_SHARE_ALREADY_EXISTS
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.FEEDBACK_SHARE_NOT_FOUND
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.FILE_TOO_LARGE
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.FREETEXT_NOT_RELEVANT
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.INTERVIEW_SESSION_NOT_FOUND
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_ATTITUDE_AXIS
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_CONSENT_ITEM
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_CREDENTIAL
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_FILE_TYPE
@@ -16,6 +20,7 @@ import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_JD_URL
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_JOB_ROLE
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_PDF_FILE
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_PLATFORM
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_SHARE_STATUS
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_TOKEN
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.INVALID_VERSION_FORMAT
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.JD_CONTENT_NOT_FOUND
@@ -39,6 +44,7 @@ import com.dminus14.app.data.remote.mapper.ApiErrorCode.SOCIAL_LOGIN_FAILED
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.SOCIAL_RECONNECT_REQUIRED
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.SOCIAL_UNLINK_FAILED
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.TOKEN_EXPIRED
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.TOO_MANY_ATTITUDE_AXES
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.UNKNOWN
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.USER_NOT_FOUND
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.USER_PROFILE_NOT_REGISTERED
@@ -67,6 +73,9 @@ import com.dminus14.app.data.remote.mapper.ApiErrorCode.VALIDATION_ERROR
  *   [PORTFOLIO_PROCESSING], [PORTFOLIO_UPLOAD_FAILED]
  * - Interview session create API 403: [NO_REMAINING_TICKET]
  * - Interview session create/status API 404: [PORTFOLIO_NOT_FOUND], [INTERVIEW_SESSION_NOT_FOUND]
+ * - Feedback share 생성 API(POST) 400/404/409: [EMPTY_ATTITUDE_AXES], [TOO_MANY_ATTITUDE_AXES],
+ *   [INVALID_ATTITUDE_AXIS], [INTERVIEW_SESSION_NOT_FOUND], [FEEDBACK_SHARE_ALREADY_EXISTS]
+ * - Feedback share 종료 API(PATCH) 400/404: [INVALID_SHARE_STATUS], [FEEDBACK_SHARE_NOT_FOUND]
  * - 앱 버전 확인 API 400: [INVALID_PLATFORM], [INVALID_VERSION_FORMAT]
  * - 앱 버전 확인 API 404: [APP_VERSION_POLICY_NOT_FOUND] (사용자가 대응할 수 없는 서버 설정
  *   누락이므로 ServerError로 격상해 처리한다)
@@ -89,6 +98,14 @@ internal object ApiErrorCode {
     const val FEEDBACK_SHARE_CLOSED = "FEEDBACK_SHARE_CLOSED"
     const val FEEDBACK_CAPACITY_FULL = "FEEDBACK_CAPACITY_FULL"
     const val FEEDBACK_ALREADY_SUBMITTED = "FEEDBACK_ALREADY_SUBMITTED"
+
+    // Feedback share 생성(POST)/종료(PATCH) API — 호스트(본인) 전용.
+    const val EMPTY_ATTITUDE_AXES = "EMPTY_ATTITUDE_AXES"
+    const val TOO_MANY_ATTITUDE_AXES = "TOO_MANY_ATTITUDE_AXES"
+    const val INVALID_ATTITUDE_AXIS = "INVALID_ATTITUDE_AXIS"
+    const val FEEDBACK_SHARE_ALREADY_EXISTS = "FEEDBACK_SHARE_ALREADY_EXISTS"
+    const val FEEDBACK_SHARE_NOT_FOUND = "FEEDBACK_SHARE_NOT_FOUND"
+    const val INVALID_SHARE_STATUS = "INVALID_SHARE_STATUS"
 
     const val USER_NOT_FOUND = "USER_NOT_FOUND"
     const val INVALID_JOB_ROLE = "INVALID_JOB_ROLE"

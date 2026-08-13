@@ -1,6 +1,7 @@
 package com.dminus14.app.data.remote.datasource
 
 import com.dminus14.app.data.remote.dto.interview.CreateInterviewSessionRequestDto
+import com.dminus14.app.data.remote.dto.interview.FeedbackShareCreateResponseDto
 import com.dminus14.app.data.remote.dto.interview.InterviewAbandonRequestDto
 import com.dminus14.app.data.remote.dto.interview.InterviewAbandonResponseDto
 import com.dminus14.app.data.remote.dto.interview.InterviewReportListResponseDto
@@ -67,4 +68,11 @@ interface InterviewRemoteDataSource {
     )
 
     suspend fun getExpiry(sessionId: Long): InterviewVideoExpiryResponseDto
+
+    suspend fun createFeedbackShare(
+        sessionId: Long,
+        axes: List<String>,
+    ): FeedbackShareCreateResponseDto
+
+    suspend fun closeFeedbackShare(sessionId: Long)
 }

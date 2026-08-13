@@ -159,23 +159,35 @@ class FeedbackOnboardingViewModel
                         )
                     }
 
-                    is NetworkUnavailableException -> {
-                        session.clear()
-                        GlobalErrorHandler.emit(GlobalAppEvent.ShowNetworkErrorAndExit)
-                    }
-
-                    is ServerException -> {
-                        session.clear()
-                        GlobalErrorHandler.emit(GlobalAppEvent.ShowServerErrorAndExit)
-                    }
-
                     else -> {
-                        GlobalErrorHandler.emit(GlobalAppEvent.ShowUnknownError)
-                        showBlockingModal(
-                            title = "오류가 발생했어요",
-                            message = "앱을 종료한 뒤 링크를 다시 열어주세요.",
-                        )
+                        if (error is NetworkUnavailableException || error is ServerException) {
+                            session.clear()
+                        }
+                        handleCommonError(error)
+                        if (error !is NetworkUnavailableException && error !is ServerException) {
+                            showBlockingModal(
+                                title = "오류가 발생했어요",
+                                message = "앱을 종료한 뒤 링크를 다시 열어주세요.",
+                            )
+                        }
                     }
+                }
+            }
+        }
+
+        // 아래 에러 처리 사항은 임시입니다. 공통 처리 기획자 문의 모든 ViewModel 일괄 수정 예정
+        private suspend fun handleCommonError(error: Throwable) {
+            when {
+                error is NetworkUnavailableException -> {
+                    GlobalErrorHandler.emit(GlobalAppEvent.ShowNetworkErrorAndExit)
+                }
+
+                error is ServerException -> {
+                    GlobalErrorHandler.emit(GlobalAppEvent.ShowServerErrorAndExit)
+                }
+
+                else -> {
+                    GlobalErrorHandler.emit(GlobalAppEvent.ShowUnknownError)
                 }
             }
         }

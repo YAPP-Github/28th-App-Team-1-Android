@@ -2,6 +2,9 @@ package com.dminus14.app.data.remote.api
 
 import com.dminus14.app.data.remote.dto.ApiResponseDto
 import com.dminus14.app.data.remote.dto.interview.CreateInterviewSessionRequestDto
+import com.dminus14.app.data.remote.dto.interview.FeedbackShareCloseRequestDto
+import com.dminus14.app.data.remote.dto.interview.FeedbackShareCreateRequestDto
+import com.dminus14.app.data.remote.dto.interview.FeedbackShareCreateResponseDto
 import com.dminus14.app.data.remote.dto.interview.InterviewAbandonRequestDto
 import com.dminus14.app.data.remote.dto.interview.InterviewAbandonResponseDto
 import com.dminus14.app.data.remote.dto.interview.InterviewReportListResponseDto
@@ -21,6 +24,7 @@ import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Multipart
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
@@ -116,4 +120,17 @@ interface InterviewApi {
     suspend fun getExpiry(
         @Path("sessionId") sessionId: Long,
     ): ApiResponseDto<InterviewVideoExpiryResponseDto>
+
+    @POST("api/v1/feedback/sessions/{sessionId}/share")
+    suspend fun createFeedbackShare(
+        @Path("sessionId") sessionId: Long,
+        @Body request: FeedbackShareCreateRequestDto,
+    ): ApiResponseDto<FeedbackShareCreateResponseDto>
+
+    /** 공유 링크를 비공개로 전환해 지인 피드백 요청을 종료한다. 되돌릴 수 없다(feedback.md). */
+    @PATCH("api/v1/feedback/sessions/{sessionId}/share")
+    suspend fun closeFeedbackShare(
+        @Path("sessionId") sessionId: Long,
+        @Body request: FeedbackShareCloseRequestDto,
+    ): ApiResponseDto<Unit>
 }

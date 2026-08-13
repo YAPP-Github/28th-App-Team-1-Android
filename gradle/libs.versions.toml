@@ -40,6 +40,9 @@ datastore = "1.2.1"
 # Kakao
 kakao = "2.24.0"
 
+# ChottuLink
+chottulink = "1.2.0"
+
 # DI
 javax-inject = "1"
 
@@ -121,6 +124,7 @@ androidx-datastore-preferences = { group = "androidx.datastore", name = "datasto
 # Kakao
 kakao-v2-common = { group = "com.kakao.sdk", name = "v2-common", version.ref = "kakao" }
 kakao-v2-user = { group = "com.kakao.sdk", name = "v2-user", version.ref = "kakao" }
+chottulink-android-sdk = { group = "com.chottulink", name = "android-sdk", version.ref = "chottulink" }
 
 # DI
 javax-inject = { group = "javax.inject", name = "javax.inject", version.ref = "javax-inject" }
