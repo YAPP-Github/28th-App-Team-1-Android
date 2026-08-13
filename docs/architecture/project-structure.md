@@ -25,8 +25,6 @@ Navigation 상태와 동작은 [`navigation.md`](navigation.md), Convention Plug
 :app
 :domain
 :data
-:feature:main:api
-:feature:main:impl
 :feature:login:api
 :feature:login:impl
 :feature:feedback:api

@@ -4,6 +4,8 @@ import com.dminus14.app.feature.home.api.Home
 import com.dminus14.app.feature.interview.api.InterviewErrorRoute
 import com.dminus14.app.feature.interview.api.InterviewErrorType
 import com.dminus14.app.feature.interview.api.InterviewRoute
+import com.dminus14.app.feature.interview.interview.InterviewCompletionReason
+import com.dminus14.app.feature.interviewreport.api.InterviewReport
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -29,12 +31,32 @@ class InterviewNavigationModuleTest {
     }
 
     @Test
-    fun `면접 종료 결과 수신만으로는 route를 변경하지 않는다`() {
+    fun `면접이 정상 종료되면 홈으로 교체한 뒤 리포트를 push한다`() {
         val navigator = Navigator(InterviewRoute)
-        val onInterviewEnded = {}
+        val onInterviewEnded = { reason: InterviewCompletionReason, sessionId: Long ->
+            navigator.replaceAll(Home)
+            if (reason == InterviewCompletionReason.COMPLETED) {
+                navigator.goTo(InterviewReport(sessionId = sessionId))
+            }
+        }
 
-        onInterviewEnded()
+        onInterviewEnded(InterviewCompletionReason.COMPLETED, 1L)
 
-        assertEquals(listOf(InterviewRoute), navigator.backStack)
+        assertEquals(listOf(Home, InterviewReport(sessionId = 1L)), navigator.backStack)
+    }
+
+    @Test
+    fun `면접이 중도 이탈로 종료되면 홈으로만 교체한다`() {
+        val navigator = Navigator(InterviewRoute)
+        val onInterviewEnded = { reason: InterviewCompletionReason, sessionId: Long ->
+            navigator.replaceAll(Home)
+            if (reason == InterviewCompletionReason.COMPLETED) {
+                navigator.goTo(InterviewReport(sessionId = sessionId))
+            }
+        }
+
+        onInterviewEnded(InterviewCompletionReason.ABANDONED, 1L)
+
+        assertEquals(listOf(Home), navigator.backStack)
     }
 }

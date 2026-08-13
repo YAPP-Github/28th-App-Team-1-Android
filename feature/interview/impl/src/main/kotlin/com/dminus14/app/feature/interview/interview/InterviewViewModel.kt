@@ -803,14 +803,17 @@ class InterviewViewModel
          * 첫 질문 시작 전에는 서버 정리 API가 없어 로컬 상태만 제거한다.
          * 서버의 보류 만료·환불 처리와 상태가 어긋날 수 있으므로 정리 API가 생기면 교체해야 한다.
          */
-        private fun clearBeforeFirstQuestion(
-            completionEffect: InterviewEffect =
-                InterviewEffect.InterviewEnded(InterviewCompletionReason.ABANDONED),
-        ) {
+        private fun clearBeforeFirstQuestion(completionEffect: InterviewEffect? = null) {
             val sessionId = state.value.sessionId ?: return
             viewModelScope.launch {
                 deleteSession(sessionId)
-                sendEffect(completionEffect)
+                sendEffect(
+                    completionEffect
+                        ?: InterviewEffect.InterviewEnded(
+                            InterviewCompletionReason.ABANDONED,
+                            sessionId,
+                        ),
+                )
             }
         }
 
@@ -865,11 +868,12 @@ class InterviewViewModel
 
         private fun completeInterview() {
             timerJob?.cancel()
+            val sessionId = state.value.sessionId ?: return
             if (state.value.reportGenerating) {
                 reduce { copy(isUploadHandoffInProgress = true) }
                 sendEffect(InterviewEffect.RequestUploadNotificationPermission)
             } else {
-                sendEffect(InterviewEffect.InterviewEnded(completionReason))
+                sendEffect(InterviewEffect.InterviewEnded(completionReason, sessionId))
             }
         }
 
@@ -880,13 +884,14 @@ class InterviewViewModel
         }
 
         private fun finishUploadHandoff() {
+            val sessionId = state.value.sessionId ?: return
             reduce {
                 copy(
                     isUploadHandoffInProgress = false,
                     isUploadEnqueued = true,
                 )
             }
-            sendEffect(InterviewEffect.InterviewEnded(completionReason))
+            sendEffect(InterviewEffect.InterviewEnded(completionReason, sessionId))
         }
 
         private fun onBackgrounded() {

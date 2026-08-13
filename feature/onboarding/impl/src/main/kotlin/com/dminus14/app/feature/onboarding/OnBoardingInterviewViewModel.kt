@@ -7,6 +7,7 @@ import com.dminus14.app.core.common.mvi.MviViewModel
 import com.dminus14.app.core.common.pdf.PdfInvalidReason
 import com.dminus14.app.core.common.pdf.PdfValidationResult
 import com.dminus14.app.core.common.pdf.validatePdf
+import com.dminus14.app.domain.exception.AccountSuspendedException
 import com.dminus14.app.domain.exception.FreeTextNotRelevantException
 import com.dminus14.app.domain.exception.JdValidationLimitExceededException
 import com.dminus14.app.domain.model.InterviewSessionRequest
@@ -656,33 +657,48 @@ class OnBoardingInterviewViewModel
          *   그 외 실패는 기존과 동일하게 상단 에러 메시지로 노출한다.
          */
         private fun handleSessionCreateFailure(error: Throwable) {
-            if (error !is FreeTextNotRelevantException) {
-                reduce {
-                    copy(
-                        errorMessage = error.message,
-                        loadingBasicInfo = OnBoardingLoadingStepStatus.Waiting,
-                        loadingJd = OnBoardingLoadingStepStatus.Waiting,
-                        loadingPortfolio = OnBoardingLoadingStepStatus.Waiting,
-                    )
+            when (error) {
+                // 게이트1(계정 정지): 인라인 에러가 아니라 전용 안내 화면으로 보낸다.
+                is AccountSuspendedException -> {
+                    reduce {
+                        copy(
+                            loadingBasicInfo = OnBoardingLoadingStepStatus.Waiting,
+                            loadingJd = OnBoardingLoadingStepStatus.Waiting,
+                            loadingPortfolio = OnBoardingLoadingStepStatus.Waiting,
+                        )
+                    }
+                    sendEffect(OnBoardingInterviewEffect.NavigateToSuspensionNotice)
                 }
-                return
-            }
 
-            val nextCount = state.value.mainProjectRelevanceFailCount + 1
-            // 4회째부터는 이스케이프 다이얼로그를 함께 띄운다.
-            // 두 브랜치의 나머지 필드가 동일해서 showRelevanceFailDialog 한 값만 계산해 통합한다.
-            val showEscape = nextCount >= RELEVANCE_FAIL_ESCAPE_THRESHOLD
-            reduce {
-                copy(
-                    step = OnBoardingInterviewStep.MainProject,
-                    showRelevanceFailDialog = showEscape,
-                    mainProjectRelevanceFailCount = nextCount,
-                    mainProjectError = MESSAGE_FREETEXT_NOT_RELEVANT,
-                    loadingBasicInfo = OnBoardingLoadingStepStatus.Waiting,
-                    loadingJd = OnBoardingLoadingStepStatus.Waiting,
-                    loadingPortfolio = OnBoardingLoadingStepStatus.Waiting,
-                    errorMessage = null,
-                )
+                is FreeTextNotRelevantException -> {
+                    val nextCount = state.value.mainProjectRelevanceFailCount + 1
+                    // 4회째부터는 이스케이프 다이얼로그를 함께 띄운다.
+                    // 두 브랜치의 나머지 필드가 동일해서 showRelevanceFailDialog 한 값만 계산해 통합한다.
+                    val showEscape = nextCount >= RELEVANCE_FAIL_ESCAPE_THRESHOLD
+                    reduce {
+                        copy(
+                            step = OnBoardingInterviewStep.MainProject,
+                            showRelevanceFailDialog = showEscape,
+                            mainProjectRelevanceFailCount = nextCount,
+                            mainProjectError = MESSAGE_FREETEXT_NOT_RELEVANT,
+                            loadingBasicInfo = OnBoardingLoadingStepStatus.Waiting,
+                            loadingJd = OnBoardingLoadingStepStatus.Waiting,
+                            loadingPortfolio = OnBoardingLoadingStepStatus.Waiting,
+                            errorMessage = null,
+                        )
+                    }
+                }
+
+                else -> {
+                    reduce {
+                        copy(
+                            errorMessage = error.message,
+                            loadingBasicInfo = OnBoardingLoadingStepStatus.Waiting,
+                            loadingJd = OnBoardingLoadingStepStatus.Waiting,
+                            loadingPortfolio = OnBoardingLoadingStepStatus.Waiting,
+                        )
+                    }
+                }
             }
         }
 

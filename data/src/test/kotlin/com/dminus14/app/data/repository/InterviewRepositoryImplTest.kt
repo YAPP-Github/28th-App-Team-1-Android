@@ -18,6 +18,7 @@ import com.dminus14.app.data.remote.dto.interview.InterviewVideoUploadUrlRespons
 import com.dminus14.app.data.remote.dto.interview.JdValidateResponseDto
 import com.dminus14.app.data.remote.dto.interview.SubmitAnswerResponseDto
 import com.dminus14.app.data.remote.mapper.ApiErrorCode
+import com.dminus14.app.domain.exception.AccountSuspendedException
 import com.dminus14.app.domain.exception.CustomException
 import com.dminus14.app.domain.exception.FreeTextNotRelevantException
 import com.dminus14.app.domain.exception.InterviewSessionNotFoundException
@@ -257,6 +258,7 @@ class InterviewRepositoryImplTest {
                 ApiErrorCode.PORTFOLIO_PROCESSING to PortfolioProcessingException::class.java,
                 ApiErrorCode.PORTFOLIO_UPLOAD_FAILED to PortfolioUploadFailedException::class.java,
                 ApiErrorCode.NO_REMAINING_TICKET to NoRemainingTicketException::class.java,
+                ApiErrorCode.ACCOUNT_SUSPENDED to AccountSuspendedException::class.java,
             )
 
         cases.forEach { (code, expectedType) ->

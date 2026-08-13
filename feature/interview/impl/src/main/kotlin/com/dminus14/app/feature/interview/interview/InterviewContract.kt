@@ -259,5 +259,6 @@ sealed interface InterviewEffect : MviEffect {
 
     data class InterviewEnded(
         val reason: InterviewCompletionReason,
+        val sessionId: Long,
     ) : InterviewEffect
 }

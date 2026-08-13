@@ -12,6 +12,7 @@ dependencies {
     api(project(":feature:login:api"))
     api(project(":feature:onboarding:api"))
     api(project(":feature:interviewreport:api"))
+    api(project(":feature:interview:api"))
 
     implementation(project(":core:common"))
     implementation(project(":designsystem"))

@@ -52,7 +52,6 @@ dependencies {
     implementation(project(":feature:feedback:impl"))
     implementation(project(":core:common"))
     implementation(project(":designsystem"))
-    implementation(project(":feature:main:impl"))
     implementation(project(":feature:mypage:impl"))
     implementation(project(":feature:onboarding:impl"))
     implementation(project(":feature:interview:impl"))
