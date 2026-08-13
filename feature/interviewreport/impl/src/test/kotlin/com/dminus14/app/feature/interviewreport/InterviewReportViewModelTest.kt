@@ -97,6 +97,35 @@ class InterviewReportViewModelTest {
         }
 
     @Test
+    fun `status UNKNOWN 응답은 Loading 이 아니라 Failed 로 전이한다`() =
+        runTest {
+            // ObserveInterviewReportUseCase 는 GENERATING 이 아니면(UNKNOWN 포함) 폴링을 멈추고
+            // flow 를 종료하므로, UNKNOWN 을 Loading 으로 매핑하면 다음 emit 이 오지 않아 스피너에
+            // 영구 고착된다.
+            val unknown = readyReport().copy(status = InterviewReportStatus.UNKNOWN)
+            val viewModel = viewModel(FakeInterviewRepository(listOf(unknown)))
+
+            viewModel.bindSessionId(1L)
+            viewModel.onIntent(InterviewReportIntent.Load)
+            advanceUntilIdle()
+
+            assertEquals(Phase.Failed, viewModel.state.value.phase)
+        }
+
+    @Test
+    fun `sessionId 가 바인딩되지 않았으면 Loading 이 아니라 Failed 로 전이한다`() =
+        runTest {
+            // bindSessionId 를 호출하지 않아 sessionId 가 기본값(0L)인 상태. 초기 phase 가
+            // Loading 이라 load() 가 조용히 리턴하면 스피너에 영구 고착된다.
+            val viewModel = viewModel(FakeInterviewRepository(listOf(readyReport())))
+
+            viewModel.onIntent(InterviewReportIntent.Load)
+            advanceUntilIdle()
+
+            assertEquals(Phase.Failed, viewModel.state.value.phase)
+        }
+
+    @Test
     fun `하이라이트 선택 후 해제하면 selectedHighlight 가 초기화된다`() =
         runTest {
             val viewModel = viewModel(FakeInterviewRepository(listOf(readyReport())))
