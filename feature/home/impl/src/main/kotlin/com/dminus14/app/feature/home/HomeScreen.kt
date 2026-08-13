@@ -48,6 +48,7 @@ import com.dminus14.app.feature.login.api.Onboarding
 import com.dminus14.app.feature.login.api.Splash
 import com.dminus14.app.feature.mypage.MyPage
 import com.dminus14.app.feature.onboarding.api.OnBoardingInterview
+import com.dminus14.designsystem.component.text.GradientText
 import com.dminus14.designsystem.component.topbar.HilitLogoTopBar
 import com.dminus14.designsystem.theme.HilitTheme
 import org.jetbrains.compose.resources.painterResource
@@ -314,10 +315,8 @@ private fun HomeHeroSection(userName: String) {
                 .padding(horizontal = HeroHorizontalPadding)
                 .padding(top = GreetingTopSpacing),
     ) {
-        Text(
+        GradientText(
             text = "오랜만이에요\n${userName}님!",
-            style = HilitTheme.typography.head1,
-            color = HilitTheme.colors.hilitBlack800,
         )
         Text(
             text = "밑으로 스크롤해서 면접을 시작해 보세요!",
