@@ -35,26 +35,33 @@ internal fun TranscriptWithHighlights(
     val colors = HilitTheme.colors
     val annotated =
         buildAnnotatedString {
+            val textLength = card.transcript.length
             var cursor = 0
             card.highlights
                 .withIndex()
                 .sortedBy { (_, span) -> span.startIndex }
                 .forEach { (index, span) ->
-                    if (span.startIndex >= cursor) {
-                        if (span.startIndex > cursor) {
-                            append(card.transcript.substring(cursor, span.startIndex))
+                    // span.startIndex/endIndex 는 서버 응답 값이라 transcript 길이를 넘거나
+                    // start > end 로 어긋날 수 있다. HighlightDetailBottomSheet 의 safeSlice 와
+                    // 같은 방식으로 클램프해 substring 의 StringIndexOutOfBoundsException(리포트
+                    // 화면 전체 크래시)을 막는다.
+                    val start = span.startIndex.coerceIn(0, textLength)
+                    val end = span.endIndex.coerceIn(start, textLength)
+                    if (start >= cursor && end > start) {
+                        if (start > cursor) {
+                            append(card.transcript.safeSlice(cursor, start))
                         }
                         val style = span.tone.toSpanStyle(colors)
                         pushStringAnnotation(HIGHLIGHT_ANNOTATION_TAG, index.toString())
                         withStyle(style) {
-                            append(card.transcript.substring(span.startIndex, span.endIndex))
+                            append(card.transcript.safeSlice(start, end))
                         }
                         pop()
-                        cursor = span.endIndex
+                        cursor = end
                     }
                 }
-            if (cursor < card.transcript.length) {
-                append(card.transcript.substring(cursor))
+            if (cursor < textLength) {
+                append(card.transcript.safeSlice(cursor, textLength))
             }
         }
 

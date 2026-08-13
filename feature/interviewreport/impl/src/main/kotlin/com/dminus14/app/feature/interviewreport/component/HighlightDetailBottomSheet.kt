@@ -333,7 +333,8 @@ private fun HighlightUiTone.toAnalyzeIconAsset(): HilitIconAsset =
         HighlightUiTone.NEUTRAL -> HilitIconAsset.AiSparkle
     }
 
-private fun String.safeSlice(
+/** [TranscriptWithHighlights] 도 같은 클램프로 인덱스 밖 크래시를 막기 위해 재사용한다. */
+internal fun String.safeSlice(
     start: Int,
     end: Int,
 ): String {
