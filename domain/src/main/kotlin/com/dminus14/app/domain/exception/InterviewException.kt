@@ -70,6 +70,13 @@ class NoRemainingTicketException(
     cause: Throwable? = null,
 ) : CustomException(errCode = errCode, message = message, cause = cause)
 
+/** 어뷰징 탐지로 면접 시작이 제한된 경우다 (`ACCOUNT_SUSPENDED`). */
+class AccountSuspendedException(
+    errCode: String,
+    message: String,
+    cause: Throwable? = null,
+) : CustomException(errCode = errCode, message = message, cause = cause)
+
 /** 요청한 면접 세션을 찾지 못한 경우다 (`INTERVIEW_SESSION_NOT_FOUND`). */
 class InterviewSessionNotFoundException(
     errCode: String,

@@ -22,8 +22,13 @@ sealed interface HomeIntent : MviIntent {
     data object ReportSheetCollapsed : HomeIntent
 
     /**
-     * 세션 시작 오버레이의 시작 계열 버튼(시작하기·처음부터 시작).
-     * 잔여 이용권에 따라 온보딩 인터뷰로 이동하거나 소진(NoTickets) 오버레이를 띄운다.
+     * 세션 시작 오버레이의 시작 계열 버튼. 현재 [HomeState.sessionStartOverlay]에 따라 동작이
+     * 갈린다.
+     * - `Start`(또는 오버레이 없음): 잔여 이용권에 따라 온보딩 인터뷰로 이동하거나 소진(NoTickets)
+     *   오버레이를 띄운다.
+     * - `InProgress`의 "처음부터 시작": 곧장 시작하지 않고 `ConfirmRestart` 재확인 오버레이로 넘어간다.
+     * - `ConfirmRestart`의 "처음부터 시작"(최종 확정): 기존 진행 중 세션을 중단(abandon)한 뒤
+     *   온보딩 인터뷰로 이동한다.
      */
     data object ClickSessionStart : HomeIntent
 
@@ -33,7 +38,7 @@ sealed interface HomeIntent : MviIntent {
      */
     data object ClickSessionOverlayDismiss : HomeIntent
 
-    /** 진행 중 면접 "이어서 진행". 후속 구현: 재개 플로우 연동 대기. */
+    /** 진행 중 면접 "이어서 진행". Interview 화면으로 이동하면 그 화면이 재개를 이어받는다. */
     data object ClickSessionResume : HomeIntent
 }
 
@@ -74,6 +79,9 @@ sealed interface HomeEffect : MviEffect {
     /** 면접 시작을 위해 온보딩 인터뷰 화면으로 이동해야 함을 알린다. */
     data object GoToOnboardingInterviewRequested : HomeEffect
 
+    /** 진행 중 면접을 이어서 진행하기 위해 Interview 화면으로 이동해야 함을 알린다. */
+    data object GoToInterviewRequested : HomeEffect
+
     /** 세션 오버레이를 닫은 뒤 리포트 시트를 중간(Peek)으로 되돌려야 함을 알린다. */
     data object ReportSheetResetRequested : HomeEffect
 
@@ -94,6 +102,7 @@ data class HomeContentCallbacks(
     val onSessionStartClick: () -> Unit = {},
     val onSessionOverlayDismiss: () -> Unit = {},
     val onSessionResumeClick: () -> Unit = {},
+    val onMyPageClick: () -> Unit = {},
     val peekResetSignal: Int = 0,
 )
 

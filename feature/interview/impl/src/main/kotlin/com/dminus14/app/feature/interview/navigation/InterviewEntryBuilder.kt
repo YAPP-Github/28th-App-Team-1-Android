@@ -11,7 +11,7 @@ fun EntryProviderScope<Any>.interviewEntryBuilder(
     onNavigateHome: () -> Unit,
     onNavigateError: (com.dminus14.app.feature.interview.api.InterviewErrorType) -> Unit,
     onResumeInterview: () -> Unit,
-    onInterviewEnded: (InterviewCompletionReason) -> Unit,
+    onInterviewEnded: (InterviewCompletionReason, Long) -> Unit,
     onSttAcknowledged: () -> Unit,
 ) {
     entry<InterviewRoute> {

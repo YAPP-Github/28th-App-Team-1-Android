@@ -2,10 +2,12 @@ package com.dminus14.app.feature.home
 
 import com.dminus14.app.core.common.event.GlobalAppEvent
 import com.dminus14.app.core.common.event.GlobalErrorHandler
+import com.dminus14.app.domain.exception.InterviewSessionAlreadyEndedException
 import com.dminus14.app.domain.exception.NetworkUnavailableException
 import com.dminus14.app.domain.exception.ServerException
 import com.dminus14.app.domain.exception.UserNotFoundException
 import com.dminus14.app.domain.model.InterviewAbandon
+import com.dminus14.app.domain.model.InterviewAbandonCause
 import com.dminus14.app.domain.model.InterviewAbandonRequestCause
 import com.dminus14.app.domain.model.InterviewProgress
 import com.dminus14.app.domain.model.InterviewReport
@@ -18,6 +20,8 @@ import com.dminus14.app.domain.model.InterviewResumeStatus
 import com.dminus14.app.domain.model.InterviewSessionRequest
 import com.dminus14.app.domain.model.InterviewSessionResult
 import com.dminus14.app.domain.model.InterviewSessionStatus
+import com.dminus14.app.domain.model.InterviewTerminalStatus
+import com.dminus14.app.domain.model.InterviewTicketOutcome
 import com.dminus14.app.domain.model.InterviewVideoExpiry
 import com.dminus14.app.domain.model.InterviewVideoUploadUrl
 import com.dminus14.app.domain.model.JdValidationResult
@@ -29,10 +33,15 @@ import com.dminus14.app.domain.model.UserProfileUpdate
 import com.dminus14.app.domain.repository.InterviewLocalRepository
 import com.dminus14.app.domain.repository.InterviewRepository
 import com.dminus14.app.domain.repository.UserRepository
+import com.dminus14.app.domain.time.InterviewClock
+import com.dminus14.app.domain.time.InterviewTimeCalculator
+import com.dminus14.app.domain.usecase.AbandonInterviewUseCase
 import com.dminus14.app.domain.usecase.CheckUserProfileUseCase
+import com.dminus14.app.domain.usecase.GetInterviewElapsedTimeUseCase
 import com.dminus14.app.domain.usecase.GetInterviewProgressUseCase
 import com.dminus14.app.domain.usecase.GetInterviewReportListUseCase
 import com.dminus14.app.domain.usecase.GetInterviewResumeUseCase
+import com.dminus14.app.domain.usecase.RetainInterviewSessionForCleanupUseCase
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -569,7 +578,8 @@ class HomeViewModelTest {
             val overlay = viewModel.state.value.sessionStartOverlay
             assertTrue(overlay is HomeSessionStartOverlayState.InProgress)
             assertEquals("홍길동", (overlay as HomeSessionStartOverlayState.InProgress).userName)
-            assertEquals(2, overlay.remainingQuestionCount)
+            // sampleProgress는 타이머 필드가 전부 null이라 elapsed=0, remaining=12분 -> 규칙상 4개.
+            assertEquals(4, overlay.remainingQuestionCount)
             assertEquals(listOf(777L), interviewRepo.resumeSessionIds)
         }
 
@@ -856,24 +866,205 @@ class HomeViewModelTest {
             globalJob.cancel()
         }
 
-    // ---- ClickSessionResume (현재 no-op) ----
+    // ---- ClickSessionResume (이어서 진행) ----
 
     @Test
-    fun `ClickSessionResume은 현재 no-op이라 State와 Effect가 변하지 않는다`() =
+    fun `ClickSessionResume은 GoToInterviewRequested를 발행하고 오버레이를 닫는다`() =
         runViewModelTest {
             val viewModel = createViewModel()
             viewModel.onIntent(HomeIntent.Load)
             advanceUntilIdle()
-            val before = viewModel.state.value
             val effects = mutableListOf<HomeEffect>()
             val job = launch { viewModel.effect.collect(effects::add) }
 
             viewModel.onIntent(HomeIntent.ClickSessionResume)
             advanceUntilIdle()
 
-            assertEquals(before, viewModel.state.value)
-            assertTrue(effects.isEmpty())
+            assertTrue(effects.contains(HomeEffect.GoToInterviewRequested))
+            assertNull(viewModel.state.value.sessionStartOverlay)
             job.cancel()
+        }
+
+    // ---- ClickSessionStart 남은 시간 -> 남은 질문 개수 규칙 ----
+
+    @Test
+    fun `InProgress 오버레이의 남은 질문 개수는 남은 시간 규칙대로 계산된다`() =
+        runViewModelTest {
+            val cases =
+                listOf(
+                    720_000L to 4, // 갓 진입, 12분 그대로 남음
+                    421_000L to 4, // 7분 초과
+                    420_000L to 3, // 7분 경계(포함)
+                    300_000L to 3, // 5분 경계(포함)
+                    299_000L to 2, // 5분 미만
+                    180_000L to 2, // 3분 경계(포함)
+                    179_000L to 1, // 3분 미만
+                    0L to 1, // 하드캡 도달
+                )
+
+            cases.forEach { (remainingMillis, expected) ->
+                val elapsedMillis = InterviewTimeCalculator.HARD_CAP_MILLIS - remainingMillis
+                val interviewRepo =
+                    FakeInterviewRepository(
+                        resumeResult = Result.success(resumeStatus(InterviewResumeState.Resumable)),
+                    )
+                val viewModel =
+                    createViewModel(
+                        interviewRepository = interviewRepo,
+                        progress =
+                            progressWithElapsed(
+                                sessionId = 1L,
+                                elapsedMillis = elapsedMillis,
+                            ),
+                    )
+                viewModel.onIntent(HomeIntent.Load)
+                advanceUntilIdle()
+
+                viewModel.onIntent(HomeIntent.ReportSheetCollapsed)
+                advanceUntilIdle()
+
+                val overlay = viewModel.state.value.sessionStartOverlay
+                assertTrue(overlay is HomeSessionStartOverlayState.InProgress)
+                assertEquals(
+                    expected,
+                    (overlay as HomeSessionStartOverlayState.InProgress).remainingQuestionCount,
+                )
+            }
+        }
+
+    // ---- ClickSessionStart - "처음부터 시작" 확인 단계 + 세션 중단 ----
+
+    @Test
+    fun `InProgress에서 ClickSessionStart는 확인 오버레이로만 전환하고 중단 API를 호출하지 않는다`() =
+        runViewModelTest {
+            val interviewRepo =
+                FakeInterviewRepository(
+                    resumeResult = Result.success(resumeStatus(InterviewResumeState.Resumable)),
+                )
+            val viewModel =
+                createViewModel(
+                    interviewRepository = interviewRepo,
+                    progress = sampleProgress(sessionId = 777L),
+                )
+            viewModel.onIntent(HomeIntent.Load)
+            advanceUntilIdle()
+            viewModel.onIntent(HomeIntent.ReportSheetCollapsed)
+            advanceUntilIdle()
+            val overlayBeforeClick = viewModel.state.value.sessionStartOverlay
+            check(overlayBeforeClick is HomeSessionStartOverlayState.InProgress)
+
+            viewModel.onIntent(HomeIntent.ClickSessionStart)
+
+            assertEquals(
+                HomeSessionStartOverlayState.ConfirmRestart,
+                viewModel.state.value.sessionStartOverlay,
+            )
+            assertTrue(interviewRepo.abandonCalls.isEmpty())
+        }
+
+    @Test
+    fun `ConfirmRestart에서 ClickSessionStart는 기존 세션을 중단하고 온보딩으로 이동한다`() =
+        runViewModelTest {
+            val interviewRepo =
+                FakeInterviewRepository(
+                    resumeResult = Result.success(resumeStatus(InterviewResumeState.Resumable)),
+                    abandonResult = Result.success(sampleAbandon(sessionId = 777L)),
+                )
+            val viewModel =
+                createViewModel(
+                    interviewRepository = interviewRepo,
+                    progress = sampleProgress(sessionId = 777L),
+                )
+            viewModel.onIntent(HomeIntent.Load)
+            advanceUntilIdle()
+            viewModel.onIntent(HomeIntent.ReportSheetCollapsed)
+            advanceUntilIdle()
+            viewModel.onIntent(HomeIntent.ClickSessionStart) // InProgress -> ConfirmRestart
+            val effects = mutableListOf<HomeEffect>()
+            val job = launch { viewModel.effect.collect(effects::add) }
+
+            viewModel.onIntent(HomeIntent.ClickSessionStart) // ConfirmRestart 확정
+            advanceUntilIdle()
+
+            assertEquals(
+                listOf(777L to InterviewAbandonRequestCause.UserExit),
+                interviewRepo.abandonCalls,
+            )
+            assertNull(viewModel.state.value.sessionStartOverlay)
+            assertFalse(viewModel.state.value.isLoading)
+            assertTrue(effects.contains(HomeEffect.GoToOnboardingInterviewRequested))
+            job.cancel()
+        }
+
+    @Test
+    fun `이미 종료된 세션의 중단 확정은 중복 성공으로 보고 온보딩으로 이동한다`() =
+        runViewModelTest {
+            val interviewRepo =
+                FakeInterviewRepository(
+                    resumeResult = Result.success(resumeStatus(InterviewResumeState.Resumable)),
+                    abandonResult =
+                        Result.failure(
+                            InterviewSessionAlreadyEndedException(
+                                errCode = "SESSION_ALREADY_ENDED",
+                                message = "이미 종료된 세션이에요.",
+                            ),
+                        ),
+                )
+            val viewModel =
+                createViewModel(
+                    interviewRepository = interviewRepo,
+                    progress = sampleProgress(sessionId = 777L),
+                )
+            viewModel.onIntent(HomeIntent.Load)
+            advanceUntilIdle()
+            viewModel.onIntent(HomeIntent.ReportSheetCollapsed)
+            advanceUntilIdle()
+            viewModel.onIntent(HomeIntent.ClickSessionStart)
+            val effects = mutableListOf<HomeEffect>()
+            val job = launch { viewModel.effect.collect(effects::add) }
+
+            viewModel.onIntent(HomeIntent.ClickSessionStart)
+            advanceUntilIdle()
+
+            assertTrue(effects.contains(HomeEffect.GoToOnboardingInterviewRequested))
+            assertNull(viewModel.state.value.sessionStartOverlay)
+            job.cancel()
+        }
+
+    @Test
+    fun `중단 확정이 실패하면 전역 오류로 처리되고 온보딩으로 이동하지 않는다`() =
+        runViewModelTest {
+            val interviewRepo =
+                FakeInterviewRepository(
+                    resumeResult = Result.success(resumeStatus(InterviewResumeState.Resumable)),
+                    abandonResult = Result.failure(IllegalStateException("중단 실패")),
+                )
+            val viewModel =
+                createViewModel(
+                    interviewRepository = interviewRepo,
+                    progress = sampleProgress(sessionId = 777L),
+                )
+            viewModel.onIntent(HomeIntent.Load)
+            advanceUntilIdle()
+            viewModel.onIntent(HomeIntent.ReportSheetCollapsed)
+            advanceUntilIdle()
+            viewModel.onIntent(HomeIntent.ClickSessionStart)
+            val effects = mutableListOf<HomeEffect>()
+            val globalEvents = mutableListOf<GlobalAppEvent>()
+            val effectJob = launch { viewModel.effect.collect(effects::add) }
+            val globalJob =
+                launch(start = CoroutineStart.UNDISPATCHED) {
+                    GlobalErrorHandler.events.collect { globalEvents.add(it.event) }
+                }
+
+            viewModel.onIntent(HomeIntent.ClickSessionStart)
+            advanceUntilIdle()
+
+            assertTrue(effects.none { it is HomeEffect.GoToOnboardingInterviewRequested })
+            assertEquals(GlobalAppEvent.ShowUnknownError, globalEvents.firstOrNull())
+            assertFalse(viewModel.state.value.isLoading)
+            effectJob.cancel()
+            globalJob.cancel()
         }
 
     // ---- 테스트 유틸 ----
@@ -893,16 +1084,29 @@ class HomeViewModelTest {
         userRepository: UserRepository = FakeUserRepository(),
         interviewRepository: InterviewRepository = FakeInterviewRepository(),
         progress: InterviewProgress? = null,
-    ): HomeViewModel =
-        HomeViewModel(
+    ): HomeViewModel {
+        val localRepository = FakeInterviewLocalRepository(progress = progress)
+        val clock = FakeInterviewClock()
+        val calculator = InterviewTimeCalculator()
+        return HomeViewModel(
             checkUserProfileUseCase = CheckUserProfileUseCase(userRepository),
             getInterviewReportListUseCase = GetInterviewReportListUseCase(interviewRepository),
             getInterviewResumeUseCase = GetInterviewResumeUseCase(interviewRepository),
-            getInterviewProgressUseCase =
-                GetInterviewProgressUseCase(
-                    FakeInterviewLocalRepository(progress = progress),
-                ),
+            getInterviewProgressUseCase = GetInterviewProgressUseCase(localRepository),
+            getInterviewElapsedTimeUseCase =
+                GetInterviewElapsedTimeUseCase(localRepository, clock, calculator),
+            abandonInterviewUseCase = AbandonInterviewUseCase(interviewRepository),
+            retainInterviewSessionForCleanupUseCase =
+                RetainInterviewSessionForCleanupUseCase(localRepository),
         )
+    }
+
+    /** [InterviewTimeCalculator]가 항상 같은 시각을 기준으로 delta 0을 계산하게 하는 고정 시계. */
+    private class FakeInterviewClock : InterviewClock {
+        override fun currentEpochMillis(): Long = FIXED_NOW_MILLIS
+
+        override fun elapsedRealtimeMillis(): Long = FIXED_NOW_MILLIS
+    }
 
     private fun reportItem(id: Long): InterviewReportListItem =
         InterviewReportListItem(
@@ -939,6 +1143,9 @@ class HomeViewModelTest {
                 remainingTicketCount = 3,
             )
 
+        /** [FakeInterviewClock]과 짝을 맞춰 항상 delta 0(=계산된 elapsed 그대로)이 나오는 시각. */
+        const val FIXED_NOW_MILLIS = 1_000_000_000L
+
         fun sampleProgress(sessionId: Long): InterviewProgress =
             InterviewProgress(
                 sessionId = sessionId,
@@ -949,6 +1156,30 @@ class HomeViewModelTest {
                 elapsedAtCheckpointMillis = null,
                 checkpointedAtEpochMillis = null,
                 elapsedCheckpointElapsedRealtimeMillis = null,
+            )
+
+        /**
+         * [FakeInterviewClock]의 고정 시각을 체크포인트로 써서, [GetInterviewElapsedTimeUseCase]가
+         * 정확히 [elapsedMillis]를 반환하도록 만든 진행 상태.
+         */
+        fun progressWithElapsed(
+            sessionId: Long,
+            elapsedMillis: Long,
+        ): InterviewProgress =
+            sampleProgress(sessionId).copy(
+                elapsedAtCheckpointMillis = elapsedMillis,
+                checkpointedAtEpochMillis = FIXED_NOW_MILLIS,
+                elapsedCheckpointElapsedRealtimeMillis = FIXED_NOW_MILLIS,
+            )
+
+        fun sampleAbandon(sessionId: Long): InterviewAbandon =
+            InterviewAbandon(
+                sessionId = sessionId,
+                status = InterviewTerminalStatus.Abandoned,
+                abandonCause = InterviewAbandonCause.UserExit,
+                endedAt = "2026-08-12T00:00:00",
+                ticketOutcome = InterviewTicketOutcome.Committed,
+                reportGenerating = false,
             )
     }
 
@@ -972,10 +1203,12 @@ class HomeViewModelTest {
         private val reportListResult: Result<InterviewReportList> =
             Result.success(InterviewReportList(reports = emptyList())),
         private val resumeResult: Result<InterviewResumeStatus>? = null,
+        private val abandonResult: Result<InterviewAbandon>? = null,
     ) : InterviewRepository {
         var getReportListCallCount = 0
             private set
         val resumeSessionIds = mutableListOf<Long>()
+        val abandonCalls = mutableListOf<Pair<Long, InterviewAbandonRequestCause>>()
 
         override suspend fun validateJdUrl(jdUrl: String): JdValidationResult = error("사용하지 않음")
 
@@ -1016,7 +1249,10 @@ class HomeViewModelTest {
         override suspend fun abandon(
             sessionId: Long,
             cause: InterviewAbandonRequestCause,
-        ): InterviewAbandon = error("사용하지 않음")
+        ): InterviewAbandon {
+            abandonCalls += sessionId to cause
+            return abandonResult?.getOrThrow() ?: error("abandonResult가 세팅되지 않았습니다")
+        }
 
         override suspend fun getReport(sessionId: Long): InterviewReport = error("사용하지 않음")
 
@@ -1045,7 +1281,9 @@ class HomeViewModelTest {
 
         override suspend fun clearProgress() = Unit
 
-        override suspend fun getManifest(sessionId: Long) = error("사용하지 않음")
+        // RetainInterviewSessionForCleanupUseCase가 "매니페스트 없음 -> clearProgress" 분기를
+        // 타도록 null을 반환한다.
+        override suspend fun getManifest(sessionId: Long) = null
 
         override suspend fun getUploadManifest(uploadTaskId: String) = error("사용하지 않음")
 

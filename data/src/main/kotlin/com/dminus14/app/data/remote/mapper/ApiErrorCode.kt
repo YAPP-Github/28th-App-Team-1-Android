@@ -1,5 +1,6 @@
 package com.dminus14.app.data.remote.mapper
 
+import com.dminus14.app.data.remote.mapper.ApiErrorCode.ACCOUNT_SUSPENDED
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.APP_VERSION_POLICY_NOT_FOUND
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.CONSENT_VERSION_MISMATCH
 import com.dminus14.app.data.remote.mapper.ApiErrorCode.DELETE_LIMIT_EXCEEDED
@@ -71,7 +72,7 @@ import com.dminus14.app.data.remote.mapper.ApiErrorCode.VALIDATION_ERROR
  *   [JD_URL_AND_TEXT_BOTH_PROVIDED], [JD_NOT_VALIDATED], [JD_CONTENT_NOT_FOUND],
  *   [INVALID_JD_LENGTH], [INVALID_FREETEXT_LENGTH], [FREETEXT_NOT_RELEVANT],
  *   [PORTFOLIO_PROCESSING], [PORTFOLIO_UPLOAD_FAILED]
- * - Interview session create API 403: [NO_REMAINING_TICKET]
+ * - Interview session create API 403: [ACCOUNT_SUSPENDED], [NO_REMAINING_TICKET]
  * - Interview session create/status API 404: [PORTFOLIO_NOT_FOUND], [INTERVIEW_SESSION_NOT_FOUND]
  * - Feedback share 생성 API(POST) 400/404/409: [EMPTY_ATTITUDE_AXES], [TOO_MANY_ATTITUDE_AXES],
  *   [INVALID_ATTITUDE_AXIS], [INTERVIEW_SESSION_NOT_FOUND], [FEEDBACK_SHARE_ALREADY_EXISTS]
@@ -142,6 +143,7 @@ internal object ApiErrorCode {
     const val PORTFOLIO_UPLOAD_FAILED = "PORTFOLIO_UPLOAD_FAILED"
 
     const val NO_REMAINING_TICKET = "NO_REMAINING_TICKET"
+    const val ACCOUNT_SUSPENDED = "ACCOUNT_SUSPENDED"
     const val INTERVIEW_SESSION_NOT_FOUND = "INTERVIEW_SESSION_NOT_FOUND"
     const val AI_TEMPORARILY_UNAVAILABLE = "AI_TEMPORARILY_UNAVAILABLE"
     const val ANSWER_ALREADY_SUBMITTED = "ANSWER_ALREADY_SUBMITTED"

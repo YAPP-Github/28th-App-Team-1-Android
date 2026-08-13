@@ -10,6 +10,7 @@ import com.dminus14.app.data.remote.dto.interview.InterviewVideoCompleteRequestD
 import com.dminus14.app.data.remote.mapper.ApiErrorCode
 import com.dminus14.app.data.remote.mapper.CommonApiErrorMapper
 import com.dminus14.app.data.remote.uploader.InterviewVideoUploader
+import com.dminus14.app.domain.exception.AccountSuspendedException
 import com.dminus14.app.domain.exception.AiTemporarilyUnavailableException
 import com.dminus14.app.domain.exception.AnswerAlreadySubmittedException
 import com.dminus14.app.domain.exception.CustomException
@@ -394,11 +395,24 @@ class InterviewRepositoryImpl
                     )
                 }
 
+                ApiErrorCode.ACCOUNT_SUSPENDED -> {
+                    accountSuspendedException(httpError, message)
+                }
+
                 else -> {
                     null
                 }
             }
         }
+
+        private fun accountSuspendedException(
+            httpError: HttpException,
+            message: String,
+        ) = AccountSuspendedException(
+            errCode = ApiErrorCode.ACCOUNT_SUSPENDED,
+            message = message.ifBlank { "비정상적인 이용 패턴이 반복 확인되어 면접 시작이 제한되었어요." },
+            cause = httpError,
+        )
 
         override suspend fun uploadVideo(command: UploadInterviewVideoCommand) {
             withContext(Dispatchers.IO) {

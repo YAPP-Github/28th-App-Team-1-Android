@@ -4,22 +4,27 @@ import androidx.lifecycle.viewModelScope
 import com.dminus14.app.core.common.event.GlobalAppEvent
 import com.dminus14.app.core.common.event.GlobalErrorHandler
 import com.dminus14.app.core.common.mvi.MviViewModel
+import com.dminus14.app.domain.exception.InterviewSessionAlreadyEndedException
 import com.dminus14.app.domain.exception.NetworkUnavailableException
 import com.dminus14.app.domain.exception.ServerException
 import com.dminus14.app.domain.exception.UserNotFoundException
+import com.dminus14.app.domain.model.InterviewAbandonRequestCause
 import com.dminus14.app.domain.model.InterviewResumeState
+import com.dminus14.app.domain.time.InterviewTimeCalculator
+import com.dminus14.app.domain.usecase.AbandonInterviewUseCase
 import com.dminus14.app.domain.usecase.CheckUserProfileUseCase
+import com.dminus14.app.domain.usecase.GetInterviewElapsedTimeUseCase
 import com.dminus14.app.domain.usecase.GetInterviewProgressUseCase
 import com.dminus14.app.domain.usecase.GetInterviewReportListUseCase
 import com.dminus14.app.domain.usecase.GetInterviewResumeUseCase
+import com.dminus14.app.domain.usecase.RetainInterviewSessionForCleanupUseCase
 import com.dminus14.app.feature.home.mapper.toHomeReportItem
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-@Suppress("TooManyFunctions")
+@Suppress("TooManyFunctions", "LongParameterList")
 class HomeViewModel
     @Inject
     constructor(
@@ -27,7 +32,14 @@ class HomeViewModel
         private val getInterviewReportListUseCase: GetInterviewReportListUseCase,
         private val getInterviewResumeUseCase: GetInterviewResumeUseCase,
         private val getInterviewProgressUseCase: GetInterviewProgressUseCase,
+        private val getInterviewElapsedTimeUseCase: GetInterviewElapsedTimeUseCase,
+        private val abandonInterviewUseCase: AbandonInterviewUseCase,
+        private val retainInterviewSessionForCleanupUseCase:
+            RetainInterviewSessionForCleanupUseCase,
     ) : MviViewModel<HomeIntent, HomeState, HomeEffect>(HomeState()) {
+        /** [ReportSheetCollapsed]가 마지막으로 조회한 진행 중 세션 id. 재개·재시작 확정에 쓴다. */
+        private var pendingInterviewSessionId: Long? = null
+
         override fun onIntent(intent: HomeIntent) {
             when (intent) {
                 HomeIntent.Load -> {
@@ -60,7 +72,7 @@ class HomeViewModel
                 }
 
                 HomeIntent.ClickSessionStart -> {
-                    startInterview()
+                    onClickSessionStart()
                 }
 
                 HomeIntent.ClickSessionOverlayDismiss -> {
@@ -68,7 +80,55 @@ class HomeViewModel
                 }
 
                 HomeIntent.ClickSessionResume -> {
-                    Unit // 후속 구현: 진행 중 면접 이어서 진행 플로우 연동
+                    sendEffect(HomeEffect.GoToInterviewRequested)
+                    dismissSessionOverlay()
+                }
+            }
+        }
+
+        /**
+         * [HomeIntent.ClickSessionStart]를 현재 오버레이 상태에 따라 분기한다.
+         * `InProgress`의 "처음부터 시작"은 곧장 시작하지 않고 재확인 오버레이로 넘어가고,
+         * `ConfirmRestart`의 최종 확정에서만 실제로 기존 세션을 중단한다.
+         */
+        private fun onClickSessionStart() {
+            when (state.value.sessionStartOverlay) {
+                is HomeSessionStartOverlayState.InProgress -> {
+                    reduce {
+                        copy(
+                            sessionStartOverlay = HomeSessionStartOverlayState.ConfirmRestart,
+                        )
+                    }
+                }
+
+                HomeSessionStartOverlayState.ConfirmRestart -> {
+                    confirmRestart()
+                }
+
+                else -> {
+                    startInterview()
+                }
+            }
+        }
+
+        /**
+         * 진행 중이던 면접을 중단(abandon)한 뒤 새 온보딩 인터뷰로 이동한다.
+         * 이미 서버에서 종료된 세션([InterviewSessionAlreadyEndedException])은 중복 성공으로 본다.
+         */
+        private fun confirmRestart() {
+            val sessionId = pendingInterviewSessionId ?: return
+            if (state.value.isLoading) return
+            reduce { copy(isLoading = true) }
+            viewModelScope.launch {
+                val error =
+                    abandonInterviewUseCase(sessionId, InterviewAbandonRequestCause.UserExit)
+                        .exceptionOrNull()
+                if (error == null || error is InterviewSessionAlreadyEndedException) {
+                    retainInterviewSessionForCleanupUseCase(sessionId)
+                    reduce { copy(isLoading = false, sessionStartOverlay = null) }
+                    sendEffect(HomeEffect.GoToOnboardingInterviewRequested)
+                } else {
+                    handleBootstrapFailure(error)
                 }
             }
         }
@@ -199,11 +259,13 @@ class HomeViewModel
          * 존재하는 세션 아이디가 이어서 진행 가능한 상태인지 조회한다.
          *
          * - [InterviewResumeState.Resumable]: 진행중(InProgress) 오버레이를 띄운다.
-         *   resume 응답에 남은 질문 수 필드가 없어 [TEMP_REMAINING_QUESTION_COUNT] 임시값을 사용한다.
+         *   resume 응답에 남은 질문 수 필드가 없어 [showResumableOverlay]가 로컬 타이머 기준
+         *   규칙으로 환산한다.
          * - [InterviewResumeState.Ended]: 잔여 이용권에 따라 시작(Start)/소진(NoTickets) 분기.
          * - [InterviewResumeState.Unknown]: 오버레이를 띄우지 않는다.
          */
         internal suspend fun getInterviewState(sessionId: Long) {
+            pendingInterviewSessionId = sessionId
             getInterviewResumeUseCase(sessionId)
                 .onSuccess { resume ->
                     when (resume.resumeState) {
@@ -216,18 +278,38 @@ class HomeViewModel
                 }
         }
 
-        /** 재개 가능한 세션이 있을 때 진행중 오버레이를 띄운다. */
-        private fun showResumableOverlay() {
+        /**
+         * 재개 가능한 세션이 있을 때 진행중 오버레이를 띄운다.
+         * 남은 질문 개수는 로컬 타이머의 남은 시간(12분 하드캡 기준)을 규칙 기반으로 환산한다
+         * (서버 응답에 남은 질문 수 필드가 없다).
+         */
+        private suspend fun showResumableOverlay() {
+            val remainingMillis =
+                (InterviewTimeCalculator.HARD_CAP_MILLIS - getInterviewElapsedTimeUseCase())
+                    .coerceAtLeast(0L)
+            val remainingSeconds = remainingMillis / MILLIS_PER_SECOND
             reduce {
                 copy(
                     sessionStartOverlay =
                         HomeSessionStartOverlayState.InProgress(
                             userName = userName,
-                            remainingQuestionCount = TEMP_REMAINING_QUESTION_COUNT,
+                            remainingQuestionCount = remainingQuestionCountFor(remainingSeconds),
                         ),
                 )
             }
         }
+
+        /**
+         * 남은 시간을 남은 질문 개수로 환산하는 규칙.
+         * 3분 미만 1개, 3~5분 미만 2개, 5~7분 3개, 7분 초과 4개.
+         */
+        private fun remainingQuestionCountFor(remainingSeconds: Long): Int =
+            when {
+                remainingSeconds < REMAINING_ONE_QUESTION_THRESHOLD_SECONDS -> ONE_QUESTION
+                remainingSeconds < REMAINING_TWO_QUESTIONS_THRESHOLD_SECONDS -> TWO_QUESTIONS
+                remainingSeconds <= REMAINING_THREE_QUESTIONS_THRESHOLD_SECONDS -> THREE_QUESTIONS
+                else -> FOUR_QUESTIONS
+            }
 
         /**
          * 종료된 세션일 때 잔여 이용권에 따라 세션 시작 오버레이를 분기한다.
@@ -269,6 +351,17 @@ class HomeViewModel
         }
     }
 
-/** resume 응답에 남은 질문 수가 없어 사용하는 임시값.
- * 이후 클라이언트에서 동영상 시간 체크해서 임시로 부여할 것이므로, 필드 확보 후 제거 예정. */
-private const val TEMP_REMAINING_QUESTION_COUNT = 2
+private const val MILLIS_PER_SECOND = 1_000L
+private const val ONE_QUESTION = 1
+private const val TWO_QUESTIONS = 2
+private const val THREE_QUESTIONS = 3
+private const val FOUR_QUESTIONS = 4
+
+/** 남은 시간이 이 값(3분) 미만이면 남은 질문 1개로 표시한다. */
+private const val REMAINING_ONE_QUESTION_THRESHOLD_SECONDS = 180L
+
+/** 남은 시간이 이 값(5분) 미만이면 남은 질문 2개로 표시한다. */
+private const val REMAINING_TWO_QUESTIONS_THRESHOLD_SECONDS = 300L
+
+/** 남은 시간이 이 값(7분) 이하면 남은 질문 3개, 초과면 4개로 표시한다. */
+private const val REMAINING_THREE_QUESTIONS_THRESHOLD_SECONDS = 420L

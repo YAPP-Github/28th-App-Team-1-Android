@@ -429,6 +429,30 @@ class OnboardingViewModelTest {
         }
 
     @Test
+    fun `마지막 연차 옵션을 골라도 서버 허용 범위(0~10) 안의 careerYears가 전송된다`() =
+        runTest {
+            val fakeUserRepository = StubUserRepository()
+            val viewModel =
+                OnboardingViewModel(
+                    getJobList = GetJobListUseCase(fakeUserRepository),
+                    updateUserProfile = UpdateUserProfileUseCase(fakeUserRepository),
+                )
+            viewModel.onIntent(OnboardingIntent.Load)
+            advanceToExperienceSelection(viewModel)
+
+            viewModel.onIntent(
+                OnboardingIntent.ExperienceChange(DefaultExperienceOptions.lastIndex),
+            )
+            viewModel.onIntent(OnboardingIntent.ContinueClick) // -> RegisterDone
+            viewModel.onIntent(OnboardingIntent.ContinueClick) // submitProfile
+            advanceUntilIdle()
+
+            assertEquals(11, DefaultExperienceOptions.size)
+            assertEquals("10년 이상", DefaultExperienceOptions.last())
+            assertEquals(10, fakeUserRepository.lastUpdate?.careerYears)
+        }
+
+    @Test
     fun `RegisterDone에서 PreviousClick하면 ExperienceSelection으로 돌아간다`() {
         val viewModel = createViewModel()
         advanceToRegisterDone(viewModel)
