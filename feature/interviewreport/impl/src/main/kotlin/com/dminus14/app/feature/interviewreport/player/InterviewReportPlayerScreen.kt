@@ -47,6 +47,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.dminus14.app.feature.interviewreport.component.HighlightDetailBottomSheet
 import com.dminus14.app.feature.interviewreport.model.HighlightUiTone
@@ -187,6 +189,20 @@ private fun PlayerReady(
         startSec?.let { player.seekTo((it * MS_PER_SECOND).toLong()) }
         player.playWhenReady = true
     }
+    // ExoPlayer 는 재생 오류(만료된 URL, 403, 네트워크 끊김 등)가 나도 onPlayerError 만 던지고
+    // Compose 상태는 그대로라, 리스너를 안 달면 화면은 계속 Ready 인데 검은 화면만 남아 사용자가
+    // 원인을 알 수 없다. 리포트 화면의 영상 만료 안내와 같은 톤으로 오류 문구를 노출한다.
+    var playbackFailed by remember { mutableStateOf(false) }
+    DisposableEffect(player) {
+        val listener =
+            object : Player.Listener {
+                override fun onPlayerError(error: PlaybackException) {
+                    playbackFailed = true
+                }
+            }
+        player.addListener(listener)
+        onDispose { player.removeListener(listener) }
+    }
     // 화면/앱이 백그라운드로 가도(GuestFeedbackVideoPlayer 와 같은 패턴) 영상이 계속 재생되지
     // 않도록 멈춘다. 다시 돌아왔을 때 자동 재생하지 않고 사용자가 직접 재생을 누르게 둔다.
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -225,7 +241,20 @@ private fun PlayerReady(
     val transcriptOverlayVisible = transcriptVisible && !controlsVisible
 
     Box(Modifier.fillMaxSize()) {
-        if (!url.isNullOrBlank()) {
+        if (playbackFailed) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .clickable { onIntent(InterviewReportPlayerIntent.ClickClose) },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "영상을 재생하지 못했어요. 화면을 눌러 돌아가요.",
+                    style = HilitTheme.typography.body7,
+                    color = colors.gray300,
+                )
+            }
+        } else if (!url.isNullOrBlank()) {
             AndroidView(
                 factory = { ctx -> SurfaceView(ctx).also(player::setVideoSurfaceView) },
                 modifier = Modifier.fillMaxSize(),
