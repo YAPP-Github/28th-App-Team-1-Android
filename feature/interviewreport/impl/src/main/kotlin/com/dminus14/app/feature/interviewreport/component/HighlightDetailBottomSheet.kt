@@ -262,7 +262,7 @@ private fun NextPreparationBlock(highlight: HighlightUiModel) {
         }
 
         HighlightUiReason.SUFFICIENT -> {
-            MiniHintCard(text = "여기는 면접관이 더 캐물 게 없을 만큼 충분히 답하셨어요.")
+            MiniHintCard(text = "여기는 면접관이 더 캐물을 게 없을 만큼 충분히 답하셨어요.")
         }
 
         HighlightUiReason.UNKNOWN -> {
