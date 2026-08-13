@@ -92,16 +92,17 @@ internal fun MyPageProfileSection(
                         }
                     }
                 }
-                HilitIcon(
-                    asset = HilitIconAsset.Edit,
-                    contentDescription = "프로필 편집",
-                    tint = HilitTheme.colors.gray500,
-                    modifier =
-                        Modifier
-                            .size(
-                                16.dp,
-                            ).clickable(role = Role.Button, onClick = onProfileEditClick),
-                )
+                // 2026. 08. 13. 나중에 프로필 편집 UI 생기면 재활성화 필요
+//                HilitIcon(
+//                    asset = HilitIconAsset.Edit,
+//                    contentDescription = "프로필 편집",
+//                    tint = HilitTheme.colors.gray500,
+//                    modifier =
+//                        Modifier
+//                            .size(
+//                                16.dp,
+//                            ).clickable(role = Role.Button, onClick = onProfileEditClick),
+//                )
             }
 
             Box {
