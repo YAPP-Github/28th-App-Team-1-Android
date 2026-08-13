@@ -10,7 +10,10 @@ import androidx.compose.ui.unit.dp
 import com.dminus14.app.core.resources.Res
 import com.dminus14.app.core.resources.ai_sparkle
 import com.dminus14.app.core.resources.alert_red
+import com.dminus14.app.core.resources.analyze_problem
+import com.dminus14.app.core.resources.analyze_success
 import com.dminus14.app.core.resources.apple_logo
+import com.dminus14.app.core.resources.body
 import com.dminus14.app.core.resources.book
 import com.dminus14.app.core.resources.cancel
 import com.dminus14.app.core.resources.checkbox_check
@@ -20,13 +23,17 @@ import com.dminus14.app.core.resources.delete
 import com.dminus14.app.core.resources.down
 import com.dminus14.app.core.resources.edit
 import com.dminus14.app.core.resources.expand
+import com.dminus14.app.core.resources.eyes
+import com.dminus14.app.core.resources.face
 import com.dminus14.app.core.resources.file
 import com.dminus14.app.core.resources.fill_warning
 import com.dminus14.app.core.resources.finish
+import com.dminus14.app.core.resources.hand
 import com.dminus14.app.core.resources.hiiii_logo
 import com.dminus14.app.core.resources.info
 import com.dminus14.app.core.resources.kakao_logo
 import com.dminus14.app.core.resources.left
+import com.dminus14.app.core.resources.link
 import com.dminus14.app.core.resources.mic
 import com.dminus14.app.core.resources.network
 import com.dminus14.app.core.resources.opp
@@ -74,6 +81,18 @@ enum class HilitIconAsset(
     Expand("expand", 24.dp, Res.drawable.expand),
     File("file", 24.dp, Res.drawable.file),
     AiSparkle("ai_sparkle", 24.dp, Res.drawable.ai_sparkle),
+    AnalyzeProblem(
+        "analyze_problem",
+        36.dp,
+        Res.drawable.analyze_problem,
+        preservesOriginalColors = true,
+    ),
+    AnalyzeSuccess(
+        "analyze_success",
+        36.dp,
+        Res.drawable.analyze_success,
+        preservesOriginalColors = true,
+    ),
     Script("script", 24.dp, Res.drawable.script),
     AppleLogo("apple_logo", 24.dp, Res.drawable.apple_logo, preservesOriginalColors = true),
     KakaoLogo("kakao_logo", 24.dp, Res.drawable.kakao_logo, preservesOriginalColors = true),
@@ -104,6 +123,11 @@ enum class HilitIconAsset(
     Finish("finish", 74.dp, Res.drawable.finish, preservesOriginalColors = true),
     Opp("opp", 74.dp, Res.drawable.opp, preservesOriginalColors = true),
     OppX("opp_x", 74.dp, Res.drawable.opp_x, preservesOriginalColors = true),
+    Eyes("eyes", 28.dp, Res.drawable.eyes),
+    Face("face", 28.dp, Res.drawable.face),
+    Body("body", 28.dp, Res.drawable.body),
+    Hand("hand", 28.dp, Res.drawable.hand),
+    Link("link", 74.dp, Res.drawable.link, preservesOriginalColors = true),
 }
 
 /**

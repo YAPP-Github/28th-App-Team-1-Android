@@ -3,12 +3,15 @@ package com.dminus14.app.data.remote.dto.interview
 import com.dminus14.app.domain.model.AttitudeRating
 import com.dminus14.app.domain.model.GuestFeedbackItem
 import com.dminus14.app.domain.model.GuestFeedbackSummary
+import com.dminus14.app.domain.model.HighlightReason
 import com.dminus14.app.domain.model.HighlightSpan
+import com.dminus14.app.domain.model.HighlightTone
 import com.dminus14.app.domain.model.InterviewReport
 import com.dminus14.app.domain.model.InterviewReportCard
 import com.dminus14.app.domain.model.InterviewReportStatus
 import com.dminus14.app.domain.model.InterviewReportVideo
 import com.dminus14.app.domain.model.ReportScript
+import com.dminus14.app.domain.model.ScriptRole
 import com.dminus14.app.domain.model.ScriptSegment
 import com.google.gson.annotations.SerializedName
 
@@ -119,8 +122,8 @@ data class HighlightSpanDto(
         HighlightSpan(
             startIndex = startIndex,
             endIndex = endIndex,
-            tone = tone,
-            reason = reason,
+            tone = HighlightTone.fromRaw(tone),
+            reason = HighlightReason.fromRaw(reason),
             title = title,
             analysis = analysis,
             followUpQuestions = followUpQuestions,
@@ -147,7 +150,7 @@ data class ScriptSegmentDto(
 ) {
     fun toDomain(): ScriptSegment =
         ScriptSegment(
-            role = role,
+            role = ScriptRole.fromRaw(role),
             text = text,
             startIndex = startIndex,
             endIndex = endIndex,
@@ -168,7 +171,7 @@ data class ReportScriptDto(
 ) {
     fun toDomain(): ReportScript =
         ReportScript(
-            role = role,
+            role = ScriptRole.fromRaw(role),
             text = text,
             startSec = startSec,
             endSec = endSec,

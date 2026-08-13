@@ -29,6 +29,10 @@ class RetainInterviewSessionForCleanupUseCaseTest {
                             manifest
                         }
 
+                        "getUploadTasks" -> {
+                            emptyList<InterviewUploadTask>()
+                        }
+
                         "handoffUploadTask" -> {
                             Unit.also {
                                 handedOffTask = args[0] as InterviewUploadTask

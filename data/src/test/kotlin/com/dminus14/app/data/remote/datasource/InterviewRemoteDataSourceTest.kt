@@ -3,6 +3,9 @@ package com.dminus14.app.data.remote.datasource
 import com.dminus14.app.data.remote.api.InterviewApi
 import com.dminus14.app.data.remote.dto.ApiResponseDto
 import com.dminus14.app.data.remote.dto.interview.CreateInterviewSessionRequestDto
+import com.dminus14.app.data.remote.dto.interview.FeedbackShareCloseRequestDto
+import com.dminus14.app.data.remote.dto.interview.FeedbackShareCreateRequestDto
+import com.dminus14.app.data.remote.dto.interview.FeedbackShareCreateResponseDto
 import com.dminus14.app.data.remote.dto.interview.InterviewAbandonRequestDto
 import com.dminus14.app.data.remote.dto.interview.InterviewAbandonResponseDto
 import com.dminus14.app.data.remote.dto.interview.InterviewReportListResponseDto
@@ -670,6 +673,20 @@ class InterviewRemoteDataSourceTest {
             requestedExpirySessionId = sessionId
             return getExpiryResponse
         }
+
+        override suspend fun createFeedbackShare(
+            sessionId: Long,
+            request: FeedbackShareCreateRequestDto,
+        ): ApiResponseDto<FeedbackShareCreateResponseDto> =
+            ApiResponseDto(
+                success = true,
+                data = FeedbackShareCreateResponseDto(token = "fake-token"),
+            )
+
+        override suspend fun closeFeedbackShare(
+            sessionId: Long,
+            request: FeedbackShareCloseRequestDto,
+        ): ApiResponseDto<Unit> = ApiResponseDto(success = true, data = Unit)
     }
 
     private companion object {

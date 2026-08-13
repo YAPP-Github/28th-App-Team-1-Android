@@ -1,38 +1,35 @@
 package com.dminus14.app.domain.usecase
 
-import com.dminus14.app.domain.exception.FeedbackShareValidationException
 import com.dminus14.app.domain.model.GuestFeedbackAxisCode
+import com.dminus14.app.domain.repository.FeedbackShareLocalRepository
 import com.dminus14.app.domain.repository.FeedbackShareRepository
 import com.dminus14.app.domain.util.runCatchingCancellable
 import javax.inject.Inject
 
 /**
- * 지정 평가 항목으로 지인 피드백 공유 링크를 생성하고 공유 token을 반환한다.
+ * 지인 피드백 공유 링크를 생성한다.
  *
- * 지정 항목은 중복 없이 `1..5`개여야 하며, 위반 시 Repository를 호출하지 않고 검증 오류로
- * 반환한다. 서버가 이미 활성 링크가 있으면 별도 비즈니스 오류(`FEEDBACK_SHARE_ALREADY_EXISTS`)로
- * 실패한다.
+ * 성공하면 token 을 [FeedbackShareLocalRepository] 에 저장해, 재진입 시 화면이 "피드백 종료하기"
+ * 버튼으로 전환할 수 있게 한다. 딥링크 조립용 token 을 담은 [Result] 를 반환한다.
+ *
+ * 생성이 `FEEDBACK_SHARE_ALREADY_EXISTS` 충돌로 실패했을 때의 복구는 이 use case가 아니라
+ * [GuestFeedbackRequestViewModel][com.dminus14.app.feature.interviewreport.guestfeedback.GuestFeedbackRequestViewModel]
+ * 이 [GetSavedFeedbackShareTokenUseCase] 로 로컬에 저장된 실제 token 을 다시 찾아 처리한다
+ * (여기서 실제 token 없이 placeholder 를 저장하면 그 값으로 딥링크를 잘못 재구성하게 된다).
  */
 class CreateFeedbackShareUseCase
     @Inject
     constructor(
         private val feedbackShareRepository: FeedbackShareRepository,
+        private val feedbackShareLocalRepository: FeedbackShareLocalRepository,
     ) {
         suspend operator fun invoke(
             sessionId: Long,
             axes: List<GuestFeedbackAxisCode>,
         ): Result<String> =
             runCatchingCancellable {
-                if (axes.isEmpty() || axes.size > MAX_AXIS_COUNT) {
-                    throw FeedbackShareValidationException("지정 평가 항목 수가 올바르지 않습니다.")
-                }
-                if (axes.distinct().size != axes.size) {
-                    throw FeedbackShareValidationException("지정 평가 항목이 중복되었습니다.")
-                }
-                feedbackShareRepository.create(sessionId, axes)
+                val token = feedbackShareRepository.createShare(sessionId, axes)
+                feedbackShareLocalRepository.saveToken(sessionId, token)
+                token
             }
-
-        companion object {
-            const val MAX_AXIS_COUNT = 5
-        }
     }

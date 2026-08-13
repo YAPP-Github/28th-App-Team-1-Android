@@ -43,6 +43,7 @@ import com.dminus14.app.feature.home.component.HomeReportSheetCallbacks
 import com.dminus14.app.feature.home.component.HomeReportSheetContent
 import com.dminus14.app.feature.home.component.HomeSheetAnchor
 import com.dminus14.app.feature.interview.api.InterviewRoute
+import com.dminus14.app.feature.interviewreport.api.InterviewReport
 import com.dminus14.app.feature.login.api.Onboarding
 import com.dminus14.app.feature.login.api.Splash
 import com.dminus14.app.feature.mypage.MyPage
@@ -110,7 +111,9 @@ fun HomeScreen(
                 }
 
                 is HomeEffect.GoToReportRequested -> {
-                    // 보고서 화면 생성시 Route 배선만 연결
+                    effect.reportId.toLongOrNull()?.let { sessionId ->
+                        onNavigate(InterviewReport(sessionId = sessionId))
+                    }
                 }
             }
         }

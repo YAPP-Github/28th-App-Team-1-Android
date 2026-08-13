@@ -1,6 +1,7 @@
 package com.dminus14.app.navigation.di
 
 import androidx.navigation3.runtime.EntryProviderScope
+import com.dminus14.app.feature.interviewreport.api.InterviewReport
 import com.dminus14.app.feature.login.api.Splash
 import com.dminus14.app.feature.mypage.navigation.myPageEntryBuilder
 import com.dminus14.app.navigation.Navigator
@@ -20,7 +21,10 @@ object MyPageNavigationModule {
             myPageEntryBuilder(
                 onClose = navigator::goBack,
                 onProfileEditRequested = {},
-                onReportViewRequested = {},
+                onReportViewRequested = { reportId ->
+                    val sessionId = reportId.toLongOrNull() ?: return@myPageEntryBuilder
+                    navigator.goTo(InterviewReport(sessionId = sessionId))
+                },
                 onGuestFeedbackRequested = {},
                 onLogoutCompleted = { navigator.replaceAll(Splash) },
                 onWithdrawalCompleted = { navigator.replaceAll(Splash) },

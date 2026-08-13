@@ -56,6 +56,7 @@ dependencies {
     implementation(project(":feature:mypage:impl"))
     implementation(project(":feature:onboarding:impl"))
     implementation(project(":feature:interview:impl"))
+    implementation(project(":feature:interviewreport:impl"))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
