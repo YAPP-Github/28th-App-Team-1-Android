@@ -93,7 +93,13 @@ class InterviewReportViewModel
 
         private fun load() {
             val sessionId = state.value.sessionId
-            if (sessionId <= 0L) return
+            if (sessionId <= 0L) {
+                // 초기 phase 가 Loading 이라, 여기서 조용히 빠져나가면(잘못된 route 인자·딥링크로
+                // sessionId 가 안 채워진 경우) 스피너에 영구 고착된다. UNKNOWN 상태를 Failed 로
+                // 보내는 것과 같은 이유로 Failed 로 보내 재시도 UI 를 노출한다.
+                reduce { copy(phase = InterviewReportState.Phase.Failed) }
+                return
+            }
             pollingJob?.cancel()
             reduce {
                 copy(
