@@ -27,7 +27,8 @@ val localProperties =
         }
     }
 
-val kakaoNativeAppKey = localProperties.getProperty("KAKAO_NATIVE_APP_KEY").orEmpty()
+val kakaoNativeAppKeyDebug = localProperties.getProperty("KAKAO_NATIVE_APP_KEY_DEBUG").orEmpty()
+val kakaoNativeAppKeyRelease = localProperties.getProperty("KAKAO_NATIVE_APP_KEY_RELEASE").orEmpty()
 val chottuLinkApiKey = localProperties.getProperty("CHOTTULINK_API_KEY").orEmpty()
 
 android {
@@ -36,9 +37,16 @@ android {
     }
 
     defaultConfig {
-        buildConfigField("String", "KAKAO_NATIVE_APP_KEY", "\"$kakaoNativeAppKey\"")
-        manifestPlaceholders["KAKAO_NATIVE_APP_KEY"] = kakaoNativeAppKey
+        buildConfigField("String", "KAKAO_NATIVE_APP_KEY", "\"$kakaoNativeAppKeyDebug\"")
+        manifestPlaceholders["KAKAO_NATIVE_APP_KEY"] = kakaoNativeAppKeyDebug
         buildConfigField("String", "CHOTTULINK_API_KEY", "\"$chottuLinkApiKey\"")
+    }
+
+    buildTypes {
+        release {
+            buildConfigField("String", "KAKAO_NATIVE_APP_KEY", "\"$kakaoNativeAppKeyRelease\"")
+            manifestPlaceholders["KAKAO_NATIVE_APP_KEY"] = kakaoNativeAppKeyRelease
+        }
     }
 }
 
