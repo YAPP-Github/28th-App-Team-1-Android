@@ -28,7 +28,10 @@ val localProperties =
     }
 
 val kakaoNativeAppKeyDebug = localProperties.getProperty("KAKAO_NATIVE_APP_KEY_DEBUG").orEmpty()
-val kakaoNativeAppKeyRelease = localProperties.getProperty("KAKAO_NATIVE_APP_KEY_RELEASE").orEmpty()
+val kakaoNativeAppKeyRelease =
+    localProperties.getProperty("KAKAO_NATIVE_APP_KEY_RELEASE").orEmpty().also {
+        require(it.isNotBlank()) { "KAKAO_NATIVE_APP_KEY_RELEASE missing or blank in local.properties" }
+    }
 val chottuLinkApiKey = localProperties.getProperty("CHOTTULINK_API_KEY").orEmpty()
 
 android {
