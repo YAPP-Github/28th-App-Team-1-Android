@@ -55,8 +55,13 @@ internal fun InterviewReportContent(
                 // 폴링 중 화면을 벗어날 수 있도록 닫기 버튼은 계속 노출한다.
                 Column(modifier = Modifier.fillMaxSize()) {
                     ReportTopBar(onClose = { onIntent(InterviewReportIntent.ClickClose) })
+                    // weight(1f)만 주면 Column 안에서 폭은 콘텐츠(스피너)에 맞춰 줄어들고,
+                    // Column 기본 정렬(Alignment.Start)에 따라 그 좁은 Box 자체가 왼쪽에
+                    // 붙어버려 스피너가 화면 중앙이 아니라 왼쪽으로 치우쳐 보였다(#176).
+                    // fillMaxWidth() 를 더해 Box 폭을 화면 전체로 넓혀야 안의 Alignment.Center
+                    // 가 실제로 화면 가로 중앙을 기준으로 동작한다.
                     CenteredMessage(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
                         content = { HilitLoadingIndicator() },
                     )
                 }
@@ -67,8 +72,9 @@ internal fun InterviewReportContent(
                 // 이전에는 안내 문구만 있고 액션이 없어 막다른 화면이었다.
                 Column(modifier = Modifier.fillMaxSize()) {
                     ReportTopBar(onClose = { onIntent(InterviewReportIntent.ClickClose) })
+                    // Loading phase 와 같은 이유로 fillMaxWidth() 가 필요하다(#176).
                     CenteredMessage(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
                         content = {
                             Text(
                                 text = "리포트를 불러오지 못했어요. 다시 시도해 주세요.",
