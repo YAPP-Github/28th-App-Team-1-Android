@@ -3,14 +3,11 @@
 package com.dminus14.app.feature.interviewreport
 
 import android.widget.Toast
-import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.view.WindowCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
@@ -68,21 +65,4 @@ fun InterviewReportScreen(
         onIntent = viewModel::onIntent,
         modifier = modifier,
     )
-}
-
-/**
- * 상태바·네비게이션바 아이콘을 항상 밝게(흰색) 고정한다. `enableEdgeToEdge()` 는 시스템
- * 다크/라이트 모드 기준으로만 아이콘 밝기를 정해, 라이트 모드 기기에서 이 화면의 다크 배경과
- * 어긋날 수 있다.
- */
-@Composable
-private fun MatchSystemBarsToDarkContent() {
-    val activity = LocalActivity.current
-    SideEffect {
-        activity?.window?.let { window ->
-            val insetsController = WindowCompat.getInsetsController(window, window.decorView)
-            insetsController.isAppearanceLightStatusBars = false
-            insetsController.isAppearanceLightNavigationBars = false
-        }
-    }
 }

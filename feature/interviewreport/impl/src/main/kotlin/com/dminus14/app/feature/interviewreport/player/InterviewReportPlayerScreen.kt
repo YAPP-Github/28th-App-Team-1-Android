@@ -3,13 +3,13 @@
 package com.dminus14.app.feature.interviewreport.player
 
 import android.view.SurfaceView
-import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -20,13 +20,13 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -45,7 +45,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.view.WindowCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -55,6 +54,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.dminus14.app.feature.interviewreport.MatchSystemBarsToDarkContent
 import com.dminus14.app.feature.interviewreport.component.HighlightDetailBottomSheet
 import com.dminus14.app.feature.interviewreport.model.HighlightUiTone
 import com.dminus14.app.feature.interviewreport.model.PlayerContentUiModel
@@ -132,24 +132,6 @@ fun InterviewReportPlayerScreen(
         onIntent = viewModel::onIntent,
         modifier = modifier,
     )
-}
-
-/**
- * 상태바·네비게이션바 아이콘을 항상 밝게(흰색) 고정한다. 이 화면은 FullScreen 으로 시스템 바
- * 배경까지 영상이 깔리는데, `enableEdgeToEdge()` 는 시스템 다크/라이트 모드 기준으로만 아이콘
- * 밝기를 정해 실제 영상 밝기와 어긋날 수 있다(MyPageScreen 의 MatchSystemBarsToContent 와 같은
- * 패턴, 다만 여기는 배경색이 아니라 아이콘 밝기만 고정한다 — 배경은 영상이 그대로 보여야 한다).
- */
-@Composable
-private fun MatchSystemBarsToDarkContent() {
-    val activity = LocalActivity.current
-    SideEffect {
-        activity?.window?.let { window ->
-            val insetsController = WindowCompat.getInsetsController(window, window.decorView)
-            insetsController.isAppearanceLightStatusBars = false
-            insetsController.isAppearanceLightNavigationBars = false
-        }
-    }
 }
 
 @Composable
@@ -571,18 +553,30 @@ private fun TranscriptOverlay(
 ) {
     val colors = HilitTheme.colors
     val positionMs by positionMsState
+    val listState = rememberLazyListState()
+    val currentIndex = currentScriptLineIndex(scriptLines, positionMs)
+
+    // positionMs 는 250ms 마다 갱신되지만(POSITION_POLL_INTERVAL_MS), currentIndex(재생 중인
+    // 대본 줄)를 key 로 둬서 실제로 다음 줄로 넘어갈 때만 스크롤을 새로 트리거한다. 매 tick 마다
+    // key 가 같으면 LaunchedEffect 가 재시작하지 않아 애니메이션이 끊기지 않는다.
+    LaunchedEffect(currentIndex) {
+        if (scriptLines.isNotEmpty()) {
+            listState.animateScrollToItem(currentIndex)
+        }
+    }
+
     Box(modifier = modifier) {
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp)
-                    .padding(top = 40.dp, bottom = 16.dp),
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 40.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            scriptLines.forEach { line ->
-                val current = positionMs in line.startMs until line.endMs
+            // key 를 line.startMs 로 두면 STT 결과 특성상 서로 다른 두 줄이 같은 시작 시각(ms)을
+            // 가질 때 Compose 가 "Key ... was already used" 로 크래시한다. scriptLines 는 재생
+            // 중 순서가 바뀌지 않으므로 index 를 key 로 써도 안전하고 항상 유일하다.
+            itemsIndexed(scriptLines, key = { index, _ -> index }) { index, line ->
+                val current = index == currentIndex
                 val highlightRef = line.highlightRef
                 // 하이라이트 구간은 Figma 443:7907처럼 줄바꿈된 실제 라인 폭에 딱 맞는 gray900
                 // 배경 박스가 깔린다. Modifier.background 는 텍스트 블록 전체를 감싼 사각형 하나만
@@ -612,6 +606,20 @@ private fun TranscriptOverlay(
             }
         }
     }
+}
+
+/**
+ * [positionMs] 에 발화 중인 대본 줄 index. 정확히 그 시각을 포함하는 줄이 있으면 그 줄을 쓰고,
+ * 발화 사이 공백처럼 걸치는 줄이 없으면 직전에 시작한 줄을 유지해 스크롤이 다음 줄이 시작하기
+ * 전까지 튀지 않게 한다. 대본이 아직 시작 전이면 첫 줄(0)로 고정한다.
+ */
+private fun currentScriptLineIndex(
+    scriptLines: List<PlayerScriptLineUiModel>,
+    positionMs: Long,
+): Int {
+    val exactIndex = scriptLines.indexOfFirst { positionMs in it.startMs until it.endMs }
+    if (exactIndex >= 0) return exactIndex
+    return scriptLines.indexOfLast { positionMs >= it.startMs }.coerceAtLeast(0)
 }
 
 /**
