@@ -1,42 +1,17 @@
-package com.dminus14.app.data.remote.dto
+@file:Suppress("MatchingDeclarationName", "ktlint:standard:filename")
+
+package com.dminus14.app.data.remote.dto.portfolio
 
 import com.dminus14.app.domain.model.Portfolio
-import com.dminus14.app.domain.model.PortfolioDeleteResult
 import com.dminus14.app.domain.model.PortfolioOverview
 import com.dminus14.app.domain.model.PortfolioStatus
-import com.dminus14.app.domain.model.PortfolioUploadResult
 import com.google.gson.annotations.SerializedName
 
-data class PortfolioUploadResponseDto(
-    @SerializedName("portfolioId")
-    val portfolioId: String,
-    @SerializedName("status")
-    val status: String,
-    @SerializedName("message")
-    val message: String?,
-) {
-    fun toDomain(): PortfolioUploadResult =
-        PortfolioUploadResult(
-            portfolioId = portfolioId,
-            status = PortfolioStatus.fromRaw(status),
-            message = message,
-        )
-}
-
-data class PortfolioDeleteResponseDto(
-    @SerializedName("portfolioId")
-    val portfolioId: String,
-    @SerializedName("deletedAt")
-    val deletedAt: String,
-) {
-    fun toDomain(): PortfolioDeleteResult =
-        PortfolioDeleteResult(
-            portfolioId = portfolioId,
-            deletedAt = deletedAt,
-        )
-}
-
-/** GET api/v1/portfolios */
+/**
+ * GET api/v1/portfolios
+ *
+ * 요청 본문은 없다.
+ */
 data class PortfolioListResponseDto(
     @SerializedName("portfolios")
     val portfolios: List<PortfolioDto>,

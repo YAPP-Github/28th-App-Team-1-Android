@@ -2,9 +2,9 @@ package com.dminus14.app.data.remote.api
 
 import com.dminus14.app.data.di.remote.network.GsonModule
 import com.dminus14.app.data.di.remote.network.NetworkModule
-import com.dminus14.app.data.remote.dto.GuestFeedbackAxisCodeDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackRatingDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackSubmitRequestDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackAxisCodeDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackRatingDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackSubmitRequestDto
 import com.dminus14.app.data.remote.installation.FakeInstallationIdStore
 import com.dminus14.app.data.remote.installation.InstallationIdProvider
 import com.dminus14.app.data.remote.interceptor.InsertInstallationIdInterceptor

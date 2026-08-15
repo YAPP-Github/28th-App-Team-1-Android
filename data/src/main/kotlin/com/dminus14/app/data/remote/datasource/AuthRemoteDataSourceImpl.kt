@@ -1,10 +1,10 @@
 package com.dminus14.app.data.remote.datasource
 
 import com.dminus14.app.data.remote.api.AuthApi
-import com.dminus14.app.data.remote.dto.SocialLoginRequestDto
-import com.dminus14.app.data.remote.dto.SocialLoginResponseDto
-import com.dminus14.app.data.remote.dto.TokenRefreshRequestDto
-import com.dminus14.app.data.remote.dto.TokenRefreshResponseDto
+import com.dminus14.app.data.remote.dto.auth.SocialLoginRequestDto
+import com.dminus14.app.data.remote.dto.auth.SocialLoginResponseDto
+import com.dminus14.app.data.remote.dto.auth.TokenRefreshRequestDto
+import com.dminus14.app.data.remote.dto.auth.TokenRefreshResponseDto
 import retrofit2.HttpException
 import javax.inject.Inject
 import javax.inject.Singleton

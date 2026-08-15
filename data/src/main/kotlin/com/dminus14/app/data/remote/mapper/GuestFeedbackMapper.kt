@@ -1,11 +1,11 @@
 package com.dminus14.app.data.remote.mapper
 
-import com.dminus14.app.data.remote.dto.GuestFeedbackAxisCodeDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackAxisDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackEntryResponseDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackGateDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackQuestionBoundaryDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackRatingDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackAxisCodeDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackAxisDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackEntryResponseDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackGateDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackQuestionBoundaryDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackRatingDto
 import com.dminus14.app.domain.model.GuestFeedbackAxis
 import com.dminus14.app.domain.model.GuestFeedbackAxisCode
 import com.dminus14.app.domain.model.GuestFeedbackEntry

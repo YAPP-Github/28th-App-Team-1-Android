@@ -1,9 +1,10 @@
 package com.dminus14.app.data.remote.datasource
 
 import com.dminus14.app.data.remote.api.PortfolioApi
-import com.dminus14.app.data.remote.dto.PortfolioDeleteResponseDto
-import com.dminus14.app.data.remote.dto.PortfolioListResponseDto
-import com.dminus14.app.data.remote.dto.PortfolioUploadResponseDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioDeleteResponseDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioListResponseDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioStatusResponseDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioUploadResponseDto
 import com.dminus14.app.data.remote.mapper.ApiErrorCode
 import com.dminus14.app.data.remote.multipart.PortfolioPartFactory
 import com.dminus14.app.domain.exception.ServerException
@@ -50,7 +51,7 @@ class PortfolioRemoteDataSourceImpl
                 )
         }
 
-        override suspend fun getPortfolioStatus(portfolioId: String): PortfolioUploadResponseDto {
+        override suspend fun getPortfolioStatus(portfolioId: String): PortfolioStatusResponseDto {
             val response = portfolioApi.getPortfolioStatus(portfolioId)
             return response.data
                 ?: throw ServerException(

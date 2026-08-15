@@ -6,6 +6,8 @@ import com.google.gson.annotations.SerializedName
 
 /**
  * POST api/v1/interview/sessions/{sessionId}/video/complete
+ *
+ * 응답 본문은 없다.
  */
 data class InterviewVideoCompleteRequestDto(
     @SerializedName("wrapUpStartSec")

@@ -6,7 +6,11 @@ import com.dminus14.app.domain.model.InterviewAbandonCause
 import com.dminus14.app.domain.model.InterviewResumeConfirm
 import com.google.gson.annotations.SerializedName
 
-/** POST api/v1/interview/sessions/{sessionId}/resume */
+/**
+ * POST api/v1/interview/sessions/{sessionId}/resume
+ *
+ * 요청 본문은 없다.
+ */
 data class InterviewResumeConfirmResponseDto(
     @SerializedName("nextQuestion")
     val nextQuestion: NextQuestionDto?,

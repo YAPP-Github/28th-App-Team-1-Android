@@ -1,10 +1,11 @@
 package com.dminus14.app.data.repository
 
 import com.dminus14.app.data.remote.datasource.PortfolioRemoteDataSource
-import com.dminus14.app.data.remote.dto.PortfolioDeleteResponseDto
-import com.dminus14.app.data.remote.dto.PortfolioDto
-import com.dminus14.app.data.remote.dto.PortfolioListResponseDto
-import com.dminus14.app.data.remote.dto.PortfolioUploadResponseDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioDeleteResponseDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioListResponseDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioStatusResponseDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioUploadResponseDto
 import com.dminus14.app.data.remote.mapper.ApiErrorCode
 import com.dminus14.app.domain.exception.CustomException
 import com.dminus14.app.domain.exception.DeleteLimitExceededException
@@ -239,10 +240,10 @@ class PortfolioRepositoryImplTest {
             )
         }
 
-        override suspend fun getPortfolioStatus(portfolioId: String): PortfolioUploadResponseDto {
+        override suspend fun getPortfolioStatus(portfolioId: String): PortfolioStatusResponseDto {
             failure?.let { throw it }
             requestedStatusId = portfolioId
-            return PortfolioUploadResponseDto(
+            return PortfolioStatusResponseDto(
                 portfolioId = "portfolio-1",
                 status = "READY",
                 message = null,

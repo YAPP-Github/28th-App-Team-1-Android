@@ -1,9 +1,10 @@
 package com.dminus14.app.data.remote.api
 
-import com.dminus14.app.data.remote.dto.ApiResponseDto
-import com.dminus14.app.data.remote.dto.PortfolioDeleteResponseDto
-import com.dminus14.app.data.remote.dto.PortfolioListResponseDto
-import com.dminus14.app.data.remote.dto.PortfolioUploadResponseDto
+import com.dminus14.app.data.remote.dto.common.ApiResponseDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioDeleteResponseDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioListResponseDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioStatusResponseDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioUploadResponseDto
 import okhttp3.MultipartBody
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -45,7 +46,7 @@ interface PortfolioApi {
     @GET("api/v1/portfolios/{portfolioId}/status")
     suspend fun getPortfolioStatus(
         @Path("portfolioId") portfolioId: String,
-    ): ApiResponseDto<PortfolioUploadResponseDto>
+    ): ApiResponseDto<PortfolioStatusResponseDto>
 
     /**
      * 포트폴리오 삭제.

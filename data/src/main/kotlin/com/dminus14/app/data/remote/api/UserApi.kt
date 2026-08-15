@@ -1,7 +1,7 @@
 package com.dminus14.app.data.remote.api
 
-import com.dminus14.app.data.remote.dto.ApiResponseDto
-import com.dminus14.app.data.remote.dto.user.JobListResponseDto
+import com.dminus14.app.data.remote.dto.common.ApiResponseDto
+import com.dminus14.app.data.remote.dto.job.JobListResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileFetchResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileUpdateRequestDto
 import com.dminus14.app.data.remote.dto.user.UserProfileUpdateResponseDto

@@ -1,7 +1,7 @@
 package com.dminus14.app.data.repository
 
 import com.dminus14.app.data.remote.datasource.AppVersionRemoteDataSource
-import com.dminus14.app.data.remote.dto.AppVersionCheckResponseDto
+import com.dminus14.app.data.remote.dto.appversion.AppVersionCheckResponseDto
 import com.dminus14.app.data.remote.mapper.ApiErrorCode
 import com.dminus14.app.domain.exception.CustomException
 import com.dminus14.app.domain.exception.InvalidPlatformException

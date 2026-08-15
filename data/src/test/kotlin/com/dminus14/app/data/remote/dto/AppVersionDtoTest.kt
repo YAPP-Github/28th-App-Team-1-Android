@@ -1,5 +1,6 @@
 package com.dminus14.app.data.remote.dto
 
+import com.dminus14.app.data.remote.dto.appversion.AppVersionCheckResponseDto
 import com.dminus14.app.domain.model.AppVersionUpdateType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull

@@ -1,8 +1,8 @@
 package com.dminus14.app.data.remote.datasource
 
-import com.dminus14.app.data.remote.dto.GuestFeedbackEntryResponseDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackRatingDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackSubmitResponseDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackEntryResponseDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackRatingDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackSubmitResponseDto
 
 /** Retrofit 세부 구성을 노출하지 않고 Guest Feedback 원격 작업을 제공하는 data 계층 계약이다. */
 interface GuestFeedbackRemoteDataSource {

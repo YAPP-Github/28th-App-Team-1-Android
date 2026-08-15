@@ -1,10 +1,10 @@
 package com.dminus14.app.data.remote.api
 
-import com.dminus14.app.data.remote.dto.ApiResponseDto
-import com.dminus14.app.data.remote.dto.SocialLoginRequestDto
-import com.dminus14.app.data.remote.dto.SocialLoginResponseDto
-import com.dminus14.app.data.remote.dto.TokenRefreshRequestDto
-import com.dminus14.app.data.remote.dto.TokenRefreshResponseDto
+import com.dminus14.app.data.remote.dto.auth.SocialLoginRequestDto
+import com.dminus14.app.data.remote.dto.auth.SocialLoginResponseDto
+import com.dminus14.app.data.remote.dto.auth.TokenRefreshRequestDto
+import com.dminus14.app.data.remote.dto.auth.TokenRefreshResponseDto
+import com.dminus14.app.data.remote.dto.common.ApiResponseDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE

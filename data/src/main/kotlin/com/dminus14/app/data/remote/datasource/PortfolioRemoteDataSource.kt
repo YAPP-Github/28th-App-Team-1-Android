@@ -1,8 +1,9 @@
 package com.dminus14.app.data.remote.datasource
 
-import com.dminus14.app.data.remote.dto.PortfolioDeleteResponseDto
-import com.dminus14.app.data.remote.dto.PortfolioListResponseDto
-import com.dminus14.app.data.remote.dto.PortfolioUploadResponseDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioDeleteResponseDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioListResponseDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioStatusResponseDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioUploadResponseDto
 import java.io.File
 
 interface PortfolioRemoteDataSource {
@@ -16,7 +17,7 @@ interface PortfolioRemoteDataSource {
         contentType: String,
     ): PortfolioUploadResponseDto
 
-    suspend fun getPortfolioStatus(portfolioId: String): PortfolioUploadResponseDto
+    suspend fun getPortfolioStatus(portfolioId: String): PortfolioStatusResponseDto
 
     suspend fun deletePortfolio(portfolioId: String): PortfolioDeleteResponseDto
 }

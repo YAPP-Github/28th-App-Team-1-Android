@@ -1,8 +1,8 @@
 package com.dminus14.app.data.remote.api
 
-import com.dminus14.app.data.remote.dto.GuestFeedbackEntryResponseDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackSubmitRequestDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackSubmitResponseDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackEntryResponseDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackSubmitRequestDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackSubmitResponseDto
 import com.dminus14.app.data.remote.interceptor.InsertInstallationIdInterceptor
 import retrofit2.http.Body
 import retrofit2.http.GET

@@ -1,10 +1,10 @@
 package com.dminus14.app.data.repository
 
 import com.dminus14.app.data.remote.datasource.ConsentRemoteDataSource
-import com.dminus14.app.data.remote.dto.ConsentDocumentDto
-import com.dminus14.app.data.remote.dto.ConsentItemDto
-import com.dminus14.app.data.remote.dto.ConsentPendingItemsDto
-import com.dminus14.app.data.remote.dto.ConsentSubmitRequestDto
+import com.dminus14.app.data.remote.dto.consent.ConsentDocumentDto
+import com.dminus14.app.data.remote.dto.consent.ConsentItemDto
+import com.dminus14.app.data.remote.dto.consent.ConsentPendingItemsDto
+import com.dminus14.app.data.remote.dto.consent.ConsentSubmitRequestDto
 import com.dminus14.app.data.remote.mapper.ApiErrorCode
 import com.dminus14.app.domain.exception.ConsentDocumentNotFoundException
 import com.dminus14.app.domain.exception.ConsentVersionMismatchException
