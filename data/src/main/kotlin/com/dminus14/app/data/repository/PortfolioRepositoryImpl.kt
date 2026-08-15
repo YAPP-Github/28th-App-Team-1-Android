@@ -1,7 +1,7 @@
 package com.dminus14.app.data.repository
 
 import com.dminus14.app.data.remote.datasource.PortfolioRemoteDataSource
-import com.dminus14.app.data.remote.dto.ApiErrorResponseDto
+import com.dminus14.app.data.remote.dto.common.ApiErrorResponseDto
 import com.dminus14.app.data.remote.mapper.ApiErrorCode
 import com.dminus14.app.data.remote.mapper.CommonApiErrorMapper
 import com.dminus14.app.domain.exception.CustomException

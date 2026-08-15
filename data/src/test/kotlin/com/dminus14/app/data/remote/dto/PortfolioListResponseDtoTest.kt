@@ -1,6 +1,8 @@
 package com.dminus14.app.data.remote.dto
 
 import com.dminus14.app.data.di.remote.network.GsonModule
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioListResponseDto
 import com.dminus14.app.domain.model.PortfolioStatus
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

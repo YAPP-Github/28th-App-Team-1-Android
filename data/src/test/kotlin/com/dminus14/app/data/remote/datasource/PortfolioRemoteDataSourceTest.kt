@@ -1,11 +1,12 @@
 package com.dminus14.app.data.remote.datasource
 
 import com.dminus14.app.data.remote.api.PortfolioApi
-import com.dminus14.app.data.remote.dto.ApiResponseDto
-import com.dminus14.app.data.remote.dto.PortfolioDeleteResponseDto
-import com.dminus14.app.data.remote.dto.PortfolioDto
-import com.dminus14.app.data.remote.dto.PortfolioListResponseDto
-import com.dminus14.app.data.remote.dto.PortfolioUploadResponseDto
+import com.dminus14.app.data.remote.dto.common.ApiResponseDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioDeleteResponseDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioListResponseDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioStatusResponseDto
+import com.dminus14.app.data.remote.dto.portfolio.PortfolioUploadResponseDto
 import com.dminus14.app.data.remote.mapper.ApiErrorCode
 import com.dminus14.app.data.remote.multipart.PortfolioPartFactory
 import com.dminus14.app.domain.exception.ServerException
@@ -105,7 +106,7 @@ class PortfolioRemoteDataSourceTest {
     @Test
     fun `상태 응답을 그대로 반환한다`() {
         val expected =
-            PortfolioUploadResponseDto(
+            PortfolioStatusResponseDto(
                 portfolioId = "portfolio-1",
                 status = "READY",
                 message = null,
@@ -179,11 +180,11 @@ class PortfolioRemoteDataSourceTest {
                         message = null,
                     ),
             ),
-        private val statusResponse: ApiResponseDto<PortfolioUploadResponseDto> =
+        private val statusResponse: ApiResponseDto<PortfolioStatusResponseDto> =
             ApiResponseDto(
                 success = true,
                 data =
-                    PortfolioUploadResponseDto(
+                    PortfolioStatusResponseDto(
                         portfolioId = "portfolio-1",
                         status = "PROCESSING",
                         message = null,
@@ -234,7 +235,7 @@ class PortfolioRemoteDataSourceTest {
 
         override suspend fun getPortfolioStatus(
             portfolioId: String,
-        ): ApiResponseDto<PortfolioUploadResponseDto> {
+        ): ApiResponseDto<PortfolioStatusResponseDto> {
             requestedStatusId = portfolioId
             return statusResponse
         }

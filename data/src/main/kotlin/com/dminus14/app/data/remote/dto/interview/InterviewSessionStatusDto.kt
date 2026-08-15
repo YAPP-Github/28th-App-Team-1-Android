@@ -6,7 +6,11 @@ import com.dminus14.app.domain.model.QuestionTurn
 import com.dminus14.app.domain.model.SummaryQuestion
 import com.google.gson.annotations.SerializedName
 
-/** GET api/v1/interview/sessions/{sessionId}/status */
+/**
+ * GET api/v1/interview/sessions/{sessionId}/status
+ *
+ * 요청 본문은 없다.
+ */
 data class InterviewSessionStatusResponseDto(
     @SerializedName("sessionId")
     val sessionId: Long? = null,

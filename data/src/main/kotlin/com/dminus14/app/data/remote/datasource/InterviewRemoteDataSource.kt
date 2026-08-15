@@ -1,7 +1,7 @@
 package com.dminus14.app.data.remote.datasource
 
+import com.dminus14.app.data.remote.dto.feedback.FeedbackShareCreateResponseDto
 import com.dminus14.app.data.remote.dto.interview.CreateInterviewSessionRequestDto
-import com.dminus14.app.data.remote.dto.interview.FeedbackShareCreateResponseDto
 import com.dminus14.app.data.remote.dto.interview.InterviewAbandonRequestDto
 import com.dminus14.app.data.remote.dto.interview.InterviewAbandonResponseDto
 import com.dminus14.app.data.remote.dto.interview.InterviewReportListResponseDto
@@ -13,8 +13,8 @@ import com.dminus14.app.data.remote.dto.interview.InterviewSessionStatusResponse
 import com.dminus14.app.data.remote.dto.interview.InterviewVideoCompleteRequestDto
 import com.dminus14.app.data.remote.dto.interview.InterviewVideoExpiryResponseDto
 import com.dminus14.app.data.remote.dto.interview.InterviewVideoUploadUrlResponseDto
-import com.dminus14.app.data.remote.dto.interview.JdValidateResponseDto
 import com.dminus14.app.data.remote.dto.interview.SubmitAnswerResponseDto
+import com.dminus14.app.data.remote.dto.jd.JdValidateResponseDto
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 

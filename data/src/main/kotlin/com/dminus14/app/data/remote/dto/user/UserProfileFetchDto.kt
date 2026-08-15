@@ -4,7 +4,11 @@ package com.dminus14.app.data.remote.dto.user
 
 import com.google.gson.annotations.SerializedName
 
-/** GET api/v1/users/me/profile */
+/**
+ * GET api/v1/users/me/profile
+ *
+ * 요청 본문은 없다.
+ */
 data class UserProfileFetchResponseDto(
     @SerializedName("userId")
     val userId: String? = null,

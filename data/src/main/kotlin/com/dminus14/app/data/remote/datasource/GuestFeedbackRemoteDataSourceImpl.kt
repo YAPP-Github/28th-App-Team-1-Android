@@ -1,10 +1,10 @@
 package com.dminus14.app.data.remote.datasource
 
 import com.dminus14.app.data.remote.api.GuestFeedbackApi
-import com.dminus14.app.data.remote.dto.GuestFeedbackEntryResponseDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackRatingDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackSubmitRequestDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackSubmitResponseDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackEntryResponseDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackRatingDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackSubmitRequestDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackSubmitResponseDto
 import javax.inject.Inject
 import javax.inject.Singleton
 

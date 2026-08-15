@@ -1,6 +1,6 @@
 package com.dminus14.app.data.remote.mapper
 
-import com.dminus14.app.data.remote.dto.ApiErrorResponseDto
+import com.dminus14.app.data.remote.dto.common.ApiErrorResponseDto
 import com.google.gson.Gson
 import okhttp3.Response
 import retrofit2.HttpException

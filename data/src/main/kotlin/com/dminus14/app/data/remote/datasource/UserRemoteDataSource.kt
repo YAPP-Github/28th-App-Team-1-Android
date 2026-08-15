@@ -1,6 +1,6 @@
 package com.dminus14.app.data.remote.datasource
 
-import com.dminus14.app.data.remote.dto.user.JobListResponseDto
+import com.dminus14.app.data.remote.dto.job.JobListResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileFetchResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileUpdateRequestDto
 
