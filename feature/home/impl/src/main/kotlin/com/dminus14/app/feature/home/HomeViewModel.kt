@@ -234,11 +234,20 @@ class HomeViewModel
                     ?.map { it.toHomeReportItem() }
                     .orEmpty()
             reduce {
+                // 리포트 상세 화면에 갔다가 홈으로 돌아오면 HomeScreen 의 LaunchedEffect(Unit) 이
+                // 다시 실행돼 Load 가 재발행되고 이 함수도 다시 탄다. 최초 로드(this.reports 가
+                // 비어 있음)에서만 첫 리포트를 기본으로 펼치고, 재조회부터는 사용자가 펼치고 접은
+                // 상태를 그대로 유지한다(삭제되어 사라진 리포트 id만 걸러낸다).
+                val newReportIds = reports.mapTo(mutableSetOf()) { it.id }
                 copy(
                     isLoading = false,
                     reports = reports,
-                    // 첫 리포트만 기본으로 펼치고, 리포트가 없으면 빈 집합.
-                    expandedReportIds = reports.firstOrNull()?.let { setOf(it.id) }.orEmpty(),
+                    expandedReportIds =
+                        if (this.reports.isEmpty()) {
+                            reports.firstOrNull()?.let { setOf(it.id) }.orEmpty()
+                        } else {
+                            expandedReportIds intersect newReportIds
+                        },
                 )
             }
         }
