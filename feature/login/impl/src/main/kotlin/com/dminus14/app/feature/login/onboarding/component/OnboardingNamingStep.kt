@@ -40,7 +40,7 @@ fun OnboardingNamingStep(
         )
 
         Text(
-            text = "반가워요!\n이름을 입력해주세요",
+            text = "반가워요!\n닉네임을 입력해주세요",
             style = HilitTheme.typography.head3,
             color = HilitTheme.colors.hilitBlack800,
             modifier =
@@ -50,7 +50,7 @@ fun OnboardingNamingStep(
         )
 
         Text(
-            text = "이름은 5글자까지 가능합니다.",
+            text = "닉네임은 5글자까지 가능합니다.",
             style = HilitTheme.typography.body6,
             color = HilitTheme.colors.gray500,
             modifier =
@@ -69,7 +69,7 @@ fun OnboardingNamingStep(
             HilitBottomOutlinedTextField(
                 value = name,
                 onValueChange = onNameChange,
-                placeholder = "이름을 알려주세요",
+                placeholder = "닉네임을 알려주세요",
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
             )

@@ -97,7 +97,7 @@ class UserRepositoryImpl
                 ApiErrorCode.NAME_ALREADY_TAKEN -> {
                     NameAlreadyTakenException(
                         errCode = ApiErrorCode.NAME_ALREADY_TAKEN,
-                        message = message.ifBlank { "이미 사용 중인 이름입니다." },
+                        message = message.ifBlank { "이미 사용 중인 닉네임입니다." },
                         cause = httpError,
                     )
                 }
