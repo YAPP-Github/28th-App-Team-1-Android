@@ -6,9 +6,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
@@ -17,6 +19,8 @@ import androidx.navigation3.ui.NavDisplay
 import com.chottulink.lib.ChottuLink
 import com.dminus14.app.error.GlobalErrorHost
 import com.dminus14.app.feature.feedback.api.FeedbackOnboarding
+import com.dminus14.app.feature.interviewreport.api.InterviewReport
+import com.dminus14.app.feature.interviewreport.api.InterviewReportPlayer
 import com.dminus14.app.interview.InterviewAppLifecycleCoordinator
 import com.dminus14.app.modal.GlobalModalHost
 import com.dminus14.app.modal.GlobalModalManager
@@ -56,7 +60,20 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             HilitTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                // interviewReport 관련 화면(리포트·영상 플레이어)은 FullScreen 으로 상태바·
+                // 네비게이션바 뒤까지 콘텐츠가 이어져야 해서, 최상위 Scaffold 가 시스템 바 영역을
+                // innerPadding 으로 미리 예약하지 않게 한다. 그 화면들은 각자 필요한 요소(닫기
+                // 버튼, 하단 컨트롤 등)에만 statusBarsPadding/navigationBarsPadding 을 직접
+                // 적용한다. 나머지 화면은 기존과 동일하게 Scaffold 의 기본 inset 을 그대로 받는다.
+                val currentRoute = navigationState.navigator.backStack.lastOrNull()
+                val isFullScreenRoute =
+                    currentRoute is InterviewReport || currentRoute is InterviewReportPlayer
+                val contentWindowInsets =
+                    if (isFullScreenRoute) WindowInsets(0) else ScaffoldDefaults.contentWindowInsets
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    contentWindowInsets = contentWindowInsets,
+                ) { innerPadding ->
                     NavDisplay(
                         backStack = navigationState.navigator.backStack,
                         onBack = navigationState.navigator::goBack,

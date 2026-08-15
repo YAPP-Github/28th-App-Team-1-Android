@@ -3,6 +3,7 @@
 package com.dminus14.app.feature.interviewreport.player
 
 import android.view.SurfaceView
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -15,14 +16,17 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -41,6 +45,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.WindowCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -75,12 +80,12 @@ private val TRANSCRIPT_OVERLAY_PROGRESS_BAR_GAP = 44.dp
 /** 재생 컨트롤이 떠 있을 때 영상 위에 깔리는 dim 알파 (Figma 443:7852: hilit opacity/dark/65%). */
 private const val VIDEO_CONTROL_DIM_ALPHA = 0.65f
 
-// 대본 오버레이 배경 그라디언트 정지점 (Figma VideoOverlay status=open, 3단 그라디언트).
-// 2색 선형 그라디언트는 실제 대본 길이에 따라 박스 높이가 짧아지면 경계가 딱딱해 보여서,
-// 항상 같은 고정 높이(TRANSCRIPT_OVERLAY_MAX_HEIGHT) 위에서 완만하게 퍼지도록 3단으로 뺀다.
-private const val TRANSCRIPT_OVERLAY_GRADIENT_MID_STOP = 0.33f
-private const val TRANSCRIPT_OVERLAY_GRADIENT_MID_ALPHA = 0.56f
-private const val TRANSCRIPT_OVERLAY_GRADIENT_SOLID_STOP = 0.91f
+/**
+ * 영상 상/하단 가독성 스크림 높이. FullScreen 적용으로 영상이 상태바·네비게이션바 뒤까지
+ * 채워지면서, 그 위에 얹히는 닫기 버튼·진행바·토글 버튼이 원본 영상과 바로 겹쳐 대비가 부족해질
+ * 수 있어 상/하단에 그라디언트 스크림을 상시로 깐다(컨트롤 노출 여부와 무관).
+ */
+private val VIDEO_EDGE_SCRIM_HEIGHT = 140.dp
 
 /**
  * 영상 플레이어 화면 (Figma Node: 443:7804 / 443:7877 / 443:7902 / 443:7972).
@@ -104,6 +109,11 @@ fun InterviewReportPlayerScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
+    // FullScreen(상태바·네비게이션바 뒤까지 영상이 깔림)이라 시스템 바 아이콘이 원본 영상과
+    // 직접 겹친다. 다크 스크림(VideoOverlay top/bottom)을 항상 상시로 깔아 밝기와 무관하게 흰
+    // 아이콘이 보이도록 고정한다.
+    MatchSystemBarsToDarkContent()
+
     LaunchedEffect(sessionId) {
         viewModel.bindSessionId(sessionId)
         viewModel.onIntent(InterviewReportPlayerIntent.Load)
@@ -122,6 +132,24 @@ fun InterviewReportPlayerScreen(
         onIntent = viewModel::onIntent,
         modifier = modifier,
     )
+}
+
+/**
+ * 상태바·네비게이션바 아이콘을 항상 밝게(흰색) 고정한다. 이 화면은 FullScreen 으로 시스템 바
+ * 배경까지 영상이 깔리는데, `enableEdgeToEdge()` 는 시스템 다크/라이트 모드 기준으로만 아이콘
+ * 밝기를 정해 실제 영상 밝기와 어긋날 수 있다(MyPageScreen 의 MatchSystemBarsToContent 와 같은
+ * 패턴, 다만 여기는 배경색이 아니라 아이콘 밝기만 고정한다 — 배경은 영상이 그대로 보여야 한다).
+ */
+@Composable
+private fun MatchSystemBarsToDarkContent() {
+    val activity = LocalActivity.current
+    SideEffect {
+        activity?.window?.let { window ->
+            val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+            insetsController.isAppearanceLightStatusBars = false
+            insetsController.isAppearanceLightNavigationBars = false
+        }
+    }
 }
 
 @Composable
@@ -285,6 +313,34 @@ private fun PlayerReady(
                     ) { controlsVisible = !controlsVisible },
         )
 
+        // FullScreen 으로 영상이 상태바·네비게이션바 뒤까지 깔리면서, 그 위에 얹히는 닫기
+        // 버튼(상단)·진행바/토글 버튼(하단)이 원본 영상과 바로 겹쳐 가독성이 떨어질 수 있다.
+        // 컨트롤 노출 여부와 무관하게 상/하단에 항상 그라디언트 스크림을 깐다.
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(VIDEO_EDGE_SCRIM_HEIGHT)
+                    .align(Alignment.TopCenter)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(colors.hilitBlack900, Color.Transparent),
+                        ),
+                    ),
+        )
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(VIDEO_EDGE_SCRIM_HEIGHT)
+                    .align(Alignment.BottomCenter)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, colors.hilitBlack900),
+                        ),
+                    ),
+        )
+
         if (controlsVisible) {
             Box(
                 modifier =
@@ -301,6 +357,7 @@ private fun PlayerReady(
             modifier =
                 Modifier
                     .align(Alignment.TopStart)
+                    .statusBarsPadding()
                     .padding(20.dp)
                     .clickable { onIntent(InterviewReportPlayerIntent.ClickClose) },
         )
@@ -350,6 +407,7 @@ private fun PlayerReady(
                 modifier =
                     Modifier
                         .fillMaxWidth()
+                        .navigationBarsPadding()
                         .padding(horizontal = 20.dp, vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
@@ -513,21 +571,7 @@ private fun TranscriptOverlay(
 ) {
     val colors = HilitTheme.colors
     val positionMs by positionMsState
-    val transparent = colors.hilitBlack900.copy(alpha = 0f)
-    val midFade = colors.hilitBlack900.copy(alpha = TRANSCRIPT_OVERLAY_GRADIENT_MID_ALPHA)
-    Box(
-        modifier =
-            modifier.background(
-                Brush.verticalGradient(
-                    colorStops =
-                        arrayOf(
-                            0f to transparent,
-                            TRANSCRIPT_OVERLAY_GRADIENT_MID_STOP to midFade,
-                            TRANSCRIPT_OVERLAY_GRADIENT_SOLID_STOP to colors.hilitBlack900,
-                        ),
-                ),
-            ),
-    ) {
+    Box(modifier = modifier) {
         Column(
             modifier =
                 Modifier

@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
@@ -82,6 +84,7 @@ internal fun InterviewReportContent(
                         text = "다시 시도",
                         type = HilitButtonType.Light,
                         onClick = { onIntent(InterviewReportIntent.ClickRetry) },
+                        modifier = Modifier.navigationBarsPadding(),
                     )
                 }
             }
@@ -149,6 +152,7 @@ private fun ReadyReport(
                     .fillMaxSize()
                     .verticalScroll(scrollState)
                     .padding(horizontal = 20.dp)
+                    .navigationBarsPadding()
                     .padding(bottom = 40.dp),
         ) {
             Spacer(Modifier.height(10.dp))
@@ -202,6 +206,7 @@ private fun ReportTopBar(onClose: () -> Unit) {
         modifier =
             Modifier
                 .fillMaxWidth()
+                .statusBarsPadding()
                 .padding(horizontal = 20.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
