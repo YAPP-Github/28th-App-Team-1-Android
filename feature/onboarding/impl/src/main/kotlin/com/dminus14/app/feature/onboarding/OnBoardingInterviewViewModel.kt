@@ -25,7 +25,7 @@ import com.dminus14.app.domain.usecase.ValidateJdUrlUseCase
 import com.dminus14.app.feature.onboarding.OnBoardingInterviewViewModel.Companion.JD_DEBOUNCE_MS
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -48,6 +48,7 @@ class OnBoardingInterviewViewModel
         private val makeInterviewSession: MakeInterviewSessionUseCase,
         private val getInterviewSession: GetInterviewSessionUseCase,
         private val saveInterviewSessionProgress: SaveInterviewSessionProgressUseCase,
+        @OnBoardingIoDispatcher private val ioDispatcher: CoroutineDispatcher,
     ) : MviViewModel<
             OnBoardingInterviewIntent,
             OnBoardingInterviewState,
@@ -446,7 +447,7 @@ class OnBoardingInterviewViewModel
             viewModelScope.launch {
                 try {
                     val validation =
-                        withContext(Dispatchers.IO) {
+                        withContext(ioDispatcher) {
                             validatePdf(context.contentResolver, Uri.fromFile(intent.file))
                         }
                     val validationMessage = validation.toErrorMessageOrNull()

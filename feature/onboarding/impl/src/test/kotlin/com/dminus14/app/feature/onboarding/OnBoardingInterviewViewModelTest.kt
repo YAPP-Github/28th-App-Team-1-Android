@@ -53,6 +53,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -69,6 +71,8 @@ import java.io.File
 @OptIn(ExperimentalCoroutinesApi::class)
 @Suppress("LargeClass")
 class OnBoardingInterviewViewModelTest {
+    private lateinit var ioTestDispatcher: TestDispatcher
+
     // ---- load() ----
 
     @Test
@@ -960,7 +964,7 @@ class OnBoardingInterviewViewModelTest {
             assertEquals("a.pdf", state.portfolioFileName)
             assertTrue(state.isPortfolioProcessing)
             assertEquals(0, state.portfolioUploadProgress)
-            settleUpload(viewModel)
+            settleUpload()
         }
 
     @Test
@@ -1000,7 +1004,7 @@ class OnBoardingInterviewViewModelTest {
                 )
 
             viewModel.onIntent(portfolioSelected())
-            settleUpload(viewModel)
+            settleUpload()
 
             val state = viewModel.state.value
             assertEquals("업로드 실패", state.portfolioErrorMessage)
@@ -1026,7 +1030,7 @@ class OnBoardingInterviewViewModelTest {
                 )
 
             viewModel.onIntent(portfolioSelected())
-            settleUpload(viewModel)
+            settleUpload()
 
             val state = viewModel.state.value
             assertEquals(PORTFOLIO_PROGRESS_COMPLETE, state.portfolioUploadProgress)
@@ -1069,7 +1073,7 @@ class OnBoardingInterviewViewModelTest {
                 launch { viewModel.state.collect { progresses.add(it.portfolioUploadProgress) } }
 
             viewModel.onIntent(portfolioSelected())
-            settleUpload(viewModel)
+            settleUpload()
 
             assertTrue("진행률이 90에 도달해야 한다", progresses.contains(90))
             assertEquals(90, progresses.filter { it in 1..99 }.maxOrNull())
@@ -1096,7 +1100,7 @@ class OnBoardingInterviewViewModelTest {
                 )
 
             viewModel.onIntent(portfolioSelected())
-            settleUpload(viewModel)
+            settleUpload()
 
             val state = viewModel.state.value
             assertEquals("상태 조회 실패", state.portfolioErrorMessage)
@@ -1176,6 +1180,10 @@ class OnBoardingInterviewViewModelTest {
         runTest {
             val dispatcher = UnconfinedTestDispatcher(testScheduler)
             Dispatchers.setMain(dispatcher)
+            // Main과 다른 디스패처 인스턴스를 써서 startPortfolioUpload의 withContext가
+            // 실제로 suspend하게 한다. 같은 testScheduler를 공유하므로 advanceUntilIdle로
+            // 결정적으로 진행시킬 수 있다.
+            ioTestDispatcher = StandardTestDispatcher(testScheduler)
             try {
                 block()
                 // 관찰을 위해 일부러 진행시키지 않은 지연 코루틴을 Main이 유효한 동안 마저 비운다.
@@ -1207,6 +1215,10 @@ class OnBoardingInterviewViewModelTest {
                     repository = mockk(relaxed = true),
                     clock = mockk(relaxed = true),
                 ),
+            // 실제 IO 스레드로 튀면 테스트 스케줄러가 완료 시점을 통제하지 못해 assertion과
+            // 경합(flaky)한다. 같은 testScheduler를 공유하는 테스트 디스패처를 써서
+            // 결정론적으로 진행시킨다.
+            ioDispatcher = ioTestDispatcher,
         )
 
     /** validatePdf(Android 프레임워크 의존)와 Uri.fromFile을 가짜 값으로 대체한다. */
@@ -1218,28 +1230,10 @@ class OnBoardingInterviewViewModelTest {
     }
 
     /**
-     * 업로드 흐름은 [kotlinx.coroutines.Dispatchers.IO]로 한 번 hop하므로, 가상 시간만으로는
-     * 결정적으로 대기할 수 없다. processing 종료와 함께 성공/실패 결과가 state에 반영될 때까지
-     * 실시간 스케줄러와 함께 폴링한다.
+     * 업로드 흐름의 IO hop이 testScheduler를 공유하는 [ioTestDispatcher]로 가므로
+     * 가상 시간만 진행시켜도 결정적으로 완료까지 도달한다.
      */
-    private fun TestScope.settleUpload(viewModel: OnBoardingInterviewViewModel) {
-        val deadlineMs = System.currentTimeMillis() + 5_000L
-        while (System.currentTimeMillis() < deadlineMs) {
-            advanceUntilIdle()
-            val state = viewModel.state.value
-            if (
-                !state.isPortfolioProcessing &&
-                (
-                    state.portfolioErrorMessage != null ||
-                        state.portfolioUploadProgress == PORTFOLIO_PROGRESS_COMPLETE
-                )
-            ) {
-                advanceUntilIdle()
-                return
-            }
-            @Suppress("detekt:ForbiddenMethodCall")
-            Thread.sleep(10)
-        }
+    private fun TestScope.settleUpload() {
         advanceUntilIdle()
     }
 
@@ -1252,7 +1246,7 @@ class OnBoardingInterviewViewModelTest {
         val viewModel = createViewModel(portfolioRepository = portfolioRepo)
 
         viewModel.onIntent(portfolioSelected())
-        settleUpload(viewModel)
+        settleUpload()
 
         val state = viewModel.state.value
         assertEquals(message, state.portfolioErrorMessage)
@@ -1276,7 +1270,7 @@ class OnBoardingInterviewViewModelTest {
             )
 
         viewModel.onIntent(portfolioSelected())
-        settleUpload(viewModel)
+        settleUpload()
 
         val state = viewModel.state.value
         assertEquals(message, state.portfolioErrorMessage)

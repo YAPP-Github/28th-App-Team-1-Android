@@ -6,7 +6,6 @@ import android.os.SystemClock
 import androidx.annotation.RequiresPermission
 import androidx.camera.video.AudioStats
 import androidx.camera.video.FileOutputOptions
-import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
 import androidx.camera.video.Recorder
 import androidx.camera.video.Recording
@@ -25,8 +24,8 @@ class CameraXInterviewVideoRecorder
         private val recorder =
             Recorder
                 .Builder()
-                .setQualitySelector(QualitySelector.from(Quality.SD))
-                .setTargetVideoEncodingBitRate(TARGET_VIDEO_BITRATE)
+                .setQualitySelector(QualitySelector.from(InterviewVideoRecordingSpec.QUALITY))
+                .setTargetVideoEncodingBitRate(InterviewVideoRecordingSpec.TARGET_VIDEO_BITRATE)
                 .build()
 
         override val videoCapture: VideoCapture<Recorder> = VideoCapture.withOutput(recorder)
@@ -110,8 +109,4 @@ class CameraXInterviewVideoRecorder
                         }
                     },
             )
-
-        private companion object {
-            const val TARGET_VIDEO_BITRATE = 2_000_000
-        }
     }
