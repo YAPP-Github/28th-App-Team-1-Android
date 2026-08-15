@@ -73,10 +73,10 @@ class InvalidJobRoleException(
     cause: Throwable? = null,
 ) : CustomException(errCode = errCode, message = message, cause = cause)
 
-/** 회원 프로필 수정 — 이미 사용 중인 이름 (`NAME_ALREADY_TAKEN`). */
+/** 회원 프로필 수정 — 이미 사용 중인 닉네임 (`NAME_ALREADY_TAKEN`). */
 class NameAlreadyTakenException(
     errCode: String,
-    message: String = "이미 사용 중인 이름입니다.",
+    message: String = "이미 사용 중인 닉네임입니다.",
     cause: Throwable? = null,
 ) : CustomException(errCode = errCode, message = message, cause = cause)
 
