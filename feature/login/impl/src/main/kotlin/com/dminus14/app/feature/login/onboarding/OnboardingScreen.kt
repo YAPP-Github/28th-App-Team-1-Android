@@ -13,6 +13,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -92,6 +93,11 @@ internal fun OnboardingContent(
             modifier
                 .fillMaxSize()
                 .background(HilitTheme.colors.hilitWhite)
+                // 상단 타이틀·프로그레스바(OnboardingHeader)와 하단 버튼(OnboardingBottomBar)은
+                // 고정 크기라 그대로 두고, 가운데 weight(1f) 스텝 콘텐츠 영역만 키보드 높이만큼
+                // 줄어들게 해 타이핑 영역(예: OnboardingNamingStep의 텍스트 필드)이 자판 위,
+                // 타이틀과 자판 사이에 놓이도록 한다.
+                .imePadding()
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
