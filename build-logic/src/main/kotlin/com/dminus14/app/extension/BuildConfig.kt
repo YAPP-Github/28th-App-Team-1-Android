@@ -32,5 +32,5 @@ internal object BuildConfig {
     const val APPLICATION_VERSION_CODE = 1
 
     /** `:app` 배포 산출물의 version name이다. */
-    const val APPLICATION_VERSION_NAME = "1.0"
+    const val APPLICATION_VERSION_NAME = "1.0.0"
 }
