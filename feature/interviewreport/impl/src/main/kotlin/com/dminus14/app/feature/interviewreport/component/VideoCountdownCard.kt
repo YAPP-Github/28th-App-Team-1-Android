@@ -122,6 +122,11 @@ private fun CountdownRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Row(
+                // note 가 길어지면(예: 만료 안내 문구) 폭 제약이 없는 Row 가 남은 텍스트를 위한
+                // 공간을 미리 다 가져가 버려서, remainingText 가 한 글자씩 세로로 줄바꿈되는
+                // 문제가 있었다. weight(fill=false) 로 remainingText 의 자연스러운 너비를 먼저
+                // 확보한 뒤 남는 공간만 note 가 쓰도록 한다.
+                modifier = Modifier.weight(weight = 1f, fill = false),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
