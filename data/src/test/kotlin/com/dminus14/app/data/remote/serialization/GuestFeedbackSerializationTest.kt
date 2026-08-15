@@ -1,12 +1,12 @@
 package com.dminus14.app.data.remote.serialization
 
 import com.dminus14.app.data.di.remote.network.GsonModule
-import com.dminus14.app.data.remote.dto.GuestFeedbackAxisCodeDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackEntryResponseDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackGateDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackRatingDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackSubmitRequestDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackSubmitResponseDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackAxisCodeDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackEntryResponseDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackGateDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackRatingDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackSubmitRequestDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackSubmitResponseDto
 import com.google.gson.JsonParseException
 import com.google.gson.JsonParser
 import org.junit.Assert.assertEquals

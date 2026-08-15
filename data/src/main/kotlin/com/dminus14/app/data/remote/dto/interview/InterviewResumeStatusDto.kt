@@ -7,7 +7,11 @@ import com.dminus14.app.domain.model.InterviewResumeStatus
 import com.dminus14.app.domain.model.InterviewTerminalStatus
 import com.google.gson.annotations.SerializedName
 
-/** GET api/v1/interview/sessions/{sessionId}/resume */
+/**
+ * GET api/v1/interview/sessions/{sessionId}/resume
+ *
+ * 요청 본문은 없다.
+ */
 data class InterviewResumeStatusResponseDto(
     @SerializedName("resumeState")
     val resumeState: String,

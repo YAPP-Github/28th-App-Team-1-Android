@@ -1,11 +1,11 @@
 package com.dminus14.app.data.repository
 
 import com.dminus14.app.data.remote.datasource.GuestFeedbackRemoteDataSource
-import com.dminus14.app.data.remote.dto.GuestFeedbackAxisCodeDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackEntryResponseDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackGateDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackRatingDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackSubmitResponseDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackAxisCodeDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackEntryResponseDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackGateDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackRatingDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackSubmitResponseDto
 import com.dminus14.app.data.remote.mapper.ApiErrorCode
 import com.dminus14.app.domain.exception.GuestFeedbackAlreadySubmittedException
 import com.dminus14.app.domain.exception.GuestFeedbackCapacityFullException

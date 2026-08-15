@@ -87,10 +87,13 @@ Feature 내부에서만 사용하는 UI와 extension은 Feature 안에 둔다. �
 #### 2.4.1 원격 API와 DTO 계약
 
 - DTO 파일은 API 하나당 하나를 만든다. 서로 다른 API의 DTO를 같은 파일에 합치거나
-  하나의 API DTO를 요청·응답 파일로 나누지 않는다.
+  하나의 API DTO를 요청·응답 파일로 나누지 않는다. 단, 요청 본문과 응답 본문이 모두 없는
+  API에는 DTO 파일을 만들지 않는다.
 - 하나의 DTO 파일에는 해당 API에서 실제 본문이 있는 요청(Request) DTO와 응답(Response) DTO만
   정의한다. 요청 또는 응답 본문이 없으면 해당 DTO를 추가하지 않는다. HTTP 204 No Content 같은
   응답은 `Response<Unit>` 또는 `Unit`으로, 바이너리 스트림 응답은 실제 응답 타입으로 표현한다.
+- 모든 API별 DTO 파일은 파일 최상단 DTO KDoc에 HTTP method와 endpoint를
+  `POST api/v1/feature/action` 형식으로 병기한다.
 - 요청 또는 응답 한쪽에만 본문이 있어 DTO 클래스가 하나만 남아도 파일명은 API 단위의
   `{Api}Dto.kt`를 유지한다. 클래스명과 파일명이 다르다는 정적 분석 오류는 파일 수준
   `@Suppress("MatchingDeclarationName", "ktlint:standard:filename")`로 제한해 무시한다.

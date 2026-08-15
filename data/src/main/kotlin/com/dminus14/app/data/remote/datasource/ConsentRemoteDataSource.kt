@@ -1,8 +1,8 @@
 package com.dminus14.app.data.remote.datasource
 
-import com.dminus14.app.data.remote.dto.ConsentDocumentDto
-import com.dminus14.app.data.remote.dto.ConsentPendingItemsDto
-import com.dminus14.app.data.remote.dto.ConsentSubmitRequestDto
+import com.dminus14.app.data.remote.dto.consent.ConsentDocumentDto
+import com.dminus14.app.data.remote.dto.consent.ConsentPendingItemsDto
+import com.dminus14.app.data.remote.dto.consent.ConsentSubmitRequestDto
 
 interface ConsentRemoteDataSource {
     suspend fun getPendingConsentList(): ConsentPendingItemsDto

@@ -15,7 +15,11 @@ import com.dminus14.app.domain.model.ScriptRole
 import com.dminus14.app.domain.model.ScriptSegment
 import com.google.gson.annotations.SerializedName
 
-/** GET api/v1/interview/sessions/{sessionId}/report */
+/**
+ * GET api/v1/interview/sessions/{sessionId}/report
+ *
+ * 요청 본문은 없다.
+ */
 data class InterviewReportResponseDto(
     @SerializedName("status")
     val status: String,

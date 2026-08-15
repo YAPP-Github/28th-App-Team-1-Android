@@ -1,7 +1,7 @@
 package com.dminus14.app.data.remote.datasource
 
 import com.dminus14.app.data.remote.api.AppVersionApi
-import com.dminus14.app.data.remote.dto.AppVersionCheckResponseDto
+import com.dminus14.app.data.remote.dto.appversion.AppVersionCheckResponseDto
 import com.dminus14.app.data.remote.mapper.ApiErrorCode
 import com.dminus14.app.domain.exception.ServerException
 import javax.inject.Inject

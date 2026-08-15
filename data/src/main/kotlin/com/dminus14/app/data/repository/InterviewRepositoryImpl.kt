@@ -3,7 +3,7 @@ package com.dminus14.app.data.repository
 import com.dminus14.app.data.local.interview.InterviewFileStore
 import com.dminus14.app.data.remote.config.NetworkConfig
 import com.dminus14.app.data.remote.datasource.InterviewRemoteDataSource
-import com.dminus14.app.data.remote.dto.ApiErrorResponseDto
+import com.dminus14.app.data.remote.dto.common.ApiErrorResponseDto
 import com.dminus14.app.data.remote.dto.interview.CreateInterviewSessionRequestDto
 import com.dminus14.app.data.remote.dto.interview.InterviewAbandonRequestDto
 import com.dminus14.app.data.remote.dto.interview.InterviewVideoCompleteRequestDto

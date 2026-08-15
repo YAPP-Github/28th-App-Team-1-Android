@@ -1,4 +1,4 @@
-package com.dminus14.app.data.remote.dto.interview
+package com.dminus14.app.data.remote.dto.jd
 
 import com.dminus14.app.domain.model.JdValidationResult
 import com.google.gson.annotations.SerializedName

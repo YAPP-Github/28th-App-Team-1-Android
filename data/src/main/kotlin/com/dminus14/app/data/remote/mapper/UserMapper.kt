@@ -1,7 +1,7 @@
 package com.dminus14.app.data.remote.mapper
 
-import com.dminus14.app.data.remote.dto.user.JobDto
-import com.dminus14.app.data.remote.dto.user.JobListResponseDto
+import com.dminus14.app.data.remote.dto.job.JobDto
+import com.dminus14.app.data.remote.dto.job.JobListResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileFetchResponseDto
 import com.dminus14.app.data.remote.dto.user.UserProfileUpdateRequestDto
 import com.dminus14.app.domain.model.Job

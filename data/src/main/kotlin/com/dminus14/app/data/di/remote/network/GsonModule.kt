@@ -1,7 +1,7 @@
 package com.dminus14.app.data.di.remote.network
 
-import com.dminus14.app.data.remote.dto.GuestFeedbackEntryResponseDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackSubmitResponseDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackEntryResponseDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackSubmitResponseDto
 import com.dminus14.app.data.remote.serialization.GuestFeedbackEntryResponseAdapter
 import com.dminus14.app.data.remote.serialization.GuestFeedbackSubmitResponseAdapter
 import com.dminus14.app.data.remote.serialization.UtcInstantAdapter

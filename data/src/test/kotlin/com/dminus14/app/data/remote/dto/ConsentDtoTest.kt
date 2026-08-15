@@ -1,5 +1,9 @@
 package com.dminus14.app.data.remote.dto
 
+import com.dminus14.app.data.remote.dto.consent.ConsentDocumentDto
+import com.dminus14.app.data.remote.dto.consent.ConsentItemDto
+import com.dminus14.app.data.remote.dto.consent.ConsentPendingItemsDto
+import com.dminus14.app.data.remote.dto.consent.ConsentSubmitRequestDto
 import com.dminus14.app.domain.model.ConsentItemCode
 import com.dminus14.app.domain.model.ConsentPendingStatus
 import com.dminus14.app.domain.model.ConsentSubmission

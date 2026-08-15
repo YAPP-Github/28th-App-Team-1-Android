@@ -1,7 +1,7 @@
 package com.dminus14.app.data.remote.api
 
-import com.dminus14.app.data.remote.dto.ApiResponseDto
-import com.dminus14.app.data.remote.dto.AppVersionCheckResponseDto
+import com.dminus14.app.data.remote.dto.appversion.AppVersionCheckResponseDto
+import com.dminus14.app.data.remote.dto.common.ApiResponseDto
 import retrofit2.http.GET
 import retrofit2.http.Query
 

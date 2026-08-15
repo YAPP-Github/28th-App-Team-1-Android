@@ -1,11 +1,11 @@
 package com.dminus14.app.data.remote.serialization
 
-import com.dminus14.app.data.remote.dto.GuestFeedbackAxisCodeDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackAxisDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackEntryResponseDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackGateDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackQuestionBoundaryDto
-import com.dminus14.app.data.remote.dto.GuestFeedbackSubmitResponseDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackAxisCodeDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackAxisDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackEntryResponseDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackGateDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackQuestionBoundaryDto
+import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackSubmitResponseDto
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement

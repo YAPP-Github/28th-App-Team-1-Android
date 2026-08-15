@@ -1,12 +1,16 @@
 @file:Suppress("MatchingDeclarationName", "ktlint:standard:filename")
 
-package com.dminus14.app.data.remote.dto
+package com.dminus14.app.data.remote.dto.appversion
 
 import com.dminus14.app.domain.model.AppVersionPolicy
 import com.dminus14.app.domain.model.AppVersionUpdateType
 import com.google.gson.annotations.SerializedName
 
-/** GET api/v1/app-versions/check 응답 `data` 본문이다. */
+/**
+ * GET api/v1/app-versions/check
+ *
+ * 요청 본문은 없다.
+ */
 data class AppVersionCheckResponseDto(
     @SerializedName("updateType")
     val updateType: String,

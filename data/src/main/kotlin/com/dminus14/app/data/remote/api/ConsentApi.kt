@@ -1,9 +1,9 @@
 package com.dminus14.app.data.remote.api
 
-import com.dminus14.app.data.remote.dto.ApiResponseDto
-import com.dminus14.app.data.remote.dto.ConsentDocumentDto
-import com.dminus14.app.data.remote.dto.ConsentPendingItemsDto
-import com.dminus14.app.data.remote.dto.ConsentSubmitRequestDto
+import com.dminus14.app.data.remote.dto.common.ApiResponseDto
+import com.dminus14.app.data.remote.dto.consent.ConsentDocumentDto
+import com.dminus14.app.data.remote.dto.consent.ConsentPendingItemsDto
+import com.dminus14.app.data.remote.dto.consent.ConsentSubmitRequestDto
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST

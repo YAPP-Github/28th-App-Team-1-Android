@@ -5,7 +5,11 @@ package com.dminus14.app.data.remote.dto.interview
 import com.dminus14.app.domain.model.InterviewVideoExpiry
 import com.google.gson.annotations.SerializedName
 
-/** GET api/v1/interview/sessions/{sessionId}/video/expiry */
+/**
+ * GET api/v1/interview/sessions/{sessionId}/video/expiry
+ *
+ * 요청 본문은 없다.
+ */
 data class InterviewVideoExpiryResponseDto(
     @SerializedName("expiresInSeconds")
     val expiresInSeconds: Long,

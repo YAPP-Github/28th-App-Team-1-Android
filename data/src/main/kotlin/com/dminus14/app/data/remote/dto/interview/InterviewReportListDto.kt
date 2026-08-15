@@ -5,7 +5,11 @@ import com.dminus14.app.domain.model.InterviewReportListItem
 import com.dminus14.app.domain.model.InterviewReportStatus
 import com.google.gson.annotations.SerializedName
 
-/** GET api/v1/interview/sessions */
+/**
+ * GET api/v1/interview/sessions
+ *
+ * 요청 본문은 없다.
+ */
 data class InterviewReportListResponseDto(
     @SerializedName("reports")
     val reports: List<InterviewReportListItemDto>,
