@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -320,7 +321,8 @@ private fun ColumnScope.HomeReportSheetBody(
                 Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .padding(top = EmptyStateTopSpacing),
+                    .padding(top = EmptyStateTopSpacing)
+                    .navigationBarsPadding(),
             contentAlignment = Alignment.TopCenter,
         ) {
             HomeReportEmptyState()
@@ -328,7 +330,7 @@ private fun ColumnScope.HomeReportSheetBody(
         return
     }
 
-    Box(modifier = Modifier.weight(1f)) {
+    Box(modifier = Modifier.weight(1f).navigationBarsPadding()) {
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),

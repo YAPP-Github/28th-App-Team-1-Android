@@ -1,20 +1,15 @@
 package com.dminus14.app.feature.home
 
-import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.toArgb
-import androidx.core.view.WindowCompat
 import com.dminus14.app.feature.home.component.screen.HomeSessionStartConfirmRestartVariant
 import com.dminus14.app.feature.home.component.screen.HomeSessionStartInProgressVariant
 import com.dminus14.app.feature.home.component.screen.HomeSessionStartNoTicketsVariant
 import com.dminus14.app.feature.home.component.screen.HomeSessionStartStartVariant
-import com.dminus14.designsystem.theme.HilitTheme
 
 /**
  * 홈에서 상태에 따라 페이드인으로 노출되는 세션 시작 오버레이 dispatcher.
@@ -32,13 +27,6 @@ internal fun HomeSessionStartOverlay(
     callbacks: HomeSessionStartCallbacks,
     modifier: Modifier = Modifier,
 ) {
-    // 오버레이 4종 전부 하단 버튼(HilitFixedBottomButton/HilitFixedBottomDualButton)이 검정
-    // 배경이다. Home 화면은 MainActivity의 Scaffold가 네비게이션 바 영역을 미리 예약해 콘텐츠가
-    // 그 뒤까지 그려지지 않으므로(#166 InterviewReport 처럼 화면 전체를 FullScreen 으로 바꾸는
-    // 대신), 레이아웃은 그대로 두고 시스템 네비게이션 바 색상 자체를 버튼과 맞춰 인디케이터
-    // 영역까지 색이 이어지는 것처럼 보이게 한다(#179). 오버레이가 닫히면 원래 색으로 되돌린다.
-    MatchNavigationBarToOverlay(visible = state != null)
-
     AnimatedVisibility(
         visible = state != null,
         enter = fadeIn(),
@@ -64,37 +52,6 @@ internal fun HomeSessionStartOverlay(
 
             null -> {
                 // AnimatedVisibility exit 애니메이션 재생 도중 잠깐 걸릴 수 있음.
-            }
-        }
-    }
-}
-
-/**
- * 오버레이가 보이는 동안 시스템 네비게이션 바를 오버레이 하단 버튼과 같은 검정으로 칠하고,
- * 오버레이가 닫히거나 이 컴포저블이 화면에서 사라지면(예: 다른 화면으로 이동) 원래 상태
- * (투명·밝은 아이콘)로 되돌린다.
- */
-@Composable
-private fun MatchNavigationBarToOverlay(visible: Boolean) {
-    val activity = LocalActivity.current
-    val overlayNavigationBarColor = HilitTheme.colors.hilitBlack800
-    DisposableEffect(visible) {
-        val window = activity?.window
-        if (window != null) {
-            val insetsController = WindowCompat.getInsetsController(window, window.decorView)
-            if (visible) {
-                @Suppress("DEPRECATION")
-                window.navigationBarColor = overlayNavigationBarColor.toArgb()
-                insetsController.isAppearanceLightNavigationBars = false
-            }
-        }
-        onDispose {
-            if (window != null) {
-                @Suppress("DEPRECATION")
-                window.navigationBarColor = android.graphics.Color.TRANSPARENT
-                WindowCompat
-                    .getInsetsController(window, window.decorView)
-                    .isAppearanceLightNavigationBars = true
             }
         }
     }

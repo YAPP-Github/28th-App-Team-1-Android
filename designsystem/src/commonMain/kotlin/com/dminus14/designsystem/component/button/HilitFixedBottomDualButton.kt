@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
@@ -122,7 +123,11 @@ private fun DualButtonSide(
                 .clickable(
                     enabled = enabled,
                     onClick = onClick,
-                ).padding(contentPadding),
+                )
+                // 배경을 시스템 네비게이션 바 영역까지 채운 뒤, 탭 영역·텍스트는 그 위로 남겨서
+                // 버튼 컬러가 인디케이터 바 색상까지 이어지도록 한다(#179).
+                .navigationBarsPadding()
+                .padding(contentPadding),
         contentAlignment = Alignment.Center,
     ) {
         Text(

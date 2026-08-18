@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -205,7 +207,8 @@ internal fun HomeContent(
             modifier =
                 Modifier
                     .zIndex(1f)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .statusBarsPadding(),
         )
 
         // 세션 시작 오버레이. state가 non-null이면 페이드인으로 위에 얹혀 다른 UI를 가린다.
@@ -245,6 +248,7 @@ private fun HomeBackgroundWithHero(userName: String) {
             modifier =
                 Modifier
                     .fillMaxWidth()
+                    .statusBarsPadding()
                     .padding(top = HomeTopBarHeight),
         ) {
             HomeHeroSection(userName = userName)

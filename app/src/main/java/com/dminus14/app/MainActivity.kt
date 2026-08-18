@@ -19,6 +19,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.chottulink.lib.ChottuLink
 import com.dminus14.app.error.GlobalErrorHost
 import com.dminus14.app.feature.feedback.api.FeedbackOnboarding
+import com.dminus14.app.feature.home.api.Home
 import com.dminus14.app.feature.interviewreport.api.InterviewReport
 import com.dminus14.app.feature.interviewreport.api.InterviewReportPlayer
 import com.dminus14.app.interview.InterviewAppLifecycleCoordinator
@@ -60,14 +61,22 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             HilitTheme {
-                // interviewReport 관련 화면(리포트·영상 플레이어)은 FullScreen 으로 상태바·
+                // interviewReport 관련 화면(리포트·영상 플레이어)·Home 은 FullScreen 으로 상태바·
                 // 네비게이션바 뒤까지 콘텐츠가 이어져야 해서, 최상위 Scaffold 가 시스템 바 영역을
                 // innerPadding 으로 미리 예약하지 않게 한다. 그 화면들은 각자 필요한 요소(닫기
                 // 버튼, 하단 컨트롤 등)에만 statusBarsPadding/navigationBarsPadding 을 직접
                 // 적용한다. 나머지 화면은 기존과 동일하게 Scaffold 의 기본 inset 을 그대로 받는다.
+                //
+                // Home 을 추가한 이유(#179): 세션 시작 오버레이 하단 버튼이 네비게이션 바
+                // 색상까지 이어져야 하는데, Scaffold 가 미리 그 영역을 예약해버리면 Home 트리
+                // 내부의 어떤 컴포저블도 실제 화면 최하단 픽셀에 물리적으로 닿을 수 없다.
+                // targetSdk 35+ 에서는 Window.setNavigationBarColor() 로 우회하는 것도 막혀 있어
+                // (OS가 무시) 콘텐츠 자체를 시스템 바 뒤까지 그리는 것 외에 다른 방법이 없다.
                 val currentRoute = navigationState.navigator.backStack.lastOrNull()
                 val isFullScreenRoute =
-                    currentRoute is InterviewReport || currentRoute is InterviewReportPlayer
+                    currentRoute is InterviewReport ||
+                        currentRoute is InterviewReportPlayer ||
+                        currentRoute is Home
                 val contentWindowInsets =
                     if (isFullScreenRoute) WindowInsets(0) else ScaffoldDefaults.contentWindowInsets
                 Scaffold(
