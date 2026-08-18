@@ -84,7 +84,6 @@ internal fun InterviewReportContent(
                         text = "다시 시도",
                         type = HilitButtonType.Light,
                         onClick = { onIntent(InterviewReportIntent.ClickRetry) },
-                        modifier = Modifier.navigationBarsPadding(),
                     )
                 }
             }

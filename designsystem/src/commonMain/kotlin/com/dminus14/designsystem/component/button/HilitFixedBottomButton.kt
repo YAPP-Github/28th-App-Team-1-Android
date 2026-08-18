@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,9 +55,13 @@ fun HilitFixedBottomButton(
     Box(
         modifier =
             modifier
-                .background(backgroundColor)
-                .padding(vertical = 16.dp)
                 .fillMaxWidth()
+                .background(backgroundColor)
+                // 배경을 시스템 네비게이션 바(제스처 인디케이터) 영역까지 채운 뒤, 탭 영역·텍스트는
+                // navigationBarsPadding 으로 그 위에 남겨서 버튼 컬러가 인디케이터 바 색상까지
+                // 이어지도록 한다(Figma ButtonLargeBottom 컴포넌트, #179).
+                .navigationBarsPadding()
+                .padding(vertical = 16.dp)
                 .clickable(
                     enabled = enabled,
                     interactionSource = interactionSource,
