@@ -29,6 +29,11 @@ fun InterviewReportScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
+    // FullScreen(상태바·네비게이션바 뒤까지 hilitBlack900 배경이 깔림)이라 아이콘이 항상 밝게
+    // (흰색) 보이도록 고정한다. MyPageScreen 의 MatchSystemBarsToContent 와 같은 목적이되,
+    // 여기는 다크 배경 고정이라 라이트 모드에서도 흰 아이콘을 강제한다.
+    MatchSystemBarsToDarkContent()
+
     LaunchedEffect(sessionId) {
         viewModel.bindSessionId(sessionId)
         viewModel.onIntent(InterviewReportIntent.Load)
