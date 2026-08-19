@@ -44,6 +44,8 @@ Before modifying code, read:
 6. relevant build files when changing dependencies, Gradle, modules, CI, Catalog, or Convention
    Plugins
 7. relevant Feature specifications under `specs/` when present for active implementation work
+8. `docs/workflows/pr-review.md` when reviewing a pull request, and
+   `docs/workflows/pull-request.md` when reviewing branch changes and requesting a PR
 
 When a task spans multiple Architecture areas, read every applicable detailed document. Reread the
 Constitution and relevant detailed contracts before changing architecture, module boundaries,

@@ -4,6 +4,8 @@ specs/
 .agents/
 .codex/
 .claude/
+/review.md
+/PR.md
 
 # Local configuration and secrets
 local.properties
