@@ -95,6 +95,20 @@ Use `.github/PULL_REQUEST_TEMPLATE.md` verbatim as the section structure:
 - `# 🗣️ 리뷰 요구사항 (선택)` — call out anything from §3/§4 the reviewer should double-check
   (e.g. a checklist category that couldn't be fully validated).
 
+### 6.1 PR Title Format
+
+Every PR title must follow `tag/#num title`:
+
+- `tag` — same allowed values as the commit `label` in §5.1 (`docs | feat | refactor | fix |
+  chore | test | design`).
+- `#num` — the issue number the PR closes (the number used in §6's "연관 이슈" section).
+- `title` — a short summary of the PR, in the same language as the rest of the PR body.
+
+Example: `design/#174 면접 준비 UI와 PR 워크플로 개선`.
+
+If the issue number can't be determined, that is the §8 stop condition — don't invent one
+to satisfy the format.
+
 ## 7. Push and PR Creation — Confirmation Gate
 
 Creating a PR requires pushing the branch. A request to "review changes and request a PR"
@@ -109,13 +123,13 @@ push). Before pushing or creating the PR:
 Once confirmed:
 
 1. `git push` the branch (set upstream if needed).
-2. Create the PR with `gh pr create --base develop --title "<label(#issue): message>" --body
-   "<§6 body>"`.
+2. Create the PR with `gh pr create --base develop --title "<tag/#num title>" --body
+   "<§6 body>"`, where the title follows §6.1.
 3. If `gh` is unavailable — not installed, not authenticated, or the command fails for a
    reason unrelated to the PR content — do not treat that as a workflow failure. Instead,
-   write the assembled §6 body to `PR.md` at the repository root and report that the PR
-   could not be created automatically; the user (or Codex, in a `gh`-enabled environment)
-   creates it from `PR.md`.
+   write the §6.1 title followed by the assembled §6 body to `PR.md` at the repository root,
+   and report that the PR could not be created automatically; the user (or Codex, in a
+   `gh`-enabled environment) creates it from `PR.md`.
 
 ## 8. Stop Conditions
 
