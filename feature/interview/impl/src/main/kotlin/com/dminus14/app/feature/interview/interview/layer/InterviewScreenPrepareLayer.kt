@@ -79,7 +79,9 @@ fun InterviewScreenPrepareLayer(
             interviewScreenState == InterviewScreenState.QUESTION_PREPARING
         ) {
             InterviewReadinessIndicator(
-                isReady = isReady,
+                isReady =
+                    isReady &&
+                        interviewScreenState == InterviewScreenState.QUESTION_PREPARING,
                 modifier =
                     Modifier
                         .fillMaxWidth()

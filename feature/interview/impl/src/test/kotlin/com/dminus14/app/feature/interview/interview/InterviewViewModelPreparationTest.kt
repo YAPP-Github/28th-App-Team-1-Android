@@ -4,7 +4,9 @@ import com.dminus14.app.domain.model.InterviewSessionStatus
 import com.dminus14.app.domain.model.InterviewSessionStatusType
 import com.dminus14.app.domain.model.QuestionTurn
 import com.dminus14.app.domain.model.SummaryQuestion
+import com.dminus14.app.feature.interview.InterviewConstants
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -18,10 +20,146 @@ class InterviewViewModelPreparationTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun `장치와 저장 공간 및 서버 준비가 완료되면 시작 안내 상태가 된다`() =
+    fun `준비가 즉시 완료되어도 각 준비 화면을 3초씩 유지한다`() =
         runTest(mainDispatcherRule.dispatcher) {
-            val fixture = InterviewViewModelTestFixture()
-            fixture.sessionStatus =
+            val fixture = readyFixture()
+            val viewModel = fixture.createViewModel()
+
+            viewModel.onIntent(InterviewIntent.LoadInterview)
+            runCurrent()
+            viewModel.completeClientPreparation()
+            runCurrent()
+
+            assertEquals(InterviewScreenState.DEVICE_CHECK, viewModel.state.value.screenState)
+            assertEquals(1L, viewModel.state.value.questionId)
+            assertTrue(viewModel.state.value.isReadyToStart)
+
+            advanceTimeBy(InterviewConstants.PREPARATION_STAGE_MIN_DURATION_MILLIS - 1L)
+            runCurrent()
+            assertEquals(InterviewScreenState.DEVICE_CHECK, viewModel.state.value.screenState)
+
+            advanceTimeBy(1L)
+            runCurrent()
+            assertEquals(InterviewScreenState.QUESTION_PREPARING, viewModel.state.value.screenState)
+
+            advanceTimeBy(InterviewConstants.PREPARATION_STAGE_MIN_DURATION_MILLIS - 1L)
+            runCurrent()
+            assertEquals(InterviewScreenState.QUESTION_PREPARING, viewModel.state.value.screenState)
+
+            advanceTimeBy(1L)
+            runCurrent()
+            assertEquals(InterviewScreenState.START_GUIDE, viewModel.state.value.screenState)
+        }
+
+    @Test
+    fun `준비 조건이 늦게 충족되면 준비 중 경과 시간을 다시 기다리지 않는다`() =
+        runTest(mainDispatcherRule.dispatcher) {
+            val fixture = readyFixture()
+            val viewModel = fixture.createViewModel()
+
+            viewModel.onIntent(InterviewIntent.LoadInterview)
+            runCurrent()
+            advanceTimeBy(InterviewConstants.PREPARATION_STAGE_MIN_DURATION_MILLIS)
+            runCurrent()
+
+            assertEquals(InterviewScreenState.DEVICE_CHECK, viewModel.state.value.screenState)
+
+            viewModel.completeClientPreparation()
+            runCurrent()
+            assertEquals(InterviewScreenState.QUESTION_PREPARING, viewModel.state.value.screenState)
+
+            advanceTimeBy(InterviewConstants.PREPARATION_STAGE_MIN_DURATION_MILLIS - 1L)
+            runCurrent()
+            assertEquals(InterviewScreenState.QUESTION_PREPARING, viewModel.state.value.screenState)
+
+            advanceTimeBy(1L)
+            runCurrent()
+            assertEquals(InterviewScreenState.START_GUIDE, viewModel.state.value.screenState)
+        }
+
+    @Test
+    fun `준비 완료 화면에서 준비 조건이 해제되면 시작 안내로 전환하지 않는다`() =
+        runTest(mainDispatcherRule.dispatcher) {
+            val viewModel = readyFixture().createViewModel()
+            viewModel.onIntent(InterviewIntent.LoadInterview)
+            runCurrent()
+            viewModel.completeClientPreparation()
+            advanceTimeBy(InterviewConstants.PREPARATION_STAGE_MIN_DURATION_MILLIS)
+            runCurrent()
+            assertEquals(InterviewScreenState.QUESTION_PREPARING, viewModel.state.value.screenState)
+
+            viewModel.onIntent(InterviewIntent.ReportStorageAvailability(0L))
+            advanceTimeBy(InterviewConstants.PREPARATION_STAGE_MIN_DURATION_MILLIS)
+            runCurrent()
+            assertEquals(InterviewScreenState.QUESTION_PREPARING, viewModel.state.value.screenState)
+
+            viewModel.onIntent(InterviewIntent.ReportStorageAvailability(Long.MAX_VALUE))
+            runCurrent()
+            assertEquals(InterviewScreenState.START_GUIDE, viewModel.state.value.screenState)
+        }
+
+    @Test
+    fun `백그라운드에 머문 시간도 준비 화면 유지 시간에 포함한다`() =
+        runTest(mainDispatcherRule.dispatcher) {
+            val viewModel = readyFixture().createViewModel()
+            viewModel.onIntent(InterviewIntent.LoadInterview)
+            runCurrent()
+            viewModel.completeClientPreparation()
+
+            advanceTimeBy(1_000L)
+            viewModel.onIntent(InterviewIntent.ReportAppBackgrounded)
+            advanceTimeBy(2_000L)
+            runCurrent()
+            assertEquals(InterviewScreenState.QUESTION_PREPARING, viewModel.state.value.screenState)
+
+            advanceTimeBy(InterviewConstants.PREPARATION_STAGE_MIN_DURATION_MILLIS)
+            runCurrent()
+            assertEquals(InterviewScreenState.START_GUIDE, viewModel.state.value.screenState)
+        }
+
+    @Test
+    fun `새 ViewModel은 준비 화면 유지 시간을 처음부터 측정한다`() =
+        runTest(mainDispatcherRule.dispatcher) {
+            val firstViewModel = readyFixture().createViewModel()
+            firstViewModel.onIntent(InterviewIntent.LoadInterview)
+            runCurrent()
+            firstViewModel.completeClientPreparation()
+            advanceTimeBy(InterviewConstants.PREPARATION_STAGE_MIN_DURATION_MILLIS)
+            runCurrent()
+            assertEquals(
+                InterviewScreenState.QUESTION_PREPARING,
+                firstViewModel.state.value.screenState,
+            )
+
+            val recreatedViewModel = readyFixture().createViewModel()
+            recreatedViewModel.onIntent(InterviewIntent.LoadInterview)
+            runCurrent()
+            recreatedViewModel.completeClientPreparation()
+            runCurrent()
+
+            assertEquals(
+                InterviewScreenState.DEVICE_CHECK,
+                recreatedViewModel.state.value.screenState,
+            )
+
+            advanceTimeBy(InterviewConstants.PREPARATION_STAGE_MIN_DURATION_MILLIS - 1L)
+            runCurrent()
+            assertEquals(
+                InterviewScreenState.DEVICE_CHECK,
+                recreatedViewModel.state.value.screenState,
+            )
+
+            advanceTimeBy(1L)
+            runCurrent()
+            assertEquals(
+                InterviewScreenState.QUESTION_PREPARING,
+                recreatedViewModel.state.value.screenState,
+            )
+        }
+
+    private fun readyFixture(): InterviewViewModelTestFixture =
+        InterviewViewModelTestFixture().apply {
+            sessionStatus =
                 InterviewSessionStatus(
                     status = InterviewSessionStatusType.READY,
                     startedAt = null,
@@ -32,18 +170,12 @@ class InterviewViewModelPreparationTest {
                             turn = QuestionTurn(turnLevel = 1, depthLevel = 0),
                         ),
                 )
-            val viewModel = fixture.createViewModel()
-
-            viewModel.onIntent(InterviewIntent.LoadInterview)
-            runCurrent()
-            viewModel.onIntent(InterviewIntent.ReportCameraPermissionGranted)
-            viewModel.onIntent(InterviewIntent.ReportCameraReady)
-            viewModel.onIntent(InterviewIntent.ReportMicrophoneReady)
-            viewModel.onIntent(InterviewIntent.ReportStorageAvailability(Long.MAX_VALUE))
-            runCurrent()
-
-            assertEquals(InterviewScreenState.START_GUIDE, viewModel.state.value.screenState)
-            assertEquals(1L, viewModel.state.value.questionId)
-            assertTrue(viewModel.state.value.isReadyToStart)
         }
+
+    private fun InterviewViewModel.completeClientPreparation() {
+        onIntent(InterviewIntent.ReportCameraPermissionGranted)
+        onIntent(InterviewIntent.ReportCameraReady)
+        onIntent(InterviewIntent.ReportMicrophoneReady)
+        onIntent(InterviewIntent.ReportStorageAvailability(Long.MAX_VALUE))
+    }
 }

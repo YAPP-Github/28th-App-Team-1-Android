@@ -10,6 +10,7 @@ object InterviewConstants {
     const val WRAP_UP_SECONDS: Int = 525
     const val COUNTDOWN_START_SECONDS: Int = 710
     const val SESSION_POLL_INTERVAL_MILLIS: Long = 5_000L
+    const val PREPARATION_STAGE_MIN_DURATION_MILLIS: Long = 3_000L
     const val TIMER_TICK_INTERVAL_MILLIS: Long = 1_000L
     const val REQUIRED_STORAGE_BYTES: Long = 450L * 1024L * 1024L
     const val SPEECH_START_AMPLITUDE: Double = 0.08
