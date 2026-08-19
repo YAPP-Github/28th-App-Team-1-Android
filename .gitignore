@@ -1,9 +1,5 @@
 # Project-specific generated artifacts
 specs/
-.agent/
-.agents/
-.codex/
-.claude/
 /review.md
 /PR.md
 
