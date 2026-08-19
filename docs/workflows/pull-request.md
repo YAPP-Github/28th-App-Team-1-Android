@@ -28,7 +28,7 @@ branch is not a reason to skip a category.
 
 Run the full CI command (`AGENTS.md` §6):
 
-```
+```bash
 ./gradlew --stacktrace --continue spotlessCheck detekt testDebugUnitTest lintDebug assembleDebug
 ```
 
