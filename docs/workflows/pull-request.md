@@ -123,11 +123,11 @@ push). Before pushing or creating the PR:
 Once confirmed:
 
 1. `git push` the branch (set upstream if needed).
-2. Create the PR with `gh pr create --base develop --title "<tag/#num title>" --body
-   "<§6 body>"`, where the title follows §6.1.
+2. Write the body to a UTF-8 temporary file, create the PR with `--body-file` instead of standard
+   input, then verify non-ASCII text with `gh pr view --json title,body`. Stop if it differs.
 3. If `gh` is unavailable — not installed, not authenticated, or the command fails for a
    reason unrelated to the PR content — do not treat that as a workflow failure. Instead,
-   write the §6.1 title followed by the assembled §6 body to `PR.md` at the repository root,
+   write the §6.1 title followed by the assembled §6 body as UTF-8 to `PR.md` at the repository root,
    and report that the PR could not be created automatically; the user (or Codex, in a
    `gh`-enabled environment) creates it from `PR.md`.
 
