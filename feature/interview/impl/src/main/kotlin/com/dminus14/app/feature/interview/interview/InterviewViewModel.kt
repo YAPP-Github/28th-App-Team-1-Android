@@ -72,8 +72,11 @@ class InterviewViewModel
         private val turnStateMachine: InterviewTurnStateMachine,
     ) : MviViewModel<InterviewIntent, InterviewState, InterviewEffect>(InterviewState()) {
         private var preparationJob: Job? = null
+        private var preparationStageJob: Job? = null
         private var timerJob: Job? = null
         private var hasLoaded = false
+        private var isDeviceCheckMinDurationElapsed = false
+        private var isQuestionPreparingMinDurationElapsed = false
         private var questionPlaybackRetryCount = 0
         private var activeQuestionUrl: String? = null
         private var questionAudioStartedAtMillis: Long? = null
@@ -301,6 +304,7 @@ class InterviewViewModel
                 return
             }
             hasLoaded = true
+            startDeviceCheckMinimumDuration()
             viewModelScope.launch {
                 cleanupExpiredData()
                 val progress = getProgress()
@@ -356,7 +360,6 @@ class InterviewViewModel
                                         copy(
                                             questionId = questionId,
                                             isServerReady = true,
-                                            screenState = InterviewScreenState.QUESTION_PREPARING,
                                         )
                                     }
                                     updatePreparationGate()
@@ -417,9 +420,52 @@ class InterviewViewModel
         }
 
         private fun updatePreparationGate() {
-            if (state.value.isReadyToStart) {
-                reduce { copy(screenState = InterviewScreenState.START_GUIDE) }
+            val current = state.value
+            if (!current.isReadyToStart) return
+
+            when (current.screenState) {
+                InterviewScreenState.DEVICE_CHECK -> {
+                    if (isDeviceCheckMinDurationElapsed) {
+                        reduce { copy(screenState = InterviewScreenState.QUESTION_PREPARING) }
+                        startQuestionPreparingMinimumDuration()
+                    }
+                }
+
+                InterviewScreenState.QUESTION_PREPARING -> {
+                    if (isQuestionPreparingMinDurationElapsed) {
+                        reduce { copy(screenState = InterviewScreenState.START_GUIDE) }
+                    }
+                }
+
+                else -> {
+                    Unit
+                }
             }
+        }
+
+        private fun startDeviceCheckMinimumDuration() {
+            preparationStageJob?.cancel()
+            isDeviceCheckMinDurationElapsed = false
+            isQuestionPreparingMinDurationElapsed = false
+            preparationStageJob =
+                viewModelScope.launch {
+                    delay(InterviewConstants.PREPARATION_STAGE_MIN_DURATION_MILLIS)
+                    isDeviceCheckMinDurationElapsed = true
+                    preparationStageJob = null
+                    updatePreparationGate()
+                }
+        }
+
+        private fun startQuestionPreparingMinimumDuration() {
+            preparationStageJob?.cancel()
+            isQuestionPreparingMinDurationElapsed = false
+            preparationStageJob =
+                viewModelScope.launch {
+                    delay(InterviewConstants.PREPARATION_STAGE_MIN_DURATION_MILLIS)
+                    isQuestionPreparingMinDurationElapsed = true
+                    preparationStageJob = null
+                    updatePreparationGate()
+                }
         }
 
         private fun startInterview() {
@@ -805,6 +851,10 @@ class InterviewViewModel
          */
         private fun clearBeforeFirstQuestion(completionEffect: InterviewEffect? = null) {
             val sessionId = state.value.sessionId ?: return
+            preparationJob?.cancel()
+            preparationJob = null
+            preparationStageJob?.cancel()
+            preparationStageJob = null
             viewModelScope.launch {
                 deleteSession(sessionId)
                 sendEffect(

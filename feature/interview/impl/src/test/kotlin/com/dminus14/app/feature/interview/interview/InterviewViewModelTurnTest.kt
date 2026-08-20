@@ -12,7 +12,9 @@ import com.dminus14.app.domain.model.NextQuestion
 import com.dminus14.app.domain.model.QuestionTurn
 import com.dminus14.app.domain.model.SubmitAnswerResult
 import com.dminus14.app.domain.model.SummaryQuestion
+import com.dminus14.app.feature.interview.InterviewConstants
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -46,6 +48,8 @@ class InterviewViewModelTurnTest {
             viewModel.onIntent(InterviewIntent.ReportCameraReady)
             viewModel.onIntent(InterviewIntent.ReportMicrophoneReady)
             viewModel.onIntent(InterviewIntent.ReportStorageAvailability(Long.MAX_VALUE))
+            advanceTimeBy(InterviewConstants.PREPARATION_STAGE_MIN_DURATION_MILLIS * 2L)
+            runCurrent()
             viewModel.onIntent(InterviewIntent.StartInterview)
             runCurrent()
             viewModel.onIntent(InterviewIntent.ReportQuestionPlaybackStarted)
