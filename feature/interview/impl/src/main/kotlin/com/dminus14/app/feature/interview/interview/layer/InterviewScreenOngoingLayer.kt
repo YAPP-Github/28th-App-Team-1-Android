@@ -1,7 +1,9 @@
 package com.dminus14.app.feature.interview.interview.layer
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
@@ -113,31 +115,31 @@ fun InterviewScreenOngoingLayer(
             )
         }
 
-        if (screenState == InterviewScreenState.ANSWER_RECORDING && hasSpeechStarted) {
-            HilitMiniButton(
-                color = HilitMiniButtonColor.Dark,
-                onClick = onFinishAnswer,
-                modifier =
-                    Modifier
-                        .align(
-                            Alignment.BottomStart,
-                        ).padding(start = 20.dp, bottom = 10.dp),
-            ) {
-                Text(text = "답변 끝내기")
+        Column(
+            modifier =
+                Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 20.dp, bottom = 10.dp),
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            if (canFinishEarly && screenState != InterviewScreenState.FINISHING) {
+                HilitMiniButton(
+                    color = HilitMiniButtonColor.Light,
+                    onClick = onFinishRequest,
+                    enabled = screenState != InterviewScreenState.ANSWER_SUBMITTING,
+                ) {
+                    Text(text = "면접 종료하기")
+                }
             }
-        }
 
-        if (canFinishEarly && screenState != InterviewScreenState.FINISHING) {
-            HilitMiniButton(
-                color = HilitMiniButtonColor.Dark,
-                onClick = onFinishRequest,
-                enabled = screenState != InterviewScreenState.ANSWER_SUBMITTING,
-                modifier =
-                    Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 20.dp, bottom = 10.dp),
-            ) {
-                Text(text = "면접 종료하기")
+            if (screenState == InterviewScreenState.ANSWER_RECORDING && hasSpeechStarted) {
+                HilitMiniButton(
+                    color = HilitMiniButtonColor.Green,
+                    onClick = onFinishAnswer,
+                ) {
+                    Text(text = "답변 완료하기")
+                }
             }
         }
     }
