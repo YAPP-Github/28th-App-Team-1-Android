@@ -12,6 +12,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -384,7 +385,7 @@ fun InterviewContent(
                         onIntent(InterviewIntent.ClickPermissionDeniedBack)
                     },
                     onOpenSettings = { onIntent(InterviewIntent.ClickOpenSettings) },
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().systemBarsPadding(),
                 )
             }
 
@@ -404,7 +405,7 @@ fun InterviewContent(
                     onRetryQuestion = { onIntent(InterviewIntent.ClickRetryQuestionAudio) },
                     onFinishAnswer = { onIntent(InterviewIntent.ClickFinishAnswer) },
                     onFinishRequest = { onIntent(InterviewIntent.ClickFinishInterview) },
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().systemBarsPadding(),
                 )
             }
         }

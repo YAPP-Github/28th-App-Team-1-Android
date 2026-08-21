@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -19,12 +20,12 @@ import androidx.navigation3.ui.NavDisplay
 import com.chottulink.lib.ChottuLink
 import com.dminus14.app.error.GlobalErrorHost
 import com.dminus14.app.feature.feedback.api.FeedbackOnboarding
-import com.dminus14.app.feature.interviewreport.api.InterviewReport
-import com.dminus14.app.feature.interviewreport.api.InterviewReportPlayer
 import com.dminus14.app.interview.InterviewAppLifecycleCoordinator
 import com.dminus14.app.modal.GlobalModalHost
 import com.dminus14.app.modal.GlobalModalManager
 import com.dminus14.app.navigation.AppNavigationState
+import com.dminus14.app.systembar.AppSystemBars
+import com.dminus14.app.systembar.resolveAppSystemBarStyle
 import com.dminus14.designsystem.theme.HilitTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -58,43 +59,54 @@ class MainActivity : ComponentActivity() {
         handleFeedbackShareDeepLink(intent)
 
         enableEdgeToEdge()
+        window.isNavigationBarContrastEnforced = false
         setContent {
             HilitTheme {
-                // interviewReport 관련 화면(리포트·영상 플레이어)은 FullScreen 으로 상태바·
-                // 네비게이션바 뒤까지 콘텐츠가 이어져야 해서, 최상위 Scaffold 가 시스템 바 영역을
-                // innerPadding 으로 미리 예약하지 않게 한다. 그 화면들은 각자 필요한 요소(닫기
-                // 버튼, 하단 컨트롤 등)에만 statusBarsPadding/navigationBarsPadding 을 직접
-                // 적용한다. 나머지 화면은 기존과 동일하게 Scaffold 의 기본 inset 을 그대로 받는다.
                 val currentRoute = navigationState.navigator.backStack.lastOrNull()
-                val isFullScreenRoute =
-                    currentRoute is InterviewReport || currentRoute is InterviewReportPlayer
+                val systemBarStyle =
+                    resolveAppSystemBarStyle(
+                        route = currentRoute,
+                        defaultBarColor = HilitTheme.colors.hilitWhite,
+                    )
                 val contentWindowInsets =
-                    if (isFullScreenRoute) WindowInsets(0) else ScaffoldDefaults.contentWindowInsets
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    contentWindowInsets = contentWindowInsets,
-                ) { innerPadding ->
-                    NavDisplay(
-                        backStack = navigationState.navigator.backStack,
-                        onBack = navigationState.navigator::goBack,
-                        modifier = Modifier.padding(innerPadding),
-                        entryDecorators =
-                            listOf(
-                                rememberSaveableStateHolderNavEntryDecorator(),
-                                rememberViewModelStoreNavEntryDecorator(),
-                            ),
-                        entryProvider =
-                            entryProvider {
-                                navigationState.entryInstallers.forEach { installer -> installer() }
-                            },
+                    if (systemBarStyle.drawsBehindSystemBars) {
+                        WindowInsets(0)
+                    } else {
+                        ScaffoldDefaults.contentWindowInsets
+                    }
+
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Scaffold(
+                        modifier = Modifier.fillMaxSize(),
+                        containerColor = HilitTheme.colors.hilitWhite,
+                        contentWindowInsets = contentWindowInsets,
+                    ) { innerPadding ->
+                        NavDisplay(
+                            backStack = navigationState.navigator.backStack,
+                            onBack = navigationState.navigator::goBack,
+                            modifier = Modifier.padding(innerPadding),
+                            entryDecorators =
+                                listOf(
+                                    rememberSaveableStateHolderNavEntryDecorator(),
+                                    rememberViewModelStoreNavEntryDecorator(),
+                                ),
+                            entryProvider =
+                                entryProvider {
+                                    navigationState.entryInstallers.forEach { installer ->
+                                        installer()
+                                    }
+                                },
+                        )
+                    }
+
+                    AppSystemBars(window = window, style = systemBarStyle)
+
+                    GlobalModalHost(manager = globalModalManager)
+                    GlobalErrorHost(
+                        onExit = ::finishAffinity,
+                        onGlobalEventRendered = interviewAppLifecycleCoordinator::acknowledge,
                     )
                 }
-
-                GlobalModalHost(manager = globalModalManager)
-                GlobalErrorHost(
-                    onExit = ::finishAffinity,
-                    onGlobalEventRendered = interviewAppLifecycleCoordinator::acknowledge,
-                )
             }
         }
     }
