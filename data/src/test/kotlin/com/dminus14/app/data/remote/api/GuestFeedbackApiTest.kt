@@ -83,7 +83,7 @@ class GuestFeedbackApiTest {
                     .get("comment")
                     .isJsonNull,
             )
-            assertEquals(41L, response.submissionId)
+            assertEquals(41L, response.data?.submissionId)
             assertEquals(listOf(DEVICE_ID), request.headers.values(DEVICE_ID_HEADER))
             assertNull(request.getHeader(AUTHORIZATION_HEADER))
         }
@@ -141,13 +141,19 @@ class GuestFeedbackApiTest {
         const val AUTHORIZATION_HEADER = "Authorization"
         const val OPEN_RESPONSE =
             """{
-                "gate":"OPEN",
-                "requesterName":"합성 요청자",
-                "axes":[{"code":"GAZE","displayName":"시선"}],
-                "videoUrl":"https://example.invalid/synthetic-video",
-                "submissionOpen":true
+                "success":true,
+                "data":{
+                    "gate":"OPEN",
+                    "requesterName":"합성 요청자",
+                    "axes":[{"code":"GAZE","displayName":"시선"}],
+                    "videoUrl":"https://example.invalid/synthetic-video",
+                    "submissionOpen":true
+                }
             }"""
         const val SUBMIT_RESPONSE =
-            """{"submissionId":41,"submittedAt":"2026-07-30T09:58:13.348Z"}"""
+            """{
+                "success":true,
+                "data":{"submissionId":41,"submittedAt":"2026-07-30T09:58:13.348Z"}
+            }"""
     }
 }

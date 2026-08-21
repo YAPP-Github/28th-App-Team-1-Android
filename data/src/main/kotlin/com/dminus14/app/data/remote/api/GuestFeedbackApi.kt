@@ -1,5 +1,6 @@
 package com.dminus14.app.data.remote.api
 
+import com.dminus14.app.data.remote.dto.common.ApiResponseDto
 import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackEntryResponseDto
 import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackSubmitRequestDto
 import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackSubmitResponseDto
@@ -20,7 +21,7 @@ interface GuestFeedbackApi {
     @GET("api/v1/feedback/guest/{token}")
     suspend fun enter(
         @Path("token") token: String,
-    ): GuestFeedbackEntryResponseDto
+    ): ApiResponseDto<GuestFeedbackEntryResponseDto>
 
     /** 설치 ID와 nullable 평가 항목을 포함한 비회원 피드백을 제출한다. */
     @Headers(
@@ -31,5 +32,5 @@ interface GuestFeedbackApi {
     suspend fun submit(
         @Path("token") token: String,
         @Body request: GuestFeedbackSubmitRequestDto,
-    ): GuestFeedbackSubmitResponseDto
+    ): ApiResponseDto<GuestFeedbackSubmitResponseDto>
 }

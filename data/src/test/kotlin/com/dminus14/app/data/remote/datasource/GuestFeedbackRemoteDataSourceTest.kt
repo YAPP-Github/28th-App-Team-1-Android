@@ -1,6 +1,7 @@
 package com.dminus14.app.data.remote.datasource
 
 import com.dminus14.app.data.remote.api.GuestFeedbackApi
+import com.dminus14.app.data.remote.dto.common.ApiResponseDto
 import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackAxisCodeDto
 import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackEntryResponseDto
 import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackGateDto
@@ -88,20 +89,20 @@ class GuestFeedbackRemoteDataSourceTest {
         var submittedRequest: GuestFeedbackSubmitRequestDto? = null
             private set
 
-        override suspend fun enter(token: String): GuestFeedbackEntryResponseDto {
+        override suspend fun enter(token: String): ApiResponseDto<GuestFeedbackEntryResponseDto> {
             failure?.let { throw it }
             enteredToken = token
-            return entryResponse
+            return ApiResponseDto(success = true, data = entryResponse)
         }
 
         override suspend fun submit(
             token: String,
             request: GuestFeedbackSubmitRequestDto,
-        ): GuestFeedbackSubmitResponseDto {
+        ): ApiResponseDto<GuestFeedbackSubmitResponseDto> {
             failure?.let { throw it }
             submittedToken = token
             submittedRequest = request
-            return submitResponse
+            return ApiResponseDto(success = true, data = submitResponse)
         }
     }
 
