@@ -31,6 +31,10 @@ import com.dminus14.designsystem.component.tag.HilitTag
 import com.dminus14.designsystem.component.tag.TagColorType
 import com.dminus14.designsystem.component.tag.TagType
 import com.dminus14.designsystem.theme.HilitTheme
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
+private val ReportCreatedAtFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd. HH:mm")
 
 @Composable
 @Suppress("LongParameterList")
@@ -130,7 +134,7 @@ private fun ReportCard(
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        report.createdAt,
+                        report.createdAt.toReportCreatedAtText(),
                         style = HilitTheme.typography.body10,
                         color = HilitTheme.colors.gray400,
                     )
@@ -219,6 +223,11 @@ private fun ReportCard(
     }
 }
 
+private fun String.toReportCreatedAtText(): String =
+    runCatching {
+        LocalDateTime.parse(this).format(ReportCreatedAtFormatter)
+    }.getOrDefault("")
+
 @Composable
 private fun ReportMetadataRow(
     label: String,
@@ -284,7 +293,7 @@ private fun sampleReport(
         jobRole = MyPageJobRole.ANDROID,
         jobRoleLabel = MyPageJobRole.ANDROID.label,
         experienceYears = 3,
-        createdAt = "2026.08.04 14:20",
+        createdAt = "2026-08-04T14:20:00.000000",
         status = status,
         portfolioFileName = "sample_portfolio.pdf",
         jobDescription = "careers.example.com/jobs/1024",
