@@ -109,6 +109,9 @@ HilitTheme {
 앱 Root Composable을 도입하면 Navigation 조립과 전역 UI event rendering을 `app`의 해당
 Root에 모은다.
 
+상태바·내비게이션바의 배경, 아이콘 밝기와 전체 화면 여부는 `app`의 `AppSystemBarStyle`로
+관리한다. 화면 특성이 바뀌면 해당 route의 `AppSystemBarStyle` 정책도 함께 갱신한다.
+
 ## 6. Effect 책임 경계
 
 Intent와 Effect는 해당 Feature 안에서 일어난 일을 Feature의 용어로 표현한다.

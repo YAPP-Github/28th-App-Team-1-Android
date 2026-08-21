@@ -54,7 +54,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-import com.dminus14.app.feature.interviewreport.MatchSystemBarsToDarkContent
 import com.dminus14.app.feature.interviewreport.component.HighlightDetailBottomSheet
 import com.dminus14.app.feature.interviewreport.model.HighlightUiTone
 import com.dminus14.app.feature.interviewreport.model.PlayerContentUiModel
@@ -108,11 +107,6 @@ fun InterviewReportPlayerScreen(
     viewModel: InterviewReportPlayerViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-
-    // FullScreen(상태바·네비게이션바 뒤까지 영상이 깔림)이라 시스템 바 아이콘이 원본 영상과
-    // 직접 겹친다. 다크 스크림(VideoOverlay top/bottom)을 항상 상시로 깔아 밝기와 무관하게 흰
-    // 아이콘이 보이도록 고정한다.
-    MatchSystemBarsToDarkContent()
 
     LaunchedEffect(sessionId) {
         viewModel.bindSessionId(sessionId)

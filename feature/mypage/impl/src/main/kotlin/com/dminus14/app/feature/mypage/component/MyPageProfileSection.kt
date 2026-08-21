@@ -17,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dminus14.app.feature.mypage.MyPageProfileUiModel
@@ -35,6 +36,11 @@ import com.dminus14.designsystem.theme.HilitTheme
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
+/**
+ * 사용자 프로필과 계정 정보를 표시한다.
+ *
+ * Figma Node: 1855:6830
+ */
 @Composable
 @Suppress("LongMethod", "LongParameterList", "UnusedParameter")
 internal fun MyPageProfileSection(
@@ -72,22 +78,31 @@ internal fun MyPageProfileSection(
                 if (profile == null) {
                     EmptyText()
                 } else {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
                         Text(
                             text = profile.name,
+                            modifier = Modifier.weight(1f),
                             color = HilitTheme.colors.hilitBlack800,
                             style = HilitTheme.typography.body1,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            HilitTag(
-                                colorType = TagColorType.BlackGreen,
-                                tagType = TagType.Large,
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
                                 text = profile.role,
+                                style = HilitTheme.typography.body7,
+                                color = HilitTheme.colors.gray500,
                             )
-                            HilitTag(
-                                colorType = TagColorType.BlackWhite,
-                                tagType = TagType.Large,
+                            Text(
                                 text = profile.experience,
+                                style = HilitTheme.typography.body7,
+                                color = HilitTheme.colors.gray500,
                             )
                         }
                     }
@@ -144,7 +159,7 @@ internal fun MyPageProfileSection(
                     HilitTag(
                         colorType = TagColorType.Green,
                         tagType = TagType.Small,
-                        text = remainingTicketCount?.let { "${it}장" } ?: "내용 없음",
+                        text = remainingTicketCount?.let { "${it}회" } ?: "내용 없음",
                     )
                 }
                 if (isTicketInfoTooltipVisible && remainingTicketCount != null) {

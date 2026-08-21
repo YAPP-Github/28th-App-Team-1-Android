@@ -10,24 +10,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.dminus14.designsystem.component.emptystate.HilitEmptyState
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
 import com.dminus14.designsystem.theme.HilitTheme
@@ -53,9 +47,6 @@ private val PdfUploadButtonPadding = 8.dp
 private val PdfUploadButtonSpacing = 8.dp
 private val PdfUploadProgressHeight = 4.dp
 private val PdfUploadBorderWidth = 1.5.dp
-private val PdfUploadReadyMinHeight = 64.dp
-private val PdfUploadDashOn = 6.dp
-private val PdfUploadDashOff = 4.dp
 
 private const val PDF_UPLOAD_READY_DEFAULT_TEXT = "아직 첨부된 포트폴리오가 없어요"
 private const val PDF_UPLOAD_PROGRESS_MIN = 0f
@@ -88,7 +79,10 @@ fun PdfUpload(
 ) {
     when (type) {
         PdfUploadType.Ready -> {
-            PdfUploadReady(modifier = modifier)
+            HilitEmptyState(
+                text = PDF_UPLOAD_READY_DEFAULT_TEXT,
+                modifier = modifier,
+            )
         }
 
         PdfUploadType.Processing,
@@ -106,37 +100,6 @@ fun PdfUpload(
                 modifier = modifier,
             )
         }
-    }
-}
-
-@Composable
-private fun PdfUploadReady(modifier: Modifier = Modifier) {
-    val borderColor = HilitTheme.colors.gray200
-
-    Box(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .heightIn(min = PdfUploadReadyMinHeight)
-                .background(
-                    color = HilitTheme.colors.hilitWhite,
-                    shape = PdfUploadShape,
-                ).dashedBorder(
-                    width = PdfUploadBorderWidth,
-                    color = borderColor,
-                    dashOn = PdfUploadDashOn,
-                    dashOff = PdfUploadDashOff,
-                ).padding(
-                    horizontal = PdfUploadHorizontalPadding,
-                    vertical = PdfUploadVerticalPadding,
-                ),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = PDF_UPLOAD_READY_DEFAULT_TEXT,
-            style = HilitTheme.typography.body6,
-            color = HilitTheme.colors.gray300,
-        )
     }
 }
 
@@ -370,35 +333,6 @@ private fun PdfUploadProgress(progress: Float) {
         )
     }
 }
-
-private fun Modifier.dashedBorder(
-    width: Dp,
-    color: Color,
-    dashOn: Dp,
-    dashOff: Dp,
-): Modifier =
-    drawBehind {
-        val strokeWidth = width.toPx()
-        val dashPathEffect =
-            PathEffect.dashPathEffect(
-                floatArrayOf(dashOn.toPx(), dashOff.toPx()),
-                0f,
-            )
-        drawRect(
-            color = color,
-            topLeft = Offset(strokeWidth / 2, strokeWidth / 2),
-            size =
-                Size(
-                    width = size.width - strokeWidth,
-                    height = size.height - strokeWidth,
-                ),
-            style =
-                Stroke(
-                    width = strokeWidth,
-                    pathEffect = dashPathEffect,
-                ),
-        )
-    }
 
 @Preview(
     name = "PdfUpload",

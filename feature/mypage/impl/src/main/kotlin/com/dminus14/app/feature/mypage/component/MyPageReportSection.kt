@@ -24,12 +24,17 @@ import androidx.compose.ui.unit.dp
 import com.dminus14.app.feature.mypage.MyPageJobRole
 import com.dminus14.app.feature.mypage.MyPageReportStatus
 import com.dminus14.app.feature.mypage.MyPageReportUiModel
+import com.dminus14.designsystem.component.emptystate.HilitEmptyState
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
 import com.dminus14.designsystem.component.tag.HilitTag
 import com.dminus14.designsystem.component.tag.TagColorType
 import com.dminus14.designsystem.component.tag.TagType
 import com.dminus14.designsystem.theme.HilitTheme
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
+private val ReportCreatedAtFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd. HH:mm")
 
 @Composable
 @Suppress("LongParameterList")
@@ -49,16 +54,8 @@ internal fun MyPageReportSection(
             modifier = Modifier.padding(bottom = 12.dp),
         )
         if (reports.isEmpty()) {
-            Text(
-                text = "내용 없음",
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .background(HilitTheme.colors.hilitWhite)
-                        .border(1.dp, HilitTheme.colors.gray100)
-                        .padding(18.dp),
-                style = HilitTheme.typography.body6,
-                color = HilitTheme.colors.gray400,
+            HilitEmptyState(
+                text = "면접을 시작하고 리포트를 받아보세요!",
             )
         } else {
             reports.forEach { report ->
@@ -137,7 +134,7 @@ private fun ReportCard(
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        report.createdAt,
+                        report.createdAt.toReportCreatedAtText(),
                         style = HilitTheme.typography.body10,
                         color = HilitTheme.colors.gray400,
                     )
@@ -226,6 +223,11 @@ private fun ReportCard(
     }
 }
 
+private fun String.toReportCreatedAtText(): String =
+    runCatching {
+        LocalDateTime.parse(this).format(ReportCreatedAtFormatter)
+    }.getOrDefault("")
+
 @Composable
 private fun ReportMetadataRow(
     label: String,
@@ -291,7 +293,7 @@ private fun sampleReport(
         jobRole = MyPageJobRole.ANDROID,
         jobRoleLabel = MyPageJobRole.ANDROID.label,
         experienceYears = 3,
-        createdAt = "2026.08.04 14:20",
+        createdAt = "2026-08-04T14:20:00.000000",
         status = status,
         portfolioFileName = "sample_portfolio.pdf",
         jobDescription = "careers.example.com/jobs/1024",
@@ -306,6 +308,21 @@ private fun MyPageReportSectionPreview() {
         MyPageReportSection(
             reports = listOf(report),
             expandedReportIds = setOf(report.id),
+            onReportToggleClick = {},
+            onReportViewClick = {},
+            onGuestFeedbackClick = {},
+            modifier = Modifier.padding(20.dp),
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 375)
+@Composable
+private fun MyPageReportSectionEmptyPreview() {
+    HilitTheme {
+        MyPageReportSection(
+            reports = emptyList(),
+            expandedReportIds = emptySet(),
             onReportToggleClick = {},
             onReportViewClick = {},
             onGuestFeedbackClick = {},
