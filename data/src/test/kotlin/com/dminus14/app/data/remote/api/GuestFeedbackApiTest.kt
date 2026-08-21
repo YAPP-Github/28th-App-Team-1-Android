@@ -145,7 +145,6 @@ class GuestFeedbackApiTest {
                 "requesterName":"합성 요청자",
                 "axes":[{"code":"GAZE","displayName":"시선"}],
                 "videoUrl":"https://example.invalid/synthetic-video",
-                "questionBoundaries":[{"turnLevel":1,"startAt":2.5,"questionText":"합성 질문"}],
                 "submissionOpen":true
             }"""
         const val SUBMIT_RESPONSE =

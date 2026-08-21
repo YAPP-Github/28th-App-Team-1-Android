@@ -16,7 +16,6 @@ internal fun openEntry(): GuestFeedbackEntry.Open =
                 GuestFeedbackAxis(GuestFeedbackAxisCode.VOICE, "목소리"),
             ),
         videoUrl = "https://example.invalid/synthetic.mp4",
-        questionBoundaries = emptyList(),
         submissionOpen = true,
     )
 

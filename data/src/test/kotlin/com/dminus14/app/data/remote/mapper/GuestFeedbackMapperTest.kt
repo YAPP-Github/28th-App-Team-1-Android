@@ -4,7 +4,6 @@ import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackAxisCodeDto
 import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackAxisDto
 import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackEntryResponseDto
 import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackGateDto
-import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackQuestionBoundaryDto
 import com.dminus14.app.domain.model.GuestFeedbackAxisCode
 import com.dminus14.app.domain.model.GuestFeedbackEntry
 import com.dminus14.app.domain.model.GuestFeedbackRating
@@ -25,14 +24,6 @@ class GuestFeedbackMapperTest {
                         GuestFeedbackAxisDto(code, "합성 표시명 ${code.name}")
                     },
                 videoUrl = "https://example.invalid/synthetic-video",
-                questionBoundaries =
-                    listOf(
-                        GuestFeedbackQuestionBoundaryDto(
-                            turnLevel = 1,
-                            startAt = 2.5,
-                            questionText = "합성 질문",
-                        ),
-                    ),
                 submissionOpen = true,
             )
 
@@ -43,9 +34,6 @@ class GuestFeedbackMapperTest {
         assertEquals("합성 요청자", actual.requesterName)
         assertEquals(GuestFeedbackAxisCode.entries, actual.axes.map { axis -> axis.code })
         assertEquals("https://example.invalid/synthetic-video", actual.videoUrl)
-        assertEquals(1, actual.questionBoundaries.single().turnLevel)
-        assertEquals(2.5, actual.questionBoundaries.single().startAt, 0.0)
-        assertEquals("합성 질문", actual.questionBoundaries.single().questionText)
         assertTrue(actual.submissionOpen)
     }
 
@@ -89,7 +77,6 @@ class GuestFeedbackMapperTest {
             requesterName = null,
             axes = null,
             videoUrl = null,
-            questionBoundaries = null,
             submissionOpen = null,
         )
 }

@@ -104,7 +104,6 @@ class FeedbackViewModel
                                     comment = draft?.comment.orEmpty(),
                                 )
                             },
-                        questionBoundaries = data.questionBoundaries,
                         hasLoaded = true,
                     )
                 }

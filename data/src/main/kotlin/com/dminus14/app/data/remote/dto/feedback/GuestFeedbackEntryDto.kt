@@ -18,8 +18,6 @@ data class GuestFeedbackEntryResponseDto(
     val axes: List<GuestFeedbackAxisDto>?,
     @SerializedName("videoUrl")
     val videoUrl: String?,
-    @SerializedName("questionBoundaries")
-    val questionBoundaries: List<GuestFeedbackQuestionBoundaryDto>?,
     @SerializedName("submissionOpen")
     val submissionOpen: Boolean?,
 )
@@ -29,15 +27,6 @@ data class GuestFeedbackAxisDto(
     val code: GuestFeedbackAxisCodeDto,
     @SerializedName("displayName")
     val displayName: String,
-)
-
-data class GuestFeedbackQuestionBoundaryDto(
-    @SerializedName("turnLevel")
-    val turnLevel: Int,
-    @SerializedName("startAt")
-    val startAt: Double,
-    @SerializedName("questionText")
-    val questionText: String,
 )
 
 /** Guest Feedback 공유 링크의 접근 가능 상태를 표현하는 서버 확정 wire 값이다. */
