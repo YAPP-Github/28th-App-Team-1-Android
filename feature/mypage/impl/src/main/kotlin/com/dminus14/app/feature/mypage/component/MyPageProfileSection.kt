@@ -144,7 +144,7 @@ internal fun MyPageProfileSection(
                     HilitTag(
                         colorType = TagColorType.Green,
                         tagType = TagType.Small,
-                        text = remainingTicketCount?.let { "${it}장" } ?: "내용 없음",
+                        text = remainingTicketCount?.let { "${it}회" } ?: "내용 없음",
                     )
                 }
                 if (isTicketInfoTooltipVisible && remainingTicketCount != null) {
