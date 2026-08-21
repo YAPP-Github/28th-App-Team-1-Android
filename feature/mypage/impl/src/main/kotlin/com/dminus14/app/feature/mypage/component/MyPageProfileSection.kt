@@ -35,6 +35,11 @@ import com.dminus14.designsystem.theme.HilitTheme
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
+/**
+ * 사용자 프로필과 계정 정보를 표시한다.
+ *
+ * Figma Node: 1855:6830
+ */
 @Composable
 @Suppress("LongMethod", "LongParameterList", "UnusedParameter")
 internal fun MyPageProfileSection(
@@ -72,22 +77,28 @@ internal fun MyPageProfileSection(
                 if (profile == null) {
                     EmptyText()
                 } else {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
                         Text(
                             text = profile.name,
                             color = HilitTheme.colors.hilitBlack800,
                             style = HilitTheme.typography.body1,
                         )
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            HilitTag(
-                                colorType = TagColorType.BlackGreen,
-                                tagType = TagType.Large,
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
                                 text = profile.role,
+                                style = HilitTheme.typography.body7,
+                                color = HilitTheme.colors.gray500,
                             )
-                            HilitTag(
-                                colorType = TagColorType.BlackWhite,
-                                tagType = TagType.Large,
+                            Text(
                                 text = profile.experience,
+                                style = HilitTheme.typography.body7,
+                                color = HilitTheme.colors.gray500,
                             )
                         }
                     }

@@ -62,7 +62,7 @@ Composable 내부에는 animation progress, focus와 press처럼 외부 의미�
 | 선택 | `HilitChip`, `HilitToggle`, `TermBox` | 칩·토글·약관 동의 |
 | 선택 | `HilitTab`, `HilitTabRow`, `HilitWheelPicker` | 탭·휠 선택 |
 | 파일 | `FileUploadGuide`, `PdfUpload` | 업로드 안내·PDF 상태 |
-| 상태 | `HilitLoadingIndicator`, `HilitProgressBar`, `HilitSubText` | 로딩·진행·보조 상태 |
+| 상태 | `HilitEmptyState`, `HilitLoadingIndicator`, `HilitProgressBar`, `HilitSubText` | 비어 있음·로딩·진행·보조 상태 |
 | 표시 | `BubbleField`, `HilitTag` | 말풍선·태그 |
 | 표시 | `HilitText`, `HilitIcon` | 강조 텍스트·공용 아이콘 |
 | Sheet | `HilitBottomSheet` | 공용 Modal Bottom Sheet |

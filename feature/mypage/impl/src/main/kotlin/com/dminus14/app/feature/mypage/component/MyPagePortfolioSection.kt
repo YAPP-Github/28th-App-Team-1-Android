@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.dminus14.app.feature.mypage.component
 
 import androidx.compose.foundation.background
@@ -240,6 +242,25 @@ private fun MyPagePortfolioSectionPreview() {
         MyPagePortfolioSection(
             portfolioState = MyPagePortfolioState.Failed(fileName = "sample_portfolio.pdf"),
             isUploadFailureTooltipVisible = true,
+            onUploadClick = {},
+            onUploadCancelClick = {},
+            onUploadRetryClick = {},
+            onUploadFailureInfoClick = {},
+            onUploadFailureTooltipDismiss = {},
+            onPortfolioDeleteClick = {},
+            onPortfolioReuploadClick = {},
+            modifier = Modifier.padding(20.dp),
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 375)
+@Composable
+private fun MyPagePortfolioSectionEmptyPreview() {
+    HilitTheme {
+        MyPagePortfolioSection(
+            portfolioState = MyPagePortfolioState.Empty,
+            isUploadFailureTooltipVisible = false,
             onUploadClick = {},
             onUploadCancelClick = {},
             onUploadRetryClick = {},

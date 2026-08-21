@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.dminus14.app.feature.mypage.MyPageJobRole
 import com.dminus14.app.feature.mypage.MyPageReportStatus
 import com.dminus14.app.feature.mypage.MyPageReportUiModel
+import com.dminus14.designsystem.component.emptystate.HilitEmptyState
 import com.dminus14.designsystem.component.icon.HilitIcon
 import com.dminus14.designsystem.component.icon.HilitIconAsset
 import com.dminus14.designsystem.component.tag.HilitTag
@@ -49,16 +50,8 @@ internal fun MyPageReportSection(
             modifier = Modifier.padding(bottom = 12.dp),
         )
         if (reports.isEmpty()) {
-            Text(
-                text = "내용 없음",
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .background(HilitTheme.colors.hilitWhite)
-                        .border(1.dp, HilitTheme.colors.gray100)
-                        .padding(18.dp),
-                style = HilitTheme.typography.body6,
-                color = HilitTheme.colors.gray400,
+            HilitEmptyState(
+                text = "면접을 시작하고 리포트를 받아보세요!",
             )
         } else {
             reports.forEach { report ->
@@ -306,6 +299,21 @@ private fun MyPageReportSectionPreview() {
         MyPageReportSection(
             reports = listOf(report),
             expandedReportIds = setOf(report.id),
+            onReportToggleClick = {},
+            onReportViewClick = {},
+            onGuestFeedbackClick = {},
+            modifier = Modifier.padding(20.dp),
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 375)
+@Composable
+private fun MyPageReportSectionEmptyPreview() {
+    HilitTheme {
+        MyPageReportSection(
+            reports = emptyList(),
+            expandedReportIds = emptySet(),
             onReportToggleClick = {},
             onReportViewClick = {},
             onGuestFeedbackClick = {},
