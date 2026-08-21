@@ -24,7 +24,7 @@ import com.dminus14.designsystem.theme.HilitTheme
 private val HilitEmptyStateMinHeight = 64.dp
 private val HilitEmptyStateHorizontalPadding = 14.dp
 private val HilitEmptyStateVerticalPadding = 14.dp
-private val HilitEmptyStateBorderWidth = 1.5.dp
+private val HilitEmptyStateBorderWidth = 1.dp
 private val HilitEmptyStateDashOn = 6.dp
 private val HilitEmptyStateDashOff = 4.dp
 

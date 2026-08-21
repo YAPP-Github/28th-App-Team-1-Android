@@ -125,7 +125,10 @@ internal fun MyPagePortfolioSection(
                 UploadErrorNotice()
             }
         }
-        if (portfolioState !is MyPagePortfolioState.Failed) {
+        if (
+            portfolioState !is MyPagePortfolioState.Failed &&
+            portfolioState !is MyPagePortfolioState.Empty
+        ) {
             Row(
                 modifier =
                     Modifier
