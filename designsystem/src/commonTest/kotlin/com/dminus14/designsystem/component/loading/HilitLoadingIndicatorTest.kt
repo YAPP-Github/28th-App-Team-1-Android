@@ -9,21 +9,21 @@ import kotlin.test.assertTrue
 
 class HilitLoadingIndicatorTest {
     @Test
-    fun `기본 크기는 74dp 컨테이너 안에 72dp 곱하기 73dp 그래픽을 배치한다`() {
+    fun `기본 크기는 74dp 컨테이너 안에 72dp 정사각형 그래픽을 배치한다`() {
         val geometry = hilitLoadingIndicatorGeometry(size = 74.dp)
 
         assertEquals(74.dp, geometry.containerSize)
         assertEquals(72.dp, geometry.graphicWidth)
-        assertEquals(73.dp, geometry.graphicHeight)
+        assertEquals(72.dp, geometry.graphicHeight)
     }
 
     @Test
-    fun `사용자 크기에서도 원본 그래픽 비율을 유지한다`() {
+    fun `사용자 크기에서도 그래픽은 항상 정사각형을 유지한다`() {
         val geometry = hilitLoadingIndicatorGeometry(size = 148.dp)
 
         assertEquals(148.dp, geometry.containerSize)
         assertEquals(144.dp, geometry.graphicWidth)
-        assertEquals(146.dp, geometry.graphicHeight)
+        assertEquals(144.dp, geometry.graphicHeight)
     }
 
     @Test
