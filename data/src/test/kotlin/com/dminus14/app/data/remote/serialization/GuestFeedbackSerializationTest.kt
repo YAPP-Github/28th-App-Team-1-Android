@@ -31,14 +31,13 @@ class GuestFeedbackSerializationTest {
     }
 
     @Test
-    fun `non-OPEN 응답은 다섯 키가 명시적 null일 때만 허용한다`() {
+    fun `non-OPEN 응답은 네 키가 명시적 null일 때만 허용한다`() {
         val response = gson.fromJson(CLOSED_RESPONSE, GuestFeedbackEntryResponseDto::class.java)
 
         assertEquals(GuestFeedbackGateDto.FULL, response.gate)
         assertNull(response.requesterName)
         assertNull(response.axes)
         assertNull(response.videoUrl)
-        assertNull(response.questionBoundaries)
         assertNull(response.submissionOpen)
     }
 
@@ -93,25 +92,6 @@ class GuestFeedbackSerializationTest {
         assertThrows(JsonParseException::class.java) {
             gson.fromJson(
                 OPEN_RESPONSE.replace("\"code\":\"GESTURE\"", "\"code\":null"),
-                GuestFeedbackEntryResponseDto::class.java,
-            )
-        }
-    }
-
-    @Test
-    fun `OPEN 응답의 질문 원소나 필수 필드가 null이면 실패한다`() {
-        assertThrows(JsonParseException::class.java) {
-            gson.fromJson(
-                OPEN_RESPONSE.replace(
-                    """{"turnLevel":1,"startAt":2.5,"questionText":"합성 질문"}""",
-                    "null",
-                ),
-                GuestFeedbackEntryResponseDto::class.java,
-            )
-        }
-        assertThrows(JsonParseException::class.java) {
-            gson.fromJson(
-                OPEN_RESPONSE.replace("\"questionText\":\"합성 질문\"", "\"questionText\":null"),
                 GuestFeedbackEntryResponseDto::class.java,
             )
         }
@@ -207,28 +187,27 @@ class GuestFeedbackSerializationTest {
                 "requesterName":"합성 요청자",
                 "axes":[{"code":"GESTURE","displayName":"손동작"}],
                 "videoUrl":"https://example.invalid/synthetic-video",
-                "questionBoundaries":[{"turnLevel":1,"startAt":2.5,"questionText":"합성 질문"}],
                 "submissionOpen":true
             }"""
         const val CLOSED_RESPONSE =
             """{
                 "gate":"FULL","requesterName":null,"axes":null,"videoUrl":null,
-                "questionBoundaries":null,"submissionOpen":null
+                "submissionOpen":null
             }"""
         const val MISSING_VIDEO_URL_RESPONSE =
             """{
                 "gate":"FULL","requesterName":null,"axes":null,
-                "questionBoundaries":null,"submissionOpen":null
+                "submissionOpen":null
             }"""
         const val OPEN_NULL_RESPONSE =
             """{
                 "gate":"OPEN","requesterName":"합성 요청자","axes":[],"videoUrl":null,
-                "questionBoundaries":[],"submissionOpen":true
+                "submissionOpen":true
             }"""
         const val CLOSED_WITH_DATA_RESPONSE =
             """{
                 "gate":"FULL","requesterName":"합성 요청자","axes":null,"videoUrl":null,
-                "questionBoundaries":null,"submissionOpen":null
+                "submissionOpen":null
             }"""
         const val SUBMIT_RESPONSE =
             """{"submissionId":41,"submittedAt":"$SUBMITTED_AT"}"""

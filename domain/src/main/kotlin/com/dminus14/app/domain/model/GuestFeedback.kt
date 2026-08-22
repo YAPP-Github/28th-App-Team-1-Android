@@ -10,14 +10,13 @@ sealed interface GuestFeedbackEntry {
     /**
      * 비회원 피드백을 작성할 수 있는 진입 데이터다.
      *
-     * 영상 URL과 질문은 민감한 사용자 데이터이므로 진행 중 메모리에서만 사용하고 저장하거나
+     * 영상 URL은 민감한 사용자 데이터이므로 진행 중 메모리에서만 사용하고 저장하거나
      * 로그로 남기지 않는다.
      */
     data class Open(
         val requesterName: String,
         val axes: List<GuestFeedbackAxis>,
         val videoUrl: String,
-        val questionBoundaries: List<GuestFeedbackQuestionBoundary>,
         val submissionOpen: Boolean,
     ) : GuestFeedbackEntry
 
@@ -49,13 +48,6 @@ enum class GuestFeedbackAxisCode {
     GESTURE,
     VOICE,
 }
-
-/** 면접 영상에서 질문이 시작되는 위치와 질문 문맥이다. */
-data class GuestFeedbackQuestionBoundary(
-    val turnLevel: Int,
-    val startAt: Double,
-    val questionText: String,
-)
 
 /**
  * 서버로 제출할 비회원 피드백 입력이다.

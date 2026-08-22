@@ -4,7 +4,6 @@ import com.dminus14.app.core.common.mvi.MviEffect
 import com.dminus14.app.core.common.mvi.MviIntent
 import com.dminus14.app.core.common.mvi.MviState
 import com.dminus14.app.domain.model.GuestFeedbackAxisCode
-import com.dminus14.app.domain.model.GuestFeedbackQuestionBoundary
 import com.dminus14.app.feature.feedback.session.CommentEditorState
 
 sealed interface FeedbackIntent : MviIntent {
@@ -47,7 +46,6 @@ data class FeedbackState(
     val videoUrl: String = "",
     val axes: List<FeedbackAxisUiModel> = emptyList(),
     val selectedAxis: GuestFeedbackAxisCode? = null,
-    val questionBoundaries: List<GuestFeedbackQuestionBoundary> = emptyList(),
     val isCommentEditorVisible: Boolean = false,
     val editingAxis: GuestFeedbackAxisCode? = null,
     val editingValue: String = "",

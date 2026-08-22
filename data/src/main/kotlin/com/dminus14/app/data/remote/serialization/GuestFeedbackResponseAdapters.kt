@@ -4,7 +4,6 @@ import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackAxisCodeDto
 import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackAxisDto
 import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackEntryResponseDto
 import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackGateDto
-import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackQuestionBoundaryDto
 import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackSubmitResponseDto
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
@@ -46,10 +45,6 @@ class GuestFeedbackEntryResponseAdapter : JsonDeserializer<GuestFeedbackEntryRes
                         element.toAxis(index)
                     },
                 videoUrl = response.requiredString(KEY_VIDEO_URL),
-                questionBoundaries =
-                    response.requiredArray(KEY_QUESTION_BOUNDARIES).mapIndexed { index, element ->
-                        element.toQuestionBoundary(index)
-                    },
                 submissionOpen = response.requiredBoolean(KEY_SUBMISSION_OPEN),
             )
         } else {
@@ -59,7 +54,6 @@ class GuestFeedbackEntryResponseAdapter : JsonDeserializer<GuestFeedbackEntryRes
                 requesterName = null,
                 axes = null,
                 videoUrl = null,
-                questionBoundaries = null,
                 submissionOpen = null,
             )
         }
@@ -77,36 +71,21 @@ class GuestFeedbackEntryResponseAdapter : JsonDeserializer<GuestFeedbackEntryRes
         )
     }
 
-    /** 질문 배열 원소의 순번·시작 시각·원문을 검증해 non-null DTO로 변환한다. */
-    private fun JsonElement.toQuestionBoundary(index: Int): GuestFeedbackQuestionBoundaryDto {
-        val boundary = requiredObject("$KEY_QUESTION_BOUNDARIES[$index]")
-        return GuestFeedbackQuestionBoundaryDto(
-            turnLevel = boundary.requiredNumber(KEY_TURN_LEVEL, String::toIntOrNull),
-            startAt = boundary.requiredNumber(KEY_START_AT, String::toDoubleOrNull),
-            questionText = boundary.requiredString(KEY_QUESTION_TEXT),
-        )
-    }
-
     private companion object {
         const val RESPONSE_NAME = "Guest Feedback 진입 응답"
         const val KEY_GATE = "gate"
         const val KEY_REQUESTER_NAME = "requesterName"
         const val KEY_AXES = "axes"
         const val KEY_VIDEO_URL = "videoUrl"
-        const val KEY_QUESTION_BOUNDARIES = "questionBoundaries"
         const val KEY_SUBMISSION_OPEN = "submissionOpen"
         const val KEY_CODE = "code"
         const val KEY_DISPLAY_NAME = "displayName"
-        const val KEY_TURN_LEVEL = "turnLevel"
-        const val KEY_START_AT = "startAt"
-        const val KEY_QUESTION_TEXT = "questionText"
 
         val OPEN_DATA_KEYS =
             listOf(
                 KEY_REQUESTER_NAME,
                 KEY_AXES,
                 KEY_VIDEO_URL,
-                KEY_QUESTION_BOUNDARIES,
                 KEY_SUBMISSION_OPEN,
             )
         val REQUIRED_KEYS = listOf(KEY_GATE) + OPEN_DATA_KEYS

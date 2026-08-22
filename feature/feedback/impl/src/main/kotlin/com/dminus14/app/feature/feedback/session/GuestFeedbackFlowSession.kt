@@ -3,7 +3,6 @@ package com.dminus14.app.feature.feedback.session
 import com.dminus14.app.domain.model.GuestFeedbackAxis
 import com.dminus14.app.domain.model.GuestFeedbackAxisCode
 import com.dminus14.app.domain.model.GuestFeedbackEntry
-import com.dminus14.app.domain.model.GuestFeedbackQuestionBoundary
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import javax.inject.Inject
 
@@ -24,7 +23,6 @@ class GuestFeedbackFlowSession
                     requesterName = entry.requesterName,
                     axes = entry.axes,
                     videoUrl = entry.videoUrl,
-                    questionBoundaries = entry.questionBoundaries,
                 )
         }
 
@@ -72,7 +70,6 @@ data class GuestFeedbackFlowData(
     val requesterName: String,
     val axes: List<GuestFeedbackAxis>,
     val videoUrl: String,
-    val questionBoundaries: List<GuestFeedbackQuestionBoundary>,
     val nickname: String = "",
     val ratings: Map<GuestFeedbackAxisCode, GuestFeedbackRatingDraft> = emptyMap(),
 )

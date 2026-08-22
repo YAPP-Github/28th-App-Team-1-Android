@@ -4,12 +4,10 @@ import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackAxisCodeDto
 import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackAxisDto
 import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackEntryResponseDto
 import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackGateDto
-import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackQuestionBoundaryDto
 import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackRatingDto
 import com.dminus14.app.domain.model.GuestFeedbackAxis
 import com.dminus14.app.domain.model.GuestFeedbackAxisCode
 import com.dminus14.app.domain.model.GuestFeedbackEntry
-import com.dminus14.app.domain.model.GuestFeedbackQuestionBoundary
 import com.dminus14.app.domain.model.GuestFeedbackRating
 import com.dminus14.app.domain.model.GuestFeedbackUnavailableReason
 
@@ -26,10 +24,6 @@ internal fun GuestFeedbackEntryResponseDto.toDomain(): GuestFeedbackEntry =
                 requesterName = checkNotNull(requesterName),
                 axes = checkNotNull(axes).map(GuestFeedbackAxisDto::toDomain),
                 videoUrl = checkNotNull(videoUrl),
-                questionBoundaries =
-                    checkNotNull(questionBoundaries).map(
-                        GuestFeedbackQuestionBoundaryDto::toDomain,
-                    ),
                 submissionOpen = checkNotNull(submissionOpen),
             )
         }
@@ -82,13 +76,6 @@ private fun GuestFeedbackAxisCode.toDto(): GuestFeedbackAxisCodeDto =
         GuestFeedbackAxisCode.GESTURE -> GuestFeedbackAxisCodeDto.GESTURE
         GuestFeedbackAxisCode.VOICE -> GuestFeedbackAxisCodeDto.VOICE
     }
-
-private fun GuestFeedbackQuestionBoundaryDto.toDomain(): GuestFeedbackQuestionBoundary =
-    GuestFeedbackQuestionBoundary(
-        turnLevel = turnLevel,
-        startAt = startAt,
-        questionText = questionText,
-    )
 
 private fun unavailable(reason: GuestFeedbackUnavailableReason): GuestFeedbackEntry =
     GuestFeedbackEntry.Unavailable(reason)
