@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -168,6 +169,9 @@ internal fun HomeContent(
     val density = LocalDensity.current
     var topBarBottomPx by remember { mutableFloatStateOf(Float.NaN) }
     var sheetAnchor by remember { mutableStateOf(HomeSheetAnchor.Peek) }
+    // Peek(0f)→Expanded(1f) 진행률. 앵커가 settle 됐을 때만 바뀌는 sheetAnchor 와 달리 드래그·
+    // snap 애니메이션 매 프레임 갱신돼, 탑바 그림자가 시트 높이에 실시간으로 붙어 움직인다(#199).
+    var shadowAlpha by remember { mutableFloatStateOf(0f) }
     val expandedTopPx =
         if (topBarBottomPx.isNaN()) {
             with(density) { FallbackExpandedTop.toPx() }
@@ -194,12 +198,13 @@ internal fun HomeContent(
                         sheetAnchor = anchor
                         if (anchor == HomeSheetAnchor.Collapsed) callbacks.onReportSheetCollapsed()
                     },
+                    onExpandProgressChange = { shadowAlpha = it },
                 ),
             modifier = Modifier.fillMaxSize(),
         )
 
         HomeTopBar(
-            showExpandedShadow = sheetAnchor == HomeSheetAnchor.Expanded,
+            shadowAlpha = shadowAlpha,
             onBottomPositioned = { topBarBottomPx = it },
             onMyPageClick = callbacks.onMyPageClick,
             modifier =
@@ -273,7 +278,7 @@ private fun HomeLoadingOverlay() {
 
 @Composable
 private fun HomeTopBar(
-    showExpandedShadow: Boolean,
+    shadowAlpha: Float,
     onBottomPositioned: (Float) -> Unit,
     onMyPageClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -286,23 +291,24 @@ private fun HomeTopBar(
                     onBottomPositioned(coordinates.positionInRoot().y + coordinates.size.height)
                 },
         )
-        if (showExpandedShadow) {
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(TopBarShadowHeight)
-                        .background(
-                            Brush.verticalGradient(
-                                colors =
-                                    listOf(
-                                        TopBarExpandedShadowColor,
-                                        TopBarExpandedShadowColor.copy(alpha = 0f),
-                                    ),
-                            ),
+        // 시트 높이(Peek→Expanded 진행률)에 그대로 붙어 애니메이션되도록 항상 그리고
+        // alpha 만 바꾼다. if 로 껐다 켰다 하면 그 시점의 조성/해제 자체가 끊겨 보인다(#199).
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(TopBarShadowHeight)
+                    .alpha(shadowAlpha)
+                    .background(
+                        Brush.verticalGradient(
+                            colors =
+                                listOf(
+                                    TopBarExpandedShadowColor,
+                                    TopBarExpandedShadowColor.copy(alpha = 0f),
+                                ),
                         ),
-            )
-        }
+                    ),
+        )
     }
 }
 
