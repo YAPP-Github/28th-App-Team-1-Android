@@ -134,6 +134,59 @@ class HomeViewModelTest {
         }
 
     @Test
+    fun `리포트 상세를 봤다가 홈으로 돌아와 Load가 재발행돼도 사용자가 펼친 카드 상태가 유지된다`() =
+        runViewModelTest {
+            val viewModel =
+                createViewModel(
+                    interviewRepository =
+                        FakeInterviewRepository(
+                            reportListResult =
+                                Result.success(
+                                    InterviewReportList(
+                                        reports =
+                                            listOf(reportItem(1L), reportItem(2L), reportItem(3L)),
+                                    ),
+                                ),
+                        ),
+                )
+
+            viewModel.onIntent(HomeIntent.Load)
+            advanceUntilIdle()
+            viewModel.onIntent(HomeIntent.ClickReportExpand("2"))
+            assertEquals(setOf("1", "2"), viewModel.state.value.expandedReportIds)
+
+            // 리포트 상세로 이동했다가 뒤로가기로 홈에 재진입하면 HomeScreen의
+            // LaunchedEffect(Unit)이 다시 실행돼 Load가 한 번 더 발행된다.
+            viewModel.onIntent(HomeIntent.Load)
+            advanceUntilIdle()
+
+            assertEquals(setOf("1", "2"), viewModel.state.value.expandedReportIds)
+        }
+
+    @Test
+    fun `재조회 사이 삭제된 리포트 id는 펼침 상태에서도 제거된다`() =
+        runViewModelTest {
+            val firstReports =
+                Result.success(
+                    InterviewReportList(reports = listOf(reportItem(1L), reportItem(2L))),
+                )
+            val fakeRepository = FakeInterviewRepository(reportListResult = firstReports)
+            val viewModel = createViewModel(interviewRepository = fakeRepository)
+
+            viewModel.onIntent(HomeIntent.Load)
+            advanceUntilIdle()
+            viewModel.onIntent(HomeIntent.ClickReportExpand("2"))
+            assertEquals(setOf("1", "2"), viewModel.state.value.expandedReportIds)
+
+            fakeRepository.reportListResult =
+                Result.success(InterviewReportList(reports = listOf(reportItem(1L))))
+            viewModel.onIntent(HomeIntent.Load)
+            advanceUntilIdle()
+
+            assertEquals(setOf("1"), viewModel.state.value.expandedReportIds)
+        }
+
+    @Test
     fun `리포트 조회가 실패해도 빈 목록으로 처리되고 Effect는 발행되지 않는다`() =
         runViewModelTest {
             val viewModel =
@@ -1200,7 +1253,7 @@ class HomeViewModelTest {
     }
 
     private class FakeInterviewRepository(
-        private val reportListResult: Result<InterviewReportList> =
+        var reportListResult: Result<InterviewReportList> =
             Result.success(InterviewReportList(reports = emptyList())),
         private val resumeResult: Result<InterviewResumeStatus>? = null,
         private val abandonResult: Result<InterviewAbandon>? = null,
