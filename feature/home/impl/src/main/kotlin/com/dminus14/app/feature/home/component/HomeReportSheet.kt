@@ -70,6 +70,12 @@ data class HomeReportSheetCallbacks(
     val onReportExpandClick: (String) -> Unit,
     val onReportActionClick: (String) -> Unit,
     val onSheetAnchorChange: (HomeSheetAnchor) -> Unit = {},
+    /**
+     * 시트가 Peek(0f)에서 Expanded(1f)로 얼마나 다가갔는지. 드래그·snap 애니메이션 매 프레임마다
+     * 호출돼 상위(HomeTopBar 그림자 등)가 이산적인 앵커 전환이 아니라 시트 높이에 연동한
+     * 연속적인 애니메이션을 만들 수 있게 한다(#199).
+     */
+    val onExpandProgressChange: (Float) -> Unit = {},
 )
 
 /** [HomeReportSheet] 표시 데이터·레이아웃 입력 묶음. */
@@ -109,6 +115,22 @@ fun HomeReportSheet(
     var sheetTopPx by remember { mutableFloatStateOf(0f) }
     val listState = rememberLazyListState()
     val currentSheetTopPx by rememberUpdatedState(sheetTopPx)
+    val currentOnExpandProgressChange by rememberUpdatedState(callbacks.onExpandProgressChange)
+    val currentExpandedTopPx by rememberUpdatedState(content.expandedTopPx)
+
+    // 드래그·snap 애니메이션 양쪽 경로가 전부 이 setter를 거치도록 해서, 시트가 움직일 때마다
+    // (매 프레임) Peek→Expanded 진행률도 같이 갱신된다. LaunchedEffect로 sheetTopPx 변화를
+    // 감지하는 방식은 드래그 중 매 픽셀마다 effect를 재시작해야 해서 이 방식을 택했다.
+    fun updateSheetTopPx(value: Float) {
+        sheetTopPx = value
+        currentOnExpandProgressChange(
+            expandProgressFor(
+                topPx = value,
+                expandedTopPx = currentExpandedTopPx,
+                peekTopPx = peekTopPx,
+            ),
+        )
+    }
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val sheetLayout =
@@ -120,13 +142,13 @@ fun HomeReportSheet(
                     maxHeight = maxHeight,
                     density = density,
                     currentSheetTopPx = { currentSheetTopPx },
-                    onSheetTopPxChange = { sheetTopPx = it },
+                    onSheetTopPxChange = ::updateSheetTopPx,
                     onAnchorSettled = { settledAnchor = it },
                 ),
             )
 
         LaunchedEffect(sheetLayout.anchors) {
-            sheetTopPx = settledAnchor.toTopPx(sheetLayout.anchors)
+            updateSheetTopPx(settledAnchor.toTopPx(sheetLayout.anchors))
         }
 
         LaunchedEffect(settledAnchor) {
@@ -154,7 +176,7 @@ fun HomeReportSheet(
                     onReportExpandClick = callbacks.onReportExpandClick,
                     onReportActionClick = callbacks.onReportActionClick,
                     getSheetTopPx = { currentSheetTopPx },
-                    onSheetTopPxChange = { value -> sheetTopPx = value },
+                    onSheetTopPxChange = ::updateSheetTopPx,
                     onDragEnd = sheetLayout.onDragEnd,
                     showDragHandleIndicator = sheetTopPx > sheetLayout.anchors.expandedTopPx,
                 ),
@@ -184,6 +206,20 @@ private data class HomeReportSheetLayoutParams(
     val onSheetTopPxChange: (Float) -> Unit,
     val onAnchorSettled: (HomeSheetAnchor) -> Unit,
 )
+
+/**
+ * 시트 top이 [peekTopPx](0f)에서 [expandedTopPx](1f)로 얼마나 다가갔는지 0f..1f로 정규화한다.
+ * Collapsed 쪽(peekTopPx보다 아래)은 전부 0f로 clamp — 탑바 그림자는 Peek→Expanded 구간에서만
+ * 의미가 있다.
+ */
+private fun expandProgressFor(
+    topPx: Float,
+    expandedTopPx: Float,
+    peekTopPx: Float,
+): Float {
+    if (peekTopPx <= expandedTopPx) return 0f
+    return ((peekTopPx - topPx) / (peekTopPx - expandedTopPx)).coerceIn(0f, 1f)
+}
 
 /**
  * 3-앵커와 snap 컨트롤러를 조립해서 반환.
