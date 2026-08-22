@@ -186,11 +186,6 @@ private fun JsonObject.requireExplicitNull(name: String) {
     if (!requiredElement(name).isJsonNull) throw contractError(name)
 }
 
-/** 키가 있을 때만 명시적 null인지 확인한다. 서버 계약에 없는 선택 키라 생략은 허용한다. */
-private fun JsonObject.requireExplicitNullIfPresent(name: String) {
-    if (has(name) && !get(name).isJsonNull) throw contractError(name)
-}
-
 /** 민감한 실제 값 없이 위반 필드명만 포함하는 파싱 오류를 생성한다. */
 private fun contractError(name: String): JsonParseException =
     JsonParseException("Guest Feedback 응답 계약을 위반한 필드가 있습니다: $name")

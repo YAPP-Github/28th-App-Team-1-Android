@@ -1,6 +1,5 @@
 package com.dminus14.app.data.remote.datasource
 
-import android.util.Log
 import com.dminus14.app.data.remote.api.GuestFeedbackApi
 import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackEntryResponseDto
 import com.dminus14.app.data.remote.dto.feedback.GuestFeedbackRatingDto
@@ -20,40 +19,39 @@ import javax.inject.Singleton
  */
 @Singleton
 class GuestFeedbackRemoteDataSourceImpl
-@Inject
-constructor(
-    private val guestFeedbackApi: GuestFeedbackApi,
-) : GuestFeedbackRemoteDataSource {
-    /** 공유 token의 진입 정보를 요청하고 adapter가 검증한 DTO를 반환한다. */
-    override suspend fun enter(token: String): GuestFeedbackEntryResponseDto {
-        Log.d("interview", "${token}")
-        val response = guestFeedbackApi.enter(token)
-        return response.data
-            ?: throw ServerException(
-                errCode = ApiErrorCode.SERVER_ERROR,
-                message = "Guest Feedback 진입 응답이 비어 있습니다.",
-            )
-    }
+    @Inject
+    constructor(
+        private val guestFeedbackApi: GuestFeedbackApi,
+    ) : GuestFeedbackRemoteDataSource {
+        /** 공유 token의 진입 정보를 요청하고 adapter가 검증한 DTO를 반환한다. */
+        override suspend fun enter(token: String): GuestFeedbackEntryResponseDto {
+            val response = guestFeedbackApi.enter(token)
+            return response.data
+                ?: throw ServerException(
+                    errCode = ApiErrorCode.SERVER_ERROR,
+                    message = "Guest Feedback 진입 응답이 비어 있습니다.",
+                )
+        }
 
-    /** nullable nickname과 comment 키를 보존하는 제출 요청을 조립해 전송한다. */
-    override suspend fun submit(
-        token: String,
-        nickname: String?,
-        ratings: List<GuestFeedbackRatingDto>,
-    ): GuestFeedbackSubmitResponseDto {
-        val response =
-            guestFeedbackApi.submit(
-                token = token,
-                request =
-                    GuestFeedbackSubmitRequestDto(
-                        nickname = nickname,
-                        ratings = ratings,
-                    ),
-            )
-        return response.data
-            ?: throw ServerException(
-                errCode = ApiErrorCode.SERVER_ERROR,
-                message = "Guest Feedback 제출 응답이 비어 있습니다.",
-            )
+        /** nullable nickname과 comment 키를 보존하는 제출 요청을 조립해 전송한다. */
+        override suspend fun submit(
+            token: String,
+            nickname: String?,
+            ratings: List<GuestFeedbackRatingDto>,
+        ): GuestFeedbackSubmitResponseDto {
+            val response =
+                guestFeedbackApi.submit(
+                    token = token,
+                    request =
+                        GuestFeedbackSubmitRequestDto(
+                            nickname = nickname,
+                            ratings = ratings,
+                        ),
+                )
+            return response.data
+                ?: throw ServerException(
+                    errCode = ApiErrorCode.SERVER_ERROR,
+                    message = "Guest Feedback 제출 응답이 비어 있습니다.",
+                )
+        }
     }
-}
