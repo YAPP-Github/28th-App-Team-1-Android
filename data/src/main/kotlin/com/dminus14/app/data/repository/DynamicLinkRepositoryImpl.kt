@@ -1,6 +1,7 @@
 package com.dminus14.app.data.repository
 
 import android.net.Uri
+import android.util.Log
 import com.chottulink.lib.ChottuLink
 import com.chottulink.lib.DynamicLink
 import com.dminus14.app.domain.repository.DynamicLinkRepository
@@ -26,21 +27,29 @@ class DynamicLinkRepositoryImpl
                     .createDynamicLink()
                     .setLink(Uri.parse(deepLink))
                     .setDomain(CHOTTULINK_DOMAIN)
-                    .setSelectedPath(CHOTTULINK_PATH)
                     .androidBehavior(DynamicLink.BEHAVIOR_APP)
                     .iosBehavior(DynamicLink.BEHAVIOR_APP)
                     .build()
                     .addOnSuccessListener { dynamicLink ->
                         continuation.resume(dynamicLink.uri.toString())
                     }.addOnFailureListener { error ->
+                        // 이 실패는 CreateFeedbackShareDynamicLinkUseCase 에서 원시 딥링크로
+                        // 조용히 대체되어 사용자에게 드러나지 않는다. 로그로라도 남기지 않으면
+                        // 대시보드 설정이 틀어져도 아무도 모른 채 공유 불가능한 raw 딥링크만
+                        // 계속 나가게 된다(#175 원인).
+                        Log.w(TAG, "ChottuLink createDynamicLink 실패: $deepLink", error)
                         continuation.resumeWithException(error)
                     }
             }
 
         private companion object {
-            // 대시보드에 등록된 ChottuLink 도메인: https://hilit.chottu.link/report
-            // setDomain()은 호스트만, 경로(report)는 setSelectedPath()로 분리해서 넘긴다.
+            private const val TAG = "DynamicLinkRepository"
+
+            // 대시보드에 등록된 ChottuLink 도메인.
+            // selectedPath 는 지정하지 않는다 — 이전에 "report"로 고정 지정했었는데, 이는 이
+            // 저장소를 쓰는 지인 피드백 공유 링크와 무관한 값이라 매번 생성이 실패하고
+            // (CreateFeedbackShareDynamicLinkUseCase 가) 공유 불가능한 원시 hilit:// 딥링크로
+            // 조용히 대체되고 있었다(#175).
             const val CHOTTULINK_DOMAIN = "hilit.chottu.link"
-            const val CHOTTULINK_PATH = "report"
         }
     }

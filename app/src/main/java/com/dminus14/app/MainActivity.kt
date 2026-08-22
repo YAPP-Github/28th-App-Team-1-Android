@@ -136,7 +136,10 @@ class MainActivity : ComponentActivity() {
                 link.scheme == FEEDBACK_SHARE_DEEP_LINK_SCHEME &&
                 link.host == FEEDBACK_SHARE_DEEP_LINK_HOST
         val token = link?.lastPathSegment
-        if (isFeedbackShareLink && token != null) {
+        // token 이 빈 문자열이면(예: 잘못 해석된 링크) EnterGuestFeedbackUseCase 가 네트워크 호출도
+        // 없이 검증 오류로 바로 실패해, 온보딩 화면을 열자마자 "링크를 다시 열어주세요" 에러
+        // 모달만 뜨는 혼란스러운 UX가 된다. 애초에 진입하지 않는 게 낫다.
+        if (isFeedbackShareLink && !token.isNullOrBlank()) {
             navigationState.navigator.goTo(FeedbackOnboarding(token))
         }
     }

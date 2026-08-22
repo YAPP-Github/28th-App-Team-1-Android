@@ -60,6 +60,25 @@
                     android:host="feedback"
                     android:scheme="hilit" />
             </intent-filter>
+
+            <!--
+              ChottuLink 동적 링크(hilit.chottu.link)용 App Link.
+              autoVerify 없이는 https 링크가 항상 브라우저로 새서, ChottuLink 랜딩 페이지의
+              JS 리다이렉트(비동기 fetch 이후 커스텀 스킴 이동)에만 의존하게 되는데 이게
+              브라우저에서 신뢰성 있게 앱을 열지 못했다(#175). assetlinks.json은
+              https://hilit.chottu.link/.well-known/assetlinks.json 에 이미 이 앱
+              패키지/서명으로 등록돼 있어 OS가 검증해 앱으로 바로 열 수 있다.
+            -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="hilit.chottu.link" />
+            </intent-filter>
         </activity>
 
         <activity
