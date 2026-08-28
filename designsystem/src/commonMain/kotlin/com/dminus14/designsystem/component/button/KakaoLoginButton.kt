@@ -29,10 +29,10 @@ import com.dminus14.designsystem.theme.HilitTheme
  * 카카오 로그인 전용 Large 버튼.
  *
  * Figma: ButtonLargeLogin (kakao)
- * - 노드 번호: 439-10207
+ * - 노드 번호: 443-5806
  * - 배경: kakao `#FEE500`
- * - 텍스트: `hilitBlack900` + `sub7`
- * - 아이콘: [HilitIconAsset.KakaoLogo] 24dp
+ * - 텍스트: `hilitBlack900` + `head4` (head4_sb_24)
+ * - 아이콘: [HilitIconAsset.KakaoLogo] 24dp, 34dp with-bg 컨테이너
  */
 @Composable
 fun KakaoLoginButton(
@@ -61,14 +61,19 @@ fun KakaoLoginButton(
             horizontalArrangement = Arrangement.spacedBy(KakaoLoginButtonContentGap),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            HilitIcon(
-                asset = HilitIconAsset.KakaoLogo,
-                contentDescription = null,
-                modifier = Modifier.size(HilitIconAsset.KakaoLogo.defaultSize),
-            )
+            Box(
+                modifier = Modifier.size(KakaoLoginButtonIconBoxSize),
+                contentAlignment = Alignment.Center,
+            ) {
+                HilitIcon(
+                    asset = HilitIconAsset.KakaoLogo,
+                    contentDescription = null,
+                    modifier = Modifier.size(34.dp),
+                )
+            }
             Text(
-                text = "카카오톡으로 로그인",
-                style = HilitTheme.typography.sub7,
+                text = "Sign in with Kakao",
+                style = HilitTheme.typography.head4,
                 color = HilitTheme.colors.hilitBlack900,
                 textAlign = TextAlign.Center,
             )
@@ -80,8 +85,9 @@ fun KakaoLoginButton(
 private val KakaoYellow = Color(0xFFFEE500)
 
 private val KakaoLoginButtonHorizontalPadding = 8.dp
-private val KakaoLoginButtonVerticalPadding = (16.5).dp
+private val KakaoLoginButtonVerticalPadding = 11.dp
 private val KakaoLoginButtonContentGap = 8.dp
+private val KakaoLoginButtonIconBoxSize = 34.dp
 
 @Preview(name = "KakaoLoginButton")
 @Composable
