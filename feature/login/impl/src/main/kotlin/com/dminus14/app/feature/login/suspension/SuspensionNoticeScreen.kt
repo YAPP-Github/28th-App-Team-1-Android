@@ -2,6 +2,7 @@ package com.dminus14.app.feature.login.suspension
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +17,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -32,14 +35,25 @@ fun SuspensionNoticeScreen(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
 
     SuspensionNoticeContent(
         onSendMailClick = {
             val intent =
                 Intent(Intent.ACTION_SENDTO).apply {
-                    data = Uri.parse("mailto:")
+                    data = Uri.parse("mailto:$SUPPORT_EMAIL")
+                    putExtra(Intent.EXTRA_EMAIL, arrayOf(SUPPORT_EMAIL))
                 }
-            runCatching { context.startActivity(intent) }
+            val launched = runCatching { context.startActivity(intent) }.isSuccess
+            if (!launched) {
+                clipboardManager.setText(AnnotatedString(SUPPORT_EMAIL))
+                Toast
+                    .makeText(
+                        context,
+                        "메일 앱을 열 수 없어 문의 이메일 주소를 복사했어요.",
+                        Toast.LENGTH_SHORT,
+                    ).show()
+            }
         },
         onHomeClick = onHomeClick,
         modifier = modifier,
@@ -111,7 +125,7 @@ private fun SuspensionNoticeBody() {
                     textAlign = TextAlign.Center,
                 )
                 Text(
-                    text = "문의 : [aiinterview.hilit@gmail.com]",
+                    text = "문의 : [$SUPPORT_EMAIL]",
                     style = HilitTheme.typography.body4,
                     color = HilitTheme.colors.gray500,
                     textAlign = TextAlign.Center,
@@ -121,6 +135,9 @@ private fun SuspensionNoticeBody() {
         }
     }
 }
+
+/** 정지 안내 화면 문의 수신 이메일. */
+private const val SUPPORT_EMAIL = "team@hilit.my"
 
 private val SuspensionNoticeIconSize = 24.dp
 
