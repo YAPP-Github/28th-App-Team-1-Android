@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -38,12 +39,15 @@ enum class TermBoxType {
 /**
  * 약관 동의 행.
  *
+ * `보기`를 제외한 행 전체가 하나의 [toggleable] 영역이라, 체크박스·문구·여백 어디를 눌러도
+ * 체크가 토글된다. `보기`는 별도 버튼으로 분리되어 자기 영역 탭만 [onViewClick]을 호출한다.
+ *
  * @param type 행 타입. 타이포와 `보기` 노출 여부를 결정한다
  * @param text 체크박스 옆에 표시할 문구
  * @param checked 체크 여부
- * @param onClick 체크박스 클릭 콜백. 체크 토글은 호출자가 상태를 갱신한다
+ * @param onClick 행(`보기` 영역 제외) 클릭 콜백. 체크 토글은 호출자가 상태를 갱신한다
  * @param modifier 외부 레이아웃 Modifier
- * @param onViewClick [TermBoxType.Term]의 문구와 `보기` 영역 클릭 콜백. 다른 타입에서는 사용되지 않는다
+ * @param onViewClick [TermBoxType.Term]의 `보기` 영역 클릭 콜백. 다른 타입에서는 사용되지 않는다
  */
 @Composable
 fun TermBox(
@@ -58,7 +62,16 @@ fun TermBox(
     val showViewLabel = type == TermBoxType.Term
 
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .toggleable(
+                    value = checked,
+                    interactionSource = null,
+                    indication = null,
+                    role = Role.Checkbox,
+                    onValueChange = { onClick() },
+                ),
         horizontalArrangement = Arrangement.spacedBy(TermBoxContentGap),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -70,33 +83,11 @@ fun TermBox(
                     HilitIconAsset.CheckboxUncheck
                 },
             contentDescription = null,
-            modifier =
-                Modifier
-                    .size(TermBoxCheckboxSize)
-                    .clickable(
-                        interactionSource = null,
-                        indication = null,
-                        role = Role.Checkbox,
-                        onClick = onClick,
-                    ),
+            modifier = Modifier.size(TermBoxCheckboxSize),
         )
 
         Row(
-            modifier =
-                Modifier
-                    .weight(1f)
-                    .then(
-                        if (showViewLabel) {
-                            Modifier.clickable(
-                                interactionSource = null,
-                                indication = null,
-                                role = Role.Button,
-                                onClick = onViewClick,
-                            )
-                        } else {
-                            Modifier
-                        },
-                    ),
+            modifier = Modifier.weight(1f),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -107,7 +98,15 @@ fun TermBox(
             )
 
             if (showViewLabel) {
-                TermBoxViewLabel()
+                TermBoxViewLabel(
+                    modifier =
+                        Modifier.clickable(
+                            interactionSource = null,
+                            indication = null,
+                            role = Role.Button,
+                            onClick = onViewClick,
+                        ),
+                )
             }
         }
     }

@@ -13,13 +13,13 @@ internal val KakaoLoginButtonStories =
         path = "Components/KakaoLoginButton",
         description =
             "카카오 로그인 Large 버튼. 카카오 옐로우 배경에 KakaoLogo 아이콘과 " +
-                "sub7 / hilitBlack900 텍스트를 가운데 정렬한다.",
+                "head4 / hilitBlack900 텍스트를 가운데 정렬한다.",
         stories =
             listOf(
                 Story(
                     id = "default",
                     title = "기본",
-                    description = "고정 문구 \"카카오톡으로 로그인\"을 사용하는 기본 상태.",
+                    description = "고정 문구 \"Sign in with Kakao\"를 사용하는 기본 상태.",
                 ) {
                     HilitTheme {
                         KakaoLoginButton(

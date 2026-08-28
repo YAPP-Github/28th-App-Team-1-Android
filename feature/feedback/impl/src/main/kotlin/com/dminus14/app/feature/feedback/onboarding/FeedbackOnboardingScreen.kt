@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -202,7 +203,10 @@ private fun NameEditorBottomSheetContent(
         modifier =
             modifier
                 .height(578.dp)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                // 시트 높이(578dp)는 유지하되 키보드가 열리면 그 높이 안에서 콘텐츠를 압축해
+                // '다음' 버튼과 입력 필드가 키보드에 가리지 않게 한다.
+                .imePadding(),
     ) {
         HilitText(
             text =

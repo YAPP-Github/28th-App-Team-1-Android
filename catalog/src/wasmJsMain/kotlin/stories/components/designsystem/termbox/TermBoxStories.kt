@@ -17,13 +17,16 @@ internal val TermBoxStories =
         path = "Components/TermBox",
         description =
             "약관 동의 행. AllAgree(sub7), Text(body3), Term(body3 + 보기) 타입과 " +
-                "checked 상태를 제공한다.",
+                "checked 상태를 제공한다. `보기`를 제외한 행 전체가 하나의 토글 영역이라 " +
+                "체크박스·문구 어디를 눌러도 체크가 토글된다.",
         stories =
             listOf(
                 Story(
                     id = "default",
                     title = "기본",
-                    description = "type / text / checked를 조작하는 TermBox.",
+                    description =
+                        "type / text / checked를 조작하는 TermBox. 행을 누르면 토글되고 " +
+                            "Term 타입의 `보기`만 별도 콜백을 호출한다.",
                 ) {
                     TermBoxCatalogAdapterControls(
                         initialArgs =

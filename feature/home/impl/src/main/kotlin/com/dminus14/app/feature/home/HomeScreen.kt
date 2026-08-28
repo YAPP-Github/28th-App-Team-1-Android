@@ -161,6 +161,7 @@ private fun DoubleBackToExitHandler() {
 }
 
 @Composable
+@Suppress("LongMethod")
 internal fun HomeContent(
     state: HomeState,
     callbacks: HomeContentCallbacks,
