@@ -32,7 +32,7 @@ import com.dminus14.designsystem.theme.HilitTheme
  * - 노드 번호: 443-5806
  * - 배경: kakao `#FEE500`
  * - 텍스트: `hilitBlack900` + `head4` (head4_sb_24)
- * - 아이콘: [HilitIconAsset.KakaoLogo] 24dp, 34dp with-bg 컨테이너
+ * - 아이콘: [HilitIconAsset.KakaoLogo] 34dp (Figma `logo/kakao` with-bg 프레임 크기에 맞춤)
  */
 @Composable
 fun KakaoLoginButton(
