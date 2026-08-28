@@ -29,10 +29,16 @@ class HilitMiniButtonTest {
     }
 
     @Test
-    fun `비활성 상태는 색상과 무관하게 흰 배경과 Gray 300 내용을 사용한다`() {
-        val style = hilitMiniButtonStyle(HilitMiniButtonColor.Green, colors, enabled = false)
+    fun `Light·Dark·Green은 비활성 시 흰 배경과 Gray 300 내용을 사용한다`() {
+        listOf(
+            HilitMiniButtonColor.Light,
+            HilitMiniButtonColor.Dark,
+            HilitMiniButtonColor.Green,
+        ).forEach { color ->
+            val style = hilitMiniButtonStyle(color, colors, enabled = false)
 
-        assertEquals(colors.hilitWhite, style.backgroundColor)
-        assertEquals(colors.gray300, style.contentColor)
+            assertEquals(colors.hilitWhite, style.backgroundColor)
+            assertEquals(colors.gray300, style.contentColor)
+        }
     }
 }
