@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.dminus14.app.feature.home.component
 
 import androidx.compose.foundation.background
