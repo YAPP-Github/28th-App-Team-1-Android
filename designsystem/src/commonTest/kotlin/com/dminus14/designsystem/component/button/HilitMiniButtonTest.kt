@@ -10,7 +10,7 @@ class HilitMiniButtonTest {
 
     @Test
     fun `Light는 Gray 100 배경과 Black 800 내용을 사용한다`() {
-        val style = hilitMiniButtonStyle(HilitMiniButtonColor.Light, colors)
+        val style = hilitMiniButtonStyle(HilitMiniButtonColor.Light, colors, enabled = true)
 
         assertEquals(colors.gray100, style.backgroundColor)
         assertEquals(colors.hilitBlack800, style.contentColor)
@@ -20,11 +20,19 @@ class HilitMiniButtonTest {
 
     @Test
     fun `Dark는 Gray 900 배경과 흰 내용을 사용한다`() {
-        val style = hilitMiniButtonStyle(HilitMiniButtonColor.Dark, colors)
+        val style = hilitMiniButtonStyle(HilitMiniButtonColor.Dark, colors, enabled = true)
 
         assertEquals(colors.gray900, style.backgroundColor)
         assertEquals(colors.hilitWhite, style.contentColor)
         assertEquals(8.dp, style.contentPadding)
         assertEquals(8.dp, style.contentSpacing)
+    }
+
+    @Test
+    fun `비활성 상태는 색상과 무관하게 흰 배경과 Gray 300 내용을 사용한다`() {
+        val style = hilitMiniButtonStyle(HilitMiniButtonColor.Green, colors, enabled = false)
+
+        assertEquals(colors.hilitWhite, style.backgroundColor)
+        assertEquals(colors.gray300, style.contentColor)
     }
 }
