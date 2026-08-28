@@ -13,6 +13,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -92,6 +93,9 @@ internal fun OnboardingContent(
             modifier
                 .fillMaxSize()
                 .background(HilitTheme.colors.hilitWhite)
+                // 키보드가 열리면 헤더~하단 버튼 전체를 IME 위로 올린다.
+                // 스텝 내부 필드는 weight 영역 안에서 자연스럽게 재중앙 정렬된다.
+                .imePadding()
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
