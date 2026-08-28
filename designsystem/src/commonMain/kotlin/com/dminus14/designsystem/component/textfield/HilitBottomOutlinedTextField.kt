@@ -3,6 +3,7 @@ package com.dminus14.designsystem.component.textfield
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
@@ -37,6 +38,9 @@ private val BottomOutlineThickness = 4.dp
  *
  * 기본적으로 가운데 정렬하여 사용하되, 만약 텍스트 필드 너비가 화면 너비를 초과할 경우
  * 이 때에는 좌우 패딩 `24.dp`를 적용하여야 한다.
+ *
+ * 키보드가 열리면 [imePadding]으로 하단 밑줄까지 IME 위로 밀어 올려, 무게추(`weight`)나
+ * 가운데 정렬된 부모 안에서 녹색 밑줄이 키보드에 가려지지 않게 한다.
  *
  * Figma 노드 번호: 935-13816, 935-13817.
  */
@@ -78,6 +82,7 @@ fun HilitBottomOutlinedTextField(
         onValueChange = onValueChange,
         modifier =
             modifier
+                .imePadding()
                 .width(measuredWidth)
                 .onFocusChanged { isFocused = it.isFocused }
                 .drawBehind {
